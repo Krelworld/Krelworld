@@ -715,8 +715,10 @@ npx vitest run tests/mobile tests/desktopNotPhone.test.ts   # flag, modes, layou
 
 npx vite --port 5202 --strictPort &                       # normal build
 VITE_KREL_ALT=1 npx vite --port 5212 --strictPort &       # ALT build
-node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,android,desktop]
+node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,together,android,desktop]
 node scripts/mobile-smoke.cjs --url http://localhost:5212/
+# (together: the two stage 2 tracks at once: bigger text in a fight, a conversation in a fight (pills, no fight
+#  buttons), PHONE SETTINGS live in a fight, pause -> CONTROLS on FIGHTS, the Krezz Arms brawl by tap)
 
 # the laptop must not change (both must end with DESKTOP FINGERPRINT: OK)
 A="--url http://localhost:5202/ --alt-url http://localhost:5212/ --check"

@@ -62,6 +62,10 @@
 //          in and heals; a touch in the gap goes to the nearest control; stick + FIRE + DODGE at once; pause, hidden
 //          and upright mid-fight, with no stuck input after each; toasts clear of the chip and pause; the boss bar up
 //          top and auto-fire on the boss; sizes, spacing and cover at 844x390, 750x340 and 740x360.
+// together the two stage 2 tracks at once (iPhone 14): bigger text on in a fight (HUD, buttons, READY, the picker
+//          fit); a conversation in a fight shows SKIP / LOG / AUTO and no fight button, its narrated CONTROLS line in
+//          touch words; pause -> PHONE SETTINGS changes auto-fire and button size live in the fight; pause -> CONTROLS
+//          opens the picture on FIGHTS; the Krezz Arms brawl says Tap and taps anywhere swing.
 // android  Android Chrome 740x360: a press held past the Enter gate's fade still gets fullscreen and the back guard;
 //          the guide's written steps leave fullscreen (and closing it goes back in); the crash guard's notices show
 //          in fullscreen; an in-app browser shows "open it in Chrome first" during the load.
@@ -81,7 +85,7 @@ const arg = (k, d) => {
 };
 const URL0 = arg("--url", "http://localhost:5202/");
 const SHOTS = arg("--shots", "");
-const ONLY = (arg("--only", "phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,android,desktop") || "").split(",").filter(Boolean);
+const ONLY = (arg("--only", "phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,together,android,desktop") || "").split(",").filter(Boolean);
 const IOS_UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1";
 const IPHONE = { viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, userAgent: IOS_UA };
 const DESKTOP = { viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1, hasTouch: false, isMobile: false };
@@ -3306,6 +3310,198 @@ async function brawl(browser) {
   }
 }
 
+// ------------------------------------------------------------------ the two stage 2 tracks together
+
+/** Screen-fixed texts of these scenes (game coordinates), for overflow checks. */
+const hudTexts = (ph, keys) =>
+  ph.ev((keys) => {
+    const g = window.__krel.game;
+    const out = [];
+    for (const k of keys) {
+      const sc = g.scene.getScene(k);
+      if (!sc || !g.scene.isActive(k)) continue;
+      const walk = (o) => {
+        if (o.visible === false || o.alpha === 0) return;
+        if (o.type === "Container" && o.list) for (const c of o.list) walk(c);
+        if (o.type !== "Text" || !o.text || !o.text.trim()) return;
+        const b = o.getBounds();
+        out.push({ t: o.text.slice(0, 40).replace(/\n/g, "/"), x: Math.round(b.x), y: Math.round(b.y), w: Math.round(b.width), h: Math.round(b.height) });
+      };
+      for (const o of sc.children.list) walk(o);
+    }
+    return out;
+  }, keys);
+const offGame = (ts) => ts.filter((t) => t.x < -1 || t.y < -1 || t.x + t.w > 961 || t.y + t.h > 541);
+/** DOM texts (CSS px) wider than their box or off the screen. */
+const domSpill = (ph, sel) =>
+  ph.ev((sel) => {
+    const out = [];
+    for (const e of document.querySelectorAll(sel)) {
+      const cs = getComputedStyle(e);
+      if (cs.display === "none" || cs.visibility === "hidden") continue;
+      if (![...e.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim())) continue;
+      const r = e.getBoundingClientRect();
+      if (r.width === 0) continue;
+      const wide = e.scrollWidth > e.clientWidth + 1;
+      const off = r.left < -1 || r.top < -1 || r.right > innerWidth + 1 || r.bottom > innerHeight + 1;
+      if (wide || off) out.push({ cls: String(e.className), t: e.textContent.trim().slice(0, 30), sw: e.scrollWidth, cw: e.clientWidth, off });
+    }
+    return out;
+  }, sel);
+
+async function together(browser) {
+  console.log("TOGETHER (the fights with the bigger text, the conversations, the Phone settings page and the Controls picture)");
+  const { ctx, page, ph, errors } = await phoneAtTitle(browser);
+  const ctlOf = async (id) => (await ph.snap()).controls.find((c) => c.id === id);
+  const mid = (c) => [c.face.x + c.face.w / 2, c.face.y + c.face.h / 2];
+  try {
+    await ph.ev(() => window.__krelMobile.setInsets({ top: 0, right: 47, bottom: 21, left: 47 }));
+    check("bigger text (readability) is on, as by default", await ph.ev(() => window.__krelMobile.readability.on));
+    check("a top-down fight (Wildern, chapter 2 kit) reached", await toFight(ph, "wildern", 0, 2, "MIKEY"), await ph.mode());
+    await sleep(1200);
+    let ts = await hudTexts(ph, ["UI"]);
+    check("bigger text in a fight: every HUD text on the screen", ts.length >= 3 && offGame(ts).length === 0, offGame(ts));
+    check("bigger text in a fight: no fight button's word wider than the button", (await domSpill(ph, ".kt *")).length === 0, await domSpill(ph, ".kt *"));
+    await ph.ev(() => {
+      window.__krel.G.rt.wonk = 999;
+      window.__krel.G.rt.fart = 4;
+    });
+    await sleep(1500);
+    const ready = await ctlOf("c-ready");
+    ts = await hudTexts(ph, ["UI"]);
+    check("specials ready: READY up with its word, HUD and buttons still fit", !!ready && ready.shown && !!ready.label && offGame(ts).length === 0 && (await domSpill(ph, ".kt *")).length === 0, { ready: ready && ready.label, off: offGame(ts) });
+    await ph.ev(() => {
+      window.__krel.G.rt.wonk = 0;
+      window.__krel.G.rt.fart = 0;
+    });
+    await ph.ev(() => window.__krel.game.scene.getScene("Dungeon").openWeaponPicker());
+    await ph.scene("WeaponPick");
+    await sleep(800);
+    check("the weapon picker with bigger text: its texts on the screen, CLOSE fits", offGame(await hudTexts(ph, ["WeaponPick"])).length === 0 && (await domSpill(ph, ".kt *")).length === 0);
+    await ph.tapCss(...mid(await ctlOf("c-fire")));
+    await ph.until(() => !window.__krel.active().includes("WeaponPick"), null, 15000, "the picker to close").catch(() => {});
+    await sleep(600);
+    // a conversation inside the fight: its pills, never the fight buttons; the narrated CONTROLS line in touch words
+    await ph.ev(() => {
+      const d = window.__krel.game.scene.getScene("Dungeon");
+      window.__talkDone = false;
+      d.talk([
+        { s: "NARRATOR", t: "CONTROLS: WASD move · Mouse aim · Left click attack · Right click / F special · Space dodge · Q pussy juice · B fizzy bongo · R Krezz Burst (full Wonk) · E interact · Esc pause", dir: true },
+        { s: "NARRATOR", t: "A second line.", dir: true },
+      ]).then(() => (window.__talkDone = true));
+    });
+    await ph.scene("Dialogue");
+    await sleep(1200);
+    const st = await ph.ev(() => {
+      const snap = window.__krelMobile.snapshot();
+      const pills = [...document.querySelectorAll(".kd-pill.show")].map((e) => e.className);
+      const said = [];
+      const walk = (o) => {
+        if (o.list) for (const c of o.list) walk(c);
+        if (o.type === "Text" && /CONTROLS/.test(o.text)) said.push(o.text);
+      };
+      for (const sc of window.__krel.game.scene.getScenes(true)) for (const o of sc.sys.displayList.list) walk(o);
+      return { mode: snap.decision.mode, fightShown: snap.controls.filter((c) => c.shown && c.id.startsWith("c-")).map((c) => c.id), pills, said };
+    });
+    check("a conversation in a fight: SKIP / LOG / AUTO up, no fight button", st.mode === "none" && st.fightShown.length === 0 && st.pills.length >= 3, st);
+    check("the dungeon's narrated CONTROLS line names the phone's controls", st.said.some((t) => /drag on the left/.test(t)) && !st.said.some((t) => /WASD/.test(t)), st.said);
+    for (let i = 0; i < 12 && !(await ph.ev(() => window.__talkDone)); i++) {
+      await ph.tapSel(".kd-skip").catch(() => ph.tapCss(560, 150));
+      await sleep(700);
+    }
+    const back = await ph.until(() => window.__krelMobile.snapshot().decision.mode === "combat", null, 15000, "combat").then(() => true, () => false);
+    check("SKIP ends it: the pills go, the fight buttons come back", (await ph.ev(() => window.__talkDone)) && back && !(await ph.ev(() => window.__krelMobile.dialogue.snapshot().showing)));
+    // the Phone settings page from the fight's pause menu changes the fight at once
+    const fire0 = await ctlOf("c-fire");
+    await ph.tapCss(...mid(await ctlOf("pause")));
+    await ph.scene("Menu");
+    await sleep(900);
+    await ph.tapText("PHONE SETTINGS", { scene: "Menu" });
+    await sleep(700);
+    check("pause in a fight has PHONE SETTINGS, which opens the page", await ph.ev(() => window.__krelMobile.settingsPage.isOpen));
+    const tapIn = async (key, word) => {
+      const r = await ph.ev(
+        ({ key, word }) => {
+          const row = document.querySelector(`.kps-row[data-key=${key}]`);
+          const b = row && (word ? [...row.querySelectorAll("button")].find((x) => x.textContent.trim() === word) : row.querySelector(".kps-sw") || row);
+          if (!b) return null;
+          b.scrollIntoView({ block: "center" });
+          const q = b.getBoundingClientRect();
+          return { x: q.x + q.width / 2, y: q.y + q.height / 2 };
+        },
+        { key, word },
+      );
+      if (!r) throw new Error(`no ${key} ${word}`);
+      await ph.tapCss(r.x, r.y);
+      await sleep(400);
+    };
+    const af0 = await ph.ev(() => window.__krelMobile.settings.get().autoFire);
+    await tapIn("autoFire");
+    await tapIn("buttonSize", "L");
+    const s1 = await ph.ev(() => window.__krelMobile.settings.get());
+    check("the page's auto-fire and button size rows change the settings", s1.autoFire === !af0 && s1.buttonSize === "L", { af0, autoFire: s1.autoFire, buttonSize: s1.buttonSize });
+    await ph.tapSel(".kps-done");
+    await sleep(500);
+    await ph.tapText("RESUME", { scene: "Menu" });
+    await ph.until(() => window.__krelMobile.snapshot().decision.mode === "combat", null, 20000, "the fight after RESUME");
+    await sleep(800);
+    const fire1 = await ctlOf("c-fire");
+    ts = await hudTexts(ph, ["UI"]);
+    check("back in the fight: the bigger buttons at once, and HUD and buttons still fit", fire1.face.w > fire0.face.w + 2 && offGame(ts).length === 0 && (await domSpill(ph, ".kt *")).length === 0, { before: fire0.face.w, after: fire1.face.w });
+    await ph.ev(() => window.__krelMobile.settings.set({ buttonSize: "M", autoFire: true }));
+    await sleep(300);
+    // pause → CONTROLS: the picture, on the fight's tab, its words fit
+    await ph.tapCss(...mid(await ctlOf("pause")));
+    await ph.scene("Menu");
+    await sleep(900);
+    await ph.tapText("CONTROLS", { scene: "Menu" });
+    await sleep(800);
+    const pic = await ph.ev(() => window.__krelMobile.picture.snapshot());
+    const spill = await domSpill(ph, ".kcp-row *, .kcp-tab, .kcp-x, .kcp-foot");
+    check("pause → CONTROLS in a fight: the picture opens on FIGHTS, and its words fit", pic.open && pic.tab === "fight" && pic.dots >= 6 && spill.length === 0, { pic, spill });
+    await ph.tapSel(".kcp-x");
+    await sleep(400);
+    await ph.tapText("RESUME", { scene: "Menu" });
+    await sleep(600);
+    // the Krezz Arms brawl: taps swing (no buttons, no keys in its line)
+    await runInto(ph, "Pub", "s.intoxication = 80;");
+    await ph.scene("Pub");
+    await sleep(2500);
+    await ph.ev(() => {
+      const p = window.__krel.game.scene.getScene("Pub");
+      window.__brawlDone = false;
+      p.brawl().then(() => (window.__brawlDone = true));
+    });
+    let hud = null;
+    for (let i = 0; i < 40 && !hud; i++) {
+      hud = await ph.ev(() => {
+        const t = window.__krel.game.scene.getScene("Pub").children.list.find((o) => o.type === "Text" && /^BRAWL!|LAST ONE/.test(o.text));
+        return t ? t.text : null;
+      });
+      if (!hud) {
+        await ph.tapCss(420, 200);
+        await sleep(700);
+      }
+    }
+    const m = await ph.mode();
+    check("the Krezz Arms brawl: its line says Tap (no SPACE), and no buttons cover the room", !!hud && /Tap/.test(hud) && !/SPACE/.test(hud) && m.startsWith("none"), { hud, mode: m });
+    const left0 = Number((/(\d) still standing/.exec(hud || "") || [0, 4])[1]);
+    for (let i = 0; i < 16; i++) {
+      await ph.tapCss(300 + (i % 4) * 90, 250);
+      await sleep(150);
+    }
+    const hud2 = await ph.ev(() => {
+      const t = window.__krel.game.scene.getScene("Pub").children.list.find((o) => o.type === "Text" && /^BRAWL!|LAST ONE/.test(o.text));
+      return t ? t.text : "(gone)";
+    });
+    const left1 = /LAST ONE|gone/.test(hud2) ? 0 : Number((/(\d) still standing/.exec(hud2) || [0, 9])[1]);
+    check("taps anywhere swing: the crowd goes down", left1 < left0, { hud, hud2 });
+    check("no page errors", errors.length === 0, errors.slice(0, 3));
+  } finally {
+    await ctx.close();
+  }
+}
+
 async function android(browser) {
   console.log("ANDROID (Chrome 740x360)");
   const AND = { ...ANDROID, userAgent: UA.androidChrome };
@@ -3491,6 +3687,7 @@ async function desktop(browser) {
       ["combat", combat],
       ["side", sideRooms],
       ["brawl", brawl],
+      ["together", together],
       ["android", android],
       ["desktop", desktop],
     ]) {

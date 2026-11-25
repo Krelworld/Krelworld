@@ -4654,7 +4654,8 @@ async function mix3(browser) {
     check("mix3: Home reaches walk mode (start)", await toWalk(ph, "Home"), await ph.mode());
     await ph.ev(() => window.__krel.game.scene.start("TV", { fromTitle: true, episode: "tcc_ep7" }));
     await ph.scene("TV");
-    await ph.until(() => Object.keys(window.__krel.game.textures.list).some((k) => k.startsWith("tvface_") && !window.__krelMobile.art.isParked(k)), null, 20000, "a face").catch(() => 0);
+    await ph.until(() => Object.keys(window.__krel.game.textures.list).some((k) => k.startsWith("tvface_") && !window.__krelMobile.art.isParked(k) && window.__krel.game.textures.get(k).getSourceImage() instanceof HTMLImageElement), null, 25000, "a face").catch(() => 0);
+    await sleep(1500);
     const live1 = await ph.ev(() => Object.keys(window.__krel.game.textures.list).filter((k) => k.startsWith("tvface_") && !window.__krelMobile.art.isParked(k)).length);
     await ph.ev(() => window.__krel.game.scene.stop("TV"));
     await sleep(500);
@@ -4675,13 +4676,13 @@ async function mix3(browser) {
     await sleep(800);
     await ph.ev(() => window.__krel.game.scene.start("TV", { fromTitle: true, episode: "tcc_ep7" }));
     await ph.scene("TV");
-    // (a face is drawn a few seconds into the show: wait for one, up to 20 s)
-    await ph.until(() => Object.keys(window.__krel.game.textures.list).some((k) => k.startsWith("tvface_") && !window.__krelMobile.art.isParked(k)), null, 20000, "a face").catch(() => 0);
+    // (a face is drawn a few seconds into the show and then fetched: wait for a real picture, up to 25 s)
+    await ph.until(() => Object.keys(window.__krel.game.textures.list).some((k) => k.startsWith("tvface_") && !window.__krelMobile.art.isParked(k) && window.__krel.game.textures.get(k).getSourceImage() instanceof HTMLImageElement), null, 25000, "a face").catch(() => 0);
     const back = await ph.ev(() => {
       const r = window.__krelMobile.art.report();
       const live = Object.keys(window.__krel.game.textures.list).filter((k) => k.startsWith("tvface_") && !window.__krelMobile.art.isParked(k));
-      const t = live[0] && window.__krel.game.textures.get(live[0]);
-      return { live: live.length, real: t ? t.getSourceImage() instanceof HTMLImageElement : false, failed: r.failed, streamed: r.streamed, active: window.__krel.active() };
+      const real = live.filter((k) => window.__krel.game.textures.get(k).getSourceImage() instanceof HTMLImageElement).length;
+      return { live: live.length, real: real > 0, failed: r.failed, streamed: r.streamed, active: window.__krel.active() };
     });
     check("mix3: the parked faces are fetched back when the show is on again (real pictures, none failed)", back.live > 0 && back.real && back.failed === 0, back);
     await ph.ev(() => window.__krel.game.scene.stop("TV"));
@@ -4738,8 +4739,9 @@ async function mix3(browser) {
     check("mix3: the Hub reaches walk mode", await toWalk(ph, "Hub"), await ph.mode());
     await ph.ev(() => window.__krelMobile.setInsets({ top: 0, right: 47, bottom: 21, left: 47 }));
     await sleep(800);
-    const far = await tapThing(ph, null, (all) => all.filter((t) => t.far > 200 && t.page.x > 200 && t.page.x < 760 && t.page.y > 80 && t.page.y < 340).sort((a, b) => b.far - a.far)[0]).catch((e) => ({ err: String(e.message) }));
-    await sleep(500);
+    // (the farthest person or door on screen, not a telly: a telly's prompt reaches far, so the walk could end first)
+    const far = await tapThing(ph, null, (all) => all.filter((t) => t.far > 200 && !/KrelTV/.test(t.tag) && t.page.x > 200 && t.page.x < 760 && t.page.y > 80 && t.page.y < 340).sort((a, b) => b.far - a.far)[0]).catch((e) => ({ err: String(e.message) }));
+    await sleep(150);
     const hb = await tapState(ph);
     const sz = (await ph.snap()).zone;
     const sx = sz.x + sz.w * 0.5;

@@ -84,3 +84,17 @@ Each line: where it came from, what is wrong, what the stage should do. Ids are 
   test a finger-is-the-crosshair scheme (touch and drag anywhere = aim there and fire; a ROCKET button in the corner)
   against auto-aim, play both, and pick what feels best. Apply the same test to every other "stationary gunner" section
   (the plane cannon, any turret or on-rails shooter), and say which scheme each one got and why.
+- **Tap the thing to use it, from anywhere (TOP PRIORITY for stage 3).** The user: "on the phone I think like, you
+  should consider areas where you can tap environmental things to interact with them in addition to being able to walk
+  up to them. Seems like being able, to example, to touch things at home should allow you to interact with them".
+  Today (stage 1, P5) a tap on a thing only works once you are already standing at it. Build: on phones, in every
+  walking scene (Home first, then the Hub, interiors, the Club, the Venue, Kreddle, Polson Towers, the Pub and the rest),
+  tapping any interactable thing or person (the telly, the book, the gun rack, the wardrobe, the fridge, the laptop, the
+  bed, doors, NPCs...) walks the player there by itself and then uses it, like a point-and-click game. Show a small
+  highlight on what was tapped. Walking with the stick cancels it. Taps on empty floor do nothing (or, if it feels
+  right, walk there). Generous tap areas on small things (at least 44 CSS px). Laptop unchanged. Close the P5
+  remainder (Club, Venue and Kreddle people) as part of this.
+- **TV guide scrolling (check).** The user, on the live stage 1 build: "scrolling doesn't work in that screen, if you
+  try to scroll it just plays the point in the screen that your thumb tries to scroll from". Stage 2's native-scroll
+  TV guide should fix this: confirm on the iPhone profile by touch, from the title AND from a room TV, that a drag
+  scrolls and never plays a show, and only a still tap plays.

@@ -54,3 +54,24 @@ What to build (phones only; laptop unchanged; in src/game/mobile/):
 - Check the plumbing so the result is good once added: the web app manifest (name, icons, display fullscreen/standalone, landscape orientation, start_url and scope correct for BOTH sites: the main site lives under /Krelworld/ and the alt site at the root), the apple-touch-icon and Apple web-app meta tags (index.html must not be edited: if tags are missing, add them at runtime on phones and verify iOS picks them up, or report it), a sensible status-bar style, and that the home-screen app starts in landscape with the picture filling the screen.
 - SAVES: verify and handle this. On iPhone a home-screen web app has its own storage, separate from Safari, so a game started in Safari does not appear in the home-screen app. That is why the guide appears BEFORE the first game, and it must say so plainly ("Add it first: saves made in the browser stay in the browser"). If that separation is confirmed, also tell a player who already has a save in the browser what will happen. On Android installed apps share the browser's storage. Confirm both with sources or tests; never claim it without checking.
 - Test it: screenshots of every variant of the guide (iPhone Safari, iPhone Chrome, in-app browser, Android Chrome with and without the install prompt, Samsung Internet) at 844x390, 740x360 and in portrait; the entry in the title and pause menus; that it does not show when standalone.
+
+## Latest feedback from the user, playing the live stage 1 build on their iPhone (2026-11-25): every reviewer and builder must act on these
+
+1. **Dungeon buttons cluttering the right side.** The user: "right now in dungeons on right hand side of the screen you
+   can see a bunch of bubbles for every potential special even when they're not active, can you make sure reviewing
+   playability here is part of the audit, and just making sure a good option is settled on for UI in the phone version".
+   (On live this is the OLD canvas pad, which stage 2 replaces.) Reviewers: judge the stage 2 fight controls against
+   this complaint specifically. Count how many controls are on screen in a typical top-down room, a boss fight and a
+   side room when nothing special is ready; a control for an ability that cannot be used right now should not take up
+   space (hide it, or keep it out of the way until it is ready, like the READY slot). The fight screen should look clean
+   and calm until something matters. Settle on ONE clear option and say why it is right.
+2. **Tap things to use them.** The user: "you should consider areas where you can tap environmental things to interact
+   with them in addition to being able to walk up to them. Seems like being able, to example, to touch things at home
+   should allow you to interact with them". Planned as stage 3's first item (see DEFERRED.md); reviewers of stage 2
+   should note anywhere it would obviously help.
+3. **TV guide scrolling.** The user: "scrolling doesn't work in that screen, if you try to scroll it just plays the point
+   in the screen that your thumb tries to scroll from". Stage 2's native-scroll guide must fix this: a drag scrolls and
+   never plays; only a still tap plays. Check from the title AND from a room TV.
+4. **Add to Home Screen on newer iPhones:** page button left of the address bar, then Share, then View More, then
+   Add to Home Screen (added to the guide in 9770d543).
+5. **Manual aim where you can't move** (Night of Freedom): stage 3, see DEFERRED.md.

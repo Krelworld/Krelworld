@@ -14,6 +14,7 @@ import { stepKit } from "./kit";
 import { createBus, driveBus, installBus, stepBus, stepBusSanctions } from "./bus";
 import { installKickoff, stepKickoff } from "./kickoff";
 import { installKnife, stepArmed } from "./knife";
+import { installGloryHole } from "./gloryhole";
 import { installReactions, installRules, SHOPS, stepRules } from "./rules";
 import { isSecurity, stepDetention, stepSecurity } from "./security";
 import type { StadiumState } from "./state";
@@ -36,7 +37,7 @@ export const HALF_SECONDS = 450;
 export const HALFTIME_SECONDS = 150;
 
 export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: Campaign = newCampaign()): Game {
-  if (!rulesInstalled) { installRules(); installBetting(); installPolice(); installBus(); installDog(); installKickoff(); installKnife(); rulesInstalled = true; }
+  if (!rulesInstalled) { installRules(); installBetting(); installPolice(); installBus(); installDog(); installKickoff(); installKnife(); installGloryHole(); rulesInstalled = true; }
   setVenue(venueId);
   const oppKey = VENUE.opp;
   const opp = TEAMS[oppKey];

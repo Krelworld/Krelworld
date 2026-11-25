@@ -44,7 +44,7 @@ mkdirSync("dist/stadium/icons", { recursive: true });
 for (const f of readdirSync("assets/icons")) if (f.endsWith(".png")) copyFileSync(`assets/icons/${f}`, `dist/stadium/icons/${f}`);
 mkdirSync("dist/stadium/world", { recursive: true });
 for (const f of ["coach-8.png", "lorry-8.png"]) copyFileSync(`assets/world/${f}`, `dist/stadium/world/${f}`);
-for (const d of ["kit", "tiles"]) {
+for (const d of ["kit", "tiles", "scenes"]) {
   mkdirSync(`dist/stadium/${d}`, { recursive: true });
   for (const f of readdirSync(`assets/${d}`)) if (f.endsWith(".png")) copyFileSync(`assets/${d}/${f}`, `dist/stadium/${d}/${f}`);
 }

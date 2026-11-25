@@ -48,6 +48,7 @@ export const ITEM_DEFS: Record<string, ItemDef> = Object.fromEntries(
     { id: "tea_urn", name: "Referee's tea urn", props: ["spikable"], size: "huge", colour: 0xa0a0a0 },
     { id: "betslip", name: "Betting slip", props: ["valuable"], size: "small", colour: 0xf5e6a8 },
     // Taken from the dead.
+    { id: "censored_bar", name: "Censored bar", props: ["throwable", "grisly"], size: "small", colour: 0x0a0a0a },
     { id: "face", name: "Somebody's face", props: ["wearable", "grisly"], size: "small", slot: "face", colour: 0xe0a890, faceCover: 0 },
     { id: "hands", name: "Somebody's hands", props: ["grisly"], size: "small", colour: 0xe0a890 },
     { id: "locker", name: "Confiscation locker", props: ["container"], size: "huge", colour: 0x555b66 },

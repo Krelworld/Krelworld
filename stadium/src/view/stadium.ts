@@ -31,6 +31,8 @@ import { Audio, VOICES, type Clip } from "./audio";
 import { Drive3D, type DriveView } from "./drive3d";
 import { CELL, dirIndex, FEET, HEAD, SpriteBank, type Base, type Recolour } from "./sprites";
 import { buildings, placements, WorldArt, type Placement } from "./world";
+import { Stall } from "./stall";
+import { holeState, inCubicle, knifeOn } from "../stadium/gloryhole";
 import { CAP, ensureFloor, ensureMaterials, facade, floodlight, matOf, adBoard, banner, pixelText as pixelTextOn, PPM, roof, TILE_FILES, type BuildingSpec } from "./build";
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -53,7 +55,7 @@ interface TickerLine { text: string; src: string; big: boolean }
 
 /** A PixelLab picture of an item, if there is one. */
 const ICONS = new Set(["pint", "pie", "knife", "whistle", "ticket", "wallet", "laxative", "powder", "shirt_eng", "shirt_por", "shirt_bra", "shirt_arg", "police_uniform", "kit_eng", "kit_opp",
-  "staff_pass", "hivis", "ref_kit", "police_hat", "mask", "flat_cap", "sunglasses", "moustache", "tracksuit", "chef_whites", "overalls", "balaclava", "hammer", "flare", "betslip", "face", "hands"]);
+  "staff_pass", "hivis", "ref_kit", "police_hat", "mask", "flat_cap", "sunglasses", "moustache", "tracksuit", "chef_whites", "overalls", "balaclava", "hammer", "flare", "betslip", "face", "hands", "censored_bar"]);
 const icon = (def: string) => (ICONS.has(def) ? `<img class="ico" src="icons/${def}.png" alt="" onerror="this.remove()">` : `<span class="ico none"></span>`);
 
 /** The main button's words: short enough for a thumb. The full sentence is still in More. */
@@ -149,6 +151,10 @@ class StadiumScene extends Phaser.Scene {
     this.layers = [this.g];
     this.ui = this.add.graphics().setDepth(1e7);
     this.d3 = new Drive3D(this);
+    this.stall = new Stall({
+      act: (arg) => { if (this.pc) dispatch(this.w, { verb: "hole", actor: this.pc.id, arg }); },
+      play: (clip, vol = 1) => this.audio.play(clip as Clip, vol, { minGap: 0.05 }),
+    });
     // One overcast grade over everything (it also pulls the different generated sprites together),
     // and a faint vignette.
     try {
@@ -365,6 +371,7 @@ class StadiumScene extends Phaser.Scene {
       case "body_found": a.play("scream", 0.3 + near(e.x, e.y, 40) * 0.7, { minGap: 2 }); break;
       case "armed_challenge": { const o = s.actors[e.by]; if (o) a.play("armed_police", 0.4 + near(o.x, o.y, 35) * 0.6, { minGap: 3 }); break; }
       case "disarmed": a.play("stw_knife", 1); break;
+      case "glory_hole": this.stall.event(e.what); break;
       case "armed_called": case "armed_deployed": a.play("siren", 0.6, { minGap: 8 }); break;
       case "dog_sicced": a.play("pit_bark", 1, { minGap: 0.3 }); break;
       case "dog_noise": {
@@ -620,6 +627,7 @@ class StadiumScene extends Phaser.Scene {
     else { this.d3.hide(); this.d3.hideSpeed(); }
     this.drawHud();
     if ((this.s.tick & 15) === 0) this.updateCrowd();
+    if (this.pc) this.stall.update(inCubicle(this.pc) && !this.pc.hiddenIn && !st.ending, holeState(this.w), !!knifeOn(this.w, this.pc));
   }
 
   /** Behind the wheel, in one of the 3D views? */
@@ -639,6 +647,7 @@ class StadiumScene extends Phaser.Scene {
   decalG!: Phaser.GameObjects.Graphics;
   kick = { x: 0, y: 0 };
   pcHidden = false;
+  stall!: Stall;
   pursuers: Actor[] = [];
   fightZoomUntil = 0;
   rainG: Phaser.GameObjects.Graphics | null = null;

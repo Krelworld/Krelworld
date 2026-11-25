@@ -13,6 +13,7 @@ export const CLIPS = [
   "kaching", "bag", "wear", "munch", "gulp", "nope", "tap", "pickup",
   "hit1", "hit2", "hit3", "whoosh", "bodyfall", "weaponhit", "stab", "gasp",
   "chant_eng", "chant_clap", "crowd_ooh", "crowd_jeer", "pub_bed", "siren",
+  "gh_offer", "gh_no", "gh_yes", "gh_rude", "gh_chop", "gh_after", "gh_knock",
 ] as const;
 /** Voiced lines (ElevenLabs stock British voices): what's said -> clip; a woman says the `_f` take. */
 import VOICES_JSON from "../../assets/audio/voices.json";

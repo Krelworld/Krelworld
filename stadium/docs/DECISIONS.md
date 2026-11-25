@@ -362,3 +362,25 @@ Fight lines and bystander shouts are voiced in stock British voices (a woman say
 take), never cloned voices. The ground sings now and then ("Eng-er-land" with a drum, slow
 clapping that builds); near misses get an "ooh"; the pub has its own din; armed police come with
 a siren.
+
+## The pub cubicle
+
+Step into the pub's toilet cubicle and the view cuts to a close-up of the partition wall (a
+PixelLab picture with the hole, chalked phone numbers and "DAZ WOZ ERE" painted over it). Knock
+on the hole (tap it, or the button) and a camp voice next door asks "Want some fun?". Say yes
+and something comes through under a black CENSORED bar. With a knife on you (hand or pocket)
+you can chop it off: a slash, a scream, a fountain of blood that spurts in pulses, stains the
+wall, runs, and splats across the view; you come out bloody, with a Censored bar in your pocket
+(uses to come). Afterwards, knocking only gets whimpering. Say no, or back away, and he's
+offended. It runs on a `hole` verb (knock / yes / no / chop / leave) so it's tested like the rest.
+
+## Skint
+
+You start with £40, and a ticket is £60. Find the money (bets, wallets) or another way in. Sarge
+at the army surplus now sells a knife (£25), so the stall's other option is reachable from the
+street.
+
+## Cinematic moments (agreed, to do)
+
+Behind and close-up cameras for moments only: the tunnel walk-out, a pitch-invasion run-in, and a
+close-up on a big knockout. Driving already has one.

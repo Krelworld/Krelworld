@@ -20,7 +20,8 @@ export interface Campaign {
 export const FIXTURES: Venue["id"][] = ["qf", "sf"];
 
 export function newCampaign(): Campaign {
-  return { fixture: 0, money: 150, stash: ["shirt_eng"], loadout: ["shirt_eng"], notoriety: 0, history: [] };
+  // Not enough for a ticket (£60): you'll have to find another way in, or the money.
+  return { fixture: 0, money: 40, stash: ["shirt_eng"], loadout: ["shirt_eng"], notoriety: 0, history: [] };
 }
 
 /** Things that never come home: they belong to one match, or they're eaten. */

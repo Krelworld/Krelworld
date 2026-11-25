@@ -28,6 +28,7 @@ test("a bought ticket gets you through the turnstile, once", () => {
   const g = createGame("ticket");
   const pc = pcOf(g);
   const seller = find(g, (a) => a.npc?.shop === "ticket");
+  pc.money = 150;
   walk(g, SPOTS.ticketWindow.x, SPOTS.ticketWindow.y, 20);
   assert.equal(dispatch(g.w, { verb: "buy", actor: pc.id, target: { k: "actor", id: seller.id }, arg: "ticket" }).ok, true);
   assert.equal(pc.money, 90);
@@ -177,7 +178,7 @@ test("going back to a checkpoint restores the world", () => {
   pc.money = 3;
   run(g, 2);
   loadCheckpoint(g, "arrival");
-  assert.equal(pcOf(g).money, 150);
+  assert.equal(pcOf(g).money, newCampaign().money);
   assert.equal(g.w.state.tick, 0);
 });
 
@@ -244,6 +245,7 @@ test("bets settle on the official result and pay whoever holds the slip", () => 
   const s = g.w.state, pc = pcOf(g), m = s.match!;
   run(g, 360);
   pc.x = 0; pc.y = 32; pc.seated = true;
+  pc.money = 150;
   const before = pc.money;
   assert.equal(dispatch(g.w, { verb: "bet", actor: pc.id, arg: "winner:ENG", amount: 50 }).ok, true);
   assert.equal(dispatch(g.w, { verb: "bet", actor: pc.id, arg: "winner:OPP", amount: 50 }).ok, false, "no betting on England going out");
@@ -848,4 +850,29 @@ test("the pit bull lunges and snarls at people who come near it", () => {
   run(g, 4, () => { fan.x = SPOTS.dogPost.x + 3; fan.y = SPOTS.dogPost.y; fan.npc!.plan = [{ k: "wait", s: 5 }]; furthest = Math.max(furthest, Math.hypot(dog.x - SPOTS.dogPost.x, dog.y - SPOTS.dogPost.y)); });
   assert.ok(furthest > 1.5, `lunged ${furthest.toFixed(2)} m`);
   assert.ok(events.length >= 2, `noises: ${events.join(",")}`);
+});
+
+test("the pub cubicle: knock, say yes, and with a knife you leave with a censored bar", () => {
+  const g = createGame("hole");
+  const s = g.w.state, pc = pcOf(g);
+  pc.x = -60.5; pc.y = 63.5;
+  run(g, 0.2);
+  const act = (arg: string) => dispatch(g.w, { verb: "hole", actor: pc.id, arg });
+  assert.equal(act("chop").ok, false, "nothing to cut yet");
+  assert.equal(act("knock").ok, true);
+  assert.equal(act("yes").ok, true);
+  assert.equal(act("chop").ok, false, "no knife");
+  spawnItem(s, "knife", { k: "pocket", a: pc.id });
+  assert.equal(act("chop").ok, true);
+  assert.ok(pc.pockets.some((id) => s.items[id].def === "censored_bar") || s.items[pc.hand!]?.def === "censored_bar");
+  assert.ok((pc.effects.bloody ?? 0) > s.tick, "covered in it");
+  assert.equal(act("knock").ok, true, "only whimpering now");
+  assert.equal(act("yes").ok, false);
+  pc.x = -45; pc.y = 72;
+  assert.equal(act("knock").ok, false, "not in the cubicle");
+});
+
+test("you don't start with enough for a ticket", () => {
+  const g = createGame("skint");
+  assert.ok(pcOf(g).money < 60);
 });

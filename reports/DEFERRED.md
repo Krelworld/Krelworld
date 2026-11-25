@@ -61,6 +61,11 @@ Each line: where it came from, what is wrong, what the stage should do. Ids are 
 - **Minigames and the finale have no pause route** yet: coming back to one shows the carry-on card (round 1, P1).
   Stage 3 should give each a pause (then `wakeCare` opens it instead, with no further change).
 
+- **S2 review P5 (fix round 1): TV subtitles at reading size.** In the telly (TVScene) a long line at 16 CSS px wraps
+  to four or five lines and covers the speaker. Fixing it means paging a subtitle over its beat (same words, 2-3 lines
+  at a time) inside the TV scene's own beat timing, or a wider strip under the picture: TV scene work, which stage 3
+  owns (the TV picture size was already listed for it). The story bulletins' NEXT SHOW now reads SKIP on a phone (P4).
+
 ## Stage 4: QA
 
 - **L5 (round 1): foldables** decide once at load: opened folded (cover screen) it stays in phone mode after unfolding;
@@ -98,3 +103,19 @@ Each line: where it came from, what is wrong, what the stage should do. Ids are 
   try to scroll it just plays the point in the screen that your thumb tries to scroll from". Stage 2's native-scroll
   TV guide should fix this: confirm on the iPhone profile by touch, from the title AND from a room TV, that a drag
   scrolls and never plays a show, and only a still tap plays.
+
+## From the stage 2 review, fix round 1 (2026-11-25)
+
+Stage 4 (judge on real phones; the coordinator may pull the first into a stage 2 round instead):
+- **P12 remainder: long how-to text at 11.6 px.** The first dungeon's how-to card (6 rows, 2 lines each), the character
+  bios and the difficulty descriptions sit at the 11.6 CSS px floor. At 14-16 px the card no longer fits above its
+  NEXT button at 844x390 (rows grow about 20%), so it needs its rows split over more pages, and the bios / descriptions
+  re-flowed. The SWAP wording was fixed in round 1.
+- **P15 remainder: the home-indicator strip.** Captions and the conversation's ▼ now keep out of it, and the flyover's
+  skip is a pill in the top bar. Still inside it: the bottom 7-10 px of the conversation box's frame (decoration, no
+  words) and, in side rooms, the pit names drawn in the floor ("OPEN MANHOLE") and the damage number over a fall: the
+  side room's view is the whole room's height, so the camera cannot lift them without a vertical camera change. JUMP and
+  FIRE now go see-through over pits (P3), so the gap itself is never hidden.
+- **Button size S on short screens (seen while fixing F5).** With size S below about 360 px tall, the 52 px minimum
+  makes some cluster gaps 2-10 px (left/upLeft, upLeft/heal, up/ready). Pre-existing, unrelated to insets; check on a
+  real small phone whether S should keep the M offsets once the minimum kicks in.

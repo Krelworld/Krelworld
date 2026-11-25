@@ -38,6 +38,8 @@ export const COMBAT_CSS = `
 .kt-pocket .kt-face{flex-direction:column;gap:1px;font-size:11px}
 .kt-pocket .kt-pi{font-size:24px;line-height:1;filter:drop-shadow(0 1px 1px #000)}
 .kt-pocket .kt-in{font-size:10px;letter-spacing:.3px}
+/* a long word (CABBAGE) is drawn narrower, never smaller, so it stays inside the round face at every phone size */
+.kt-pocket .kt-in.kt-long{letter-spacing:0;transform:scaleX(.74)}
 .kt-p-fart .kt-face{border-color:rgba(163,230,53,.9);background:rgba(60,110,20,.45)}
 .kt-p-bongo .kt-face{border-color:rgba(245,180,90,.9);background:rgba(120,70,15,.45)}
 .kt-p-bongo .kt-n{position:absolute;right:8%;top:6%;font-size:12px;line-height:1;color:#fff;text-shadow:0 1px 2px #000}

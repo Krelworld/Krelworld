@@ -4037,6 +4037,18 @@ async function polish(browser) {
       const heal = await ph.ev(() => !!document.querySelector('.kt-btn.show.low[data-ctl="c-heal"]'));
       const big = pr.profile.viewport.width === 844 ? 59.5 : 51.5;
       check(`polish ${where} mid-game: 💨, 🍺 and HEAL are full-size buttons on the right (drawn ${big > 55 ? 60 : 52}+ px, 44+ px to touch), HEAL red when low`, ["c-bongo", "c-fart", "c-heal"].every((id) => pk.some((c) => c.id === id)) && pk.every((c) => c.right && Math.min(c.w, c.h) >= (c.id === "c-heal" ? 51.5 : big) && Math.min(c.hw, c.hh) >= 44) && heal, { pk, heal, ids: midRoom.ids });
+      // the longest pocket word (CABBAGE, fart level 3) stays inside its round button at every size (the recheck saw it
+      // clipped to "ABBAG" at 750x340; forced here so the check never depends on how far the meter got)
+      const cab = await ph.ev(async () => {
+        window.__krel.G.rt.fart = 80;
+        await new Promise((r) => setTimeout(r, 300));
+        const f = document.querySelector('.kt-btn.show[data-ctl="c-fart"] .kt-face');
+        const w = f && f.querySelector(".kt-in");
+        if (!w) return null;
+        const a = f.getBoundingClientRect(), b = w.getBoundingClientRect();
+        return { text: w.textContent, face: Math.round(a.width), word: Math.round(b.width), inside: b.left >= a.left + 2 && b.right <= a.right - 2 };
+      });
+      check(`polish ${where} mid-game: the longest 💨 word (CABBAGE) sits inside its button`, !!cab && cab.text === "CABBAGE" && cab.inside, cab);
       // ---- 3. a boss (Krandall)
       if (!pr.light) {
         const ok3 = await toFight(ph, "wildern", 3, 2);

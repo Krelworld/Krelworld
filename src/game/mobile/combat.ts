@@ -935,7 +935,7 @@ export class CombatControls {
     if (key === this.pocketKey) return;
     this.pocketKey = key;
     this.c.bongo.setHtml(`<span class="kt-pi">🍺</span><span class="kt-in kt-keep">BONGO</span><span class="kt-n">${s.bongos}</span>`);
-    this.c.fart.setHtml(`<span class="kt-pi">💨</span><span class="kt-in kt-keep">${names[lv] ?? ""}</span>`);
+    this.c.fart.setHtml(`<span class="kt-pi">💨</span><span class="kt-in kt-keep${(names[lv] ?? "").length > 5 ? " kt-long" : ""}">${names[lv] ?? ""}</span>`);
     this.c.sanmik.setHtml(`<span class="kt-w">SANMIK</span>`);
   }
 

@@ -28,7 +28,7 @@ import {
   specialWord,
   specialCost,
   specialWanted,
-  juiceChipWanted,
+  healShown,
 } from "../src/game/mobile/combatLogic";
 import { edgeDistance, GAP_REACH, groupHit, HIT_SLOP, layoutSlots, routeTouch, safeRect, type RouteCandidate, type Viewport } from "../src/game/mobile/layout";
 import { DEFAULT_PHONE_SETTINGS } from "../src/game/mobile/settings";
@@ -182,7 +182,7 @@ describe("phone combat: READY, HEAL, SPECIAL (research S1, S3)", () => {
     expect(specialFill(0, 0)).toBe(1);
   });
 
-  it("a calm screen (stage 2 polish): SPECIAL only while it would go, the juice chip only while a drink would heal and HEAL isn't up", () => {
+  it("a calm screen (stage 2 polish): SPECIAL only while it would go, HEAL whenever a drink would heal", () => {
     // SPECIAL: enough Krezz and no decree against it; the game's own discounts count; a headbutt is free
     expect(specialWanted(39, 40, false)).toBe(false);
     expect(specialWanted(40, 40, false)).toBe(true);
@@ -192,11 +192,13 @@ describe("phone combat: READY, HEAL, SPECIAL (research S1, S3)", () => {
     expect(specialCost(50, "FLENKY", { pq_done_pq_mikey: true })).toBe(50);
     expect(specialCost(80, "MIKEY", {}, true)).toBe(0);
     expect(specialWanted(0, specialCost(80, "MIKEY", {}, true), false)).toBe(true);
-    // juice: hurt, with a bottle, and not while HEAL itself is offering the same drink
-    expect(juiceChipWanted(100, 100, 3, false)).toBe(false);
-    expect(juiceChipWanted(90, 100, 0, false)).toBe(false);
-    expect(juiceChipWanted(90, 100, 2, false)).toBe(true);
-    expect(juiceChipWanted(20, 100, 2, true)).toBe(false);
+    // HEAL (thumb-feel round: the juice's one full-size button): hurt, with a bottle, healing allowed; urgent under 40%
+    expect(healShown(100, 100, 3)).toBe(false);
+    expect(healShown(90, 100, 0)).toBe(false);
+    expect(healShown(90, 100, 2)).toBe(true);
+    expect(healShown(90, 100, 2, true)).toBe(false);
+    expect(healShown(20, 100, 2) && healWanted(20, 100, 2)).toBe(true);
+    expect(healWanted(90, 100, 2)).toBe(false);
   });
 });
 

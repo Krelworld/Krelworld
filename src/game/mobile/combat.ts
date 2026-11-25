@@ -7,9 +7,10 @@
 //                        itself at an enemy in range with a clear line: the right thumb is free to dodge.
 //   DODGE (up-left)      SWAP (left: tap = next gun, hold = the weapon picker)      SPECIAL (up: the lad's special,
 //   only while it would go)      READY (pops in when WONK, the golden transformation, the Cumehameha or IBS is ready)
-//   HEAL (pops in under 40% health)      ACTION (pops in with a prompt, like walking)
-//   up top: the weapon chip (tap = next, hold = picker) beside pause; under the health bars the drink / fart / SanMik
-//   chips (what the HUD always showed, now tappable).
+//   HEAL (pops in when a drink would heal; red and pulsing under 40%)      ACTION (pops in with a prompt, like walking)
+//   the pocket, at the cluster's upper left: 💨 (the fart, levels 1 to 3), 🍺 (a fizzy bongo), SANMIK (as Mikey),
+//   each a full-size button in its own place, only while it can be used (thumb-feel round: they were small chips)
+//   up top: the weapon chip (tap = next, hold = picker) beside pause.
 //
 // The game is driven the way the old pad drove it (TOUCH.attack, TOUCH.edges, TOUCH.held), plus two hooks the game's
 // files call behind isMobile(): Controls.aim / aimPoint (phone aim) and the Dungeon's step (auto-fire, phone assist).
@@ -20,7 +21,7 @@ import { G } from "../G";
 import { GUNS } from "../combat/Guns";
 import { gunUsable, moddedFart, moddedGun } from "../systems/armoury";
 import { fartLevel } from "../combat/Farts";
-import { maxHp, maxBottles } from "../systems/stats";
+import { maxHp } from "../systems/stats";
 import { weaponList } from "../ui/weapons";
 import { isMikey, sanmikForced } from "../systems/sanmik";
 import { storageKey } from "../variant";
@@ -30,7 +31,7 @@ import { SCENE_RULES, addSceneRule, currentInputSource } from "./modes";
 import { rightStick } from "./pad";
 import { registerModeController, type ModeContext, type TouchControl, type TouchLayer } from "./touchLayer";
 import { ACQUIRE, AIM_TUNE, MELEE_REACH, SLIDE_PX, aimPointFor, autoFireOk, pickTarget, snapAim, type AimTarget, type Pt } from "./aim";
-import { DUNGEON_RULE, FIRE_GRACE_MS, HoldTracker, MashQueue, PICKER_RULE, READY, RELABEL_MS, TEACH_ROOMS, healWanted, juiceChipWanted, readyAbility, spamGap, specialCost, specialWanted, specialWord, type ReadyId } from "./combatLogic";
+import { DUNGEON_RULE, FIRE_GRACE_MS, HoldTracker, MashQueue, PICKER_RULE, READY, RELABEL_MS, TEACH_ROOMS, healShown, healWanted, readyAbility, spamGap, specialCost, specialWanted, specialWord, type ReadyId } from "./combatLogic";
 import { controlScale, MIN_CONTROL, safeRect, type Placed, type Rect } from "./layout";
 import { COMBAT_CSS, COMBAT_STYLE_ID } from "./combatCss";
 import { haptic } from "./haptics";
@@ -162,7 +163,7 @@ function saveTaught(t: Taught) {
 
 // ------------------------------------------------------------------ the controller
 
-type CtlId = "fire" | "sfire" | "jump" | "dodge" | "swap" | "special" | "ready" | "heal" | "action" | "chip" | "juice" | "bongo" | "fart" | "sanmik" | "close";
+type CtlId = "fire" | "sfire" | "jump" | "dodge" | "swap" | "special" | "ready" | "heal" | "action" | "chip" | "bongo" | "fart" | "sanmik" | "close";
 
 /** Everything the combat controls know right now (for the smoke test and ?mobilediag). */
 export interface CombatSnapshot {
@@ -226,9 +227,10 @@ export class CombatControls {
   }
   private wasMash = false;
   private fsWas = false;
+  /** HEAL is in its urgent state (under 40%). */
+  private healLow = false;
   private dodgeSeen = 0;
-  private chipsKey = "";
-  private canvasKey = "";
+  private pocketKey = "";
   private active = false;
   /** Side-scrolling rooms: the jump feel, the drop rule and the camera's look-ahead (side.ts). */
   readonly side = new SideMove();
@@ -315,18 +317,14 @@ export class CombatControls {
     const chip = L.addControl(
       swapSpec("c-chip", "left", { className: "kt-c kt-chip kt-wchip", html: "", place: (l: TouchLayer) => this.placeWeaponChip(l) }),
     );
-    const drink = (id: string, kind: "juice" | "bongo" | "fart" | "sanmik", onDown: () => void) =>
-      L.addControl({ id, slot: "left", className: "kt-c kt-chip kt-dchip", html: "", haptic: "tap", place: (l) => this.placeDrink(l, kind), onDown });
-    const juice = drink("c-juice", "juice", () => {
-      const s = G.s;
-      // (a full health bar or no juice: nothing; a laptop's Q would waste a bottle at full health)
-      if (s.bottles > 0 && s.hp < maxHp(s)) TOUCH.edges.add("bottle");
-    });
-    const bongo = drink("c-bongo", "bongo", () => TOUCH.edges.add("bongo"));
-    const fart = drink("c-fart", "fart", () => TOUCH.edges.add("fart"));
-    const sanmik = drink("c-sanmik", "sanmik", () => TOUCH.edges.add("sanmik"));
+    // the pocket: full-size buttons in fixed places at the cluster's upper left, each only while it can be used
+    const pocket = (id: string, kind: "bongo" | "fart" | "sanmik", slot: "pocketBongo" | "pocketFart" | "pocketSanmik", onDown: () => void) =>
+      L.addControl({ id, slot, group: grp, className: `kt-c kt-pocket kt-p-${kind}`, html: "", haptic: "press", onDown });
+    const bongo = pocket("c-bongo", "bongo", "pocketBongo", () => TOUCH.edges.add("bongo"));
+    const fart = pocket("c-fart", "fart", "pocketFart", () => TOUCH.edges.add("fart"));
+    const sanmik = pocket("c-sanmik", "sanmik", "pocketSanmik", () => TOUCH.edges.add("sanmik"));
     const close = L.addControl({ id: "c-close", slot: "prime", className: "kt-c kt-close", html: `<span class="kt-x">✕</span><span class="kt-in kt-keep">CLOSE</span>`, haptic: "tap", onDown: () => this.closePicker() });
-    this.c = { fire, sfire, jump, dodge, swap, special, ready, heal, action, chip, juice, bongo, fart, sanmik, close };
+    this.c = { fire, sfire, jump, dodge, swap, special, ready, heal, action, chip, bongo, fart, sanmik, close };
     // the mash overlay: every finger anywhere on the screen is a press (research M14)
     const m = document.createElement("div");
     m.className = "kt-mash";
@@ -416,35 +414,6 @@ export class CombatControls {
       cy = Math.max(minTop + size / 2, Math.min(cy, maxBottom - size / 2));
     }
     return { cx: base.cx, cy, size, hit: base.hit };
-  }
-
-  /** The drink / fart / SanMik chips, left to right under the health bars (only the ones that can do something). */
-  private placeDrink(l: TouchLayer, kind: "juice" | "bongo" | "fart" | "sanmik"): Placed | null {
-    const cb = this.game.scale.canvasBounds;
-    const k = cb.width / 960;
-    if (!k) return null;
-    const vp = l.viewport;
-    const s = controlScale(vp.h, phoneSettings().buttonSize);
-    const h = Math.round(Math.max(30, 32 * s));
-    const widths: Record<typeof kind, number> = { juice: 64, bongo: 56, fart: 98, sanmik: 76 };
-    const order: (typeof kind)[] = ["juice", "bongo", "fart", "sanmik"];
-    let x = cb.x + 66 * k;
-    for (const o of order) {
-      const ctl = this.c?.[o];
-      if (o !== kind && ctl && !ctl.shown) continue;
-      const w = Math.round(widths[o] * s);
-      if (o === kind) {
-        const top = cb.y + 61 * k;
-        const zoneTop = l.zoneRect.y || vp.h * 0.2;
-        const cx = x + w / 2;
-        const cy = top + h / 2;
-        const hy0 = Math.max(0, top - 6);
-        const hy1 = Math.min(zoneTop, top + h + 6);
-        return { cx, cy, size: h, w, h, hit: { x: x - 4, y: hy0, w: w + 8, h: Math.max(h, hy1 - hy0) } };
-      }
-      x += w + 8;
-    }
-    return null;
   }
 
   // ------------------------------------------------------------------ SWAP (and the weapon chip): tap = next, hold = picker
@@ -789,8 +758,8 @@ export class CombatControls {
   }
 
   layout() {
-    // (chips follow the canvas: re-placed whenever the layer lays out)
-    this.canvasKey = "";
+    // (the weapon chip follows pause: re-placed whenever the layer lays out)
+    if (!this.c.chip.pressed) this.c.chip.place();
   }
 
   frame(ctx: ModeContext) {
@@ -865,14 +834,18 @@ export class CombatControls {
       }
     }
     show("ready", !!this.readyId, true);
-    // HEAL under 40% health with juice to drink
-    const hw = fight && !!p && !!dun && healWanted(s.hp, maxHp(s), s.bottles, dun.now() < p.noHealUntil);
-    if (hw && !this.c.heal.shown && this.teach.heal < 2) {
+    // HEAL while a drink would heal (one button for the juice, full size); under 40% it is red and pulses the first times
+    const noHeal = !!p && !!dun && dun.now() < p.noHealUntil;
+    const hs = fight && !!p && !!dun && healShown(s.hp, maxHp(s), s.bottles, noHeal);
+    const hw = hs && healWanted(s.hp, maxHp(s), s.bottles, noHeal);
+    if (hw && !this.healLow && this.teach.heal < 2) {
       this.teach.heal++;
       saveTaught(this.teach);
       this.pulseUntil.heal = realNow() + 3000;
     }
-    show("heal", hw, true);
+    this.healLow = hw;
+    show("heal", hs, true);
+    if (this.c.heal.el.classList.contains("low") !== hw) this.c.heal.el.classList.toggle("low", hw);
     if (this.c.heal.shown) this.c.heal.setHtml(`${withWord(ICON.heal, "HEAL")}<span class="kt-n">${s.bottles}</span>`);
     // SPECIAL: the lad's word, only while it would go (no dim "charging" bubble: the KREZZ bar up top shows the
     // charge); it pops in when it can, pulsing the first two times
@@ -887,15 +860,13 @@ export class CombatControls {
     // ---- the chips
     show("chip", fight);
     if (fight) this.weaponChip();
-    // (juice: only while a drink would heal, and not while HEAL itself is up)
-    show("juice", fight && juiceChipWanted(s.hp, maxHp(s), s.bottles, this.c.heal.shown));
-    show("bongo", fight && s.bongos > 0);
+    show("bongo", fight && s.bongos > 0, true);
     const lv = fartLevel();
     // (at IBS READY says it, big, on the right: the 💨 chip steps aside so one ability has one button; P11)
-    show("fart", fight && lv >= 1 && this.readyId !== "ibs");
+    show("fart", fight && lv >= 1 && this.readyId !== "ibs", true);
     // (Mikey ⇄ SanMik can't happen while golden: the game says no, so the chip isn't there)
-    show("sanmik", fight && isMikey(s) && !sanmikForced(s) && !!dun && !!p && dun.now() >= p.superUntil);
-    if (fight) this.drinkChips(lv);
+    show("sanmik", fight && isMikey(s) && !sanmikForced(s) && !!dun && !!p && dun.now() >= p.superUntil, true);
+    if (fight) this.pocketFaces(lv);
     // ---- the first fights: each icon's name inside it (never a caption outside the button, so nothing can land on a
     // neighbour, the HUD or the home-indicator strip: N1); pulses the first time each matters
     for (const id of ["fire", "sfire", "jump", "dodge", "swap", "heal"] as const) if (this.c[id].el.classList.contains("taught") !== teaching) this.c[id].el.classList.toggle("taught", teaching);
@@ -956,24 +927,16 @@ export class CombatControls {
     return url || null;
   }
 
-  private drinkChips(lv: number) {
+  /** The pocket buttons' faces: icon, the word inside, the bongo count. Only touches the DOM when something changed. */
+  private pocketFaces(lv: number) {
     const s = G.s;
-    const full = s.hp >= maxHp(s);
-    this.c.juice.setHtml(`<span>🍼</span><span>${s.bottles}/${maxBottles(s)}</span>`);
-    this.c.juice.el.classList.toggle("dim", s.bottles <= 0 || full);
-    this.c.bongo.setHtml(`<span>🍺</span><span>${s.bongos}</span>`);
     const names = ["", "FAIRY", "BEANS", "CABBAGE", "IBS!"];
-    this.c.fart.setHtml(`<span>💨</span><span>${names[lv] ?? ""}</span>`);
-    this.c.sanmik.setHtml(`<span>SANMIK</span>`);
-    // (the line re-flows when one comes or goes, and when the canvas moves)
-    const cb = this.game.scale.canvasBounds;
-    const key = `${this.c.juice.shown}${this.c.bongo.shown}${this.c.fart.shown}${this.c.sanmik.shown}`;
-    const ck = `${Math.round(cb.x)},${Math.round(cb.y)},${Math.round(cb.width)}`;
-    if (key !== this.chipsKey || ck !== this.canvasKey) {
-      this.chipsKey = key;
-      this.canvasKey = ck;
-      for (const id of ["juice", "bongo", "fart", "sanmik", "chip"] as const) if (!this.c[id].pressed) this.c[id].place();
-    }
+    const key = `${s.bongos}|${lv}`;
+    if (key === this.pocketKey) return;
+    this.pocketKey = key;
+    this.c.bongo.setHtml(`<span class="kt-pi">🍺</span><span class="kt-in kt-keep">BONGO</span><span class="kt-n">${s.bongos}</span>`);
+    this.c.fart.setHtml(`<span class="kt-pi">💨</span><span class="kt-in kt-keep">${names[lv] ?? ""}</span>`);
+    this.c.sanmik.setHtml(`<span class="kt-w">SANMIK</span>`);
   }
 
   /** A short flash on the button whose action just happened (research M15). */

@@ -118,6 +118,10 @@ html.mobile input,html.mobile textarea{-webkit-user-select:text;user-select:text
   .kah-card{padding:8px 12px;gap:6px}.kah-title{font-size:18px}.kah-head .kah-app{width:34px;height:34px}
   .kah-ico{height:34px}.kah-svg{width:30px;height:30px}.kah-step{padding:6px 6px 7px;gap:3px}.kah-why{font-size:12.5px}
 }
+@media (max-height:350px){
+  .kah-card{padding:6px 12px;gap:5px}.kah-ico{height:28px}.kah-svg{width:26px;height:26px}.kah-ico .kah-app{width:26px;height:26px}
+  .kah-ss{line-height:1.2}.kah-step{padding:5px 6px 6px}
+}
 @media (orientation:portrait){
   .kah-card{max-width:440px}
   .kah-steps{grid-auto-flow:row;grid-auto-columns:auto}

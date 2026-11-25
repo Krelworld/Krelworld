@@ -66,6 +66,10 @@ main.ts ── boot.ts installMobile(game) ──► isMobile()? no → return (
 | `combatLogic.ts` | Pure: READY's order, HEAL's rule, tap / hold (`HoldTracker`), SPECIAL's word and fill, the Dungeon's two mode rows |
 | `combatWording.ts` | Pure: the fights' touch wording rows (the weapon picker's how-to line, the first dungeon's how-to-play rows, the finale's inject hint) |
 | `combatCss.ts` | The fight controls' CSS (its own `<style>`, phones only) |
+| `art.ts` / `artLogic.ts` | Stage 3: the texture budget. The big one-scene pictures (`PARKED_ART`) are parked (texture kept, pixels dropped) until drawn or asked for, then fetched back from the browser's cache; parked again 30 s after their last use |
+| `audio.ts` / `audioLogic.ts` | Stage 3: sound on iPhone. `new Audio()` hands out pooled elements the first tap unlocked, each through its own gain node (the volume settings work on iOS); audio session; resume checks; one song at a time; the route self-test |
+| `perf.ts` / `perfLogic.ts` | Stage 3: off-screen Images / Sprites skipped when drawing, blood pools capped at 40, the player's ring in dark or crowded rooms |
+| `storage.ts` | Stage 3: `navigator.storage.persist()` asked quietly (never in Firefox), a save on `freeze`; the boot's download held in an app's own browser until PLAY HERE ANYWAY |
 | `index.ts` | The phone chunk's `installMobile()`, `mobileLayer()`, `mobileShell()` and re-exports |
 
 ## Deciding phone mode
@@ -193,10 +197,10 @@ topmost running scene per rule):
 | Running scene | Mode | Pause | Live |
 |---|---|---|---|
 | Boot, Enter, Title, CharSelect, Difficulty, Banter, ChapterSelect, DebugSkip, Menu, Slots, WeaponPick, Dialogue, Meeting, Cutscene, Vignette, TV, Archive, KrazyFact, Exile, Ending, Tutorial, Lair, RoofCutscene, KrelCue, `__p3d*` | none | – | – |
-| Minigame, Whack, Drive, BeepBeep | tap | – (stage 3) | yes |
+| Minigame, Whack, Drive, BeepBeep | tap | `menu` (stage 3: the II and the pause menu) | yes |
 | Pub, Pit, PitLoan, PolsonHome | none | – | – |
 | Finale with the Super Saiyan brawl running (stage 2 part 2, `brawl.ts`) | brawl: the phone stick (`"2d"`), PUNCH / BLOCK / VANISH / KICK / KI; the rush is a tap anywhere | – | yes |
-| Finale, any other beat | brawl (legacy pad) | – | yes |
+| Finale, any other beat | tap (stage 3; was brawl with the legacy pad, which the finale never had outside the brawl) | `card` (the II and the PAUSED card) | yes |
 | WeaponPick over a top-down Dungeon (stage 2, in front of everything) | combat, `picker: true` (the thumb that opened it slides onto a gun; CLOSE where FIRE was) | – | yes |
 | Dungeon, top-down room (stage 2) | combat: the phone stick (`"2d"`, gutter included), FIRE / DODGE / SWAP / SPECIAL / READY / HEAL / ACTION, the chips; `mash: true` while the WONK gauge (or the roof's group wonk) is up; none while busy (scripted moments, dying, changing rooms) | the layer's II (`edge`); none while busy (coming back shows "tap to carry on") | yes |
 | WeaponPick over a side room | side, `picker: true`, stick `"x"` | – | yes |
@@ -788,6 +792,62 @@ Also: the **room name** up top (`roomName.ts`, N2) is fitted between the top-lef
 needed, or nothing; out of a fight it goes back as the game made it. The **Krezz Arms Leave card** is drawn 30 px
 higher on a phone (PubScene's guarded hook, N4), clear of the bottom 21 px.
 
+## Stage 3: the phone platform (sound, memory, frame rate, saves, pause routes)
+
+**Memory (`art.ts`).** The laptop decodes every picture at boot and keeps them (about 920 MB). On a phone the pictures
+`artLogic.ts` `PARKED_ART` names (the telly's faces, anchors and cast; the bosses' animation / death / down sheets; the
+Kreltality and victory sheets; the finisher cinemas and versus cards; every `*_still_*`, `*_cut_*`, `*_eyes_*`) are
+parked the moment the loader adds them: the texture keeps its key, size and frames (so `textures.exists()`, frame
+numbers and `getSourceImage().width` are exactly as on a laptop; a parked source is a 1 x 1 canvas that reports the real
+size, so a pixel read is blank, never an error) and the GPU holds a 1 x 1 blank. Anything that draws it (an Image or
+Sprite rendering it), asks for it (`textures.get` / `getFrame`, after the boot) or starts an animation on it fetches it
+back (from the browser's cache, decoded off the main thread: 100-800 ms in emulation; it pops in). A 5 s sweep parks
+what nothing has used for 30 s and no game object holds. A lost WebGL context fetches the live ones again. No game file
+changed for it. Measured on the iPhone profile: boot 917 → 309 MB; peak over home, town, a TV show, the Hoard and the
+concept boss 953 → 352 MB (`mobile-smoke --only platform` fails above 500). Decoded sound stays about 120 MB.
+
+**Sound (`audio.ts`).** iOS ignores an `<audio>` element's volume and lets an element play only if its first `play()`
+came from a tap; the game makes a new element for every song and every slowed / sped-up voice line. On a phone
+`window.Audio` hands out one of five pooled elements (three songs, two voices) that the first `touchend` / `click`
+started silently; each is routed through its own gain node, and the element's `volume` property sets that gain (the
+Music / Voice sliders, fades and the dialogue duck all work). The game's listeners on a pooled element are removed when it
+is handed out again. A self-test listens to the first song: five seconds of digital silence through the route switches
+later songs to plain elements (the slider is then on / off through `muted`). The audio session is "playback" (sound with
+the ringer switch off) unless "Play over my music" is on ("ambient"). After the page is shown again the context is
+checked (it must run and its clock must move; otherwise suspend + resume once more; the next tap tries again). A song
+playing that is neither the current one nor fading out is stopped (no double music); a song the pause menu holds stays
+held. `?mobilediag` shows the route, the session, what is playing and the last resume and its reason.
+
+**Frame rate (`perf.ts`).** Top-level Images and Sprites that scroll with the world and sit wholly outside the camera's
+view (plus 96 px) are skipped for that camera (nothing else about them changes). At most 40 blood pools show in a fight
+(older ones hidden, not removed). A ring at the player's feet in the concept boss's Krelford, a dark room, or a screen of
+220+ objects. The concept boss's camera stays at zoom 1 on a phone (guarded hook in `KrelfordFinale.ts`, below).
+Emulation cannot measure a phone's frame rate here: 93% of a frame is the software GPU; the JS per frame is 19-22 ms at
+4x CPU throttling in the concept boss either way. A real-device reading (`?mobilediag`) is in the device checklist.
+
+**Saves and caching (`storage.ts`).** The game autosaves all the time and the shell saves on hide / pagehide; the phone
+adds a save on Chrome's `freeze`, and asks `navigator.storage.persist()` once per launch, silently (Safari and Chrome
+answer without a prompt; Firefox would show one, so it is never asked). Nothing is shown to the player. No service worker:
+the HTTP cache already serves a repeat visit (measured with GitHub Pages' headers and a disk-backed profile: first visit
+103 MB, reload 0 MB from the network, a parked picture fetched back from the cache), and a worker that served stale art or
+code after a deploy would be hard to get off friends' phones. In an app's own browser (Instagram, Messenger...) the boot's
+download is held (`maxParallelDownloads` 0) behind the "open it in Safari / Chrome first" card until PLAY HERE ANYWAY.
+
+**Pause routes.** `PauseRoute` is `"edge" | "menu" | "card"`. The minigames (`MINIGAME_PAUSE`: Minigame, Whack, Drive,
+BeepBeep) have the II and the game's pause menu (`"menu"`: the menu holds the song and pauses the scene); the finale
+between brawl rounds is tap mode with the II and the shell's PAUSED card (`"card"`; the song holds under it). Coming
+back to the phone opens that pause (`wakeCare` → "pause") instead of the carry-on card. A wave 2 scene gets one with a
+rule (`pause: "menu" | "card", pauseButton: true`); `setCardPause()` (observe.ts) is how the card route reaches the shell.
+
+Hook added in stage 3 (guarded; the laptop fingerprint is unchanged):
+
+| Where | What | Why |
+|---|---|---|
+| `src/game/scenes/finale/KrelfordFinale.ts` | `setZoom(isMobile() ? 1 : 0.8)` and `zoomTo(isMobile() ? 1 : 0.8, 10)` (and the flag import) | The audit: zoomed out below 1, everything on a phone's screen is too small |
+
+On a phone `window.__krelMobile` also has `art` (`report()`, `resident()`, `isParked(key)`, `sweep(ms)`), `audio`
+(`diag()`, `musicGain()`), `perf` (`lastCulled`, `lastDrawn`, `poolsHidden`, `enabled`) and `storage` (`state`, `held()`).
+
 ## Testing
 
 ```sh
@@ -795,13 +855,15 @@ npx vitest run tests/mobile tests/desktopNotPhone.test.ts   # flag, modes, layou
 
 npx vite --port 5202 --strictPort &                       # normal build
 VITE_KREL_ALT=1 npx vite --port 5212 --strictPort &       # ALT build
-node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,together,review1,polish,android,desktop]
+node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,together,review1,polish,platform,android,desktop]
 node scripts/mobile-smoke.cjs --url http://localhost:5212/
 # (polish: the fight screen measured at four phone sizes: no caption or word over anything, only usable controls shown,
 #  JUMP plain over the first pit, the room name clear of the HUD, the Leave card above the home-indicator strip)
 # (review1: FIRE held through a death leaves no held attack; a pad resting off-centre never takes over; the archive's
 #  LEAVE; the finale brawl's II and SKIP FIGHT; a pit with the stick held toward it)
 # tests/mobileWordingScan.test.ts: no touch-wording rule may match any character line in the game
+# (platform: the sound route and the Music setting, resume after a hidden page, one song at a time, the texture ceiling
+#  over six scenes, pause in a minigame and the finale, the in-app download hold; tests/mobilePlatform.test.ts the rules)
 # (together: the two stage 2 tracks at once: bigger text in a fight, a conversation in a fight (pills, no fight
 #  buttons), PHONE SETTINGS live in a fight, pause -> CONTROLS on FIGHTS, the Krezz Arms brawl by tap)
 

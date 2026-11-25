@@ -135,3 +135,28 @@ Assets live in `assets/art` and `assets/audio`; raw API responses in `assets/raw
   team as a player-controlled footballer; the referee eventually counts twelve.
 - Movement: walk 3 m/s, run 5.4 m/s for about seven seconds before you are winded.
   Zoom is 23 screen pixels per metre at 1x, matching 48px character art.
+
+## Kick-off delays and breaches
+
+- Kick-off is a check, not a time. At the scheduled moment it waits 45 s if: a
+  fire alarm is ringing; a wall has just been knocked through (once, "safety");
+  three or more of either side are outside the ground, down or still on the bus;
+  a team has just been in a coach crash (once); the referee is unfit (twice, then
+  the fourth official takes over); or the pitch has an intruder, a loose dog or
+  smoke on it. Each delay has its own tannoy line.
+- Every delay raises a security level (0–5); a breach raises it by two. Stewards'
+  suspicion builds faster and they see further at higher levels.
+- After six delays the referee starts regardless. A side with fewer than seven
+  able players forfeits. England can go through without a ball kicked, but it
+  takes keeping most of their team out of the ground for about five minutes.
+- When the team has to wait for its bus at kick-off, it gives up and walks.
+- Fire alarm call points (five per ground, one use each) delay kick-off, halt live
+  play for 15–35 s (shorter each time) and make stewards less watchful while the
+  bell rings. Pulling one is a minor offence only staff care about.
+- Bus into a wall at over 8 m/s (about 18 mph), if the wall is 2.5–4.5 m high and
+  not a gate: a 5.6 m hole, a wrecked bus, the driver dazed for a few seconds,
+  passengers hurt as in a crash, a severity 3 crime blamed on the bus's team
+  unless the driver is seen, and police heading for the hole. Above 12.2 m/s
+  there is a 15% chance of a hospital ending. Slower, the bus just bounces off.
+  Holes are saved in the state; walls, paths and sight lines all use the walls
+  with the holes cut out.

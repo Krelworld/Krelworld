@@ -4,14 +4,15 @@ import { pick, rndRange, seedRng } from "../core/rng";
 import type { Actor, WorldState } from "../core/types";
 import { createWorld, spawnActor, stepWorld, type World } from "../core/world";
 import { createMatch, TEAMS } from "../football/setup";
-import { BOUNDS, KICKOFF_AT, setVenue, SPOTS, VENUE, WALLS, type Venue } from "./layout";
+import { BOUNDS, KICKOFF_AT, setBreaches, setVenue, SOLID, SPOTS, VENUE, type Venue } from "./layout";
 import { newCampaign, type Campaign } from "./campaign";
 import { mayPass, newNpc, resetPathBudget, secs, spawnFan, spawnStaff, stepNpc } from "./npc";
 import { installBetting, installSettlement } from "./betting";
 import { installPolice, stepTipoffs } from "./police";
 import { createDog, installDog, stepDog } from "./dog";
 import { stepKit } from "./kit";
-import { createBus, driveBus, installBus, stepBus, stepBusSanctions, stepLateTeam } from "./bus";
+import { createBus, driveBus, installBus, stepBus, stepBusSanctions } from "./bus";
+import { installKickoff, stepKickoff } from "./kickoff";
 import { installReactions, installRules, SHOPS, stepRules } from "./rules";
 import { isSecurity, stepDetention, stepSecurity } from "./security";
 import type { StadiumState } from "./state";
@@ -34,7 +35,7 @@ export const HALF_SECONDS = 450;
 export const HALFTIME_SECONDS = 150;
 
 export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: Campaign = newCampaign()): Game {
-  if (!rulesInstalled) { installRules(); installBetting(); installPolice(); installBus(); installDog(); rulesInstalled = true; }
+  if (!rulesInstalled) { installRules(); installBetting(); installPolice(); installBus(); installDog(); installKickoff(); rulesInstalled = true; }
   setVenue(venueId);
   const oppKey = VENUE.opp;
   const opp = TEAMS[oppKey];
@@ -48,7 +49,7 @@ export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: 
   const locker = spawnItem(s, "locker", { k: "ground", x: SPOTS.locker.x, y: SPOTS.locker.y });
   const st: StadiumState = {
     pc: "pc", arrivedAt: 0, gates: {}, vehicles: {}, banned: [], wanted: [], incidents: [], admitted: false, warnings: 0,
-    ending: null, flags: {}, doorPass: null, detainedUntil: 0, policeCalled: false, locker: locker.id, dosed: {}, smoke: [], tipoffs: [], dog: null,
+    ending: null, flags: {}, doorPass: null, detainedUntil: 0, policeCalled: false, locker: locker.id, dosed: {}, smoke: [], breaches: [], tipoffs: [], dog: null,
   };
   s.stadium = st;
 
@@ -181,7 +182,7 @@ function giveFanThings(w: World, a: Actor): void {
 /** Push an actor out of any wall it is not allowed through. */
 function collide(w: World, a: Actor): void {
   const r = a.radius;
-  for (const wl of WALLS) {
+  for (const wl of SOLID) {
     if (a.x + r < wl.x || a.x - r > wl.x + wl.w || a.y + r < wl.y || a.y - r > wl.y + wl.h) continue;
     if (wl.gate && mayPass(w, a, wl.gate)) continue;
     const cx = Math.max(wl.x, Math.min(a.x, wl.x + wl.w)), cy = Math.max(wl.y, Math.min(a.y, wl.y + wl.h));
@@ -206,6 +207,7 @@ function collide(w: World, a: Actor): void {
 export function stepGame(g: Game): void {
   const w = g.w, s = w.state, st = s.stadium!;
   if (st.ending) return;
+  setBreaches(st.breaches);
   resetPathBudget();
   const t = secs(w);
 
@@ -255,7 +257,7 @@ export function stepGame(g: Game): void {
   stepBusSanctions(w);
   stepDog(w);
   stepKit(w);
-  stepLateTeam(w);
+  stepKickoff(w);
   stepRules(w);
   stepTipoffs(w);
   stepDetention(w);
@@ -277,7 +279,10 @@ function endings(g: Game): void {
   const s = g.w.state, st = s.stadium!, m = s.match!;
   if (st.ending || m.phase !== "finished") return;
   const pens = m.shootout ? ` (${m.shootout.scored[0]}–${m.shootout.scored[1]} on penalties)` : "";
-  const line = `England ${m.score[0]}, ${m.teams[1].name} ${m.score[1]}${pens}.`;
+  const forfeit = st.flags.forfeit;
+  const line = forfeit === 1 ? `${m.teams[1].name} couldn't put eleven men on the pitch, or even seven. The match is awarded to England without a ball being kicked.`
+    : forfeit === 2 ? "England couldn't field a team. The match is awarded to the other lot."
+    : `England ${m.score[0]}, ${m.teams[1].name} ${m.score[1]}${pens}.`;
   st.ending = m.winner === 0
     ? { kind: "through", title: "England are through", text: line }
     : { kind: "eliminated", title: "England are out", text: line };

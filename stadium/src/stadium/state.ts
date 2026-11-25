@@ -101,6 +101,9 @@ export interface Wanted {
 
 export interface Smoke { x: number; y: number; r: number; until: number }
 
+/** A hole knocked in a wall: anything within r of the centre is no longer solid. */
+export interface Breach { x: number; y: number; r: number; t: number }
+
 export interface Incident {
   t: number;
   what: string;
@@ -143,6 +146,8 @@ export interface StadiumState {
   tipoffs: { target: Id; by: Id; officer: Id; at: number; stage: "going" | "waiting" | "done" }[];
   /** Clouds of smoke from flares. */
   smoke: Smoke[];
+  /** Holes in walls. */
+  breaches: Breach[];
   /** Who drank from which spiked supply at half-time. */
   dosed: Record<Id, { effect: string; at: number }>;
 }

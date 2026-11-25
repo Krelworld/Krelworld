@@ -17,12 +17,15 @@ export function newsReport(w: World): Bulletin {
 
   // Headline.
   let headline: string;
-  if (st.ending?.kind === "arrested") headline = "England supporter arrested at quarter-final";
+  if (f.forfeit === 1) headline = `England through after ${opp} "fail to turn up"`;
+  else if (f.forfeit === 2) headline = `England go out without kicking a ball`;
+  else if (st.ending?.kind === "arrested") headline = `England supporter arrested at ${VENUE.round}`;
   else if (m.winner === 0) headline = f.refLax || f.impostorRulings || mine.some((i) => i.severity >= 2) ? `England through amid "unprecedented" scenes` : `England beat ${opp} to reach the ${VENUE.id === "qf" ? "semi-final" : "final"}`;
   else if (m.winner === 1) headline = `England knocked out by ${opp}`;
   else headline = `England's quarter-final ends in confusion`;
 
-  if (m.phase === "finished") lines.push(`England ${m.winner === 0 ? "beat" : "lost to"} ${opp} ${m.winner === 0 ? score : `${m.score[1]}–${m.score[0]}`}${pens} this afternoon.`);
+  if (f.forfeit) lines.push(f.forfeit === 1 ? `The match was awarded to England after ${opp} were unable to field a team. ${opp} say they "were there, more or less".` : `England were unable to field a team and the match was awarded to ${opp}.`);
+  else if (m.phase === "finished") lines.push(`England ${m.winner === 0 ? "beat" : "lost to"} ${opp} ${m.winner === 0 ? score : `${m.score[1]}–${m.score[0]}`}${pens} this afternoon.`);
   else lines.push(`The match was still in progress when our reporter was asked to leave the building.`);
 
   const phantom = (m.physicalGoals[0] + m.physicalGoals[1]) - (m.score[0] + m.score[1]);
@@ -42,6 +45,9 @@ export function newsReport(w: World): Bulletin {
   if (f.busCrash) lines.push(`The ${opp} team bus crashed on the way to the ground. Police say the brakes had been "interfered with by someone who knew roughly what brakes are".`);
   if (f.busSanctioned === 1) lines.push(`${opp} were docked a goal after their team bus was involved in what officials called "scenes". ${opp} insist nobody from their squad can drive.`);
   if (f.busSanctioned === 2) lines.push(`A goal awarded against ${opp} over their team bus was later taken from England instead, when it emerged the driver was English.`);
+  if (f.kickoffDelays) lines.push(`Kick-off was delayed ${f.kickoffDelays === 1 ? "once" : `${f.kickoffDelays} times`}${f.kickoffDelays >= 4 ? `, by a total of ${Math.round(f.kickoffDelays * 0.75)} minutes. Broadcasters filled the time with a documentary about drainage` : ""}.`);
+  if (f.alarms) lines.push(`The fire alarm went off ${f.alarms === 1 ? "once" : `${f.alarms} times`}. There was no fire. ${f.alarms > 1 ? "There was, the club says, \"a pattern\"." : ""}`);
+  if (f.breachAt) lines.push(`A team coach was driven through ${st.breaches.length > 1 ? "several walls" : "a wall"} at the ground. A structural engineer said the stadium was "fine, other than the hole".`);
   if (f.flares) lines.push(`${f.flares === 1 ? "A smoke flare was" : `${f.flares} smoke flares were`} let off. The army surplus store next to the ground says it "only sells them for boats".`);
   if (f.pitchInvasions) lines.push(`A spectator ran onto the pitch${f.pitchInvasions > 1 ? ` ${f.pitchInvasions} times` : ""}. He was described as "large" and "not quick".`);
 

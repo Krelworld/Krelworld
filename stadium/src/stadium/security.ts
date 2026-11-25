@@ -182,7 +182,7 @@ export function stepSecurity(w: World, g: Actor): void {
   if ((tick + g.id.length * 7 + g.id.charCodeAt(g.id.length - 1)) % 6 === 0) {
     for (const t of suspects(w)) {
       if (t.heldBy || st.ending) continue;
-      const range = n.job === "pitchsteward" || n.job === "police" ? 22 : 14;
+      const range = (n.job === "pitchsteward" || n.job === "police" ? 22 : 14) + Math.min(5, st.flags.securityLevel ?? 0) * 0.8;
       const sees = canSee(w, g, t, range);
       let sus = n.sus[t.id] ?? 0;
       if (sees) {
@@ -195,6 +195,9 @@ export function stepSecurity(w: World, g: Actor): void {
         rate += wantedMatch(w, g, t);
         // Gate staff only worry about people near their post.
         if ((n.job === "turnstile" || n.job === "doorguard" || n.job === "gateguard") && Math.hypot(t.x - g.x, t.y - g.y) > 9) rate *= 0.3;
+        // Every delay and every outrage puts them more on edge; a fire alarm has them looking elsewhere.
+        rate *= 1 + 0.18 * Math.min(5, st.flags.securityLevel ?? 0);
+        if ((st.flags.alarmUntil ?? 0) > tick && n.job !== "police") rate *= 0.45;
         // A steward who has been paid looks the other way, unless it is serious.
         if (n.paidUntil > tick && n.crime < 2) rate = 0;
         if (tr >= 3 && n.job === "pitchsteward") { sus = 2; n.crime = Math.max(n.crime, 1); }

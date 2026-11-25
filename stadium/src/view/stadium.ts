@@ -15,7 +15,7 @@ import { playing } from "../football/util";
 import { Announcer } from "../stadium/announcer";
 import { aimThrow, itemName, itemOptions, looksOutOfPlace, options, personName, primary, throwTarget, type Option } from "../stadium/context";
 import { createGame, loadCheckpoint, stepGame, type Game } from "../stadium/game";
-import { AREAS, areaAt, KICKOFF_AT, SPOTS, VENUE, WALLS } from "../stadium/layout";
+import { AREAS, areaAt, KICKOFF_AT, setBreaches, SOLID, SPOTS, VENUE } from "../stadium/layout";
 import { afterMatch, describeDef, FIXTURES, loadoutProblem, newCampaign, notorietyText, type Campaign } from "../stadium/campaign";
 import { TEAMS } from "../football/setup";
 import { canBetHere, prices } from "../stadium/betting";
@@ -101,7 +101,9 @@ class StadiumScene extends Phaser.Scene {
     this.introFor(campaign);
     const w = this.w;
     new Commentator(w, w.bus, (l) => this.matchLine(l.text, l.big));
-    const TANNOY: Record<string, Clip> = { welcome: VENUE.id === "qf" ? "tannoy_welcome" : "tannoy_welcome_sf", lorry: "tannoy_lorry", pitch: "tannoy_pitch", "2min": "tannoy_2min", teams: "tannoy_teams", cleaner: "tannoy_cleaner", flares: "tannoy_flares", cameras: "tannoy_cameras" };
+    const TANNOY: Record<string, Clip> = { welcome: VENUE.id === "qf" ? "tannoy_welcome" : "tannoy_welcome_sf", lorry: "tannoy_lorry", pitch: "tannoy_pitch", "2min": "tannoy_2min", teams: "tannoy_teams", cleaner: "tannoy_cleaner", flares: "tannoy_flares", cameras: "tannoy_cameras",
+      delay_late: "tannoy_delay_late", delay_ref: "tannoy_delay_ref", delay_pitch: "tannoy_delay_pitch", delay_safety: "tannoy_delay_safety", delay_again: "tannoy_delay_again",
+      alarm: "tannoy_alarm", breach: "tannoy_breach", forfeit: "tannoy_forfeit" };
     const ann = new Announcer(w, (a) => {
       this.say(a.text, a.src === "tannoy" ? "Tannoy" : "Commentary", a.big);
       const clip = a.key ? (TANNOY[a.key] ?? (a.key.startsWith("cam") ? "tannoy_supervisor" : undefined)) : undefined;
@@ -123,6 +125,8 @@ class StadiumScene extends Phaser.Scene {
       if (e.type === "escort_cut" && e.who === this.s.stadium!.pc) { const f = $("fade"); f.classList.add("on"); setTimeout(() => f.classList.remove("on"), 450); }
       if (e.type === "broke_free" && e.who === this.s.stadium!.pc) this.hint("You broke free. Run!");
       if (e.type === "winded") this.hint("You're out of breath.");
+      if (e.type === "breach") this.hint("Through the wall. Your ears are ringing. Get moving before the police get here.");
+      if (e.type === "kickoff_delayed" && (e.n === 1 || e.n === 4)) this.hint(e.n === 1 ? "Kick-off delayed. The stewards will be keener now." : "The referee won't wait much longer.");
       if (e.type === "planted" && e.by === this.s.stadium!.pc) this.hint("Planted. Nobody noticed.");
       if (e.type === "bet_settled" && e.who === this.s.stadium!.pc) this.hint(e.won ? `Your bet came in: £${e.payout}.` : `You lost £${e.stake}.`);
     });
@@ -229,6 +233,8 @@ class StadiumScene extends Phaser.Scene {
       case "dog_loose": a.play("bark", 1, { minGap: 0.3 }); break;
       case "bus_hit": a.play("punch", 0.9); a.play("horn", 0.6, { minGap: 1 }); break;
       case "bus_wall": a.play("punch", 1, { rate: 0.6 }); break;
+      case "breach": a.play("wall_crash", 0.5 + near(e.x, e.y, 80) * 0.5); break;
+      case "fire_alarm": a.play("fire_alarm", 0.4 + near(e.x, e.y, 50) * 0.6); break;
       case "bus_crash": a.play("punch", 1, { rate: 0.5 }); a.play("horn", 0.7, { rate: 0.8 }); break;
       case "bus_sanction": a.play(e.reversed ? "boo" : "goal_roar", 0.8, { minGap: 2 }); break;
       case "say": {
@@ -434,8 +440,9 @@ class StadiumScene extends Phaser.Scene {
       return sx > view.x - pad && sx < view.right + pad && sy > view.y - pad && sy < view.bottom + pad * 2;
     };
 
-    // Walls: fade the ones the player is standing behind.
-    for (const wl of WALLS) {
+    // Walls: fade the ones the player is standing behind. Holes knocked in them are gaps.
+    setBreaches(st.breaches);
+    for (const wl of SOLID) {
       if (!onScreen(wl.x + wl.w / 2, wl.y + wl.h / 2, 200)) continue;
       const open = wl.gate && st.gates[wl.gate] && st.gates[wl.gate].until > tick;
       const behind = pc && pc.y < wl.y + wl.h && pc.y > wl.y - wl.h3 * 1.6 - 0.5 && pc.x > wl.x - 0.5 && pc.x < wl.x + wl.w + 0.5 && wl.h3 > 1.6;
@@ -449,6 +456,34 @@ class StadiumScene extends Phaser.Scene {
         g.fillStyle(wl.top, alpha).fillRect(rx, ry - lift, rw, rh);
       } });
     }
+
+    // Rubble where a wall used to be.
+    for (const b of st.breaches) {
+      if (!onScreen(b.x, b.y, 120)) continue;
+      things.push({ d: b.y - 1.5, draw: () => g.fillStyle(0x2a2622, 0.55).fillEllipse(P.sx(b.x, b.y), P.sy(b.x, b.y), b.r * 2.6 * P.S, b.r * 1.6 * P.S * (P.standing ? P.K : 1)) });
+      for (let i = 0; i < 14; i++) {
+        const a = i * 2.39996 + b.t, rr = b.r * (0.25 + ((i * 37) % 11) / 11 * 0.9);
+        const x = b.x + Math.cos(a) * rr, y = b.y + Math.sin(a) * rr * 0.8, sz = 0.25 + ((i * 13) % 7) / 7 * 0.45;
+        things.push({ d: y, draw: () => {
+          const sx = P.sx(x, y), sy = P.sy(x, y, P.standing ? sz * 0.5 : 0);
+          g.fillStyle(i % 3 ? 0x8a8f96 : 0xb4b9bf, 1).fillRect(sx - sz * P.S / 2, sy - sz * P.S / 2, sz * P.S, sz * P.S * 0.7);
+        } });
+      }
+    }
+
+    // Fire alarm call points: red boxes on the wall.
+    SPOTS.alarmPoints.forEach((p, i) => {
+      if (!onScreen(p.x, p.y)) return;
+      const used = !!st.flags[`alarmUsed${i}`], ringing = (st.flags.alarmUntil ?? 0) > tick;
+      const near = pc && Math.hypot(pc.x - p.x, pc.y - p.y) < 1.6;
+      things.push({ d: p.y + 0.05, draw: () => {
+        const sx = P.sx(p.x, p.y), sy = P.sy(p.x, p.y, P.standing ? 1.3 : 0), z = P.S * 0.42;
+        g.fillStyle(0xd7263d, 1).fillRect(sx - z / 2, sy - z / 2, z, z);
+        g.fillStyle(used ? 0x333333 : 0xf1f4f1, 1).fillRect(sx - z / 4, sy - z / 4, z / 2, z / 2);
+        if (ringing && used && Math.floor(tick / 15) % 2) g.fillStyle(0xffd34c, 0.9).fillCircle(sx, sy - z, z / 3);
+        if (near && !used) g.lineStyle(1.5, 0xf2c94c, 0.5 + 0.4 * Math.sin(tick * 0.15)).strokeCircle(sx, sy, P.S * 0.55);
+      } });
+    });
 
     // Items lying around, and fixtures.
     for (const id in s.items) {
@@ -610,7 +645,7 @@ class StadiumScene extends Phaser.Scene {
   drawHud() {
     const s = this.s, m = s.match!, pc = this.pc, st = s.stadium!;
     const t = secs(this.w);
-    const label = m.phase === "pre" ? `KO ${fmtTime(Math.max(0, KICKOFF_AT - t))}` : m.phase === "finished" ? "FT" : m.phase === "break" ? (m.period === 1 ? `HT ${fmtTime(Math.max(0, (m.phaseUntil - s.tick) / 60))}` : "…") : clockLabel(m);
+    const label = m.phase === "pre" ? `KO ${fmtTime(Math.max(0, (m.phaseUntil - s.tick) / 60))}${st.flags.kickoffDelays ? " (late)" : ""}` : m.phase === "finished" ? "FT" : m.phase === "break" ? (m.period === 1 ? `HT ${fmtTime(Math.max(0, (m.phaseUntil - s.tick) / 60))}` : "…") : clockLabel(m);
     const pens = m.shootout ? ` (${m.shootout.scored[0]}–${m.shootout.scored[1]})` : "";
     const key = `${m.score[0]}–${m.score[1]}|${label}${pens}`;
     if (key !== this.lastScore) { this.lastScore = key; $("sc").textContent = `${m.score[0]}–${m.score[1]}`; $("clock").textContent = label + pens; }

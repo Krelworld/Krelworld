@@ -1,5 +1,5 @@
 // Walkability grid and A* for people who are not the player.
-import { BOUNDS, VENUE, WALLS } from "./layout";
+import { BOUNDS, SOLID, solidKey } from "./layout";
 
 const CELL = 1;
 export const GW = Math.ceil(BOUNDS.w / CELL), GH = Math.ceil(BOUNDS.h / CELL);
@@ -8,11 +8,11 @@ let gridFor = "";
 
 /** 1 = blocked. Gates count as open: the people using paths are allowed through, or they wait. */
 export function navGrid(): Uint8Array {
-  if (grid && gridFor === VENUE.id) return grid;
-  gridFor = VENUE.id;
+  if (grid && gridFor === solidKey) return grid;
+  gridFor = solidKey;
   grid = new Uint8Array(GW * GH);
   const pad = 0.45;
-  for (const w of WALLS) {
+  for (const w of SOLID) {
     if (w.gate) continue;
     const x0 = Math.floor((w.x - pad - BOUNDS.x) / CELL), x1 = Math.ceil((w.x + w.w + pad - BOUNDS.x) / CELL);
     const y0 = Math.floor((w.y - pad - BOUNDS.y) / CELL), y1 = Math.ceil((w.y + w.h + pad - BOUNDS.y) / CELL);
@@ -141,7 +141,7 @@ export function lineOfSight(ax: number, ay: number, bx: number, by: number): boo
   const d = Math.hypot(bx - ax, by - ay), n = Math.ceil(d / 0.5);
   for (let i = 1; i < n; i++) {
     const t = i / n, x = ax + (bx - ax) * t, y = ay + (by - ay) * t;
-    for (const w of WALLS) {
+    for (const w of SOLID) {
       if (w.h3 < 1.7) continue;
       if (x > w.x && x < w.x + w.w && y > w.y && y < w.y + w.h) return false;
     }

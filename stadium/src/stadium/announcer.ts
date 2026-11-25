@@ -11,6 +11,7 @@ const TEAMNAME: Record<string, string> = { ENG: "England", POR: "Portugal", ARG:
 
 export class Announcer {
   private said = new Set<string>();
+  private lastDelay = "";
   constructor(private w: World, private out: (a: Announcement) => void) {
     w.bus.on((e) => this.hear(e));
   }
@@ -132,10 +133,49 @@ export class Announcer {
         this.once("busin", `The ${s.match!.teams[1].name} team have arrived at the ground.`, "commentary", false);
         break;
       case "bus_crash":
+        if (e.wall) {
+          if (e.hurt.length) this.out({ t: e.t, text: `The ${s.match!.teams[1].name} squad were on board. ${e.hurt.length === 1 ? e.hurt[0] + " is" : e.hurt.length + " players are"} not expected to play.`, src: "commentary", big: true });
+          break;
+        }
         this.out({ t: e.t, text: `We're being informed that the ${s.match!.teams[1].name} team coach has been involved in an incident on its way to the ground.${e.hurt.length ? ` ${e.hurt.length === 1 ? e.hurt[0] + " is" : e.hurt.length + " players are"} not expected to play.` : ""}`, src: "commentary", big: true });
         break;
-      case "kickoff_delayed":
-        this.out({ t: e.t, text: `Kick-off has been delayed. The ${s.match!.teams[1].name} team are still on their way.`, src: "tannoy", big: true });
+      case "kickoff_delayed": {
+        const opp = s.match!.teams[1].name;
+        const again = e.n > 1 && e.reason === this.lastDelay;
+        this.lastDelay = e.reason;
+        const T: Record<string, [string, string]> = {
+          late: [`Ladies and gentlemen, kick-off has been delayed due to the late arrival of one of the teams.`, "delay_late"],
+          referee: ["Ladies and gentlemen, kick-off has been briefly delayed while the referee receives attention.", "delay_ref"],
+          pitch: ["Kick-off will be delayed until the pitch has been cleared.", "delay_pitch"],
+          alarm: ["Kick-off has been delayed while the alarm is investigated.", ""],
+          safety: ["Kick-off has been delayed while engineers inspect damage to the stadium.", "delay_safety"],
+        };
+        const [text, key] = again ? ["Ladies and gentlemen, we apologise. Kick-off has been delayed again.", "delay_again"] : T[e.reason] ?? T.late;
+        this.out({ t: e.t, text, src: "tannoy", big: true, key: key || undefined });
+        if (e.n === 3) this.out({ t: e.t, text: `A third delay. The ${opp} bench are looking at their watches.`, src: "commentary", big: false });
+        if (e.n === 5) this.out({ t: e.t, text: "The referee has been seen speaking to a man with a clipboard. That's never good.", src: "commentary", big: false });
+        break;
+      }
+      case "kickoff_at_last":
+        if (e.delays >= 2) this.out({ t: e.t, text: `${e.delays} delays later, the referee has decided enough is enough. We are under way.`, src: "commentary", big: true });
+        break;
+      case "forfeit":
+        this.out({ t: e.t, text: e.team === "ENG" ? "Ladies and gentlemen, England have failed to take the field. The match has been awarded to the visitors." : "Ladies and gentlemen, the visiting team have failed to take the field. The match has been awarded to England.", src: "tannoy", big: true, key: e.team === "ENG" ? undefined : "forfeit" });
+        break;
+      case "fire_alarm":
+        this.out({ t: e.t, text: "Ladies and gentlemen, please do not be alarmed. Remain where you are while the alarm is investigated.", src: "tannoy", big: true, key: e.n <= 2 ? "alarm" : undefined });
+        if (e.n === 2) this.out({ t: e.t, text: "The fire alarm again. Nobody appears to be leaving.", src: "commentary", big: false });
+        if (e.n >= 3) this.out({ t: e.t, text: "Another fire alarm. The stewards have stopped looking for the fire and started looking for the man.", src: "commentary", big: false });
+        break;
+      case "breach":
+        this.out({ t: e.t, text: e.ground
+          ? `We're getting reports that a team coach has come through the wall of the ${String(e.into).replace(/^The /, "")}. It was not expected.`
+          : `A team coach has been driven through the wall of ${e.into}.`, src: "commentary", big: true });
+        if (e.ground) this.once("breach", "Would supporters please keep away from the damaged section of the outer wall.", "tannoy", false);
+        break;
+      case "security_level":
+        if (e.level === 3) this.once("sec3", "Security has been visibly stepped up around the ground.", "commentary", false);
+        if (e.level === 5) this.once("sec5", "Stewards have been told to treat everybody as a suspect. Which, to be fair, they already were.", "commentary", false);
         break;
       case "bus_stolen":
         this.once("stolen", `Would the driver of the ${s.match!.teams[1].name} team bus please return to his vehicle.`, "tannoy", false);

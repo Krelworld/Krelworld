@@ -8,7 +8,8 @@ import { DT, type Actor } from "../core/types";
 import { registerVerb } from "../core/verbs";
 import type { World } from "../core/world";
 import { removePlayer } from "../football/api";
-import { KICKOFF_AT, SPOTS, VENUE, WALLS } from "./layout";
+import { areaAt, breakable, KICKOFF_AT, SOLID, SPOTS, VENUE, type Wall } from "./layout";
+import { raiseSecurity } from "./kickoff";
 import { mayPass, newNpc, say } from "./npc";
 import { canSee, crime } from "./security";
 import type { Vehicle } from "./state";
@@ -155,11 +156,12 @@ function blockedAhead(w: World, v: Vehicle): boolean {
 }
 
 /** The bus crashes: the squad are thrown about, some badly hurt, everybody late. */
-function crash(w: World, v: Vehicle): void {
+function crash(w: World, v: Vehicle, wall = false): void {
   const s = w.state, st = s.stadium!, m = s.match!, r = s.rng.world;
   v.crashed = true; v.state = "unloading"; v.until = Number.MAX_SAFE_INTEGER; v.speed = 0;
   st.smoke.push({ x: v.x, y: v.y, r: 4, until: s.tick + 60 * 30 });
   const hurt: string[] = [];
+  const aboard = passengers(w, v).filter((a) => a.fb).length;
   for (const a of passengers(w, v)) {
     if (!a.fb) continue;
     if (chance(r, 0.4)) {
@@ -170,11 +172,10 @@ function crash(w: World, v: Vehicle): void {
   }
   letOff(w, v, 2.5);
   const driver = s.actors[v.driver];
-  if (driver) { driver.hiddenIn = undefined; driver.downUntil = s.tick + 60 * 120; }
-  st.flags.busCrash = 1;
-  // Late team, late kick-off.
-  if (m.phase === "pre") { m.phaseUntil += 60 * 60; st.flags.kickoffDelayed = 1; }
-  w.bus.emit({ type: "bus_crash", t: s.tick, team: v.team, hurt });
+  if (driver && driver.hiddenIn === v.cab) { driver.hiddenIn = undefined; driver.downUntil = s.tick + 60 * 120; }
+  if (!wall) st.flags.busCrash = 1;
+  if (aboard) st.flags.teamShaken = 1;
+  w.bus.emit({ type: "bus_crash", t: s.tick, team: v.team, hurt, wall });
   // Was anyone seen at the bus? The tampering may yet be traced.
   const by = st.flags.busTamperedBy ? s.actors["pc"] : undefined;
   if (by && st.flags.busTamperSeen) crime(w, by, "tampering with the team bus", 3);
@@ -230,6 +231,7 @@ export function driveBus(w: World, v: Vehicle, pc: Actor): void {
   const nx = v.x + Math.cos(v.facing) * v.speed * DT, ny = v.y + Math.sin(v.facing) * v.speed * DT;
   // Walls (and shut gates) stop a bus, with a crunch.
   const bump = busHitsWall(w, nx, ny, v.facing, pc);
+  if (bump && v.speed > BREACH_SPEED && breakable(bump.wall)) { breach(w, v, pc, bump); return; }
   if (bump) {
     if (Math.abs(v.speed) > 6) { w.bus.emit({ type: "bus_wall", t: s.tick, x: nx, y: ny }); st.flags.busDamage = (st.flags.busDamage ?? 0) + 1; }
     v.speed = -v.speed * 0.25;
@@ -250,18 +252,65 @@ export function driveBus(w: World, v: Vehicle, pc: Actor): void {
   carry(w, v);
 }
 
-function busHitsWall(w: World, x: number, y: number, facing: number, pc: Actor): boolean {
+function busHitsWall(w: World, x: number, y: number, facing: number, pc: Actor): { wall: Wall; x: number; y: number } | null {
   const c = Math.cos(facing), s = Math.sin(facing);
-  for (const k of [-0.42, 0, 0.42]) {
+  for (const k of [0.42, 0, -0.42]) {
     const px = x + c * BUS_LEN * k, py = y + s * BUS_LEN * k, r = BUS_WID / 2;
-    for (const wl of WALLS) {
+    for (const wl of SOLID) {
       if (wl.gate && mayPass(w, pc, wl.gate)) continue;
       if (wl.gate === "servicegate" && w.state.stadium!.gates.servicegate?.until > w.state.tick) continue;
       const cx = Math.max(wl.x, Math.min(px, wl.x + wl.w)), cy = Math.max(wl.y, Math.min(py, wl.y + wl.h));
-      if (Math.hypot(px - cx, py - cy) < r) return true;
+      if (Math.hypot(px - cx, py - cy) < r) return { wall: wl, x: cx, y: cy };
     }
   }
-  return false;
+  return null;
+}
+
+/** Fast enough and a bus goes through a wall rather than bouncing off it. */
+export const BREACH_SPEED = 8;
+const HOLE_R = 2.8;
+
+/** Through the wall. The bus is finished; the driver is shaken; everybody heard it. */
+function breach(w: World, v: Vehicle, pc: Actor, hit: { wall: Wall; x: number; y: number }): void {
+  const s = w.state, st = s.stadium!, tick = s.tick, wl = hit.wall;
+  // The hole sits on the wall's centre line, where the bus hit it.
+  const hx = wl.w >= wl.h ? hit.x : wl.x + wl.w / 2, hy = wl.w >= wl.h ? wl.y + wl.h / 2 : hit.y;
+  st.breaches.push({ x: hx, y: hy, r: HOLE_R, t: tick });
+  const fast = v.speed;
+  // The bus ends up half in the hole.
+  v.x += Math.cos(v.facing) * 1.2; v.y += Math.sin(v.facing) * 1.2;
+  st.smoke.push({ x: hx, y: hy, r: 5, until: tick + 60 * 20 });
+  const into = areaAt(hx + Math.cos(v.facing) * 3, hy + Math.sin(v.facing) * 3);
+  const intoGround = VENUE.inside(hx + Math.cos(v.facing) * 3, hy + Math.sin(v.facing) * 3);
+  w.bus.emit({ type: "breach", t: tick, x: hx, y: hy, by: pc.id, into: into.name, ground: intoGround, speed: fast });
+  // Anyone in the bus gets the same treatment as a crash; the driver climbs out of the wreck.
+  v.drivenBy = undefined;
+  pc.hiddenIn = undefined;
+  crash(w, v, true);
+  const back = { x: v.x - Math.cos(v.facing) * (BUS_LEN / 2 + 1.2), y: v.y - Math.sin(v.facing) * (BUS_LEN / 2 + 1.2) };
+  const d = busDoor(v);
+  // Out through the door, unless the door is in the wall: then out the back.
+  const doorFree = !SOLID.some((q) => d.x > q.x - 0.4 && d.x < q.x + q.w + 0.4 && d.y > q.y - 0.4 && d.y < q.y + q.h + 0.4);
+  pc.x = doorFree ? d.x : back.x; pc.y = doorFree ? d.y : back.y;
+  pc.downUntil = tick + 60 * (fast > 11.5 ? 6 : 3.5);
+  st.flags.leftBusAt = tick;
+  st.flags.breachAt = tick;
+  // Taking out a stadium wall at full tilt is not always walked away from.
+  if (fast > 12.2 && chance(s.rng.world, 0.15)) {
+    st.ending = { kind: "hospital", title: "Taken to hospital", text: "You drove a team bus through a stadium wall at nearly thirty miles an hour. The airbag was, it turns out, a pillow someone had left on the dashboard." };
+    w.bus.emit({ type: "ending", t: tick, kind: "hospital" });
+    return;
+  }
+  busCrime(w, v, pc, intoGround ? "driving a bus through the stadium wall" : "driving a bus through a wall", 3);
+  raiseSecurity(w, 2);
+  // Police and stewards head for the hole.
+  for (const id in s.actors) {
+    const a = s.actors[id], n = a.npc;
+    if (!n || (n.job !== "police" && n.job !== "patrol" && n.job !== "chief")) continue;
+    if (Math.hypot(a.x - hx, a.y - hy) > 70) continue;
+    n.plan = [{ k: "go", x: hx + (a.x < hx ? -2.5 : 2.5), y: hy + (a.y < hy ? -2.5 : 2.5), run: true }, { k: "wait", s: 40 }];
+    n.lastSeen = { x: hx, y: hy, t: tick };
+  }
 }
 
 export function installBus(): void {
@@ -314,20 +363,6 @@ export function installBus(): void {
       w.bus.emit({ type: "bus_tampered", t: s.tick, by: actor.id, seen });
     },
   });
-}
-
-/** If the opposition are stranded, the kick-off waits for them, twice at most. */
-export function stepLateTeam(w: World): void {
-  const s = w.state, st = s.stadium!, m = s.match!;
-  if (m.phase !== "pre" || st.flags.busArrived || (st.flags.lateDelays ?? 0) >= 2) return;
-  if (m.phaseUntil - s.tick > 60 * 65) return;
-  const away = m.teams[1].squad.map((id) => s.actors[id]).filter((a) => a.fb!.status === "playing");
-  const missing = away.filter((a) => !VENUE.inside(a.x, a.y)).length;
-  if (missing >= 3) {
-    st.flags.lateDelays = (st.flags.lateDelays ?? 0) + 1;
-    m.phaseUntil += 60 * 60;
-    w.bus.emit({ type: "kickoff_delayed", t: s.tick, missing });
-  } else st.flags.busArrived = 1;
 }
 
 /** The governing body's view of a team whose bus misbehaves. */

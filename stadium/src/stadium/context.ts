@@ -1,5 +1,6 @@
 // What the player could do right now, given where he is and what he holds.
 // The view shows the best one on the action button and the rest in a list.
+import { alarmPointNear } from "./kickoff";
 import { appearance } from "../core/identity";
 import { defOf, hasProp } from "../core/items";
 import type { Action, Actor, Item } from "../core/types";
@@ -125,6 +126,7 @@ export function options(w: World, pc: Actor): Option[] {
 
   // Places.
   if (turnstileNear(pc) && !pc.seated) out.push({ label: "Climb over the turnstile", priority: 4, action: { verb: "vault", ...base } });
+  if (alarmPointNear(pc) >= 0 && !pc.seated) push("Break the glass on the fire alarm", 48, { verb: "alarm", ...base });
   if (climbPointNear(pc) && !pc.seated) out.push({ label: "Squeeze through the loose panel", priority: 50, action: { verb: "vault", ...base } });
   if (areaAt(pc.x, pc.y).seats && !pc.seated) push("Sit down and watch", 45, { verb: "sit", ...base });
 

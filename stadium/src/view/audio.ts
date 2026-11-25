@@ -6,6 +6,8 @@ export const CLIPS = [
   "tannoy_welcome", "tannoy_pitch", "tannoy_2min", "tannoy_teams", "tannoy_cleaner", "tannoy_flares", "tannoy_lorry",
   "stw_oi", "stw_out", "stw_pal", "stw_coming", "stw_wriggle", "stw_staff",
   "tannoy_welcome_sf", "tannoy_cameras", "tannoy_supervisor", "bark",
+  "fire_alarm", "wall_crash", "tannoy_delay_late", "tannoy_delay_ref", "tannoy_delay_pitch", "tannoy_delay_safety", "tannoy_delay_again",
+  "tannoy_alarm", "tannoy_breach", "tannoy_forfeit",
 ] as const;
 export type Clip = (typeof CLIPS)[number];
 

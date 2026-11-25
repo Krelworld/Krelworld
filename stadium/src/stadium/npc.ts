@@ -202,7 +202,7 @@ function teamWalk(w: World, a: Actor): void {
   if (m.cfg.venue !== true || (m.phase !== "pre" && m.phase !== "break")) { n.goal = null; n.path = []; return; }
   // The away team come by bus: wait at the hotel, then board when it's time.
   const bus = st.vehicles.bus;
-  if (a.fb?.team === 1 && m.phase === "pre" && bus && !st.flags.busArrived && !bus.crashed && !bus.drivenBy) {
+  if (a.fb?.team === 1 && m.phase === "pre" && bus && !st.flags.busArrived && !st.flags.awayOnFoot && !bus.crashed && !bus.drivenBy) {
     if (a.hiddenIn === bus.cab) return;
     if (st.flags.boarding) {
       const door = { x: bus.x + Math.cos(bus.facing) * 3.9 + Math.sin(bus.facing) * 2.2, y: bus.y + Math.sin(bus.facing) * 3.9 - Math.cos(bus.facing) * 2.2 };

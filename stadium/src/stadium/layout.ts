@@ -201,6 +201,8 @@ const QF_SPOTS = {
   dogPost: { x: -50.5, y: 82.4 },
   busPark: { x: 83, y: -7 },
   busBay: { x: 46, y: -40.8 },
+  /** Break glass, press here. */
+  alarmPoints: [{ x: -30, y: 43.6 }, { x: 36, y: 43.6 }, { x: -55.6, y: -12 }, { x: 55.6, y: 18 }, { x: -30, y: -47.6 }],
 };
 
 /** Turnstile gate ids, west to east. */
@@ -320,9 +322,45 @@ export let AREAS: Area[] = VENUE.areas;
 export let WALLS: Wall[] = VENUE.walls;
 export let SPOTS: Spots = VENUE.spots;
 
+/** Walls as they stand now: WALLS with any holes knocked in them. */
+export let SOLID: Wall[] = WALLS;
+/** Changes whenever SOLID does, so caches built from it know to rebuild. */
+export let solidKey = "qf";
+
 export function setVenue(id: Venue["id"]): void {
   VENUE = VENUES[id];
   AREAS = VENUE.areas; WALLS = VENUE.walls; SPOTS = VENUE.spots;
+  SOLID = WALLS; solidKey = id;
+}
+
+/** Can a bus go through this? Gates give way anyway; low walls get driven over; the hotel is built to last. */
+export const breakable = (wl: Wall): boolean => !wl.gate && wl.h3 >= 2.5 && wl.h3 <= 4.5;
+
+/** Bring SOLID up to date with the holes in the saved state. Cheap when nothing has changed. */
+export function setBreaches(holes: { x: number; y: number; r: number }[]): void {
+  const key = VENUE.id + holes.map((h) => `${h.x.toFixed(1)},${h.y.toFixed(1)}`).join(";");
+  if (key === solidKey) return;
+  solidKey = key;
+  let out = WALLS;
+  for (const h of holes) {
+    const next: Wall[] = [];
+    for (const wl of out) {
+      const near = h.x > wl.x - h.r && h.x < wl.x + wl.w + h.r && h.y > wl.y - h.r && h.y < wl.y + wl.h + h.r;
+      if (!near || !breakable(wl)) { next.push(wl); continue; }
+      // Cut the hole out along the wall's length.
+      if (wl.w >= wl.h) {
+        const a = h.x - h.r, b = h.x + h.r;
+        if (a > wl.x + 0.2) next.push({ ...wl, w: a - wl.x });
+        if (b < wl.x + wl.w - 0.2) next.push({ ...wl, x: b, w: wl.x + wl.w - b });
+      } else {
+        const a = h.y - h.r, b = h.y + h.r;
+        if (a > wl.y + 0.2) next.push({ ...wl, h: a - wl.y });
+        if (b < wl.y + wl.h - 0.2) next.push({ ...wl, y: b, h: wl.y + wl.h - b });
+      }
+    }
+    out = next;
+  }
+  SOLID = out;
 }
 
 export const areaAt = (x: number, y: number): Area => {

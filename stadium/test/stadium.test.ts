@@ -468,9 +468,9 @@ test("a tampered bus crashes, players are hurt, and kick-off is delayed", () => 
   assert.equal(dispatch(g.w, { verb: "tamper", actor: pc.id, item: knife.id }).ok, true);
   const events: any[] = [];
   g.w.bus.on((e) => events.push(e));
-  run(g, 260);
+  run(g, 335);
   assert.ok(events.some((e) => e.type === "bus_crash"));
-  assert.ok(events.some((e) => e.type === "kickoff_delayed") || s.match!.phaseUntil > 60 * 330, "kick-off waits");
+  assert.ok(events.some((e) => e.type === "kickoff_delayed" && e.reason === "late"), "kick-off waits");
 });
 
 test("drive the bus at people and their team are docked a goal; caught, and it reverses", () => {
@@ -569,4 +569,104 @@ test("the referee eventually counts twelve", () => {
   const ref = s.actors[m.officials.referee];
   run(g, 120, () => { if (!events.includes("twelfth_man")) { pc.x = ref.x + 4; pc.y = ref.y; } });
   assert.ok(events.includes("twelfth_man"));
+});
+
+// ---------- Kick-off delays ----------
+test("a fire alarm at kick-off time delays it, and the stewards get keener", () => {
+  const g = createGame("alarm");
+  const s = g.w.state, pc = pcOf(g), m = s.match!, st = s.stadium!;
+  const events: any[] = [];
+  g.w.bus.on((e) => events.push(e));
+  run(g, 320);
+  const p = SPOTS.alarmPoints[0];
+  pc.x = p.x; pc.y = p.y;
+  assert.equal(dispatch(g.w, { verb: "alarm", actor: pc.id }).ok, true);
+  assert.equal(dispatch(g.w, { verb: "alarm", actor: pc.id }).ok, false, "one go per call point");
+  run(g, 15);
+  assert.equal(m.phase, "pre");
+  const d = events.find((e) => e.type === "kickoff_delayed");
+  assert.ok(d && d.reason === "alarm", "delayed for the alarm");
+  assert.ok((st.flags.securityLevel ?? 0) >= 1);
+  run(g, 90);
+  assert.notEqual(m.phase, "pre", "kicks off once the alarm stops");
+});
+
+test("an alarm during play stops the match until it is silenced", () => {
+  const g = createGame("alarm2");
+  const s = g.w.state, pc = pcOf(g), m = s.match!;
+  run(g, 400);
+  assert.ok(m.phase === "live" || m.phase === "restart");
+  const p = SPOTS.alarmPoints[1];
+  pc.x = p.x; pc.y = p.y;
+  dispatch(g.w, { verb: "alarm", actor: pc.id });
+  run(g, 1);
+  assert.equal(m.halted, "alarm");
+  run(g, 40);
+  assert.notEqual(m.halted, "alarm");
+});
+
+test("a poorly referee holds things up twice, then the fourth official takes over", () => {
+  const g = createGame("refdelay");
+  const s = g.w.state, m = s.match!;
+  const ref = s.actors[m.officials.referee];
+  run(g, 300);
+  ref.off!.incapacitated = true;
+  const events: any[] = [];
+  g.w.bus.on((e) => events.push(e));
+  run(g, 140);
+  const refDelays = events.filter((e) => e.type === "kickoff_delayed" && e.reason === "referee").length;
+  assert.equal(refDelays, 2);
+  assert.notEqual(m.phase, "pre");
+});
+
+test("if they can't raise seven players, the referee gives England the match", () => {
+  const g = createGame("forfeit");
+  const s = g.w.state, m = s.match!, st = s.stadium!;
+  run(g, 100);
+  // Nobody of theirs ever turns up.
+  for (const id of m.teams[1].squad) { const a = s.actors[id]; a.x = 85; a.y = -30; }
+  const events: string[] = [];
+  g.w.bus.on((e) => events.push(e.type));
+  run(g, 560, () => { for (const id of m.teams[1].squad) { const a = s.actors[id]; a.x = 85; a.y = -30; } });
+  assert.equal(events.filter((e) => e === "kickoff_delayed").length, 6);
+  assert.ok(events.includes("forfeit"));
+  assert.equal(st.ending?.kind, "through");
+});
+
+// ---------- Through the wall ----------
+function busAt(g: Game, x: number, y: number, facing: number) {
+  const s = g.w.state, pc = pcOf(g), v = s.stadium!.vehicles.bus;
+  v.x = x; v.y = y; v.facing = facing; v.speed = 0; v.state = "driving";
+  v.drivenBy = pc.id; pc.hiddenIn = v.cab; pc.x = x; pc.y = y;
+  for (const a of Object.values(s.actors)) if (a.npc && a.id !== pc.id && Math.abs(a.x - x) < 6 && a.y > 44 && a.y < y + 8) { a.x = x + 20; }
+  return v;
+}
+
+test("floor it into the outer wall and the bus makes a hole you can walk through", () => {
+  const g = createGame("breach");
+  const s = g.w.state, pc = pcOf(g), st = s.stadium!;
+  run(g, 60);
+  const v = busAt(g, -28, 59.5, -Math.PI / 2);
+  const events: any[] = [];
+  g.w.bus.on((e) => events.push(e));
+  run(g, 4, () => { if (v.drivenBy) { pc.moveX = 0; pc.moveY = -1; } else pc.moveX = pc.moveY = 0; });
+  assert.equal(st.breaches.length, 1, "a hole");
+  assert.ok(v.crashed && !v.drivenBy && !pc.hiddenIn);
+  assert.ok(events.some((e) => e.type === "breach" && e.ground));
+  assert.ok((st.flags.securityLevel ?? 0) >= 2);
+  assert.ok(st.incidents.some((i) => i.what.includes("wall") && i.severity === 3));
+  if (st.ending) return; // the rare hospital trip
+  run(g, 5);
+  walk(g, -26.2, 40, 12);
+  assert.equal(areaAt(pc.x, pc.y).id, "concourse_s", `got in: at ${pc.x.toFixed(1)},${pc.y.toFixed(1)}`);
+});
+
+test("driven gently into a wall, the bus just bumps it", () => {
+  const g = createGame("bump");
+  const s = g.w.state, pc = pcOf(g), st = s.stadium!;
+  run(g, 60);
+  const v = busAt(g, -28, 54, -Math.PI / 2);
+  run(g, 4, () => { pc.moveX = 0; pc.moveY = -0.35; });
+  assert.equal(st.breaches.length, 0);
+  assert.ok(!v.crashed);
 });

@@ -26,6 +26,7 @@ import { hint } from "./wording";
 import { whenRunning } from "./shell";
 import { installCombat } from "./combat";
 import { installBrawl, showFinisher } from "./brawl";
+import { installGames } from "./games";
 import { PAD_CSS, PadHandover } from "./pad";
 import { ControlsPicture, tabFor } from "./controlsPicture";
 import { phoneHooks, setPhoneHooks } from "./boot";
@@ -124,6 +125,8 @@ export function installMobile(game: Phaser.Game) {
   // stage 2 part 2: the finale's brawl, the Kreltality prompt, a controller handed over (brawl.ts, pad.ts)
   WORDING_HOOKS.skipHint = skipHintPill;
   const brawl = installBrawl(game, layer);
+  // stage 3 wave 2: the minigames by touch (its wording rows must be in before the scenes are hooked below)
+  const games = installGames(game, layer);
   brawl.pauseCard = (extra) => shell.pauseCard(extra);
   const picture = new ControlsPicture(layer);
   const pad = new PadHandover();
@@ -239,6 +242,7 @@ export function installMobile(game: Phaser.Game) {
       /* fine with one */
     }
     wording.hookScenes();
+    games.hookScenes();
     setFrameCap(game, phoneSettings().batterySaver);
     // scenes laid out for a phone when they are built (screens.ts)
     for (const sc of game.scene.scenes as Phaser.Scene[]) sc.sys.events.on("create", () => onSceneCreate(sc));
@@ -280,6 +284,7 @@ export function installMobile(game: Phaser.Game) {
     combat,
     tapUse,
     brawl,
+    games: { state: () => ({ ...games.state }), lag: () => games.lag() },
     pad,
     picture,
     dialogue,

@@ -8,8 +8,9 @@ import { describe, expect, it } from "vitest";
 import ts from "typescript";
 import { TOUCH_WORDING, NARRATOR_TIPS, type WordingRule } from "../src/game/mobile/wording";
 import { COMBAT_WORDING, COMBAT_WORDING_FIRST, COMBAT_NARRATOR_TIPS, BRAWL_WORDING } from "../src/game/mobile/combatWording";
+import { GAME_WORDING } from "../src/game/mobile/gamesLogic";
 
-const TOUCH: WordingRule[] = [...COMBAT_WORDING_FIRST, ...TOUCH_WORDING, ...COMBAT_WORDING, ...BRAWL_WORDING];
+const TOUCH: WordingRule[] = [...GAME_WORDING, ...COMBAT_WORDING_FIRST, ...TOUCH_WORDING, ...COMBAT_WORDING, ...BRAWL_WORDING];
 const NARR: WordingRule[] = [...NARRATOR_TIPS, ...COMBAT_NARRATOR_TIPS];
 /** The game's sources (the phone module aside). */
 const SOURCES = import.meta.glob(["../src/**/*.ts", "!../src/game/mobile/**"], { eager: true, query: "?raw", import: "default" }) as Record<string, string>;

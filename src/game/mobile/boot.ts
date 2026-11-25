@@ -69,6 +69,8 @@ export interface PhoneHooks {
   hazardScale?(): number;
   /** A side room's pit: where to put the player back (phone assist: further from the edge, the stick waits). */
   pitRespawn?(level: unknown, fellX: number, safeX: number, roomW: number, now: number): number;
+  /** Rhythm minigames (stage 3): seconds to take off a tap's judged time (the phone's sound output delay + the setting). */
+  rhythmLag?(): number;
 }
 
 let hooks: PhoneHooks | null = null;

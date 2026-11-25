@@ -23,6 +23,8 @@ import { runescape } from "./minigame/runescape";
 import { isAlt } from "../variant";
 import { BOOTH_NAME, boothTarget } from "../systems/sanmik";
 import { BOOTH_ALT } from "../../content/alt";
+import { isMobile } from "../mobile/flag";
+import { phoneHooks } from "../mobile/boot";
 
 const MIKEY_BARKS = [
   "Mikey here.",
@@ -1027,7 +1029,7 @@ export class MinigameScene extends Phaser.Scene {
       if (this.ended || this.box.active || !live) return;
       const n = nextNote();
       if (!n) return;
-      const err = (now() - n.t) / 1000;
+      const err = (now() - n.t) / 1000 - (isMobile() ? (phoneHooks()?.rhythmLag?.() ?? 0) : 0);
       if (err < -0.32) return;
       const d = want === "auto" ? n.dir : want;
       if (d !== n.dir) return judge(n, "miss", err, d === "down" ? "WRONG WAY: UP!" : "WRONG WAY: DOWN!");
@@ -1895,7 +1897,7 @@ export class MinigameScene extends Phaser.Scene {
     };
     const judge = (k: "L" | "R" | "C") => {
       if (this.ended || this.box.active) return;
-      const t = songT();
+      const t = songT() - (isMobile() ? (phoneHooks()?.rhythmLag?.() ?? 0) : 0);
       const n = notes.find((x) => !x.done && this.inWindow(t - x.t, WIN));
       move([you], k, t >= DOUBLE_T);
       if (!n) return;

@@ -6,6 +6,7 @@ import { FONT, PIXEL_BOLD, PIXEL_FONT } from "../../ui/theme";
 import { dir } from "../../../content/dsl";
 import { animateWalker, charMeta, type Facing } from "../../gfx/HD";
 import { playerKey } from "../../gfx/sanmikForm";
+import { isMobile } from "../../mobile/flag";
 
 /**
  * RUNESCAPE (keep the gear coming): Kreblis's 99 Woodcutting session, as an old-school MMO woodcutting trip.
@@ -916,6 +917,16 @@ export function runescape(host: RsHost) {
   kb?.on("keydown-ESC", () => quit());
   gearZone.on("pointerover", () => hover(P.res.hover[0], P.res.hover[1], "#ffff00", P.npc.name));
   gearZone.on("pointerdown", () => !over() && !host.box.active && callGary(true));
+  // (phones: the touch controls' buttons do what SPACE, D, G and Esc do here, and show only when they would do something)
+  if (isMobile())
+    (sc as unknown as { phoneRs?: unknown }).phoneRs = {
+      chop: space,
+      dropAll: () => !over() && !host.box.active && dropAll(),
+      reup: () => !over() && !host.box.active && callGary(true),
+      quit,
+      word: P.res.button,
+      state: () => ({ over: over(), logs: invCount(), gear, ring: !!ring, chopping, gary: garyState }),
+    };
 
   // ---------------------------------------------------------------- the loop
   let crawlLine = 0;

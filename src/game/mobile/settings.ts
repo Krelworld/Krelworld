@@ -347,7 +347,7 @@ export const PHONE_SETTINGS: SettingSpec[] = [
   { key: "readability", type: "toggle", group: "display", live: true, label: "Bigger text", help: "Bigger words in menus and conversations." },
   { key: "textSize", type: "choice", group: "display", live: true, label: "Text size", help: "How big the bigger text is.", options: [{ value: "normal", label: "NORMAL" }, { value: "large", label: "LARGE" }] },
   { key: "batterySaver", type: "toggle", group: "display", live: true, label: "Battery saver", help: "30 frames a second: cooler phone, longer battery." },
-  { key: "syncOffsetMs", type: "slider", group: "sound", live: false, label: "Rhythm sync", help: "Taps judged late? Move it up.", min: -300, max: 300, step: 5, unit: "ms" },
+  { key: "syncOffsetMs", type: "slider", group: "sound", live: true, label: "Rhythm sync", help: "Taps judged late? Move it up.", min: -300, max: 300, step: 5, unit: "ms" },
   { key: "playOverMyMusic", type: "toggle", group: "sound", live: false, label: "Play over my music", help: "Keep your own music playing under the game." },
 ];
 

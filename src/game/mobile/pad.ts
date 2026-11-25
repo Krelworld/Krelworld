@@ -79,7 +79,8 @@ export class PadHandover {
       if (currentInputSource() === "pad") setInputSource("touch");
       // (the pad as it is now is the pad at rest: only a new press or push hands over again)
       this.rest = null;
-      this.touched = true;
+      // (only a pad that is there now rests as it is; one that shows up later starts from all buttons up)
+      this.touched = !!firstPad();
     };
     document.addEventListener("touchstart", back, { capture: true, passive: true });
     this.stop = () => {
@@ -96,6 +97,7 @@ export class PadHandover {
     }
     if (!p) {
       this.rest = null;
+      this.touched = false;
       return;
     }
     // (a pad just connected, a different pad, or the first frame after a finger took over: this is its rest)

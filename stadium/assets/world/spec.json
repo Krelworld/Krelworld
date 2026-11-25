@@ -1,0 +1,124 @@
+{
+ "hotel": {
+  "description": "modern three storey business hotel used by a football team, glass and pale concrete, large TEAM HOTEL sign over a canopy entrance with revolving door, flagpoles with national flags, potted trees, seen from the front and above",
+  "w": 240,
+  "h": 260
+ },
+ "charity": {
+  "description": "small British charity shop on a high street, faded green shopfront with a big sign board above the window, window display of second hand clothes, hats and mannequins, a rack of coats outside, red brick upper floor, flat roof, seen from the front and above",
+  "w": 200,
+  "h": 136
+ },
+ "surplus": {
+  "description": "small army and navy surplus store, khaki green shopfront with a sign board above, window display of camouflage jackets, balaclavas, boots and flares, crates outside, red brick, flat roof, seen from the front and above",
+  "w": 200,
+  "h": 136
+ },
+ "bookies": {
+  "description": "British betting shop bookmakers, bright purple and gold shopfront with a big sign board above, frosted windows with football odds posters, red brick, flat roof, seen from the front and above",
+  "w": 208,
+  "h": 136
+ },
+ "ticketoffice": {
+  "description": "small football stadium ticket office booth, two serving windows with grilles, TICKETS sign board on top, queue barriers in front, steel and blue paint",
+  "w": 128,
+  "h": 72
+ },
+ "merch": {
+  "description": "match day merchandise stall with a striped red and white awning, England scarves, flags, shirts and joke masks hanging up, folding table",
+  "w": 128,
+  "h": 72
+ },
+ "cabin": {
+  "description": "grey portakabin site office for stadium stewards, small windows, steel door with steps, STEWARDS sign, hi-vis jackets on hooks outside",
+  "w": 150,
+  "h": 96
+ },
+ "turnstiles": {
+  "description": "football stadium turnstile entrance block, three turnstile doorways with green lit signs above, concrete and steel facade with a big TURNSTILES sign, club crest, seen from the front",
+  "w": 240,
+  "h": 96
+ },
+ "facade": {
+  "description": "long section of a football stadium outer wall, grey steel cladding panels above red brick, a row of club banners, emergency exit door, seen from the front, wide",
+  "w": 400,
+  "h": 96
+ },
+ "floodlight": {
+  "description": "tall football stadium floodlight pylon, steel lattice tower with a big bank of lamps at the top",
+  "w": 64,
+  "h": 220
+ },
+ "burgervan": {
+  "description": "white burger van food truck with a serving hatch open, BURGERS sign, gas bottles, menu board",
+  "w": 112,
+  "h": 72
+ },
+ "barrier": {
+  "description": "metal crowd control barrier, police style, grey steel",
+  "w": 80,
+  "h": 40
+ },
+ "bollard": {
+  "description": "black metal street bollard",
+  "w": 32,
+  "h": 40
+ },
+ "bin": {
+  "description": "green wheelie bin with lid",
+  "w": 36,
+  "h": 48
+ },
+ "lamppost": {
+  "description": "tall street lamp post, black metal",
+  "w": 32,
+  "h": 110
+ },
+ "bench": {
+  "description": "wooden pub garden picnic bench",
+  "w": 72,
+  "h": 44
+ },
+ "programmes": {
+  "description": "match programme seller stand, small kiosk with stacks of programmes and a sign",
+  "w": 56,
+  "h": 60
+ },
+ "phonebox": {
+  "description": "red British telephone box",
+  "w": 40,
+  "h": 84
+ },
+ "portaloo": {
+  "description": "blue portable toilet cabin",
+  "w": 44,
+  "h": 72
+ },
+ "bigscreen": {
+  "description": "big outdoor fan zone screen on a steel frame showing a football match, speakers either side",
+  "w": 220,
+  "h": 128
+ },
+ "policevan": {
+  "description": "British police riot van, white with blue and yellow battenberg markings, seen from the side and above",
+  "w": 128,
+  "h": 72
+ },
+ "lorry": {
+  "description": "beer delivery lorry seen from directly above, cab at the right end, flatbed with stacked beer kegs and crates, orange cab roof",
+  "w": 160,
+  "h": 64,
+  "view": "high top-down"
+ },
+ "coach": {
+  "description": "white luxury team coach bus seen from directly above, long white roof with air conditioning units and roof hatches, front windscreen at the right end",
+  "w": 220,
+  "h": 60,
+  "view": "high top-down"
+ },
+ "staffdoor": {
+  "description": "stadium staff entrance, grey steel door in a brick wall with a STAFF ONLY sign above, a security camera, a card reader",
+  "w": 96,
+  "h": 80
+ }
+}

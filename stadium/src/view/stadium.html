@@ -112,7 +112,14 @@
   @media (max-width: 560px) {
     #ticker { right: max(8px, env(safe-area-inset-right, 0px)); bottom: 150px; }
     #act { min-height: 54px; }
+    /* Portrait phones: the goal line gets its own row under the score. */
+    #top { flex-wrap: wrap; }
+    #status { order: 3; flex-basis: 100%; }
+    #hint { top: 104px; }
   }
+  .touch .keys { display: none; }
+  .sheet .log p { font-size: 12px; }
+  #act[hidden] { display: none; }
 </style>
 
 <div id="app">
@@ -144,7 +151,7 @@
   </div>
 
   <div id="controls" class="float">
-    <button id="act" disabled>Nothing to do here</button>
+    <button id="act" disabled hidden></button>
     <div id="lower">
       <button id="betBtn" hidden>Bet</button>
       <button id="hit" hidden>Punch</button>
@@ -163,14 +170,10 @@
       <h1 id="introTitle">England are in the quarter-final.</h1>
       <p id="introText">You are outside the ground with £150 and an England shirt. Kick-off is in five and a half minutes. Help England win, any way you like.</p>
       <ul>
-        <li><b>Move:</b> drag on the left side of the screen, or <kbd>WASD</kbd>. Push further or hold <kbd>Shift</kbd> to run.</li>
-        <li><b>Do things:</b> the red button does the most obvious thing nearby (<kbd>E</kbd>). <b>More…</b> lists everything else (<kbd>R</kbd>).</li>
-        <li><b>Throw</b> whatever you are holding at the highlighted person (<kbd>Q</kbd>). Tap someone to aim at them.</li>
-        <li><b>Punch</b> appears when someone is within reach (<kbd>F</kbd>). Think about who is watching.</li>
-        <li>If you're grabbed, <b>Struggle</b>. It rarely works.</li>
-        <li><b>Bag</b> to hold, wear, eat or drop things (<kbd>Tab</kbd>).</li>
-        <li>Find a seat and sit down to watch, with fast-forward. <b>1×</b> at the top changes the zoom (<kbd>Z</kbd>).</li>
-        <li>You can run, but not for long.</li>
+        <li><b>Move:</b> drag on the left of the screen<span class="keys">, or <kbd>WASD</kbd></span>. Push further to run<span class="keys"> (<kbd>Shift</kbd>)</span>.</li>
+        <li><b>The red button</b> does the obvious thing; a red ring shows what it's aimed at<span class="keys"> (<kbd>E</kbd>)</span>. <b>More…</b> has everything else<span class="keys"> (<kbd>R</kbd>)</span>.</li>
+        <li><b>Gold coins</b> mark people selling things. <b>Red marks</b> mean someone's coming for you.</li>
+        <li class="keys">Throw <kbd>Q</kbd>, punch <kbd>F</kbd>, bag <kbd>Tab</kbd>, zoom <kbd>Z</kbd>. Tap or click someone to aim at them.</li>
       </ul>
       <p>Nobody will tell you how. Listen to people, watch what goes on, and try things.</p>
       <div class="row"><button id="start" class="primary">Start</button></div>

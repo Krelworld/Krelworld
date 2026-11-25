@@ -1,5 +1,5 @@
 import { build } from "esbuild";
-import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { copyFileSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 
 mkdirSync("dist/viewer", { recursive: true });
 await build({
@@ -31,6 +31,8 @@ cpSync("assets/audio", "dist/stadium/audio", { recursive: true });
 mkdirSync("dist/stadium/art", { recursive: true });
 for (const k of ["fan", "steward", "england", "portugal", "referee"]) for (const sh of ["rot", "walk"]) copyFileSync(`assets/art/${k}-${sh}.png`, `dist/stadium/art/${k}-${sh}.png`);
 for (const t of ["street", "pitch"]) copyFileSync(`assets/art/tiles-${t}.png`, `dist/stadium/art/tiles-${t}.png`);
+mkdirSync("dist/stadium/world", { recursive: true });
+for (const f of readdirSync("assets/world")) if (f.endsWith(".png")) copyFileSync(`assets/world/${f}`, `dist/stadium/world/${f}`);
 console.log("built dist/stadium");
 
 mkdirSync("dist/arttest", { recursive: true });

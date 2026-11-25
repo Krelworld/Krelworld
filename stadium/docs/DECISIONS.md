@@ -229,3 +229,23 @@ concrete and pitchside grass use the PixelLab tiles. Walls, vehicles, items and 
 still drawn in code. The 3D driving views still use simple shapes.
 Drawing order: each wall, item and overlay goes into graphics layers interleaved with the
 sprites in depth order, so walls still hide people behind them.
+
+## The world as pictures (batch 1: outside)
+
+Buildings and props are PixelLab map objects ("low top-down", so you see shopfronts), placed on
+their real footprints and depth-sorted with people. The generator's lettering is gibberish, so
+sign boards are repainted at load time in a 5x7 pixel font. A building fades to show its inside
+when you walk in, and goes see-through when you're behind it. The stadium from outside is a
+ring of corrugated roofs with a club-blue fascia over a clad facade, the turnstile block and
+floodlights; all of it fades once you're inside the ground. The coach and beer lorry are
+eight-direction PixelLab objects (the coach tinted in the team's colour). The charity shop and
+army surplus doors moved to the road side so their fronts face the camera.
+
+## Phone interface
+
+One message on screen at a time (the rest is in the menu's log); people's chatter stays in their
+speech bubbles. The red button hides when there's nothing to do, uses short words, and a red
+ring shows what it would act on. A goal line under the score ("Get into the ground"); the place
+name shows briefly when you arrive somewhere. Gold coins over anyone selling, red marks over
+anyone coming for you. Touch devices get a short intro without keyboard keys and start at 1.5x.
+Speech bubbles stay the same size whatever the zoom.

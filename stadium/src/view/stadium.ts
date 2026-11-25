@@ -30,6 +30,7 @@ import { Projection } from "./projection";
 import { Audio, type Clip } from "./audio";
 import { Drive3D, type DriveView } from "./drive3d";
 import { CELL, dirIndex, FEET, HEAD, SpriteBank, type Base, type Recolour } from "./sprites";
+import { placements, WorldArt, type Placement } from "./world";
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 /** Screen pixels per metre at zoom 1: matches 48px character art drawn at 1:1. */
@@ -40,6 +41,20 @@ const fmtTime = (sec: number) => `${Math.floor(sec / 60)}:${String(Math.floor(se
 const esc = (t: string) => t.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
 
 interface TickerLine { text: string; src: string; big: boolean }
+
+/** The main button's words: short enough for a thumb. The full sentence is still in More. */
+function shortLabel(o: Option): string {
+  const v = o.action?.verb, L = o.label;
+  if (o.sheet?.kind === "shop") return "Buy";
+  if (o.sheet?.kind === "bet") return "Bet";
+  if (o.sheet?.kind === "bribe") return "Offer money";
+  if (o.sheet?.kind === "report") return "Tip off";
+  const map: Record<string, string> = { talk: "Talk", show: "Show ticket", drive: "Drive the bus", getout: "Get out", hide: "Hide inside", unhide: "Climb out", sit: "Sit down", stand: "Stand up",
+    untie: "Untie the dog", release: "Let the dog go", leash: "Grab the dog", sic: "Set the dog on him", servicedog: "\"Service dog\"", alarm: "Pull the fire alarm", vault: "Climb over",
+    struggle: "Struggle", take: "Pick up", takeout: "Take it", horn: "Beep", arrest: "Arrest", pickpocket: "Pickpocket", tamper: "Tamper with it" };
+  if (v && map[v]) return map[v];
+  return L.split(" ").slice(0, 4).join(" ");
+}
 
 class StadiumScene extends Phaser.Scene {
   game2!: Game;
@@ -89,12 +104,18 @@ class StadiumScene extends Phaser.Scene {
   /** Off = the old drawn figures (debug, or if the art failed to load). */
   useSprites = true;
 
-  preload() { SpriteBank.preload(this); }
+  preload() { SpriteBank.preload(this); WorldArt.preload(this); }
+  world!: WorldArt;
+  worldSprites = new Map<string, Phaser.GameObjects.Image>();
+  facade: Phaser.GameObjects.TileSprite | null = null;
+  placed: { venue: string; list: Placement[] } = { venue: "", list: [] };
 
   create() {
     (window as any).__scene = this; // for automated checks
     (window as any).__fast = (secs: number) => { for (let i = 0; i < secs * 60 && !this.s.stadium!.ending; i++) stepGame(this.game2); };
     this.bank = new SpriteBank(this);
+    this.world = new WorldArt(this);
+    this.world.prepare();
     this.pitchG = this.add.graphics().setDepth(0.25);
     this.staticG = this.add.graphics().setDepth(0);
     this.detailG = this.add.graphics().setDepth(0.3);
@@ -144,7 +165,7 @@ class StadiumScene extends Phaser.Scene {
       if (e.type === "say" && e.by !== this.s.stadium!.pc) {
         // Only what is said close by, and only once.
         const a = this.s.actors[e.by];
-        if (a && Math.hypot(a.x - this.pc.x, a.y - this.pc.y) < 5.5 && e.text.length > 12 && !this.lines.some((l) => l.text === e.text)) this.say(e.text, a.name, false);
+        if (a && Math.hypot(a.x - this.pc.x, a.y - this.pc.y) < 5.5 && e.text.length > 12 && !this.log.some((l) => l.text === e.text)) this.say(e.text, a.name, false, false);
       }
       if (e.type === "action_failed" && e.action.actor === this.s.stadium!.pc) this.hint(e.reason);
       if (e.type === "fb_goal" || e.type === "caught" || e.type === "fb_foul" && e.penalty) this.setSpeed(1);
@@ -350,6 +371,14 @@ class StadiumScene extends Phaser.Scene {
     g.fillStyle(0xd8d2b8, 0.7);
     for (let x = -88; x < 90; x += 6) g.fillRect(...P.rect(x, 87.9, 3, 0.25));
     for (let y = -46; y < 90; y += 6) g.fillRect(...P.rect(66.9, y, 0.25, 3));
+    // Kerbs along the roads, and marked bays in the car park.
+    const mx = (x: number) => (VENUE.id === "sf" ? -x : x);
+    g.fillStyle(0xb9bdb6, 1);
+    g.fillRect(...P.rect(-92, 83.8, 184, 0.25)).fillRect(...P.rect(-92, 92, 184, 0.25));
+    g.fillRect(...P.rect(Math.min(mx(61.8), mx(62.05)), -50, 0.25, 134)).fillRect(...P.rect(Math.min(mx(71.8), mx(72.05)), -50, 0.25, 134));
+    g.fillRect(...P.rect(-60, 59.9, 120, 0.2));
+    g.fillStyle(0xe8e4d4, 0.8);
+    for (let x = 46; x <= 60; x += 2.6) { g.fillRect(...P.rect(Math.min(mx(x), mx(x + 0.15)), 73.5, 0.15, 4)); g.fillRect(...P.rect(Math.min(mx(x), mx(x + 0.15)), 78, 0.15, 4)); }
     // Seat rows.
     for (const a of AREAS.filter((x) => x.seats)) {
       const vertical = a.h > a.w;
@@ -365,7 +394,8 @@ class StadiumScene extends Phaser.Scene {
       this.labels.push(this.add.text(P.sx(x, y), P.sy(x, y), text, { fontFamily: "system-ui, sans-serif", fontSize: `${size}px`, color: "#ffffff" })
         .setOrigin(0.5).setAlpha(0.55).setResolution(2).setDepth(1));
     };
-    for (const [t, x, y, size] of VENUE.labels) label(t, x, y, size ?? 11);
+    const SIGNED = new Set(["STAFF ENTRANCE", "THE THREE LIONS", "TICKETS", "MERCHANDISE", "TURNSTILES", "STEWARDS", "SECOND HAND ROSE", "ARMY & NAVY", "BOOKMAKER", "TEAM HOTEL", "FAN ZONE", "BIG SCREEN"]);
+    for (const [t, x, y, size] of VENUE.labels) if (!this.useSprites || !SIGNED.has(t)) label(t, x, y, size ?? 11);
     // A fan zone has a big screen; a known face has posters at the turnstiles.
     if (VENUE.features.fanZone) {
       const pub = AREAS.find((a) => a.id === "pub")!;
@@ -577,8 +607,11 @@ class StadiumScene extends Phaser.Scene {
 
     // Walls: fade the ones the player is standing behind. Holes knocked in them are gaps.
     setBreaches(st.breaches);
+    // The pictures of the world: buildings (cut away when you're inside), props, the stadium's outside.
+    const world = sprites ? this.worldThings(things, onScreen, () => g) : { hides: (_w: unknown) => false };
     for (const wl of SOLID) {
       if (!onScreen(wl.x + wl.w / 2, wl.y + wl.h / 2, 200)) continue;
+      if (world.hides(wl)) continue;
       const open = wl.gate && st.gates[wl.gate] && st.gates[wl.gate].until > tick;
       const behind = pc && pc.y < wl.y + wl.h && pc.y > wl.y - wl.h3 * 1.6 - 0.5 && pc.x > wl.x - 0.5 && pc.x < wl.x + wl.w + 0.5 && wl.h3 > 1.6;
       const alpha = behind ? 0.35 : 1;
@@ -624,7 +657,7 @@ class StadiumScene extends Phaser.Scene {
     for (const id in s.items) {
       const it = s.items[id], l = it.loc;
       if (l.k !== "ground" && l.k !== "air") continue;
-      if (it.def === "lorry_cargo") continue;
+      if (it.def === "lorry_cargo" || (sprites && it.def === "police_box")) continue;
       const def = defOf(it), x = l.x, y = l.y, z = l.k === "air" ? l.z : 0;
       if (!onScreen(x, y)) continue;
       const near = pc && Math.hypot(pc.x - x, pc.y - y) < 2.6;
@@ -664,6 +697,26 @@ class StadiumScene extends Phaser.Scene {
       const len = isBus ? BUS_LEN : LORRY_LEN, wid = isBus ? BUS_WID : LORRY_WID, h = isBus ? 3.2 : 3;
       const team = isBus ? m.teams[1] : null;
       const depth = v.y + Math.abs(Math.sin(v.facing)) * len / 2 + Math.abs(Math.cos(v.facing)) * wid / 2;
+      const key8 = isBus ? "w-coach8" : "w-lorry8";
+      if (sprites && this.textures.exists(key8)) {
+        // An eight-way PixelLab picture: the coach painted in the team's colour.
+        things.push({ d: depth, draw: () => {}, spr: (dep) => {
+          let im = this.worldSprites.get(`veh-${v.id}`);
+          if (!im) { im = this.add.image(0, 0, key8, 0); this.worldSprites.set(`veh-${v.id}`, im); }
+          this.worldSeen.add(`veh-${v.id}`);
+          const size = (this.textures.get(key8).getSourceImage() as HTMLCanvasElement).height;
+          const scale = (len * P.S * 1.05) / (size * 0.88);
+          im.setTexture(key8, dirIndex(v.facing)).setOrigin(0.5, 0.62).setScale(scale).setPosition(P.sx(v.x, v.y), P.sy(v.x, v.y)).setDepth(dep).setVisible(true);
+          if (isBus) im.setTint(v.crashed ? 0x6a6a6a : team!.colour); else im.clearTint();
+          im.setAngle(v.crashed ? 6 : 0);
+        } });
+        const open = isBus ? holdOpen(v) : v.state === "loading" || v.state === "unloading";
+        if (open) things.push({ d: depth + 0.001, draw: () => {
+          const rr = { x: v.x - Math.cos(v.facing) * (len / 2), y: v.y - Math.sin(v.facing) * (len / 2) };
+          g.fillStyle(0x1a1208, 0.9).fillCircle(P.sx(rr.x, rr.y), P.sy(rr.x, rr.y, 0.8), P.S * 0.6);
+        } });
+        continue;
+      }
       things.push({ d: depth, draw: () => {
         if (isBus) {
           box(v.x, v.y, len, wid, h, v.facing, v.crashed ? 0x444444 : team!.colour2, v.crashed ? 0x666666 : team!.colour);
@@ -726,6 +779,8 @@ class StadiumScene extends Phaser.Scene {
     }
     g = nextLayer();
     for (const [id, sp] of this.spritePool) if (!seenSprites.has(id)) sp.setVisible(false);
+    for (const [id, sp] of this.worldSprites) if (!this.worldSeen.has(id)) sp.setVisible(false);
+    if (this.facade && !this.worldSeen.has("facade")) this.facade.setVisible(false);
     for (const c of st.smoke) {
       if (c.until < tick) continue;
       const left = (c.until - tick) / (60 * 25);
@@ -765,6 +820,27 @@ class StadiumScene extends Phaser.Scene {
       }
       const hx = P.sx(pc.x, pc.y), hy = headTop(P, pc.x, pc.y, 1.75) - 6;
       ui.fillStyle(0xd7263d, 1).fillTriangle(hx - 5, hy - 8, hx + 5, hy - 8, hx, hy);
+      // What the red button would act on.
+      const at = this.primaryAt;
+      if (at) {
+        const pulse = 0.6 + 0.4 * Math.sin(tick * 0.18);
+        ui.lineStyle(2.5, 0xd7263d, pulse).strokeEllipse(P.sx(at.x, at.y), P.sy(at.x, at.y), P.S * 1.6, P.S * (P.standing ? 0.75 : 1.6));
+      }
+      // Gold coins over anyone selling something; red marks over anyone coming for you.
+      for (const id in s.actors) {
+        const a = s.actors[id], n = a.npc;
+        if (!n || a.hiddenIn || a.dead || Math.hypot(a.x - pc.x, a.y - pc.y) > 22) continue;
+        const tx = P.sx(a.x, a.y), ty = headTop(P, a.x, a.y) - 8;
+        if (n.shop || n.job === "barman") {
+          ui.fillStyle(0xf2c94c, 1).fillCircle(tx, ty - 4, 5);
+          ui.fillStyle(0x7a5a10, 1).fillRect(tx - 1, ty - 7, 2, 6);
+        } else if (n.target === pc.id && (n.mode === "approach" || n.mode === "chase" || n.mode === "escort")) {
+          ui.fillStyle(0xd7263d, 1).fillTriangle(tx - 6, ty, tx + 6, ty, tx, ty - 11);
+          ui.fillStyle(0xffffff, 1).fillRect(tx - 1, ty - 8, 2, 4).fillRect(tx - 1, ty - 3, 2, 2);
+        } else if (n.target === pc.id && n.mode === "watch") {
+          ui.lineStyle(2, 0xf2c94c, 0.9).strokeCircle(tx, ty - 4, 4);
+        }
+      }
     }
 
     // Speech bubbles near the player.
@@ -772,7 +848,8 @@ class StadiumScene extends Phaser.Scene {
     this.bubbles.forEach((bt, i) => {
       const a = talkers[i];
       if (!a) { bt.setVisible(false); return; }
-      bt.setVisible(true).setText(a.npc!.bubble!.text).setPosition(P.sx(a.x, a.y), headTop(P, a.x, a.y) - 4);
+      // Same size on screen whatever the zoom.
+      bt.setVisible(true).setText(a.npc!.bubble!.text).setPosition(P.sx(a.x, a.y), headTop(P, a.x, a.y) - 4).setScale(1 / this.cameras.main.zoom);
       const sec = a.npc!.mode !== "routine" && a.npc!.mode !== "escort";
       bt.setBackgroundColor(sec ? "#ffd166" : "#f4f1ea");
     });
@@ -788,6 +865,107 @@ class StadiumScene extends Phaser.Scene {
     const zt = this.targetZoom();
     if (Math.abs(cam.zoom - zt) > 0.001) cam.setZoom(cam.zoom + (zt - cam.zoom) * Math.min(1, k * 1.5));
     cam.centerOn(this.camX, this.camY);
+  }
+
+  // ---------- The world ----------
+  worldSeen = new Set<string>();
+
+  /** Queue the world's pictures for this frame; returns which layout walls they cover. */
+  worldThings(things: { d: number; draw: () => void; spr?: (depth: number) => void }[], onScreen: (x: number, y: number, pad?: number) => boolean, layer: () => Phaser.GameObjects.Graphics) {
+    const P = this.P, s = this.s, pc = this.pc, st = s.stadium!, tick = s.tick;
+    this.worldSeen = new Set();
+    if (this.placed.venue !== VENUE.id) this.placed = { venue: VENUE.id, list: placements(VENUE) };
+    const inRect = (x: number, y: number, rc: { x0: number; y0: number; x1: number; y1: number }, pad = 0) => x > rc.x0 - pad && x < rc.x1 + pad && y > rc.y0 - pad && y < rc.y1 + pad;
+    const cut = new Set<string>();
+    for (const p of this.placed.list) {
+      if (p.inside && pc && !pc.hiddenIn && inRect(pc.x, pc.y, p.inside, 0.3)) cut.add(p.id);
+      const meta = this.world.base[p.key];
+      if (!meta || !onScreen(p.x, p.y, 400)) continue;
+      this.worldSeen.add(p.id);
+      things.push({ d: p.y, draw: () => {}, spr: (depth) => {
+        let im = this.worldSprites.get(p.id);
+        if (!im) { im = this.add.image(0, 0, `w-${p.key}`); this.worldSprites.set(p.id, im); }
+        const tex = this.textures.get(`w-${p.key}`).getSourceImage() as HTMLCanvasElement;
+        const scale = (p.w * P.S) / (meta.right - meta.left + 1);
+        let ox = (meta.left + meta.right + 1) / 2 / tex.width;
+        if (p.flip) ox = 1 - ox;
+        im.setOrigin(ox, meta.foot).setScale(scale).setFlipX(!!p.flip).setPosition(P.sx(p.x, p.y), P.sy(p.x, p.y)).setDepth(depth).setVisible(true);
+        // Cut away when you're inside; see-through when you're behind it or close to the turnstiles.
+        let alpha = 1;
+        if (cut.has(p.id)) alpha = 0.12;
+        else if (pc && !pc.hiddenIn) {
+          const hM = (tex.height * meta.foot * scale) / (P.KZ * P.S);
+          const half = p.w / 2 + 0.5;
+          if (pc.y < p.y && pc.y > p.y - hM * 1.25 && Math.abs(pc.x - p.x) < half) alpha = 0.4;
+          if (p.key === "turnstiles" && Math.abs(pc.x - p.x) < 12 && Math.abs(pc.y - p.y) < 6) alpha = Math.min(alpha, 0.45);
+          if (p.key === "turnstiles" && (VENUE.inside(pc.x, pc.y) || pc.seated)) alpha = 0.12;
+        }
+        im.setAlpha(alpha);
+      } });
+    }
+    // The stadium from outside: a roofed ring of stands and a clad facade, see-through once you're in.
+    const ins = !!pc && (VENUE.inside(pc.x, pc.y) || !!pc.seated) && !pc.hiddenIn;
+    const roofA = ins ? 0.1 : 1;
+    const H = 9, ROOF = 0x59616b, RIDGE = 0x6c7580, EDGE = 0xe8eaec, FACE = 0x2a3038;
+    const gx0 = VENUE.id === "qf" ? -57 : -56.5, gx1 = VENUE.id === "qf" ? 56.5 : 57;
+    const blocks = [
+      { x0: gx0, y0: 28, x1: gx1, y1: 45, front: true },
+      { x0: gx0, y0: -61, x1: gx1, y1: -28, front: false },
+      { x0: gx0, y0: -28, x1: -41, y1: 28, front: false },
+      { x0: 41, y0: -28, x1: gx1, y1: 28, front: false },
+    ];
+    for (const b of blocks) {
+      if (!onScreen((b.x0 + b.x1) / 2, (b.y0 + b.y1) / 2, 900)) continue;
+      things.push({ d: b.y1 - 0.05, draw: () => this.drawRoof(layer(), b) });
+    }
+    this.roofSpec = { blocks, H, ROOF, RIDGE, EDGE, FACE, alpha: roofA };
+    // The facade along the front of the south stand.
+    if (this.textures.exists("w-facade")) {
+      this.worldSeen.add("facade");
+      things.push({ d: 45.01, draw: () => {}, spr: (depth) => {
+        const meta = this.world.base.facade!;
+        const tex = this.textures.get("w-facade").getSourceImage() as HTMLCanvasElement;
+        const faceH = H * P.KZ * P.S, k = faceH / (tex.height * meta.foot);
+        const x0 = P.sx(gx0, 45), x1 = P.sx(gx1, 45);
+        if (!this.facade) this.facade = this.add.tileSprite(0, 0, 10, 10, "w-facade");
+        this.facade.setPosition(x0, P.sy(0, 45)).setOrigin(0, 1).setSize((x1 - x0), faceH).setTileScale(k, k)
+          .setTilePosition(0, tex.height * (1 - meta.foot) * -1).setDepth(depth).setAlpha(ins ? 0.15 : 1).setVisible(true);
+        // Keep the gaps for the turnstiles and the staff door clear of cladding: they're drawn as pictures in front.
+      } });
+    }
+    void tick; void st;
+    return {
+      hides: (wl: { x: number; y: number; w: number; h: number }) => {
+        for (const p of this.placed.list) {
+          if (!p.inside || cut.has(p.id)) continue;
+          if (inRect(wl.x, wl.y, p.inside, 0.7) && inRect(wl.x + wl.w, wl.y + wl.h, p.inside, 0.7)) return true;
+        }
+        return false;
+      },
+    };
+  }
+  roofSpec: { blocks: { x0: number; y0: number; x1: number; y1: number; front: boolean }[]; H: number; ROOF: number; RIDGE: number; EDGE: number; FACE: number; alpha: number } | null = null;
+
+  /** A roof slab over one block of stands, as a box: dark face towards the camera, corrugated top. */
+  drawRoof(g: Phaser.GameObjects.Graphics, b: { x0: number; y0: number; x1: number; y1: number; front: boolean }): void {
+    const P = this.P, r = this.roofSpec!;
+    if (r.alpha <= 0) return;
+    const lift = r.H * P.KZ * P.S;
+    const [rx, ry, rw, rh] = P.rect(b.x0, b.y0, b.x1 - b.x0, b.y1 - b.y0);
+    // The face towards the camera: cladding on the outside of the ground, shadowed seats facing the pitch.
+    g.fillStyle(b.front ? 0x8c939b : r.FACE, r.alpha).fillRect(rx, ry + rh - lift, rw, lift);
+    // The roof: pale corrugated steel, lighter and darker ribs.
+    g.fillStyle(0x8e98a3, r.alpha).fillRect(rx, ry - lift, rw, rh);
+    for (let x = b.x0 + 0.5, i = 0; x < b.x1; x += 0.9, i++) {
+      g.fillStyle(i % 2 ? 0xa7b0ba : 0x77818c, r.alpha);
+      g.fillRect(P.sx(x, b.y0), ry - lift, Math.max(1, 0.3 * P.S), rh);
+    }
+    // A club-blue fascia with a white stripe along the roof's front edge, and a gutter shadow behind.
+    const fasc = 1.3 * P.KZ * P.S;
+    g.fillStyle(0x1b2a6b, r.alpha).fillRect(rx, ry + rh - lift, rw, fasc);
+    g.fillStyle(0xf4f4f4, r.alpha).fillRect(rx, ry + rh - lift + fasc * 0.42, rw, Math.max(1, fasc * 0.16));
+    g.fillStyle(0x000000, r.alpha * 0.25).fillRect(rx, ry - lift, rw, Math.max(2, 0.6 * P.S));
+    g.lineStyle(1, 0x3a4048, r.alpha).strokeRect(rx, ry - lift, rw, rh);
   }
 
   // ---------- Sprites ----------
@@ -960,6 +1138,32 @@ class StadiumScene extends Phaser.Scene {
   }
 
   // ---------- HUD ----------
+  lastArea = ""; areaShownAt = 0;
+  /** Where the main button would act: a ring is drawn there. */
+  primaryAt: { x: number; y: number } | null = null;
+
+  /** One short line: what you're here to do right now. */
+  objective(): string {
+    const s = this.s, m = s.match!, st = s.stadium!, pc = this.pc;
+    const opp = m.teams[1].name;
+    if (st.ending) return "";
+    if (m.phase === "pre") return st.admitted ? (pc.seated ? "Kick-off soon" : "Find a seat, or find some trouble") : "Get into the ground";
+    if (m.phase === "break") return "Half-time: the teams are in the dressing rooms";
+    if (m.phase === "shootout") return "Penalties";
+    const d = m.score[0] - m.score[1];
+    return d < 0 ? `England are losing to ${opp}. Do something` : d > 0 ? "England are winning. Keep it that way" : "Level. Tip it England's way";
+  }
+
+  /** Where an option would happen, for the ring. */
+  optionSpot(o: Option): { x: number; y: number } | null {
+    const s = this.s, a = o.action;
+    if (o.sheet) { const who = s.actors[o.sheet.who]; return who ? { x: who.x, y: who.y } : null; }
+    if (a?.target?.k === "actor") { const t = s.actors[a.target.id]; return t ? { x: t.x, y: t.y } : null; }
+    if (a?.target?.k === "item") { const l = s.items[a.target.id]?.loc; return l && l.k === "ground" ? { x: l.x, y: l.y } : null; }
+    if (a?.item && a.verb === "take") { const l = s.items[a.item]?.loc; return l && l.k === "ground" ? { x: l.x, y: l.y } : null; }
+    return null;
+  }
+
   drawHud() {
     const s = this.s, m = s.match!, pc = this.pc, st = s.stadium!;
     const t = secs(this.w);
@@ -972,7 +1176,11 @@ class StadiumScene extends Phaser.Scene {
     const area = areaAt(pc.x, pc.y);
     const bad = looksOutOfPlace(this.w, pc);
     const busV = st.vehicles.bus;
-    const where = busV?.drivenBy === pc.id ? `Driving the ${m.teams[1].name} team bus` : pc.hiddenIn ? (pc.hiddenIn === busV?.cargo ? "Hiding in the bus's luggage hold" : `Hiding in the back of the ${VENUE.delivery.name}`) : pc.heldBy ? "Being frogmarched" : area.name + (bad ? " · you shouldn't be here" : "");
+    // The place name shows for a moment when you walk somewhere new; otherwise, what you're here to do.
+    if (area.name !== this.lastArea) { this.lastArea = area.name; this.areaShownAt = performance.now(); }
+    const fresh = performance.now() - this.areaShownAt < 2200;
+    const where = busV?.drivenBy === pc.id ? `Driving the ${m.teams[1].name} team bus` : pc.hiddenIn ? (pc.hiddenIn === busV?.cargo ? "Hiding in the bus's luggage hold" : `Hiding in the back of the ${VENUE.delivery.name}`) : pc.heldBy ? "Being frogmarched"
+      : bad ? `${area.name} · you shouldn't be here` : fresh ? area.name : this.objective();
     const wEl = $("where");
     if (wEl.textContent !== where) wEl.textContent = where;
     wEl.classList.toggle("bad", bad && !pc.hiddenIn);
@@ -995,7 +1203,9 @@ class StadiumScene extends Phaser.Scene {
       const p = primary(this.opts);
       const act = $<HTMLButtonElement>("act");
       act.disabled = !p;
-      act.textContent = p ? p.label : "Nothing to do here";
+      act.hidden = !p;
+      act.textContent = p ? shortLabel(p) : "";
+      this.primaryAt = p ? this.optionSpot(p) : null;
       const thr = $("throw");
       const ta = (this as any).throwAt as Actor | null;
       const canThrow = !!pc.hand && !pc.heldBy && !pc.hiddenIn;
@@ -1013,10 +1223,21 @@ class StadiumScene extends Phaser.Scene {
     }
   }
 
-  say(text: string, src: string, big: boolean) {
-    this.lines.push({ text, src, big });
-    if (this.lines.length > 3) this.lines.shift();
+  /** Everything said, for the menu's log. Only the newest line is ever on screen. */
+  log: { text: string; src: string }[] = [];
+  lineTimer = 0;
+  say(text: string, src: string, big: boolean, show = true) {
+    this.log.push({ text, src });
+    if (this.log.length > 30) this.log.shift();
+    if (!show) return;
+    // A minor line never pushes a big one off the screen early.
+    const cur = this.lines[0];
+    if (cur?.big && !big && performance.now() < (this as any).lineShownAt + 2500) return;
+    this.lines = [{ text, src, big }];
+    (this as any).lineShownAt = performance.now();
     this.renderTicker();
+    clearTimeout(this.lineTimer);
+    this.lineTimer = window.setTimeout(() => { this.lines = []; this.renderTicker(); }, big ? 6000 : 4000);
   }
   /** Match commentary is only heard where there is a telly, a radio or a crowd. */
   matchLine(text: string, big: boolean) {
@@ -1142,7 +1363,8 @@ class StadiumScene extends Phaser.Scene {
   openMenu() {
     const cps = this.game2.checkpoints;
     this.sheet("menu", `<h2>Paused</h2><p>Go back to a checkpoint. Everything since then is undone, and the match will not play out the same way.</p>
-      <div class="list">${cps.map((c) => `<button data-cp="${c.id}">${esc(c.label)}</button>`).join("")}<button data-new="1">Start a new match day</button><button data-mute="1">${this.audio.muted ? "Sound: off" : "Sound: on"}</button></div>`);
+      <div class="list">${cps.map((c) => `<button data-cp="${c.id}">${esc(c.label)}</button>`).join("")}<button data-new="1">Start a new match day</button><button data-mute="1">${this.audio.muted ? "Sound: off" : "Sound: on"}</button></div>
+      <h2>What you've heard</h2><div class="log">${this.log.slice(-12).reverse().map((l) => `<p><b>${esc(l.src)}</b> ${esc(l.text)}</p>`).join("") || "<p>Nothing yet.</p>"}</div>`);
     this.setSpeed(0);
   }
 
@@ -1189,7 +1411,9 @@ class StadiumScene extends Phaser.Scene {
     $("hit").addEventListener("click", () => this.run((this as any).hitOpt ?? null));
     $("moreBtn").addEventListener("click", () => (this.sheetKind === "more" ? this.closeSheet() : this.openMore()));
     $("bagBtn").addEventListener("click", () => (this.sheetKind === "bag" ? this.closeSheet() : this.openBag()));
-    try { const z = +(localStorage.getItem("kd-zoom") ?? 1); if ([1, 1.5, 2].includes(z)) this.zoomLevel = z; } catch { /* ignore */ }
+    const touch = window.matchMedia?.("(pointer: coarse)").matches;
+    if (touch) document.body.classList.add("touch");
+    try { const saved = localStorage.getItem("kd-zoom"); const z = saved ? +saved : touch ? 1.5 : 1; if ([1, 1.5, 2].includes(z)) this.zoomLevel = z; } catch { if (touch) this.zoomLevel = 1.5; }
     $("zoomBtn").textContent = `${this.zoomLevel}×`;
     $("zoomBtn").addEventListener("click", () => this.cycleZoom());
     $("viewBtn").textContent = this.driveView === "chase" ? "Chase" : this.driveView === "cab" ? "Cab" : "Map";

@@ -136,12 +136,14 @@ const QF_WALLS: Wall[] = [
   wall(-50, 66, -38, 67.2, 1.1, 0x6b4a33, 0x8a6a50), // the bar
   // Ticket office booth and merch stall.
   wall(16, 47, 26, 48, 2.6, 0x4a5a70, 0x6a7a90), wall(-26, 47, -16, 48, 1.4, 0x3f5a73, 0x5f7a93),
-  // Charity shop and army surplus: doors on the side facing the ground, counters at the back.
-  wall(-18.5, 61.5, -13, 62, 3, 0x6a5a4a, 0x8a7a6a), wall(-9, 61.5, -3.5, 62, 3, 0x6a5a4a, 0x8a7a6a),
-  wall(-18.5, 62, -18, 72.5, 3, 0x6a5a4a, 0x8a7a6a), wall(-4, 62, -3.5, 72.5, 3, 0x6a5a4a, 0x8a7a6a), wall(-18.5, 72, -3.5, 72.5, 3, 0x6a5a4a, 0x8a7a6a),
+  // Charity shop and army surplus: shopfronts on the road side, shopkeepers behind counters at the back.
+  wall(-18.5, 61.5, -3.5, 62, 3, 0x6a5a4a, 0x8a7a6a),
+  wall(-18.5, 62, -18, 72.5, 3, 0x6a5a4a, 0x8a7a6a), wall(-4, 62, -3.5, 72.5, 3, 0x6a5a4a, 0x8a7a6a),
+  wall(-18.5, 72, -13, 72.5, 3, 0x6a5a4a, 0x8a7a6a), wall(-9, 72, -3.5, 72.5, 3, 0x6a5a4a, 0x8a7a6a),
   wall(-16, 68.6, -6, 69.4, 1.1, 0x5a4a30, 0x7a6a50),
-  wall(7.5, 61.5, 13, 62, 3, 0x4d5640, 0x6d7660), wall(17, 61.5, 22.5, 62, 3, 0x4d5640, 0x6d7660),
-  wall(7.5, 62, 8, 72.5, 3, 0x4d5640, 0x6d7660), wall(22, 62, 22.5, 72.5, 3, 0x4d5640, 0x6d7660), wall(7.5, 72, 22.5, 72.5, 3, 0x4d5640, 0x6d7660),
+  wall(7.5, 61.5, 22.5, 62, 3, 0x4d5640, 0x6d7660),
+  wall(7.5, 62, 8, 72.5, 3, 0x4d5640, 0x6d7660), wall(22, 62, 22.5, 72.5, 3, 0x4d5640, 0x6d7660),
+  wall(7.5, 72, 13, 72.5, 3, 0x4d5640, 0x6d7660), wall(17, 72, 22.5, 72.5, 3, 0x4d5640, 0x6d7660),
   wall(10, 68.6, 20, 69.4, 1.1, 0x5a4a30, 0x7a6a50),
   // The team hotel: doors onto the forecourt.
   wall(74, -40.5, 92, -40, 6, 0x6a5a70, 0x8a7a90), wall(73.5, -40.5, 74, -14, 6, 0x6a5a70, 0x8a7a90),
@@ -190,8 +192,8 @@ const QF_SPOTS = {
   merchCounter: { x: -21, y: 49 },
   cabinHook: { x: 86, y: 54 },
   bookie: { x: 36, y: 63.3 },
-  charity: { x: -11, y: 70.6 },
-  surplus: { x: 15, y: 70.6 },
+  charity: { x: -11, y: 67.2 },
+  surplus: { x: 15, y: 67.2 },
   bookieCounter: { x: 36, y: 66.6 },
   kiosk: { x: 30, y: 43.2 },
   kioskCounter: { x: 30, y: 40.8 },

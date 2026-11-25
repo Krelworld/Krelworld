@@ -18,6 +18,7 @@ import * as FB from "../../../content/finaleKrelford";
 import { bottleKey, finaleReady, headroom, logsKey, ssjSwap, syringeKey, youCutKey, youEyesKey } from "./finaleArt";
 import * as Juice from "../../gfx/Juice";
 import { KiMode } from "./KiMode";
+import { isMobile } from "../../mobile/flag";
 
 /**
  * THE CONCEPT OF PAEDOPHILIA, the fight (DungeonScene, dungeon "krelford_finale"). A big top-down arena that is
@@ -173,8 +174,8 @@ export class KrelfordFinale {
     sc.events.once("shutdown", () => sc.events.off("update", this.update, this));
     const cp = G.s.flags.finale_cp;
     h.player.spr.setPosition(W / 2, 1180);
-    // pulled back a bit: it's enormous
-    h.cameras.main.setZoom(0.8);
+    // pulled back a bit: it's enormous (a phone stays at 1: zoomed out, everything on its small screen is too small)
+    h.cameras.main.setZoom(isMobile() ? 1 : 0.8);
     if (cp === "ssj") {
       // back in, already changed
       this.heals = 3;
@@ -749,7 +750,7 @@ export class KrelfordFinale {
         if (this.gone) return;
         sc.scene.resume();
         sc.scene.setVisible(true, "UI");
-        cam.zoomTo(0.8, 10);
+        cam.zoomTo(isMobile() ? 1 : 0.8, 10);
         cam.startFollow(h.player.spr, true, 0.12, 0.12);
         h.busy = false;
         G.s.flags.finale_brawl = 2;

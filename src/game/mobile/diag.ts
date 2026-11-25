@@ -16,6 +16,17 @@ import type { TouchLayer } from "./touchLayer";
 import { phoneSettings } from "./settings";
 import { homeScreenPlumbing } from "./homeScreen";
 import type { PlatformInfo } from "./platform";
+import type { ArtStats } from "./art";
+import type { AudioDiag } from "./audio";
+
+/** Stage 3's read-outs (the texture budget and the sound), passed in so this file stays free of them for the tests. */
+export interface DiagExtras {
+  art?: () => { resident: { count: number; bytes: number }; stats: ArtStats } | null;
+  audio?: () => AudioDiag | null;
+  /** Off-screen pictures skipped / drawn last frame, blood pools hidden; the saves' storage. */
+  perf?: () => { culled: number; drawn: number; poolsHidden: number } | null;
+  storage?: () => { persisted: boolean | null; usageMB: number | null; quotaMB: number | null } | null;
+}
 
 /** "?mobilediag" (any value but 0 / off) in the address. */
 export function diagWanted(search: string | undefined): boolean {
@@ -81,6 +92,7 @@ export class DiagOverlay {
     private platform: PlatformInfo,
     /** Readability now (from readability.ts; passed in so this file stays free of Phaser for the unit tests). */
     private readState: () => { on: boolean; param: boolean | null } = () => ({ on: false, param: null }),
+    private extras: DiagExtras = {},
   ) {
     const el = document.createElement("div");
     el.className = "kdiag";
@@ -127,10 +139,33 @@ export class DiagOverlay {
 
   private measureSlow() {
     try {
-      this.tex = textureEstimate(this.game);
+      // (the phone's parked pictures hold no pixels: count what is really held)
+      this.tex = this.extras.art?.()?.resident ?? textureEstimate(this.game);
     } catch {
       /* mid-boot */
     }
+  }
+
+  private artLine(): string {
+    const a = this.extras.art?.();
+    if (!a) return "";
+    const s = a.stats;
+    return ` · parked ${s.parked} (~${mb(s.savedBytes)} saved) · back ${s.streamed}, slowest ${s.slowestMs} ms${s.failed ? ` · failed ${s.failed}` : ""}`;
+  }
+
+  private audioLines(): string[] {
+    const a = this.extras.audio?.();
+    if (!a) return [];
+    return [`sound route ${a.route} · session ${a.session} · playing: music ${a.music}, voice ${a.voice}, loops ${a.loops}`, `last resume: ${a.lastResume} (${a.resumes} so far)${a.doubles ? ` · doubled songs stopped ${a.doubles}` : ""}`];
+  }
+
+  private moreLines(): string[] {
+    const out: string[] = [];
+    const p = this.extras.perf?.();
+    if (p) out.push(`drawn ${p.drawn} · skipped off-screen ${p.culled}${p.poolsHidden ? ` · blood pools hidden ${p.poolsHidden}` : ""}`);
+    const st = this.extras.storage?.();
+    if (st) out.push(`saves kept by the browser: ${st.persisted === null ? "?" : st.persisted ? "yes" : "not promised"}${st.usageMB !== null ? ` · storage ${st.usageMB} of ${st.quotaMB} MB` : ""}`);
+    return out;
   }
 
   /** The last error the game caught (its crash guard keeps a breadcrumb), or one this page saw. */
@@ -164,8 +199,10 @@ export class DiagOverlay {
     return [
       `KRELWORLD phone diag (tap: move)`,
       `fps ${loop.actualFps.toFixed(1)}${loop.hasFpsLimit ? ` (cap ${loop.fpsLimit})` : ""} · loop ${loop.running ? "on" : "asleep"}`,
-      `textures ${this.tex.count} · ~${mb(this.tex.bytes)}`,
+      `textures ${this.tex.count} · ~${mb(this.tex.bytes)}${this.artLine()}`,
       `sound ${snd.count} decoded · ~${mb(snd.bytes)} · audio ${snd.ctx}`,
+      ...this.audioLines(),
+      ...this.moreLines(),
       `window ${window.innerWidth}x${window.innerHeight} · visual ${vv ? `${Math.round(vv.width)}x${Math.round(vv.height)} @${vv.scale.toFixed(2)}` : "n/a"} · dpr ${window.devicePixelRatio}`,
       `canvas ${cb ? `${Math.round(cb.width)}x${Math.round(cb.height)} at ${Math.round(cb.x)},${Math.round(cb.y)}` : "?"} · scale ${k.toFixed(3)}`,
       `safe area L${ins.left} R${ins.right} T${ins.top} B${ins.bottom}`,

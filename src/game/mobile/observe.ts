@@ -278,14 +278,21 @@ export function pressSanmik() {
   TOUCH.edges.add("sanmik");
 }
 
+/** The shell's PAUSED card (index.ts sets it; "card" pauses go through it). True when it opened. */
+let cardPause: (() => boolean) | null = null;
+export function setCardPause(fn: (() => boolean) | null) {
+  cardPause = fn;
+}
+
 /**
  * Pause, the way this scene pauses. "edge": the scene's own Esc path (exactly what Esc does on a laptop).
- * "menu": the pause menu over the scene, opened the way Home and the town open it.
+ * "menu": the pause menu over the scene, opened the way Home and the town open it. "card": the shell's PAUSED card.
  */
 export function pressPause(game: Phaser.Game, d: Pick<ModeDecision, "pause" | "scene">): boolean {
   if (!d.pause || !d.scene) return false;
   const mgr = game.scene;
   if (mgr.isActive("Menu") || mgr.isPaused("Menu")) return false;
+  if (d.pause === "card") return cardPause?.() ?? false;
   if (d.pause === "edge") {
     TOUCH.edges.add("pause");
     return true;

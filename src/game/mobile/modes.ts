@@ -22,9 +22,18 @@ export const LAYER_MODES: readonly LayerMode[] = ["none", "walk", "combat", "sid
  *   "edge"  the scene's own Esc path (the touch "pause" edge that Controls.pause() reads): Home, Hub, the dungeon, the
  *           Kreddle raid and rout. Exactly what Esc does on a laptop.
  *   "menu"  open the pause menu over the scene and pause it (Club, Kreddle, the Venue: on a laptop Esc walks you out
- *           of these, and each has its own exit to walk to, so on a phone the button is a real pause).
+ *           of these, and each has its own exit to walk to, so on a phone the button is a real pause; stage 3: the
+ *           minigames, which have no pause of their own on a laptop: the menu holds the song and the scene's clock).
+ *   "card"  the shell's PAUSED card ("tap to carry on"): the whole game loop sleeps and the song holds (stage 3: the
+ *           finale, whose Esc skips rather than pauses).
+ * Coming back to the phone (lock, app switch, upright) opens the scene's pause this same way (shell.ts wakeCare).
+ * A new scene gets one with a rule: `addSceneRule({ ..., decide: () => ({ mode: "tap", live: true, pause: "menu",
+ * pauseButton: true }) })`.
  */
-export type PauseRoute = "edge" | "menu";
+export type PauseRoute = "edge" | "menu" | "card";
+
+/** Stage 3: how each minigame pauses on a phone (MINIGAME_PAUSE[key]); wave 2 may move one to "card" or its own. */
+export const MINIGAME_PAUSE: Readonly<Record<string, PauseRoute>> = Object.freeze({ Minigame: "menu", Whack: "menu", Drive: "menu", BeepBeep: "menu" });
 
 /** What the layer can read off one running scene. */
 export interface SceneState {
@@ -127,10 +136,10 @@ export const SCENE_RULES: SceneRule[] = [
     decide: () => ({ mode: "none" }),
   },
   {
-    // full-screen minigames: the whole screen is theirs (stage 3 adds their pause and controls)
+    // full-screen minigames: the whole screen is theirs, and the II pauses them (stage 3; their controls: wave 2)
     name: "minigames",
     match: keys("Minigame", "Whack", "Drive", "BeepBeep"),
-    decide: () => ({ mode: "tap", live: true }),
+    decide: (sc) => ({ mode: "tap", live: true, pause: MINIGAME_PAUSE[sc.key] ?? "menu", pauseButton: true }),
   },
   {
     // card menus and boards you tap
@@ -139,9 +148,11 @@ export const SCENE_RULES: SceneRule[] = [
     decide: () => ({ mode: "none" }),
   },
   {
-    name: "finale brawl",
+    // the finale between its brawl's rounds (brawl.ts has the brawl): its own taps on the canvas, and a pause: the
+    // PAUSED card (its Esc skips the scene, so it has no pause of its own)
+    name: "finale",
     match: keys("Finale"),
-    decide: () => ({ mode: "brawl", legacyPad: true, live: true }),
+    decide: () => ({ mode: "tap", live: true, pause: "card", pauseButton: true }),
   },
   {
     // the dungeon: the canvas pad (with its own II) for now; the back gesture still pauses through the edge

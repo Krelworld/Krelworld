@@ -21,7 +21,7 @@ import { setPhoneEntryPoints } from "./boot";
 import { registerModeController, unregisterModeController } from "./touchLayer";
 import { addSceneRule, SCENE_RULES, verbFromPrompt } from "./modes";
 import { homeScreenEntryWanted, openHomeScreenGuide } from "./homeScreen";
-import { rankFollowerLast } from "./observe";
+import { rankFollowerLast, setCardPause } from "./observe";
 import { hint } from "./wording";
 import { whenRunning } from "./shell";
 import { installCombat } from "./combat";
@@ -35,6 +35,10 @@ import { onSceneCreate, PhoneScreens, skipHintPill } from "./screens";
 import { PhoneLists, liveScene } from "./listScenes";
 import { PhoneShops } from "./shops";
 import { TapUse, TAP_USE_CSS } from "./tapUse";
+import { PhoneArt } from "./art";
+import { PhoneAudio } from "./audio";
+import { PhonePerf } from "./perf";
+import { askToKeepSaves, bootLoadHeld, holdBootLoad, storageState } from "./storage";
 
 export { isMobile, setMobileForTests, mobileWhy, rememberPhoneMode } from "./flag";
 export { registerModeController, unregisterModeController, type ModeController, type ModeContext, type ControlSpec, TouchControl, TouchLayer } from "./touchLayer";
@@ -87,6 +91,10 @@ const GUIDE_DELAY_MS = 600;
 export function installMobile(game: Phaser.Game) {
   if (!isMobile() || installed || typeof document === "undefined") return;
   const parent = document.getElementById("game") ?? document.body;
+  // the texture budget first, before the art arrives (art.ts: the big one-scene pictures are parked until drawn)
+  const art = new PhoneArt(game);
+  // off-screen pictures skipped, the player's ring in the rooms where he is hard to find (perf.ts)
+  const perf = new PhonePerf(game);
   // the phone's own settings, from its own storage key (before anything lays itself out)
   usePhoneSettingsStore(localPhoneSettingsStore());
   // the browser's install prompt fires early: keep it for the guide's INSTALL button
@@ -96,6 +104,13 @@ export function installMobile(game: Phaser.Game) {
   const shell = new Shell(game, parent, null);
   const layer = new TouchLayer(game, parent);
   shell.setLayer(layer);
+  // sound for a phone (audio.ts): songs and slowed voices from elements the first tap unlocked, through gain nodes
+  const audio = new PhoneAudio(game, () => shell.holdingAudio());
+  // the "card" pause route (the finale; modes.ts): the shell's PAUSED card
+  setCardPause(() => {
+    shell.pauseCard(null);
+    return true;
+  });
   // stage 2: the top-down fights (FIRE, auto-fire and aim, DODGE, SWAP, SPECIAL, READY, HEAL, the chips, the phone HUD)
   const combat = installCombat(game, layer);
   // stage 3: tap a thing (or a person, or the floor) in a walking scene to walk there and use it
@@ -132,11 +147,16 @@ export function installMobile(game: Phaser.Game) {
     },
   });
   layer.onFullscreen = () => shell.goFullscreen();
+  let releaseLoad: (() => void) | null = null;
   const guide = new HomeScreenGuide(parent, {
     hasSave: () => !!G.saves.latest(),
     fullscreen: { can: () => shell.canGoFullscreen(), go: () => shell.goFullscreen(), inside: () => shell.inFullscreen(), leave: () => shell.leaveFullscreen() },
     // (the game sleeps under the guide: nothing can hurt you while you read it, wherever it was opened)
-    onOpenChange: (open) => shell.setHold("guide", open),
+    onOpenChange: (open) => {
+      shell.setHold("guide", open);
+      // (closed: PLAY HERE ANYWAY in an app's own browser lets the held download go)
+      if (!open) releaseLoad?.();
+    },
   });
   if (!shell.platform.standalone) shell.rotate.extra.appendChild(rotateEntry(() => guide.open("rotate")));
   // (fullscreen arriving while the guide shows steps through the browser's menu: it re-checks, and leaves it again)
@@ -145,7 +165,13 @@ export function installMobile(game: Phaser.Game) {
   setPhoneEntryPoints({ homeScreenEntryWanted, openHomeScreenGuide });
   // an app's own browser (Messenger, Instagram...): say "open it in Safari / Chrome first" straight away, over the
   // loading (or the turn-your-phone screen), not after the whole game has loaded
-  if (shell.platform.inApp && !shell.platform.standalone) guide.maybeAutoShow();
+  // (and the art waits until the player chooses to play here: it would be downloaded again in Safari / Chrome; P7)
+  if (shell.platform.inApp && !shell.platform.standalone) {
+    releaseLoad = holdBootLoad(game);
+    if (!guide.maybeAutoShow()) releaseLoad();
+  }
+  // the browser is asked, quietly, to keep the saves (storage.ts)
+  askToKeepSaves(shell.platform);
   // the town's first how-to-play toasts are control hints: touch wording on a phone ("WASD to walk" → "Drag on the
   // left to walk", "(Esc)" → "(II)"). Only "toast" (system hints), never "ping" (characters' messages). This listener
   // is added before the UI scene's, so the toast is drawn reworded.
@@ -161,7 +187,12 @@ export function installMobile(game: Phaser.Game) {
   if (Array.isArray(ls) && ls.indexOf(reword) > 0) ls.unshift(...ls.splice(ls.indexOf(reword), 1));
   const read = new Readability(game);
   const wording = new PromptWording(game);
-  const diag = diagWanted(location.search) ? new DiagOverlay(game, parent, layer, shell.platform, () => ({ on: read.on, param: read.param })) : null;
+  const diag = diagWanted(location.search) ? new DiagOverlay(game, parent, layer, shell.platform, () => ({ on: read.on, param: read.param }), {
+        art: () => ({ resident: art.resident(), stats: art.report() }),
+        audio: () => audio.diag(),
+        perf: () => ({ culled: perf.lastCulled, drawn: perf.lastDrawn, poolsHidden: perf.poolsHidden }),
+        storage: () => storageState,
+      }) : null;
   // stage 2: the Phone settings page, the menus laid out for thumbs, and the conversation pills (SKIP / LOG / AUTO)
   const settingsPage = new PhoneSettingsPage(parent);
   new PhoneScreens(game, read, (from) => settingsPage.open(from));
@@ -237,6 +268,10 @@ export function installMobile(game: Phaser.Game) {
   });
   // for the phone smoke test and for poking at it on a real phone (phones only)
   (window as unknown as { __krelMobile?: unknown }).__krelMobile = {
+    art,
+    perf,
+    storage: { state: storageState, held: () => bootLoadHeld(game) },
+    audio,
     layer,
     shell,
     readability: read,

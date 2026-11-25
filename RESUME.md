@@ -1,3 +1,9 @@
+## LATEST: STAGE 3 STARTED (user switched to high effort, said go, "anything to optimize and speed up, do it")
+- Wave 1 (tap-to-use everywhere + platform: audio, memory, perf, saves, caching, pause routes): workflow work/s3-wave1.js, run wf_5bcc4e64-8d7. Worktrees s3-tap-wt (branch s3-tap, also the integration branch) and s3-perf-wt (s3-perf), both from 37a710d4. Backed up as s3-tap-wip / s3-perf-wip.
+  Resume: Workflow({scriptPath: "<SP>/mobile/work/s3-wave1.js", resumeFromRunId: "wf_5bcc4e64-8d7"}).
+- In parallel: stage 2 feel run wf_4757708e-f84 (mobile-feel). When it passes: merge mobile-feel into mobile, quick checks, push, alt build. Wave 1's merge agent merges "mobile" first, so feel gets in if done by then; otherwise merge mobile into s3-tap before publishing wave 1.
+- When wave 1 gates: merge into mobile, push live, alt build, tell the user. Then wave 2 (minigames by touch: rhythm + sync calibration, mashers, Flip It, RuneScape, Gig, Girlfriends, Facebook, squeeze, Wonky Pole, KrelCue, Polson bulking, Pit; Night of Freedom manual-aim test + other stationary gunners (plane cannon), Beep Beep pedals, Drawbridge, citadel3d/RoofArena, finale concept boss, skip pills, Ending, p3d, vignettes; TV subtitles P5). Plan: two build tracks (A: taps/rhythm/mashers; B: aim/driving/special scenes/TV) then merge/review/fix/gate. Could start wave 2 builds once wave 1 is in review (workflow concurrency is 2).
+
 ## LATEST (2026-11-25, stage 2 gate PASSED)
 - USER: on medium effort for the rest of stage 2. BEFORE STARTING STAGE 3, tell the user it is ready to start so they can switch to high (do not start stage 3 until they say so).
 - 14:48 UTC: STAGE 2 PUBLISHED (live = 37a710d4, verify PASS, alt build triggered). Remaining for stage 2: feel workflow wf_4757708e-f84 in mobile-feel-wt; when its recheck passes, merge mobile-feel into mobile, quick checks, push, trigger alt.

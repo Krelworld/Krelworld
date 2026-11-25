@@ -11,6 +11,7 @@ import type { GameView, ModeDecision, SceneState } from "./modes";
 import { currentInputSource } from "./modes";
 import type { Rect } from "./layout";
 import { rawText } from "./wording";
+import { promptThing } from "./tapTargets";
 
 type Bag = Record<string, unknown>;
 
@@ -153,7 +154,7 @@ function nearest(list: Usable[] | undefined, px: number, py: number, skip?: (u: 
 }
 
 /** What the prompt is about, in the scene's world (Home's spots, the town's interactables, Kreddle's spots), or null. */
-function promptTarget(key: string, sc: Bag): { x: number; y: number; r: number } | null {
+function promptTarget(game: Phaser.Game, key: string, sc: Bag): { x: number; y: number; r: number } | null {
   if (key === "Home") {
     const me = sc.me as { x: number; y: number } | undefined;
     return me ? nearest(sc.spots as Usable[], me.x, me.y) : null;
@@ -164,8 +165,11 @@ function promptTarget(key: string, sc: Bag): { x: number; y: number; r: number }
   }
   if (key === "Kreddle" && !sc.raid && !sc.rout) {
     const me = sc.me as { x: number; y: number } | undefined;
-    return me ? nearest(sc.spots as Usable[], me.x, me.y) : null;
+    const spot = me ? nearest(sc.spots as Usable[], me.x, me.y) : null;
+    if (spot) return spot;
   }
+  // (stage 3: the Club's places and people, the Venue's, Kreddle's locals: the thing the prompt names, from tap to use)
+  if ((key === "Club" || key === "Venue" || key === "Kreddle") && !sc.raid && !sc.rout) return promptThing(game, key);
   return null;
 }
 
@@ -191,7 +195,7 @@ export function targetRect(game: Phaser.Game, d: ModeDecision): { tap: Rect; cor
   if (d.mode !== "walk" || !d.scene || !d.action || d.action === "SHOVE") return null;
   const sc = game.scene.getScene(d.scene) as unknown as Bag | null;
   if (!sc) return null;
-  const t = promptTarget(d.scene, sc);
+  const t = promptTarget(game, d.scene, sc);
   if (!t) return null;
   const p = toPage(game, sc as unknown as Phaser.Scene, t.x, t.y);
   if (!p) return null;

@@ -475,6 +475,11 @@ export class TouchLayer {
   occluders: Rect[] = [];
   /** Things drawn on the layer outside a control (the Kreltality prompt's buttons): placed again on every layout. */
   readonly onLayout = new Set<() => void>();
+  /**
+   * Stage 3, tap to use (tapUse.ts): in the walking scenes it covers, a still tap on a thing, a person or the floor
+   * walks there and uses it; the old "tap the prompt's thing" area gives way to it (the bubble stays ACTION).
+   */
+  worldTap: { covers(d: ModeDecision): boolean; tap(x: number, y: number): boolean } | null = null;
 
   private probe: HTMLDivElement;
   private zone: HTMLDivElement;
@@ -905,6 +910,7 @@ export class TouchLayer {
       this.edge("interact");
       return;
     }
+    if (this.worldTap?.tap(x, y)) return;
     this.injectTap(x, y);
   }
 
@@ -1044,6 +1050,8 @@ export class TouchLayer {
       const y0 = Math.max(t.y, top);
       target = y0 < t.y + t.h ? { tap: { x: t.x, y: y0, w: t.w, h: t.y + t.h - y0 }, core: target.core } : null;
     }
+    // (tap to use: any thing is tapped where it is, the nearest one winning; this area would take over a neighbour's)
+    if (target && this.worldTap?.covers(d)) target = { tap: { x: 0, y: 0, w: 0, h: 0 }, core: target.core };
     this.target = target;
     this.tapKeys();
   }

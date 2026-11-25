@@ -67,6 +67,8 @@ export interface PhoneHooks {
   finisher?(p: { yes(): void; no(): void; ms?: number; all?: boolean }): (() => void) | null;
   /** Crushers' and steam vents' reach, as a share of the game's (phone assist: a little smaller). */
   hazardScale?(): number;
+  /** A side room's pit: where to put the player back (phone assist: further from the edge, the stick waits). */
+  pitRespawn?(level: unknown, fellX: number, safeX: number, roomW: number, now: number): number;
 }
 
 let hooks: PhoneHooks | null = null;

@@ -1065,6 +1065,13 @@ export class CombatControls {
       const z = page(t.x + t.r + 6, t.y + t.r + 6);
       out.push({ x: a.x, y: a.y, w: z.x - a.x, h: z.y - a.y });
     }
+    // side rooms: the pits (and their name over them), moving platforms and crushers. They come into view from the
+    // right, under JUMP and FIRE: those go see-through over them, so the next gap is never hidden by the buttons (P3)
+    if (dun.side) for (const r of hazardRects(dun)) {
+      const a = page(r.x, r.y);
+      const z = page(r.x + r.w, r.y + r.h);
+      out.push({ x: a.x, y: a.y, w: z.x - a.x, h: z.y - a.y });
+    }
     return out;
   }
 
@@ -1135,6 +1142,22 @@ export function combatControls(): CombatControls | null {
  * overlays above it still win), adds the weapon-picker row in front, registers the controller and lends the game its
  * hooks.
  */
+/** A side room's hazards in world px: pits (with the label drawn over them), moving platforms, crushers' paths. */
+export function hazardRects(dun: unknown): Rect[] {
+  const out: Rect[] = [];
+  const d = dun as { groundY?: number; sideLevel?: { gaps?: [number, number][]; movers?: { rect: { x: number; y: number; width: number; height: number } }[]; crushers?: { x: number; w: number }[] } | null };
+  const lv = d.sideLevel;
+  if (!lv) return out;
+  const gy = d.groundY ?? 470;
+  for (const [a, b] of lv.gaps ?? []) out.push({ x: a - 8, y: gy - 70, w: b - a + 16, h: 140 });
+  for (const m of lv.movers ?? []) {
+    const r = m.rect;
+    if (r) out.push({ x: r.x - r.width / 2 - 6, y: r.y - r.height / 2 - 30, w: r.width + 12, h: r.height + 40 });
+  }
+  for (const c of lv.crushers ?? []) out.push({ x: c.x - c.w / 2, y: gy - 260, w: c.w, h: 260 });
+  return out;
+}
+
 export function installCombat(game: Phaser.Game, layer: TouchLayer): CombatControls {
   if (installed) return installed;
   if (typeof document !== "undefined" && !document.getElementById(COMBAT_STYLE_ID)) {
@@ -1170,6 +1193,7 @@ export function installCombat(game: Phaser.Game, layer: TouchLayer): CombatContr
     sideMove: (pl, body, ctl, mv, speed, dt, now) => cc.side.sideMove(pl as never, body as never, ctl as never, mv, speed, dt, now),
     ledgeTol: () => (phoneSettings().phoneAssist ? JUMP_TUNE.ledgeTol : JUMP_TUNE.gameLedgeTol),
     hazardScale: () => (phoneSettings().phoneAssist ? ASSIST.hazard : 1),
+    pitRespawn: (level, fellX, safeX, roomW, now) => cc.side.pitRespawn(level as never, fellX, safeX, roomW, now),
   });
   // touch wording for the fight's own UI hints (never dialogue): the weapon picker's how-to line, and the first
   // dungeon's how-to-play pages, which named the old pad's buttons

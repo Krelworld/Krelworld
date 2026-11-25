@@ -11,7 +11,7 @@ import type Phaser from "phaser";
 import { synth } from "../audio/Synth";
 import { sanmikYee } from "../gfx/sanmikForm";
 import { phoneSettings } from "./settings";
-import { JumpBrain, DropRule, LookAhead, JUMP_TUNE, easeMs, ledgePop, cornerNudge, camLerp, camLagPx, type Box } from "./jump";
+import { JumpBrain, DropRule, LookAhead, JUMP_TUNE, PIT_STICK_LOCK_MS, easeMs, ledgePop, cornerNudge, camLerp, camLagPx, pitSafeX, type Box } from "./jump";
 
 type Body = Phaser.Physics.Arcade.Body;
 type StaticBody = Phaser.Physics.Arcade.StaticBody;
@@ -73,6 +73,9 @@ export class SideMove {
   readonly log: JumpLog[] = [];
   private cur: JumpLog | null = null;
   private camFor: unknown = null;
+  /** After a pit (phone assist): the stick is ignored until it comes back to the middle (scene ms it ends anyway). */
+  private pitLockUntil = 0;
+  pits = 0;
 
   /** JUMP pressed (touch-down), stamped with the scene clock. */
   press(sc: SideScene | null) {
@@ -96,6 +99,19 @@ export class SideMove {
     this.brain.reset();
     this.drop.reset();
     this.carry.until = 0;
+    this.pitLockUntil = 0;
+  }
+
+  /**
+   * SideLevel's pit (guarded hook): where to put the player back. Phone assist: PIT_MARGIN short of the edge, and the
+   * stick held toward the pit no longer walks them straight back in (it waits for the thumb to come back to the middle).
+   */
+  pitRespawn(level: { inGap(x: number, pad?: number): boolean }, fellX: number, safeX: number, roomW: number, now: number): number {
+    if (!phoneSettings().phoneAssist) return safeX;
+    this.pits++;
+    this.pitLockUntil = now + PIT_STICK_LOCK_MS;
+    this.brain.consume();
+    return pitSafeX(fellX, safeX, (x, pad) => level.inGap(x, pad), roomW);
   }
 
   /** On a one-way platform (not the floor)? */
@@ -124,6 +140,12 @@ export class SideMove {
     }
     const assist = phoneSettings().phoneAssist;
     const grounded = body.blocked.down || body.touching.down;
+    // (just put back after a pit: the stick waits for the thumb to come back to the middle)
+    if (this.pitLockUntil) {
+      const neutral = !this.raw || Math.abs(this.raw.x) < 0.2;
+      if (neutral || now >= this.pitLockUntil) this.pitLockUntil = 0;
+      else mv = { x: 0, y: mv.y };
+    }
     if (grounded) this.lastGroundAt = now;
     // a controller or keyboard on the phone: its own jump (up / stick up), always the full height
     if (c.jump()) {
@@ -270,6 +292,8 @@ export class SideMove {
       coyoteUntil: this.brain.coyoteUntil,
       raw: this.raw,
       look: this.look.x,
+      pits: this.pits,
+      pitLock: this.pitLockUntil > 0,
       log: this.log.slice(-6),
     };
   }

@@ -345,3 +345,29 @@ export class LookAhead {
     this.x = -this.dir * this.share * width;
   }
 }
+
+/** Phone assist, after a pit: put back at least this far from the pit's edge (the game uses the last safe spot, often
+ *  50-70 px short of it, and a held stick walked you straight back in: P2). */
+export const PIT_MARGIN = 120;
+/** ...and the stick is ignored until it comes back to the middle, or this long at most. */
+export const PIT_STICK_LOCK_MS = 1000;
+
+/**
+ * Where to put the player back after falling into a pit (phone assist): PIT_MARGIN short of the edge they fell from,
+ * on solid ground, never nearer the pit than the game's own spot. Pure.
+ */
+export function pitSafeX(fellX: number, safeX: number, inGap: (x: number, pad?: number) => boolean, roomW: number, margin = PIT_MARGIN): number {
+  const dir = fellX >= safeX ? 1 : -1;
+  let edge = fellX;
+  for (let x = safeX, n = 0; n < 200; n++, x += dir * 4) {
+    if (inGap(x)) {
+      edge = x;
+      break;
+    }
+  }
+  let t = Math.max(40, Math.min(roomW - 40, edge - dir * margin));
+  for (let n = 0; n < 60 && inGap(t, 50); n++) t -= dir * 8;
+  if (inGap(t, 50) || t < 40 || t > roomW - 40) return safeX;
+  // (never nearer the pit than where the game would have put you)
+  return dir * (t - safeX) > 0 ? safeX : t;
+}

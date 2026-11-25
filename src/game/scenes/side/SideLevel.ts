@@ -322,7 +322,8 @@ export class SideLevel {
       if (p.y > gy + 70 && now > this.pitCd) {
         this.pitCd = now + 600;
         sc.damagePlayer(15, undefined, { unblockable: true, label: `-15 (${this.room.pitName ?? "PIT"})` });
-        p.spr.setPosition(this.lastSafeX, gy - 70);
+        // (phones: phone assist puts you further from the edge; src/game/mobile/side.ts)
+        p.spr.setPosition(isMobile() ? (phoneHooks()?.pitRespawn?.(this, p.x, this.lastSafeX, this.room.w, now) ?? this.lastSafeX) : this.lastSafeX, gy - 70);
         pb.setVelocity(0, 0);
         p.iframesUntil = now + 1200;
         synth.play("splash");

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { JumpBrain, DropRule, JUMP_TUNE, jumpHeight, ledgePop, cornerNudge, oneWayLands, easeMs, LookAhead, camLerp, camLagPx } from "../src/game/mobile/jump";
+import { JumpBrain, DropRule, JUMP_TUNE, jumpHeight, ledgePop, cornerNudge, oneWayLands, easeMs, LookAhead, camLerp, camLagPx, pitSafeX, PIT_MARGIN } from "../src/game/mobile/jump";
 
 // A tiny side-room physics model: the game's update runs at the display rate (30, 60 or 120 Hz), the Arcade physics at
 // its fixed 60 Hz step (Phaser's fixedStep: 0, 1 or 2 steps a frame); gravity 1500, a floor at y = 0 (up is negative).
@@ -349,5 +349,26 @@ describe("a controller on the phone (S6 / R11)", () => {
     expect(currentInputSource()).toBe("pad");
     setInputSource("touch");
     expect(currentInputSource()).toBe("touch");
+  });
+});
+
+describe("phone assist after a pit (P2)", () => {
+  // Catford High Street: a manhole from 930 to 1010
+  const gaps = [[930, 1010]];
+  const inGap = (x: number, pad = 0) => gaps.some(([a, b]) => x > a - pad && x < b + pad);
+  it("puts you back at least 120 px short of the edge you fell from", () => {
+    const x = pitSafeX(960, 867.6, inGap, 3000);
+    expect(930 - x).toBeGreaterThanOrEqual(PIT_MARGIN - 4);
+    // falling the other way (running left into it)
+    const y = pitSafeX(980, 1060, inGap, 3000);
+    expect(y - 1010).toBeGreaterThanOrEqual(PIT_MARGIN - 4);
+  });
+  it("never nearer the pit than the game's own spot, never into another pit, never off the room", () => {
+    expect(pitSafeX(960, 700, inGap, 3000)).toBe(700);
+    const two = [[700, 760], [930, 1010]];
+    const in2 = (x: number, pad = 0) => two.some(([a, b]) => x > a - pad && x < b + pad);
+    const z = pitSafeX(960, 880, in2, 3000);
+    expect(in2(z, 50)).toBe(false);
+    expect(pitSafeX(80, 60, (x) => x > 100 && x < 200, 3000)).toBeGreaterThanOrEqual(40);
   });
 });

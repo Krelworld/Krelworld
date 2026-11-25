@@ -35,6 +35,7 @@ import { onSceneCreate, PhoneScreens, skipHintPill } from "./screens";
 import { PhoneLists, liveScene } from "./listScenes";
 import { PhoneShops } from "./shops";
 import { PhoneArt } from "./art";
+import { PhoneAudio } from "./audio";
 
 export { isMobile, setMobileForTests, mobileWhy, rememberPhoneMode } from "./flag";
 export { registerModeController, unregisterModeController, type ModeController, type ModeContext, type ControlSpec, TouchControl, TouchLayer } from "./touchLayer";
@@ -98,6 +99,8 @@ export function installMobile(game: Phaser.Game) {
   const shell = new Shell(game, parent, null);
   const layer = new TouchLayer(game, parent);
   shell.setLayer(layer);
+  // sound for a phone (audio.ts): songs and slowed voices from elements the first tap unlocked, through gain nodes
+  const audio = new PhoneAudio(game, () => shell.holdingAudio());
   // stage 2: the top-down fights (FIRE, auto-fire and aim, DODGE, SWAP, SPECIAL, READY, HEAL, the chips, the phone HUD)
   const combat = installCombat(game, layer);
   // stage 2 part 2: the finale's brawl, the Kreltality prompt, a controller handed over (brawl.ts, pad.ts)
@@ -155,7 +158,7 @@ export function installMobile(game: Phaser.Game) {
   if (Array.isArray(ls) && ls.indexOf(reword) > 0) ls.unshift(...ls.splice(ls.indexOf(reword), 1));
   const read = new Readability(game);
   const wording = new PromptWording(game);
-  const diag = diagWanted(location.search) ? new DiagOverlay(game, parent, layer, shell.platform, () => ({ on: read.on, param: read.param })) : null;
+  const diag = diagWanted(location.search) ? new DiagOverlay(game, parent, layer, shell.platform, () => ({ on: read.on, param: read.param }), { art: () => ({ resident: art.resident(), stats: art.report() }), audio: () => audio.diag() }) : null;
   // stage 2: the Phone settings page, the menus laid out for thumbs, and the conversation pills (SKIP / LOG / AUTO)
   const settingsPage = new PhoneSettingsPage(parent);
   new PhoneScreens(game, read, (from) => settingsPage.open(from));
@@ -232,6 +235,7 @@ export function installMobile(game: Phaser.Game) {
   // for the phone smoke test and for poking at it on a real phone (phones only)
   (window as unknown as { __krelMobile?: unknown }).__krelMobile = {
     art,
+    audio,
     layer,
     shell,
     readability: read,

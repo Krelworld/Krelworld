@@ -200,6 +200,11 @@ export class Shell {
     return !this.booted;
   }
 
+  /** The sound is held (page hidden, or upright after the load): the context stays suspended until it lets go. */
+  holdingAudio(): boolean {
+    return this.heldAudio;
+  }
+
   /** Is this hold on? */
   holding(h: Hold): boolean {
     return this.holds.has(h);

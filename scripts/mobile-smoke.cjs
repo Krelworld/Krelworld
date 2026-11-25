@@ -2,7 +2,7 @@
 // PHONE MODE smoke test (Playwright, real touch events). Needs a running dev server.
 //
 //   npx vite --port 5202 --strictPort &
-//   node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,android,desktop]
+//   node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,together,review1,android,desktop]
 //
 // phone    iPhone 14 landscape (844x390, DPR 3, touch, mobile Safari UA). Boots by taps, starts a new game by taps,
 //          clears the welcome at home by taps, then checks: the idle stick and pause are up; a drag moves the player
@@ -85,7 +85,7 @@ const arg = (k, d) => {
 };
 const URL0 = arg("--url", "http://localhost:5202/");
 const SHOTS = arg("--shots", "");
-const ONLY = (arg("--only", "phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,together,android,desktop") || "").split(",").filter(Boolean);
+const ONLY = (arg("--only", "phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,together,review1,android,desktop") || "").split(",").filter(Boolean);
 const IOS_UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1";
 const IPHONE = { viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, userAgent: IOS_UA };
 const DESKTOP = { viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1, hasTouch: false, isMobile: false };
@@ -3581,6 +3581,140 @@ async function together(browser) {
   }
 }
 
+// ------------------------------------------------------------------ review round 1 (stage 2): the fixes, end to end
+
+async function review1(browser) {
+  console.log("REVIEW1 (stage 2 review fixes: FIRE after a fight, the archive's way out, a resting controller, the brawl's pause, the Kreltality prompt)");
+  const { ctx, page, ph, errors } = await phoneAtTitle(browser);
+  const T = () =>
+    ph.ev(async () => {
+      const T = (await import("/src/game/ui/TouchControls.ts")).TOUCH;
+      return { attack: T.attack, enabled: T.enabled };
+    });
+  try {
+    await ph.ev(() => window.__krelMobile.setInsets({ top: 0, right: 47, bottom: 21, left: 47 }));
+    // ---- R1: FIRE held through the end of a fight, let go afterwards: no held attack left behind
+    const ok = await toFight(ph, "wildern", 0, 2);
+    check("review1: into a top-down fight", ok, await ph.mode());
+    await ph.ev(() => window.__krelMobile.settings.set({ autoFire: false }));
+    await sleep(400);
+    const fire = (await ph.snap()).controls.find((c) => c.id === "c-fire");
+    await ph.touch("touchStart", [{ x: fire.face.x + fire.face.w / 2, y: fire.face.y + fire.face.h / 2, id: 7 }]);
+    await sleep(400);
+    const held = await T();
+    await ph.ev(() => {
+      const d = window.__krel.game.scene.getScene("Dungeon");
+      const s = window.__krel.G.s;
+      // (no fairy to bring you back: a real death)
+      if (s.upgrades) s.upgrades.fairies = 0;
+      s.flags.debug_mode = false;
+      s.hp = 0;
+      d.die();
+    });
+    // (the death plays out, then the KREZZED menu: the thumb is still on FIRE all along)
+    await ph.until(() => window.__krel.active().includes("Menu"), null, 30000, "the KREZZED menu").catch(() => 0);
+    await sleep(800);
+    const ended = await ph.mode();
+    await ph.touch("touchEnd", []);
+    await sleep(1500);
+    const after = await T();
+    check("R1: FIRE let go after the fight ended leaves no held attack (town would punch Mikey)", held.attack && !ended.startsWith("combat") && !after.attack, { held, ended, after, mode: await ph.mode() });
+    await ph.ev(() => window.__krelMobile.settings.set({ autoFire: true }));
+    // ---- R2: a controller resting off-centre (triggers at -1) never hides the touch controls
+    await toWalk(ph, "Home");
+    await ph.ev(() => {
+      const pad = { id: "generic", connected: true, mapping: "", buttons: Array.from({ length: 12 }, () => ({ pressed: false, value: 0 })), axes: [0, 0, 0, 0, -1, -1] };
+      window.__fakePad = pad;
+      navigator.getGamepads = () => [window.__fakePad];
+    });
+    await sleep(900);
+    const rest = await ph.ev(() => ({ padin: document.querySelector(".kt").classList.contains("padin"), handovers: window.__krelMobile.pad.handovers }));
+    await ph.ev(() => (window.__fakePad.buttons[0] = { pressed: true, value: 1 }));
+    await sleep(400);
+    const pressed = await ph.ev(() => document.querySelector(".kt").classList.contains("padin"));
+    await ph.ev(() => (window.__fakePad.buttons[0] = { pressed: false, value: 0 }));
+    await ph.tapCss(600, 120);
+    await sleep(600);
+    const back = await ph.ev(() => document.querySelector(".kt").classList.contains("padin"));
+    check("R2: a pad resting off-centre doesn't take over; a button press does; a touch brings the controls back for good", !rest.padin && pressed && !back, { rest, pressed, back });
+    await ph.ev(() => (navigator.getGamepads = () => []));
+    // ---- P1: the Historical Archive's phone list has a way out (and Back leaves too)
+    await ph.ev(() => {
+      const k = window.__krel;
+      for (let i = 0; i < 20; i++) k.G.s.flags[`fake_${i}`] = true;
+      k.go("Archive", { returnAt: "ARCHIVE" });
+    });
+    await ph.scene("Archive");
+    await sleep(1500);
+    const L = await ph.ev(() => window.__krelMobile.lists.open());
+    const leaveBtn = await ph.ev(() => !!document.querySelector('.pl.show [data-id="archive-leave"]'));
+    if (L && L.name === "archive" && leaveBtn) {
+      await ph.tapSel('.pl.show [data-id="archive-leave"]');
+      await ph.until(() => !window.__krel.active().includes("Archive"), null, 15000, "leave the archive").catch(() => 0);
+    }
+    const gone = !(await ph.active()).includes("Archive");
+    check("P1: the archive's record list has ◀ LEAVE on it, and it leaves (or the list isn't there and the game's own LEAVE shows)", (L && L.name === "archive" ? leaveBtn : true) && gone, { list: L && L.name, leaveBtn, active: await ph.active() });
+    // ---- F9: the finale brawl has II: the carry-on card with SKIP FIGHT
+    await ph.ev(() => {
+      const k = window.__krel;
+      k.newRun("FLENKY");
+      k.setChapter(7, { ch1_home: true, home_seen: true, flyover_seen: true });
+      k.go("Finale", { beat: "brawl" });
+    });
+    await ph.scene("Finale");
+    let on = false;
+    for (let i = 0; i < 90 && !on; i++) {
+      const b = await ph.ev(() => window.__krelMobile.brawl.snapshot()).catch(() => ({ active: false }));
+      on = b.active && !b.finishing && (await ph.mode()).startsWith("brawl") && !(await ph.active()).includes("Dialogue");
+      if (!on) {
+        await ph.tapCss(420, 150);
+        await sleep(900);
+      }
+    }
+    const bp = (await ph.snap()).controls.find((c) => c.id === "b-pause");
+    if (bp && bp.shown) {
+      await ph.tapCss(bp.face.x + bp.face.w / 2, bp.face.y + bp.face.h / 2);
+      await sleep(600);
+    }
+    const card = await ph.ev(() => ({ card: !!window.__krelMobile.shellState().card, skip: document.querySelector(".kres-x.on")?.textContent ?? null }));
+    if (card.skip) {
+      await ph.tapSel(".kres-x.on");
+      await ph.until(() => !window.__krel.active().includes("Finale"), null, 20000, "the brawl to be skipped").catch(() => 0);
+    }
+    check("F9: the finale brawl shows II; it pauses (carry-on card) and offers SKIP FIGHT, which skips it as Esc does on a laptop", on && !!bp?.shown && card.card && /SKIP FIGHT/.test(card.skip ?? "") && !(await ph.active()).includes("Finale"), { on, bp: !!bp?.shown, card, active: await ph.active() });
+    // ---- P2: a pit, the thumb still pushing toward it: put back clear of the edge, and the stick waits
+    const sideOk = await toFight(ph, "arena_sanmik", 1, 5, "FLENKY", "side:Dungeon");
+    const pit = await ph.ev(() => {
+      const d = window.__krel.game.scene.getScene("Dungeon");
+      for (const e of d.enemies) if (!e.dead) e.setPosition(-5000, -5000);
+      const g = (d.sideLevel?.gaps ?? []).slice().sort((a, b) => a[0] - b[0])[0];
+      if (!g) return null;
+      d.player.spr.setPosition(g[0] - 70, d.groundY - 60);
+      d.player.spr.body.setVelocity(0, 0);
+      return { a: g[0], b: g[1] };
+    });
+    await sleep(700);
+    const pits0 = (await ph.ev(() => window.__krelMobile.combat.side.snapshot())).pits ?? 0;
+    // the thumb lands in the stick zone and pushes right, and stays there (the fall comes within a second)
+    await ph.touch("touchStart", [{ x: 150, y: 300, id: 3 }]);
+    for (let i = 1; i <= 6; i++) {
+      await ph.touch("touchMove", [{ x: 150 + i * 10, y: 300, id: 3 }]);
+      await sleep(30);
+    }
+    await sleep(2600);
+    const mid = await ph.ev(() => {
+      const d = window.__krel.game.scene.getScene("Dungeon");
+      return { x: Math.round(d.player.x), side: window.__krelMobile.combat.side.snapshot() };
+    });
+    await ph.touch("touchEnd", []);
+    const falls = (mid.side.pits ?? 0) - pits0;
+    check("P2: a pit with the stick still held toward it: one fall, put back at least 120 px short of the edge, and the held stick doesn't walk you straight back in", sideOk && !!pit && falls >= 1 && falls <= 1 && mid.x <= pit.a - 100, { sideOk, pit, falls, x: mid.x, lock: mid.side.pitLock });
+    check("review1: no page errors", errors.length === 0, errors.slice(0, 3));
+  } finally {
+    await ctx.close();
+  }
+}
+
 async function android(browser) {
   console.log("ANDROID (Chrome 740x360)");
   const AND = { ...ANDROID, userAgent: UA.androidChrome };
@@ -3767,6 +3901,7 @@ async function desktop(browser) {
       ["side", sideRooms],
       ["brawl", brawl],
       ["together", together],
+      ["review1", review1],
       ["android", android],
       ["desktop", desktop],
     ]) {

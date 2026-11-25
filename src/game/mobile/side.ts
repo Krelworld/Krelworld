@@ -75,6 +75,8 @@ export class SideMove {
   private camFor: unknown = null;
   /** After a pit (phone assist): the stick is ignored until it comes back to the middle (scene ms it ends anyway). */
   private pitLockUntil = 0;
+  /** Which way the pit is from where you were put back (1 right, -1 left). */
+  private pitDir = 0;
   pits = 0;
 
   /** JUMP pressed (touch-down), stamped with the scene clock. */
@@ -111,7 +113,9 @@ export class SideMove {
     this.pits++;
     this.pitLockUntil = now + PIT_STICK_LOCK_MS;
     this.brain.consume();
-    return pitSafeX(fellX, safeX, (x, pad) => level.inGap(x, pad), roomW);
+    const x = pitSafeX(fellX, safeX, (x, pad) => level.inGap(x, pad), roomW);
+    this.pitDir = fellX >= x ? 1 : -1;
+    return x;
   }
 
   /** On a one-way platform (not the floor)? */
@@ -140,11 +144,12 @@ export class SideMove {
     }
     const assist = phoneSettings().phoneAssist;
     const grounded = body.blocked.down || body.touching.down;
-    // (just put back after a pit: the stick waits for the thumb to come back to the middle)
+    // (just put back after a pit: the stick doesn't walk you back toward it until the thumb comes back to the middle
+    // or JUMP is pressed; walking away from it works at once)
     if (this.pitLockUntil) {
       const neutral = !this.raw || Math.abs(this.raw.x) < 0.2;
-      if (neutral || now >= this.pitLockUntil) this.pitLockUntil = 0;
-      else mv = { x: 0, y: mv.y };
+      if (neutral || now >= this.pitLockUntil || this.brain.pressAt !== null) this.pitLockUntil = 0;
+      else if (Math.sign(mv.x) === this.pitDir) mv = { x: 0, y: mv.y };
     }
     if (grounded) this.lastGroundAt = now;
     // a controller or keyboard on the phone: its own jump (up / stick up), always the full height

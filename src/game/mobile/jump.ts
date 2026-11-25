@@ -349,8 +349,9 @@ export class LookAhead {
 /** Phone assist, after a pit: put back at least this far from the pit's edge (the game uses the last safe spot, often
  *  50-70 px short of it, and a held stick walked you straight back in: P2). */
 export const PIT_MARGIN = 120;
-/** ...and the stick is ignored until it comes back to the middle, or this long at most. */
-export const PIT_STICK_LOCK_MS = 1000;
+/** ...and the stick no longer walks you toward it until it comes back to the middle or you press JUMP (this long at
+ *  most): you stand at a safe spot facing the gap, and jump it when ready. */
+export const PIT_STICK_LOCK_MS = 3000;
 
 /**
  * Where to put the player back after falling into a pit (phone assist): PIT_MARGIN short of the edge they fell from,

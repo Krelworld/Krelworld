@@ -5,7 +5,7 @@ Writes assets/world/<name>.png. The API key is injected by the proxy (dummy bear
 import json, sys, time, urllib.request, urllib.error, base64, os
 API = "https://api.pixellab.ai/v2"
 H = {"Authorization": "Bearer x", "Content-Type": "application/json"}
-OUT = os.path.join(os.path.dirname(__file__), "..", "assets", "world")
+OUT = os.environ.get("OUT_DIR") or os.path.join(os.path.dirname(__file__), "..", "assets", "world")
 
 def call(method, path, body=None):
     req = urllib.request.Request(API + path, data=json.dumps(body).encode() if body else None, headers=H, method=method)

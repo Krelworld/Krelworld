@@ -249,3 +249,20 @@ ring shows what it would act on. A goal line under the score ("Get into the grou
 name shows briefly when you arrive somewhere. Gold coins over anyone selling, red marks over
 anyone coming for you. Touch devices get a short intro without keyboard keys and start at 1.5x.
 Speech bubbles stay the same size whatever the zoom.
+
+## Art direction: realistic, not storybook
+
+The game should look more real than Krelworld's storybook style. A test with the same generator
+and a prompt asking for muted natural colours, true-to-life proportions, overcast light and
+grime (assets/world-tests) gets much closer: a flat-roofed estate pub, a shuttered bookies.
+When the PixelLab plan refreshes, regenerate the buildings, the street and the stadium inside
+with that prompt (isolated objects: the realistic pub came back with a painted street behind
+it), and the characters with realistic proportions and several body types.
+
+## Interface: match-day television
+
+The HUD is styled as football coverage: a score bug (team colour bars, white score, yellow
+clock), caption straps for the tannoy and commentary, angled red action button, condensed
+capitals throughout (Barlow Condensed, with Barlow for running text), sharp-cornered navy
+panels, programme-style intro and full-time cards. In-world labels and speech bubbles use the
+same face.

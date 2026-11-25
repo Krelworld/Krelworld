@@ -115,6 +115,7 @@ class StadiumScene extends Phaser.Scene {
     (window as any).__fast = (secs: number) => { for (let i = 0; i < secs * 60 && !this.s.stadium!.ending; i++) stepGame(this.game2); };
     this.bank = new SpriteBank(this);
     this.world = new WorldArt(this);
+    document.fonts?.ready.then(() => { this.drawStatic(); for (const b of this.bubbles) b.setFontFamily('"Barlow Condensed", "Arial Narrow", sans-serif'); });
     this.world.prepare();
     this.pitchG = this.add.graphics().setDepth(0.25);
     this.staticG = this.add.graphics().setDepth(0);
@@ -127,7 +128,7 @@ class StadiumScene extends Phaser.Scene {
     this.d3 = new Drive3D(this);
     for (let i = 0; i < 10; i++) {
       this.bubbles.push(this.add.text(0, 0, "", {
-        fontFamily: "system-ui, sans-serif", fontSize: "12px", color: "#10140f", backgroundColor: "#f4f1ea",
+        fontFamily: '"Barlow Condensed", "Arial Narrow", sans-serif', fontSize: "14px", fontStyle: "600", color: "#10140f", backgroundColor: "#f4f1ea",
         padding: { x: 5, y: 3 }, wordWrap: { width: 170 }, align: "center",
       }).setOrigin(0.5, 1).setDepth(1e7 + 1).setResolution(2).setVisible(false));
     }
@@ -188,6 +189,7 @@ class StadiumScene extends Phaser.Scene {
     });
     const m = this.s.match!;
     $("sc0").textContent = m.teams[0].short; $("sc1").textContent = m.teams[1].short;
+    document.documentElement.style.setProperty("--opp", "#" + m.teams[1].colour.toString(16).padStart(6, "0"));
     this.lines = []; this.renderTicker();
     this.drawStatic();
     this.camX = this.P.sx(this.pc.x, this.pc.y); this.camY = this.P.sy(this.pc.x, this.pc.y);
@@ -198,7 +200,9 @@ class StadiumScene extends Phaser.Scene {
   introFor(c: Campaign) {
     const opp = TEAMS[VENUE.opp].name;
     const kit = c.loadout.filter((d) => d !== "shirt_eng").map(describeDef);
-    $("introTitle").textContent = `England are in the ${VENUE.round}.`;
+    $("introTitle").textContent = `England v ${this.s.match!.teams[1].name}`;
+    $("introRound").textContent = `World Cup ${VENUE.round} · ${VENUE.ground}`;
+    $("introKo").textContent = `KO in ${Math.floor(KICKOFF_AT / 60)}:${String(KICKOFF_AT % 60).padStart(2, "0")}`;
     $("introText").textContent = c.fixture === 0
       ? `You are outside ${VENUE.ground} with £${c.money} and an England shirt. ${opp} are the opposition. Kick-off is in five and a half minutes. Help England win, any way you like.`
       : `${VENUE.ground}, against ${opp}. You have £${c.money}${kit.length ? ` and you've brought: ${kit.join(", ").toLowerCase()}` : ""}. ${notorietyText(c.notoriety)} This ground has metal detectors and face-recognition cameras at the turnstiles, and staff need a pass.`;
@@ -391,7 +395,7 @@ class StadiumScene extends Phaser.Scene {
     for (const t of this.labels) t.destroy();
     this.labels = [];
     const label = (text: string, x: number, y: number, size = 11) => {
-      this.labels.push(this.add.text(P.sx(x, y), P.sy(x, y), text, { fontFamily: "system-ui, sans-serif", fontSize: `${size}px`, color: "#ffffff" })
+      this.labels.push(this.add.text(P.sx(x, y), P.sy(x, y), text.toUpperCase(), { fontFamily: '"Barlow Condensed", "Arial Narrow", sans-serif', fontSize: `${size + 2}px`, fontStyle: "800", color: "#ffffff", letterSpacing: 1.5 } as Phaser.Types.GameObjects.Text.TextStyle)
         .setOrigin(0.5).setAlpha(0.55).setResolution(2).setDepth(1));
     };
     const SIGNED = new Set(["STAFF ENTRANCE", "THE THREE LIONS", "TICKETS", "MERCHANDISE", "TURNSTILES", "STEWARDS", "SECOND HAND ROSE", "ARMY & NAVY", "BOOKMAKER", "TEAM HOTEL", "FAN ZONE", "BIG SCREEN"]);
@@ -1251,9 +1255,10 @@ class StadiumScene extends Phaser.Scene {
     el.textContent = "";
     this.lines.forEach((l, i) => {
       const d = document.createElement("div");
-      d.className = "line panel" + (i < this.lines.length - 1 ? " old" : "") + (l.big ? " big" : "");
+      d.className = "line" + (l.big ? " big" : "");
       const sp = document.createElement("span"); sp.className = "src"; sp.textContent = l.src;
-      d.appendChild(sp); d.appendChild(document.createTextNode(l.text));
+      const tx = document.createElement("span"); tx.className = "txt"; tx.textContent = l.text;
+      d.appendChild(sp); d.appendChild(tx);
       el.appendChild(d);
     });
   }
@@ -1371,6 +1376,7 @@ class StadiumScene extends Phaser.Scene {
   showEnding() {
     const st = this.s.stadium!, e = st.ending!;
     $("endTitle").textContent = e.title;
+    { const m = this.s.match!; $("endScore").textContent = `${m.teams[0].short} ${m.score[0]}–${m.score[1]} ${m.teams[1].short}`; }
     $("endText").textContent = e.text;
     const news = newsReport(this.w);
     $("newsHead").textContent = news.headline;

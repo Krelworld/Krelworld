@@ -16,6 +16,8 @@ import { Announcer } from "../stadium/announcer";
 import { aimThrow, itemName, itemOptions, looksOutOfPlace, options, personName, primary, throwTarget, type Option } from "../stadium/context";
 import { createGame, loadCheckpoint, stepGame, type Game } from "../stadium/game";
 import { AREAS, areaAt, KICKOFF_AT, SPOTS, WALLS } from "../stadium/layout";
+import { canBetHere, prices } from "../stadium/betting";
+import { newsReport } from "../stadium/news";
 import { secs } from "../stadium/npc";
 import { SHOPS } from "../stadium/rules";
 import { LORRY_LEN, LORRY_WID } from "../stadium/vehicles";
@@ -54,6 +56,7 @@ class StadiumScene extends Phaser.Scene {
   lastScore = "";
   crowdJump = 0;
   speed = 1;
+  endingShown = false;
 
   get w() { return this.game2.w; }
   get s() { return this.game2.w.state; }
@@ -105,6 +108,7 @@ class StadiumScene extends Phaser.Scene {
       if (e.type === "ejected" && e.who === this.s.stadium!.pc) this.hint(e.taken.length ? `Thrown out. They took your ${e.taken.join(", ")}.` : "Thrown out. They'll know your face now.");
       if (e.type === "escort_cut" && e.who === this.s.stadium!.pc) { const f = $("fade"); f.classList.add("on"); setTimeout(() => f.classList.remove("on"), 450); }
       if (e.type === "broke_free" && e.who === this.s.stadium!.pc) this.hint("You broke free. Run!");
+      if (e.type === "bet_settled" && e.who === this.s.stadium!.pc) this.hint(e.won ? `Your bet came in: £${e.payout}.` : `You lost £${e.stake}.`);
     });
     const m = this.s.match!;
     $("sc0").textContent = m.teams[0].short; $("sc1").textContent = m.teams[1].short;
@@ -184,8 +188,9 @@ class StadiumScene extends Phaser.Scene {
       this.applyInput();
       const ann = (this as any).announcer as Announcer;
       this.stepper.advance(dms / 1000, () => { stepGame(this.game2); ann.tick(); this.applyInput(); }, 24);
-      if (st.ending && $("ending").hidden) this.showEnding();
     }
+    if (st.ending && $("ending").hidden && !this.endingShown) { this.endingShown = true; this.showEnding(); }
+    if (!st.ending) this.endingShown = false;
     this.draw(dms);
     this.drawHud();
   }
@@ -426,6 +431,8 @@ class StadiumScene extends Phaser.Scene {
       const hit = $("hit"), hitOpt = this.opts.find((o) => o.action?.verb === "strike");
       hit.hidden = !hitOpt || !!pc.heldBy || !!pc.hiddenIn;
       if (hitOpt) { hit.textContent = hitOpt.label.replace(/ \(.*\)$/, "").replace(/^(Punch|Stab) the /, "$1 the ").split(" ").slice(0, 3).join(" "); (this as any).hitOpt = hitOpt; }
+      const betEl = $("betBtn");
+      betEl.hidden = canBetHere(this.w, pc) !== "phone" || !!pc.heldBy;
       const canFast = pc.seated || area.id === "pub";
       $("speed").hidden = !canFast;
       if (!canFast && this.speed !== 1) this.setSpeed(1);
@@ -472,7 +479,7 @@ class StadiumScene extends Phaser.Scene {
   // ---------- Actions ----------
   run(opt: Option | null) {
     if (!opt || !this.started) return;
-    if (opt.sheet) { opt.sheet.kind === "shop" ? this.openShop(opt.sheet.who) : this.openBribe(opt.sheet.who); return; }
+    if (opt.sheet) { opt.sheet.kind === "shop" ? this.openShop(opt.sheet.who) : opt.sheet.kind === "bet" ? this.openBet() : this.openBribe(opt.sheet.who); return; }
     if (opt.action) {
       const before = this.pc.seated;
       const r = dispatch(this.w, opt.action);
@@ -517,6 +524,19 @@ class StadiumScene extends Phaser.Scene {
     this.sheet("shop", `<h2>${esc(shop.name)}</h2><p>You have £${this.pc.money}.</p><div class="list">${rows}</div>`);
   }
 
+  openBet() {
+    const book = prices(this.w), pc = this.pc, where = canBetHere(this.w, pc);
+    const slips = [pc.hand, ...pc.pockets].filter((x): x is string => !!x).map((id) => this.s.items[id]).filter((it) => it.bet);
+    const slipHtml = slips.length ? `<h2>Your slips</h2>${slips.map((it) => {
+      const b = it.bet!, label = b.market === "winner" ? (b.pick === "ENG" ? "England to go through" : "Them to go through") : b.pick === "NONE" ? "No more goals" : b.pick === "ENG" ? "England next goal" : "Them next goal";
+      return `<div class="slip">£${b.stake} on ${esc(label)} at ${b.odds.toFixed(2)}${b.result ? ` · ${b.result === "won" ? `won £${Math.round(b.stake * b.odds)}` : "lost"}` : ""}</div>`;
+    }).join("")}` : "";
+    if (!book) { this.sheet("bet", `<h2>Betting</h2><p>Betting is suspended.</p>${slipHtml}`); return; }
+    const stakes = [10, 20, 50, 100].filter((x) => x <= pc.money);
+    const rows = book.map((p) => `<div class="item"><b>${esc(p.label)} <span class="odds">${p.odds.toFixed(2)}</span></b><div class="row">${stakes.map((st) => `<button data-bet="${p.market}:${p.pick}" data-amt="${st}">£${st}</button>`).join("") || "<span class='slip'>No money.</span>"}</div></div>`).join("");
+    this.sheet("bet", `<h2>${where === "phone" ? "Betting app" : "Bookmaker"}</h2><p>You have £${pc.money}. Settled on the official result only.</p><div class="list">${rows}</div>${slipHtml}`);
+  }
+
   openBribe(who: string) {
     const t = this.s.actors[who];
     const amounts = [10, 20, 50, 100, 200, 400].filter((a) => a <= this.pc.money);
@@ -547,6 +567,10 @@ class StadiumScene extends Phaser.Scene {
     const st = this.s.stadium!, e = st.ending!;
     $("endTitle").textContent = e.title;
     $("endText").textContent = e.text;
+    const news = newsReport(this.w);
+    $("newsHead").textContent = news.headline;
+    const nl = $("newsList"); nl.textContent = "";
+    for (const line of news.lines) { const li = document.createElement("li"); li.textContent = line; nl.appendChild(li); }
     const inc = st.incidents.filter((i) => i.by === st.pc);
     const list = $("endList");
     list.textContent = "";
@@ -564,6 +588,7 @@ class StadiumScene extends Phaser.Scene {
     $("start").addEventListener("click", () => { $("intro").hidden = true; this.started = true; });
     $("act").addEventListener("click", () => this.run(primary(this.opts)));
     $("throw").addEventListener("click", () => this.throwNow());
+    $("betBtn").addEventListener("click", () => (this.sheetKind === "bet" ? this.closeSheet() : this.openBet()));
     $("hit").addEventListener("click", () => this.run((this as any).hitOpt ?? null));
     $("moreBtn").addEventListener("click", () => (this.sheetKind === "more" ? this.closeSheet() : this.openMore()));
     $("bagBtn").addEventListener("click", () => (this.sheetKind === "bag" ? this.closeSheet() : this.openBag()));
@@ -576,6 +601,7 @@ class StadiumScene extends Phaser.Scene {
       if (d.close) { if (this.sheetKind === "menu") this.setSpeed(1); this.closeSheet(); return; }
       if (d.opt) { this.run(((this as any).moreOpts as Option[])[+d.opt]); this.closeSheet(); return; }
       if (d.buy) { const r = dispatch(this.w, { verb: "buy", actor: this.pc.id, target: { k: "actor", id: d.who! }, arg: d.buy }); if (!r.ok) this.hint(r.reason ?? ""); this.openShop(d.who!); return; }
+      if (d.bet) { const r = dispatch(this.w, { verb: "bet", actor: this.pc.id, arg: d.bet, amount: +d.amt! }); if (!r.ok) this.hint(r.reason ?? ""); this.openBet(); return; }
       if (d.bribe) { const r = dispatch(this.w, { verb: "bribe", actor: this.pc.id, target: { k: "actor", id: d.who! }, amount: +d.bribe }); if (!r.ok) this.hint(r.reason ?? ""); this.closeSheet(); return; }
       if (d.bag) { const o = ((this as any)[`bag_${d.bag}`] as Option[])[+d.i!]; if (o?.action) { const r = dispatch(this.w, o.action); if (!r.ok) this.hint(r.reason ?? ""); } this.openBag(); return; }
       if (d.cp) { loadCheckpoint(this.game2, d.cp as any); this.closeSheet(); $("ending").hidden = true; this.setSpeed(1); this.hint("Back to the checkpoint."); this.setZoom(); return; }
@@ -650,6 +676,8 @@ class StadiumScene extends Phaser.Scene {
       ["Give a ticket", () => { spawnItem(this.s, "ticket", { k: "pocket", a: this.pc.id }); }],
       ["Skip to kick-off", () => { const m = this.s.match!; if (m.phase === "pre") { const n = Math.max(0, m.phaseUntil - this.s.tick - 600); for (let i = 0; i < n; i++) stepGame(this.game2); } }],
       ["Skip 60 seconds", () => { for (let i = 0; i < 3600; i++) stepGame(this.game2); }],
+      ["Play to the end", () => { let n = 0; while (!this.s.stadium!.ending && n++ < 60 * 60 * 45) stepGame(this.game2); }],
+      ["Wear referee's kit", () => { spawnItem(this.s, "ref_kit", { k: "worn", a: this.pc.id, slot: "outer" }); spawnItem(this.s, "whistle", { k: "pocket", a: this.pc.id }); }],
       ["Go to concourse", tp(0, 41)],
       ["Go to the stands", tp(-10, 32)],
       ["Go to dressing rooms", tp(0, -45)],

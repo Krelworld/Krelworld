@@ -15,7 +15,7 @@ export interface Option {
   priority: number;
   action?: Action;
   /** Opens a sheet instead of acting straight away. */
-  sheet?: { kind: "shop" | "bribe"; who: string };
+  sheet?: { kind: "shop" | "bribe" | "bet"; who: string };
 }
 
 const lc = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
@@ -67,7 +67,8 @@ export function options(w: World, pc: Actor): Option[] {
     .slice(0, 3);
   for (const { a, d } of people) {
     const name = personName(a), n = a.npc;
-    if (n?.shop) out.push({ label: `Buy from ${n.shop === "ticket" ? "the ticket office" : SHOPS[n.shop].name.toLowerCase().replace(/^the /, "the ")}`, priority: 80 - d, sheet: { kind: "shop", who: a.id } });
+    if (n?.shop === "bookies") out.push({ label: "Place a bet", priority: 80 - d, sheet: { kind: "bet", who: a.id } });
+    else if (n?.shop) out.push({ label: `Buy from ${n.shop === "ticket" ? "the ticket office" : SHOPS[n.shop].name.toLowerCase().replace(/^the /, "the ")}`, priority: 80 - d, sheet: { kind: "shop", who: a.id } });
     if (n?.job === "turnstile") {
       const ticket = [pc.hand, ...pc.pockets].find((id) => id && s.items[id].def === "ticket");
       if (ticket) push(`Show your ticket to ${name}`, 82 - d, { verb: "show", ...base, item: ticket, target: { k: "actor", id: a.id } });
@@ -78,6 +79,17 @@ export function options(w: World, pc: Actor): Option[] {
     if (hand && d < 1.7) push(`Give ${lc(itemName(hand))} to ${name}`, 3, { verb: "give", ...base, item: hand.id, target: { k: "actor", id: a.id } });
     const weapon = hand && hasProp(hand, "weapon");
     push(weapon ? `Stab ${name}` : `Punch ${name}`, -1, { verb: "strike", ...base, target: { k: "actor", id: a.id } });
+  }
+
+  // Dressed as the referee, on the pitch: make some decisions.
+  if (appearance(s, pc).role === "referee" && areaAt(pc.x, pc.y).pitch) {
+    const opp = Object.values(s.actors).filter((a) => a.fb?.team === 1 && a.fb.status === "playing" && Math.hypot(a.x - pc.x, a.y - pc.y) < 7)
+      .sort((p, q) => Math.hypot(p.x - pc.x, p.y - pc.y) - Math.hypot(q.x - pc.x, q.y - pc.y))[0];
+    push("Award England a penalty", 60, { verb: "rule", ...base, arg: "penalty" });
+    if (opp) push(`Send off ${opp.name}`, 58, { verb: "rule", ...base, arg: "sendoff", target: { k: "actor", id: opp.id } });
+    push("Disallow their goal", 62, { verb: "rule", ...base, arg: "disallow" });
+    push("Blow for full time", 20, { verb: "rule", ...base, arg: "fulltime" });
+    push("Stop play", 15, { verb: "rule", ...base, arg: "stop" });
   }
 
   // Places.

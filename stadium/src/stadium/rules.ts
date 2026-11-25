@@ -8,6 +8,9 @@ import type { Action, Actor, Id, Item } from "../core/types";
 import { registerVerb, VERBS } from "../core/verbs";
 import type { World } from "../core/world";
 import { bribePlayer, biasReferee, distractReferee, haltPlay, intruderKick, removePlayer, resumePlay, wirePlayer } from "../football/api";
+import { sendOff } from "../football/authority";
+import { endPeriod } from "../football/match";
+import { beginRestart } from "../football/restarts";
 import { areaAt, SPOTS, TURNSTILES, WALLS } from "./layout";
 import { say } from "./npc";
 import { alert, crime, isSecurity, struggle, witnessesOf } from "./security";
@@ -18,6 +21,7 @@ export const SHOPS: Record<string, { name: string; stock: Record<string, number>
   merch: { name: "Merchandise stall", stock: { shirt_opp: 45, shirt_eng: 45, mask: 8 } },
   pub: { name: "The Three Lions", stock: { pint: 5, pie: 4 } },
   bar: { name: "Concourse bar", stock: { pint: 7, pie: 5 } },
+  bookies: { name: "Bookmaker", stock: {} },
 };
 
 const near = (a: Actor, b: { x: number; y: number }, r: number) => Math.hypot(a.x - b.x, a.y - b.y) <= r;
@@ -199,6 +203,22 @@ export function installRules(): void {
     perform: (w, act, actor, item) => moveItem(w.state, item!.id, { k: "pocket", a: actor.id }),
   });
 
+  // Making rulings while dressed as the referee. Whether anyone accepts them is another matter.
+  registerVerb("rule", {
+    check: (w, act, actor) => {
+      const m = w.state.match;
+      if (!m || (m.phase !== "live" && m.phase !== "restart" && m.phase !== "goal_pause")) return "no match to referee";
+      if (appearance(w.state, actor).role !== "referee") return "you don't look like a referee";
+      if (!areaAt(actor.x, actor.y).pitch) return "get on the pitch first";
+      const kind = act.arg;
+      if (kind === "sendoff") { const t = targetActor(w, act); if (!t?.fb || t.fb.status !== "playing" || !near(actor, t, 7)) return "nobody close enough to send off"; }
+      if (kind === "disallow" && !(w.state.stadium!.flags.lastOppGoal && w.state.tick - w.state.stadium!.flags.lastOppGoal < 60 * 40)) return "no goal to disallow";
+      if (kind === "fulltime" && !((m.period === 2 || m.period === 4) && m.score[0] > m.score[1])) return "England aren't winning";
+      return null;
+    },
+    perform: (w, act, actor) => impostorRuling(w, actor, act.arg!, targetActor(w, act)),
+  });
+
   registerVerb("struggle", {
     check: (w, act, actor) => (actor.heldBy ? null : "nobody holding you"),
     perform: (w, act, actor) => { struggle(w, actor); },
@@ -328,6 +348,18 @@ export function installReactions(w: World): void {
       crime(w, by, what, weapon ? 3 : t.off || t.fb ? 2 : 1, t.npc ? t : undefined);
     }
     if (e.type === "action" && e.action.verb === "show") turnstileCheck(w, e.action);
+    if (e.type === "fb_goal" && e.team === 1) st.flags.lastOppGoal = s.tick;
+    // Keep a tally for the evening news.
+    const f = st.flags, pc = st.pc;
+    const bump = (k: string) => { f[k] = (f[k] ?? 0) + 1; };
+    if (e.type === "ejected" && e.who === pc) bump("ejections");
+    if (e.type === "pitch_invasion") bump("pitchInvasions");
+    if (e.type === "unmasked") bump("unmasked");
+    if (e.type === "incident" && e.what === "stowaway") bump("stowaway");
+    if (e.type === "run_over" && e.who === pc) bump("runOver");
+    if (e.type === "accident") bump("accident");
+    if (e.type === "item_hit" && s.match && e.target === s.match.officials.referee) bump("refHit");
+    if (e.type === "dose_kicks_in" && s.actors[e.id]?.off && e.effect === "laxative") bump("refLax");
     if (e.type === "action" && e.action.verb === "consume" && e.action.actor === st.pc) {
       const pc = s.actors[st.pc];
       if (pc.effects.laxative > s.tick && !st.flags.pcLax) st.flags.pcLax = s.tick + 60 * 45;
@@ -370,11 +402,24 @@ export function stepRules(w: World): void {
   const pc = s.actors[st.pc];
   if (!pc) return;
 
+  const ref = s.actors[m.officials.referee];
+  if (st.flags.impostorHaltUntil && tick >= st.flags.impostorHaltUntil) { st.flags.impostorHaltUntil = 0; if (m.halted === "impostor") resumePlay(w); }
+
+  // A second referee on the pitch does not go unnoticed for long, if the first one is about.
+  const lookalike = appearance(s, pc).role === "referee" && areaAt(pc.x, pc.y).pitch;
+  if (lookalike && ref.downUntil <= tick && !ref.off!.incapacitated && ref.off!.distractedUntil <= tick && Math.hypot(ref.x - pc.x, ref.y - pc.y) < 18) {
+    st.flags.refStare = (st.flags.refStare ?? 0) + 1;
+    if (st.flags.refStare === 60 * 4) {
+      st.flags.twoRefs = (st.flags.twoRefs ?? 0) + 1;
+      w.bus.emit({ type: "two_refs", t: tick, by: pc.id });
+      for (const id in s.actors) { const g = s.actors[id]; if (g.npc?.job === "pitchsteward") alert(w, g, pc, 2, 2); }
+    }
+  } else if (!lookalike) st.flags.refStare = 0;
+
   // Somebody on the pitch who should not be: the referee stops play if he notices.
   const area = areaAt(pc.x, pc.y);
   const role = appearance(s, pc).role;
   const intruding = area.id === "pitch" && role !== "referee" && role !== "footballer" && !pc.hiddenIn;
-  const ref = s.actors[m.officials.referee];
   if (intruding) {
     st.flags.offPitchSince = 0;
     st.flags.onPitchSince ||= tick;
@@ -476,3 +521,59 @@ function dose(w: World): void {
   }
 }
 
+
+// ---------- Impersonating the referee ----------
+function impostorRuling(w: World, by: Actor, kind: string, target?: Actor): void {
+  const s = w.state, st = s.stadium!, m = s.match!, r = s.rng.world, tick = s.tick;
+  const ref = s.actors[m.officials.referee];
+  const refAround = ref.downUntil <= tick && !ref.off!.incapacitated;
+  const refWatching = refAround && ref.off!.distractedUntil <= tick && Math.hypot(ref.x - by.x, ref.y - by.y) < 40;
+  const whistle = [by.hand, ...by.pockets].some((id) => id && s.items[id].def === "whistle");
+  let p = refWatching ? 0.25 : refAround ? 0.55 : 0.85;
+  if (whistle) p = Math.min(0.95, p + 0.2);
+  if (kind === "fulltime") p *= 0.6;
+  w.bus.emit({ type: "impostor_whistle", t: tick, by: by.id, kind });
+  if (!chance(r, p)) {
+    // The real referee objects; there are now two referees, and neither accepts the other.
+    st.flags.twoRefs = (st.flags.twoRefs ?? 0) + 1;
+    w.bus.emit({ type: "two_refs", t: tick, by: by.id });
+    if (refAround) {
+      for (const id in s.actors) {
+        const g = s.actors[id];
+        if (g.npc?.job === "pitchsteward" || (g.npc?.job === "police" && areaAt(g.x, g.y).pitch)) alert(w, g, by, 2, 2);
+      }
+    }
+    return;
+  }
+  st.flags.impostorRulings = (st.flags.impostorRulings ?? 0) + 1;
+  // Every decision draws more looks. By the third, someone works it out.
+  for (const id in s.actors) {
+    const g = s.actors[id];
+    if (g.npc?.job !== "pitchsteward") continue;
+    if (st.flags.impostorRulings >= 3) alert(w, g, by, 2, 2);
+    else g.npc.sus[by.id] = Math.min(2, (g.npc.sus[by.id] ?? 0) + 0.35);
+  }
+  switch (kind) {
+    case "penalty": {
+      const dir = m.dir0; // England attack this way
+      beginRestart(w, m, "penalty", 0, dir * 30, 0, 5);
+      break;
+    }
+    case "sendoff":
+      if (target?.fb) { m.stats[target.fb.team].reds++; sendOff(w, m, target, "sent_off"); }
+      break;
+    case "stop":
+      haltPlay(w, "impostor");
+      st.flags.impostorHaltUntil = tick + 60 * 6;
+      break;
+    case "disallow":
+      if (m.score[1] > 0) m.score[1]--;
+      st.flags.lastOppGoal = 0;
+      if (m.phase === "goal_pause") m.next = { type: "goal_kick", team: 1, x: -m.dir0 * 36, y: 0 };
+      break;
+    case "fulltime":
+      endPeriod(w, m);
+      break;
+  }
+  w.bus.emit({ type: "impostor_ruling", t: tick, by: by.id, kind, target: target?.id });
+}

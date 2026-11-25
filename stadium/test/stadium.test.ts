@@ -203,3 +203,54 @@ test("struggling free is rare, and hammering the button does not help", () => {
   }
   assert.ok(freed <= 4, `broke free in ${freed} of 8`);
 });
+
+test("dressed as the referee, with the real one flat out, you can give England a penalty", () => {
+  const g = createGame("impostor");
+  const s = g.w.state, pc = pcOf(g), m = s.match!;
+  run(g, 400);
+  spawnItem(s, "ref_kit", { k: "worn", a: pc.id, slot: "outer" });
+  spawnItem(s, "whistle", { k: "pocket", a: pc.id });
+  const ref = s.actors[m.officials.referee];
+  ref.downUntil = s.tick + 60 * 60;
+  pc.x = 0; pc.y = 5;
+  let given = false;
+  for (let i = 0; i < 5 && !given; i++) {
+    run(g, 1, () => {});
+    if (m.phase === "live" || m.phase === "restart") {
+      dispatch(g.w, { verb: "rule", actor: pc.id, arg: "penalty" });
+      given = m.restart?.type === "penalty" && m.restart.team === 0;
+    }
+  }
+  assert.ok(given, "a penalty to England should usually be accepted with nobody to object");
+  assert.ok((s.stadium!.flags.impostorRulings ?? 0) >= 1);
+});
+
+test("the real referee does not stand for a second referee for long", () => {
+  const g = createGame("tworefs");
+  const s = g.w.state, pc = pcOf(g), m = s.match!;
+  run(g, 400);
+  spawnItem(s, "ref_kit", { k: "worn", a: pc.id, slot: "outer" });
+  const events: string[] = [];
+  g.w.bus.on((e) => events.push(e.type));
+  const ref = s.actors[m.officials.referee];
+  run(g, 8, () => { pc.x = ref.x + 3; pc.y = ref.y + 3; });
+  assert.ok(events.includes("two_refs"));
+});
+
+test("bets settle on the official result and pay whoever holds the slip", () => {
+  const g = createGame("bets");
+  const s = g.w.state, pc = pcOf(g), m = s.match!;
+  run(g, 360);
+  pc.x = 0; pc.y = 32; pc.seated = true;
+  const before = pc.money;
+  assert.equal(dispatch(g.w, { verb: "bet", actor: pc.id, arg: "winner:ENG", amount: 50 }).ok, true);
+  assert.equal(dispatch(g.w, { verb: "bet", actor: pc.id, arg: "winner:OPP", amount: 50 }).ok, true);
+  assert.equal(dispatch(g.w, { verb: "bet", actor: pc.id, arg: "winner:OPP", amount: 500 }).ok, false, "stake limit");
+  assert.equal(pc.money, before - 100);
+  while (m.phase !== "finished" && s.tick < 60 * 60 * 45) stepGame(g);
+  const slips = [pc.hand, ...pc.pockets].filter(Boolean).map((id) => s.items[id!]).filter((it) => it.bet);
+  assert.equal(slips.length, 2);
+  assert.ok(slips.every((it) => it.bet!.result), "both settled");
+  assert.equal(slips.filter((it) => it.bet!.result === "won").length, 1, "exactly one wins");
+  assert.ok(pc.money > before - 100, "the winning slip paid out");
+});

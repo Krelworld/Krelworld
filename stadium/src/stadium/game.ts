@@ -6,6 +6,7 @@ import { createWorld, spawnActor, stepWorld, type World } from "../core/world";
 import { createMatch, TEAMS } from "../football/setup";
 import { BOUNDS, KICKOFF_AT, SPOTS, WALLS } from "./layout";
 import { mayPass, newNpc, resetPathBudget, secs, spawnFan, spawnStaff, stepNpc } from "./npc";
+import { installBetting, installSettlement } from "./betting";
 import { installReactions, installRules, stepRules } from "./rules";
 import { isSecurity, stepDetention, stepSecurity } from "./security";
 import type { StadiumState } from "./state";
@@ -25,7 +26,7 @@ export const HALF_SECONDS = 450;
 export const HALFTIME_SECONDS = 150;
 
 export function createGame(seed: string, oppKey = "POR"): Game {
-  if (!rulesInstalled) { installRules(); rulesInstalled = true; }
+  if (!rulesInstalled) { installRules(); installBetting(); rulesInstalled = true; }
   const opp = TEAMS[oppKey];
   // The opposition shirt on sale outside is this opponent's.
   Object.assign(ITEM_DEFS.shirt_opp, { name: `${opp.name} shirt`, team: opp.short, colour: opp.colour, colour2: opp.colour2 });
@@ -82,6 +83,8 @@ export function createGame(seed: string, oppKey = "POR"): Game {
   staff("barman", "catering", "Barmaid", SPOTS.barSman, N, { shop: "bar" });
   staff("seller", "none", "Ticket office", SPOTS.ticketSeller, S, { shop: "ticket" });
   staff("seller", "none", "Stallholder", SPOTS.merchSeller, S, { shop: "merch" });
+  staff("seller", "none", "Lucky Lionel", SPOTS.bookie, S, { shop: "bookies", lines: ["England? Brave. I like it.", "Odds change when the score does, sunshine.", "No refunds on acts of God. Or acts of you."] });
+  staff("seller", "none", "Kiosk", SPOTS.kiosk, N, { shop: "bookies", lines: ["Bets close fifteen seconds after a goal.", "Next goal's the one everyone wants."] });
   staff("cleaner", "cleaner", "Cleaner", { x: -30, y: 40 }, E);
   staff("cook", "catering", "Cook", SPOTS.kitchenSpot, S);
 
@@ -114,6 +117,7 @@ export function createGame(seed: string, oppKey = "POR"): Game {
   for (let i = 0; i < 24; i++) giveFanThings(w, spawnFan(w, i % 6 === 5, true));
 
   installReactions(w);
+  installSettlement(w);
   const g: Game = { w, checkpoints: [], opp: oppKey };
   saveCheckpoint(g, "arrival", "Arrival outside the ground");
   return g;

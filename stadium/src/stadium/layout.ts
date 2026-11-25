@@ -78,6 +78,7 @@ export const AREAS: Area[] = [
   { id: "pub_yard", name: "Pub yard", access: "public", floor: C.yard, outside: true, ...r(-34, 64, -22, 80) },
   { id: "cabin", name: "Stewards' cabin", access: "staff", roles: ["steward", "police"], floor: C.cabin, outside: true, ...r(76, 50, 88, 58) },
   { id: "carpark", name: "Car park", access: "public", floor: 0x34373b, outside: true, ...r(26, 62, 60, 82) },
+  { id: "bookies", name: "Lucky Lionel's Bookmakers", access: "public", floor: 0x3d3350, outside: true, ...r(28, 62, 44, 72) },
 ];
 
 const WALL = 0x8a8f96, WALLTOP = 0xb4b9bf, BRICK = 0x7a4a3a, BRICKTOP = 0x9a6a55, CABIN = 0x6f7a62;
@@ -131,6 +132,11 @@ export const WALLS: Wall[] = [
   wall(-50, 66, -38, 67.2, 1.1, 0x6b4a33, 0x8a6a50), // the bar
   // Ticket office booth and merch stall.
   wall(16, 47, 26, 48, 2.6, 0x4a5a70, 0x6a7a90), wall(-26, 47, -16, 48, 1.4, 0x3f5a73, 0x5f7a93),
+  // Bookmaker's, door at the bottom; counter across the back. And a betting kiosk on the concourse.
+  wall(27.5, 61.5, 44.5, 62, 3.2, 0x4a3d60, 0x6a5d80), wall(27.5, 62, 28, 72.5, 3.2, 0x4a3d60, 0x6a5d80), wall(44, 62, 44.5, 72.5, 3.2, 0x4a3d60, 0x6a5d80),
+  wall(27.5, 72, 34, 72.5, 3.2, 0x4a3d60, 0x6a5d80), wall(38, 72, 44.5, 72.5, 3.2, 0x4a3d60, 0x6a5d80),
+  wall(30, 64.6, 42, 65.4, 1.1, 0x5a4a30, 0x7a6a50),
+  wall(26, 41.6, 34, 42.4, 1.1, 0x4a3d60, 0x6a5d80),
   // Stewards' cabin, door on the west side facing the service road.
   wall(76, 50, 88, 50.5, 2.8, CABIN, 0x8a9a7a), wall(76, 57.5, 88, 58, 2.8, CABIN, 0x8a9a7a),
   wall(76, 50, 76.5, 52, 2.8, CABIN, 0x8a9a7a), wall(76, 55, 76.5, 58, 2.8, CABIN, 0x8a9a7a), wall(87.5, 50, 88, 58, 2.8, CABIN, 0x8a9a7a),
@@ -169,6 +175,10 @@ export const SPOTS = {
   ticketWindow: { x: 21, y: 49 },
   merchCounter: { x: -21, y: 49 },
   cabinHook: { x: 86, y: 54 },
+  bookie: { x: 36, y: 63.3 },
+  bookieCounter: { x: 36, y: 66.6 },
+  kiosk: { x: 30, y: 43.2 },
+  kioskCounter: { x: 30, y: 40.8 },
   cabinDoor: { x: 75, y: 53.5 },
 };
 

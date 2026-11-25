@@ -82,6 +82,20 @@ export class Announcer {
       case "fell_out":
         this.out({ t: e.t, text: "A man has fallen out of the back of a beer lorry.", src: "tannoy", big: false });
         break;
+      case "impostor_ruling": {
+        const lines: Record<string, string> = {
+          penalty: "The referee has awarded England a penalty. It is not clear which referee.",
+          sendoff: `${s.actors[e.target]?.name ?? "A player"} has been sent off by a referee we have not seen before.`,
+          stop: "Play has been stopped by a referee who appears to be wearing trainers.",
+          disallow: "The goal has been disallowed. The referee who scored it has not been consulted.",
+          fulltime: "The referee has blown for full time. The fourth official is checking his watch.",
+        };
+        this.out({ t: e.t, text: lines[e.kind] ?? "The referee has made a decision.", src: "commentary", big: true });
+        break;
+      }
+      case "two_refs":
+        this.out({ t: e.t, text: "There appear to be two referees. Both now consider the other to have been dismissed.", src: "commentary", big: true });
+        break;
       case "pitch_invasion":
         this.once(`inv${Math.floor(e.t / 1800)}`, "There appears to be a spectator on the pitch.", "commentary", true);
         break;

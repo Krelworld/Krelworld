@@ -81,7 +81,7 @@ function finish(w: World, m: MatchState): void {
   w.bus.emit({ type: "fb_match_end", t: w.state.tick, winner: m.winner, score: [...m.score], pens: m.shootout ? [...m.shootout.scored] : null });
 }
 
-function endPeriod(w: World, m: MatchState): void {
+export function endPeriod(w: World, m: MatchState): void {
   const s = w.state, tick = s.tick;
   w.bus.emit({ type: "fb_period_end", t: tick, period: m.period, score: [...m.score] });
   m.restart = null; m.pending = [];

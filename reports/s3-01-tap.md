@@ -29,7 +29,9 @@ player there and uses it, like a point-and-click game:
   stick, and a still tap is deliberate, so it was not annoying). Not from the HUD strip along the top, not onto
   yourself.
 
-Kept from stages 1/2: tap the prompt bubble = ACTION; the ACTION button; the stick zone is the stick (a touch that
+Kept from stages 1/2: tap the prompt bubble = ACTION; stage 1's generous area round the thing the prompt is about
+(around its spot, reaching further up than down) is still ACTION where no thing is under the thumb (the trophy shelf
+from just under it; the full check's `phone` section caught that the first build had dropped it); the ACTION button; the stick zone is the stick (a touch that
 moves there is the stick; a still tap there on a thing uses it); a canvas button of the game's own under the tap (the
 Club's UP CLOSE, a panel) gets the tap as before (`gameWants`). The old "tap the prompt's thing" area gives way in
 these scenes (it would have taken taps meant for a neighbour); its "core" still makes controls see-through.
@@ -41,6 +43,9 @@ inside several, the smallest picture wins (the book lying on the bed; the laptop
 nearest. A follower at your side (Mikey) only counts when nothing else is there. The player figure is never a target,
 so a thing behind the player is tapped through them. The HUD is not interactive in these scenes, so it never takes the
 tap either (a game button would: `gameWants`).
+
+Order of rules for a still tap: a game canvas button under it (the game gets it) → a thing → stage 1's area round
+the prompted thing (ACTION) → the floor.
 
 Pictures: Home's spots by their words → the furniture's own texture bounds (`p_tv`, `p_bed`, `p_gunrack`,
 `p_dark_autism`...) or a box from the backdrop (window, door out, poster). Town interactables → the person's sprite, or

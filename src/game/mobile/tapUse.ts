@@ -127,6 +127,18 @@ export class TapUse {
       this.flash(sc, t, false);
       return true;
     }
+    // no thing under the tap, but it is round the thing the prompt is about (stage 1's generous area, kept): use that
+    const area = this.layer.promptTapArea();
+    if (area && read.prompt && verbFromPrompt(read.prompt) && x >= area.x && x < area.x + area.w && y >= area.y && y < area.y + area.h) {
+      const t = read.targets.filter((c) => c.is(read.prompt as string)).sort((a, b) => Math.hypot(a.goal.x - read.me.x, a.goal.y - read.me.y) - Math.hypot(b.goal.x - read.me.x, b.goal.y - read.me.y))[0];
+      haptic("press");
+      this.stop(false);
+      this.note("use", t ?? null);
+      pressInteract();
+      this.stats.uses++;
+      if (t) this.flash(sc, t, true);
+      return true;
+    }
     // the floor: walk there (not from the HUD strip along the top, and not onto yourself)
     if (y < this.layer.zoneRect.y) return false;
     const goal = { x: Math.min(read.area.x + read.area.w, Math.max(read.area.x, w.x - read.off.x)), y: Math.min(read.area.y + read.area.h, Math.max(read.area.y, w.y - read.off.y)) };

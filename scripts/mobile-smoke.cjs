@@ -540,10 +540,11 @@ async function phone(browser) {
     s = await ph.snap();
     const tr = s.target && s.target.tap;
     const hit = s.slots.prime.hit;
-    let cx = tr ? Math.max(tr.x + 8, s.zone.x + s.zone.w + 8) : 0;
-    const cy = tr ? Math.min(tr.y + tr.h - 8, Math.max(tr.y + 8, hit.y - 12)) : 0;
-    if (tr && cx >= hit.x) cx = tr.x + 8;
-    check("the console (right half) has a tap area over it", s.tapAreas.target && !!tr, { target: tr, prime: hit });
+    // (stage 3: tap to use takes taps on the canvas; the console's own picture, beside ACTION, uses it)
+    const con = (await tapTargets(ph)).find((t) => /games console/.test(t.tag));
+    const cx = con ? Math.min(con.page.x, hit.x - 6) : 0;
+    const cy = con ? Math.min(con.page.y, 390 - 24) : 0;
+    check("the console (right half) has a tap area over it", !!tr && tr.w > 0 && !!con, { target: tr, prime: hit });
     await ph.tapCss(cx, cy);
     await ph.until(() => window.__krel.game.scene.getScene("Home").busy, null, 4000, "the console").catch(() => 0);
     check("a quick tap on the console uses it (P5)", await homeBusy(), { at: [cx, cy] });

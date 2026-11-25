@@ -480,6 +480,12 @@ export class TouchLayer {
    * walks there and uses it; the old "tap the prompt's thing" area gives way to it (the bubble stays ACTION).
    */
   worldTap: { covers(d: ModeDecision): boolean; tap(x: number, y: number): boolean } | null = null;
+  private worldTapOn = false;
+
+  /** Where a tap uses the thing the prompt is about (page CSS px; stage 1's generous area round it), or null. */
+  promptTapArea(): Rect | null {
+    return this.target?.tap ?? null;
+  }
 
   private probe: HTMLDivElement;
   private zone: HTMLDivElement;
@@ -918,7 +924,7 @@ export class TouchLayer {
   private tapActs(x: number, y: number): boolean {
     const d = this.decision;
     if (!promptMode(d) || !d.action || this.held) return false;
-    return inRect(this.bubbleRect, x, y) || inRect(this.target?.tap, x, y);
+    return inRect(this.bubbleRect, x, y) || (!this.worldTapOn && inRect(this.target?.tap, x, y));
   }
 
   /**
@@ -1050,8 +1056,8 @@ export class TouchLayer {
       const y0 = Math.max(t.y, top);
       target = y0 < t.y + t.h ? { tap: { x: t.x, y: y0, w: t.w, h: t.y + t.h - y0 }, core: target.core } : null;
     }
-    // (tap to use: any thing is tapped where it is, the nearest one winning; this area would take over a neighbour's)
-    if (target && this.worldTap?.covers(d)) target = { tap: { x: 0, y: 0, w: 0, h: 0 }, core: target.core };
+    // (tap to use: any thing is tapped where it is, the nearest one winning; this area only counts where no thing is)
+    this.worldTapOn = !!target && !!this.worldTap?.covers(d);
     this.target = target;
     this.tapKeys();
   }
@@ -1074,7 +1080,7 @@ export class TouchLayer {
       a.el.style.transform = `translate(${part.x.toFixed(1)}px,${part.y.toFixed(1)}px) scale(${(part.w / 100).toFixed(3)},${(part.h / 100).toFixed(3)})`;
     };
     set("bubble", this.bubbleRect);
-    set("target", this.target?.tap ?? null);
+    set("target", this.worldTapOn ? null : this.target?.tap ?? null);
   }
 
   /** Controls the player, the prompt bubble or the prompt's target is under go see-through, in place (research C9). */

@@ -83,6 +83,9 @@ const chanOrder = (c: string) => {
   return i < 0 ? 99 : i;
 };
 
+/** What "whatever's on" has already shown this round (see surf()). */
+const SURF_ROUNDS = { title: new Set<string>(), run: new Set<string>() };
+
 export class TVScene extends Phaser.Scene {
   private overlay = false;
   private caller = "";
@@ -181,13 +184,24 @@ export class TVScene extends Phaser.Scene {
     this.surf();
   }
 
-  /** Whatever's on: a random show you can watch (usually one you haven't seen), never the one that just finished. */
+  /** Whatever's on: a random show you can watch, never the one that just finished, and no repeats until you've
+   *  seen everything. Shows you've never watched come first; once every show has been on in this round, a new
+   *  round starts. The round lasts for the visit (title and runs keep separate rounds). */
   private surf() {
     const all = ALL_EPISODES.filter((e) => this.unlocked(e) && !STORY_EPISODES.has(e.id) && e.id !== this.ep?.id);
     if (!all.length) return this.showDemand();
-    const fresh = all.filter((e) => !this.watchedList().includes(e.id));
-    const pool = fresh.length && Math.random() < 0.75 ? fresh : all;
-    this.play(pool[Math.floor(Math.random() * pool.length)]);
+    const round = SURF_ROUNDS[this.fromTitle ? "title" : "run"];
+    let left = all.filter((e) => !round.has(e.id));
+    if (!left.length) {
+      // everything has been on: a new round (the show that just finished still can't come straight back)
+      round.clear();
+      if (this.ep) round.add(this.ep.id);
+      left = all;
+    }
+    const fresh = left.filter((e) => !this.watchedList().includes(e.id));
+    const pool = fresh.length ? fresh : left;
+    const pick = pool[Math.floor(Math.random() * pool.length)];
+    this.play(pick);
   }
 
   /** Stop the show that's on (without counting it as watched). */
@@ -461,6 +475,8 @@ export class TVScene extends Phaser.Scene {
   // ---------------------------------------------------------- playback
 
   private play(e: TVEpisode) {
+    // counts for "whatever's on": no repeats until everything has been on (see surf())
+    SURF_ROUNDS[this.fromTitle ? "title" : "run"].add(e.id);
     this.splatLayer?.destroy();
     this.splatLayer = undefined;
     this.ui.removeAll(true);

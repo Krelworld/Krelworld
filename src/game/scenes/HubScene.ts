@@ -1,3 +1,4 @@
+import { seenBeepShow } from "../systems/state";
 import { afterKreddle } from "../systems/moodMusic";
 import { SJ_RUBBLE_ARRIVE, SJ_RUBBLE_EAT, SJ_RUBBLE_STUCK, SJ_RUBBLE_THANKS } from "../../content/sanjeev";
 import Phaser from "phaser";
@@ -772,7 +773,7 @@ export class HubScene extends Phaser.Scene {
       await this.talk(chapterIntroLines(s.chapter, s.player));
       G.save();
       // Chapter 4 starts with a night in: home, and a relaxing episode of Peep Show, before anything else
-      if (s.chapter === 4 && !s.flags.tv_beep_show) {
+      if (s.chapter === 4 && !seenBeepShow(s, G.meta)) {
         await this.talk([dir("Before any of that: a night in. You head home for a relaxing episode of Peep Show.")]);
         this.go("Home", { beep: true });
         return;

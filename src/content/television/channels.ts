@@ -25,29 +25,6 @@ const ep = (id: string, channel: string, show: string, title: string, n: number,
   ...extra,
 });
 
-export const NEWS_1 = ep(
-  "news_1",
-  "KRUNCHE NEWS",
-  "Krelford News at Six",
-  "The Great Silence",
-  1,
-  `
-[MUSIC news start]
-# KRUNCHE NEWS
-INT. NEWSDESK - EVENING
-[MUSIC news fade]
-NEWSREADER: Good evening. Our top story tonight: the Supreme Leader has posted a new song, and nobody has reacted.
-[INSERT krezzing 1]
-NEWSREADER: The song, titled The Krezzing Hour, was seen by nine people. Nine. The Ministry of Strange Occurrences has described this as "fuuuuuuuuuuuuuuuuuuuckkkk".
-NEWSREADER: Within minutes, the Supreme Leader withdrew all lore from the nation. The word TOWN has since fallen off the Town Hall.
-NEWSREADER: In other news, a pigeon has been seen wearing the word TOWN.
-NEWSREADER: The Great Tap has stopped. Citizens are advised to ration pussy juice and avoid drinking from the cafeteria water dispenser, for unrelated reasons.
-NEWSREADER: Weather now. Grey, with a chance of citation-needed tags.
-[SFX notify]
-NEWSREADER: I'm being told the Supreme Leader has just posted "Hello?" in the national chat. We'll bring you more on that as it develops. It won't develop.
-NEWSREADER: Good night.
-`,
-);
 
 export const NEWS_2 = ep(
   "news_2",
@@ -314,32 +291,6 @@ ANNOUNCER: The Ministry of Defence remains vacant. Join us next week for more of
 `,
 );
 
-export const SHOPPING = ep(
-  "shopping",
-  "WONKING MACHINE SHOPPING NETWORK",
-  "Wonking Machine Shopping Network",
-  "Tonight's Bargains",
-  1,
-  `
-[MUSIC shopping start]
-# WONKING MACHINE SHOPPING NETWORK
-INT. SHOPPING STUDIO - NIGHT
-[MUSIC shopping fade]
-HOST: Hello and welcome to the Wonking Machine Shopping Network, I'm your host, and tonight, we have the Mk II.
-HOST: That's right. The Wonking Machine Mk II. Now with a reach-around feature. Whatever that is. You'll find out soon!
-HOST: It recycles its byproducts straight into your water dispenser. Regular employees won't notice!
-CO-HOST: Councillors are advised to bring their own water.
-HOST: And if you call in the next ten minutes, we'll throw in Big Bertha. She's two years old. She's crusty. She's yours.
-[SFX ding]
-HOST: Now a word from our sponsors.
-ANNOUNCER: Craving something bold? Get ready for Umami Punani. The noodle with juicy bits, a tangy kick, and just the right amount of... pussy juice!
-ANNOUNCER: Available in packs of six or twelve. Don't wait, slurp it up!
-ANNOUNCER: Umami Punani. Taste the fun!
-[SFX slurp]
-HOST: Also available: Krezpy Kream Drongnuts. Chocolate Cronstons. Crobleys. Every nan had them in her choccy drawer!
-HOST: Lines are open. Nobody is calling. Nobody ever calls.
-`,
-);
 
 export const KRONSTER_DOC = ep(
   "kronster_doc",
@@ -389,20 +340,20 @@ NARRATOR: Some historians dispute this, citing Godric Gryffindor and a Waluigi u
   { unlockFlag: "ch5_clear", unlockHint: "Locked programme: unlocks after Chapter 5" },
 );
 
-const EPISODES: TVEpisode[] = [KLERBLE_WELCOME, KRANDALL_SEGMENT, KLERBLE_PRESSER, WILDERN_BULLETIN, NEWS_1, NEWS_2, NEWS_3, NEWS_4, NEWS_5, CABINET_LIVE, SHOPPING, KRONSTER_DOC, LORE_HOUR, CREATION_MYTH, EASTENDERS_KREZZ, { ...BEEP_SHOW, unlockFlag: "tv_beep_show", unlockHint: "Locked programme: you'll catch it at the start of Chapter 4" }, ...KREWS_EPISODES, ...KREWS3_EPISODES.filter((e) => e.id !== "krews_crash_mode"), ...KREWS_STORIES_EPISODES, ...KREWS4_EPISODES, ...DRAMA_EPISODES, { ...TCC_EP07, channel: "CHANNEL KREZ" }, DRP_EP01, BEST_MAN, KRELBANK_AD];
+const EPISODES: TVEpisode[] = [KLERBLE_WELCOME, KRANDALL_SEGMENT, KLERBLE_PRESSER, WILDERN_BULLETIN, NEWS_2, NEWS_3, NEWS_4, NEWS_5, CABINET_LIVE, KRONSTER_DOC, LORE_HOUR, CREATION_MYTH, EASTENDERS_KREZZ, BEEP_SHOW, ...KREWS_EPISODES, ...KREWS3_EPISODES.filter((e) => e.id !== "krews_crash_mode"), ...KREWS_STORIES_EPISODES, ...KREWS4_EPISODES, ...DRAMA_EPISODES, { ...TCC_EP07, channel: "CHANNEL KREZ" }, DRP_EP01, BEST_MAN, KRELBANK_AD];
 
 /**
  * The story's own broadcasts: the ones the game plays you as part of the plot (Klerble's welcome, the Krandall
  * segment in the first meeting, the Beep Show at the start of Chapter 4, Klerble's presser). On the telly they only
  * turn up once you've seen them in the story, at the end of the on-demand list, and never as "whatever's on".
  */
-export const STORY_EPISODES: ReadonlySet<string> = new Set(["klerble_welcome", "krews_krandall", "beep_show", "klerble_presser"]);
+export const STORY_EPISODES: ReadonlySet<string> = new Set(["klerble_welcome", "krews_krandall", "klerble_presser"]);
 
 /** Number each channel's episodes in order, now that some channels have been folded together. */
 const counts: Record<string, number> = {};
 export const ALL_EPISODES: TVEpisode[] = EPISODES.map((e) => ({ ...e, episodeNumber: (counts[e.channel] = (counts[e.channel] ?? 0) + 1) }));
 
-export const CHANNELS: string[] = ["KRUNCHE NEWS", "CHANNEL KREZ", "BBK ONE", "WONKING MACHINE SHOPPING NETWORK", "KRELWORLD DOCUMENTARIES"];
+export const CHANNELS: string[] = ["KRUNCHE NEWS", "CHANNEL KREZ", "BBK ONE", "KRELWORLD DOCUMENTARIES"];
 
 /** Which set a shot uses (tv_<key> art; the k1_ sets are the 2026 redraws of the early stage sets). */
 export function setKeyFor(set: string): string {

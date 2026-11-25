@@ -14,6 +14,7 @@ limit after the merge and the wording commits; this run did the checks, fixes an
 | dcd9c75e | Finale brawl: its how-to legend moves up under the two health bars on a phone. With bigger text on it had grown to two lines and ran under PUNCH and BLOCK |
 | 1c033a2e | Fight HUD: KREZZ / WONK beside the bars now end above the drink / SanMik chips at any text size (they ran under the SANMIK chip, badly with Text size LARGE); the boss bar starts right of them |
 | 05cb793a | README rows for the two fixes |
+| 56c786a8 | Add to Home Screen guide: the coordinator's longer iPhone steps (9770d543) made the card scroll 11 px on the shortest Safari screen (750x340); a tighter layout under 350 px tall fits it again (phone CSS only) |
 
 The coordinator's 0d681a8f (live game merge, Elon fight removed, Chef Marina) and 9770d543 (Add to Home Screen guide) are kept.
 
@@ -79,7 +80,7 @@ all through the narrator-only path or hint() tables:
 Character lines that mention a key: none in the fights (both combat reports); the menus track's lists are in
 s2-03 (section "Character lines that mention keys") and s2-04 (same heading); all left exactly as written.
 
-## Verification (this run, HEAD 05cb793a)
+## Verification (this run, HEAD 56c786a8; fingerprints run at 05cb793a, the later commit is phone-chunk CSS only)
 
 - (a) desktop fingerprint both halves: `DESKTOP FINGERPRINT: OK` (40/40 and 25/25 states identical).
 - (b) touchlaptop, ipad, fire7 (front,newgame: 16/16 each) and androidtab (front,newgame,hub: 29/29): all OK.
@@ -94,3 +95,11 @@ s2-03 (section "Character lines that mention keys") and s2-04 (same heading); al
 - The tracks' own open gaps stand (see s2-01..s2-04): thumb reach READY / JUMP on the smallest phone, auto-fire and
   scarce ammo, the Kreddle raid / rout canvas FIRE, tower rooms not played end to end, the TV picture size (stage 3).
 - Weapon picker with more than 14 guns covers its own title (game layout, laptop too).
+
+## Phone smoke results (e)
+
+- Normal build, full run at 05cb793a: 361 of 362. The one failure was the Add to Home Screen guide scrolling 11 px at
+  750x340 (the coordinator's longer iPhone steps); fixed in 56c786a8, then `--only guide` 45 of 45 on the normal
+  build.
+- ALT build, full run at 56c786a8: 362 of 362, `MOBILE SMOKE: OK`.
+- After 56c786a8: tsc clean, vitest 523 of 523.

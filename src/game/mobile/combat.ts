@@ -30,7 +30,7 @@ import { SCENE_RULES, addSceneRule, currentInputSource } from "./modes";
 import { rightStick } from "./pad";
 import { registerModeController, type ModeContext, type TouchControl, type TouchLayer } from "./touchLayer";
 import { ACQUIRE, AIM_TUNE, MELEE_REACH, SLIDE_PX, aimPointFor, autoFireOk, pickTarget, snapAim, type AimTarget, type Pt } from "./aim";
-import { DUNGEON_RULE, FIRE_GRACE_MS, HoldTracker, MashQueue, PICKER_RULE, READY, RELABEL_MS, TEACH_ROOMS, healWanted, readyAbility, spamGap, specialFill, specialWord, type ReadyId } from "./combatLogic";
+import { DUNGEON_RULE, FIRE_GRACE_MS, HoldTracker, MashQueue, PICKER_RULE, READY, RELABEL_MS, TEACH_ROOMS, healWanted, juiceChipWanted, readyAbility, spamGap, specialCost, specialWanted, specialWord, type ReadyId } from "./combatLogic";
 import { controlScale, MIN_CONTROL, safeRect, type Placed, type Rect } from "./layout";
 import { COMBAT_CSS, COMBAT_STYLE_ID } from "./combatCss";
 import { haptic } from "./haptics";
@@ -129,22 +129,26 @@ const ICON = {
   heal: svg(`<path d="M9.5 2h5v3.2l1.6 2.3c.6.9.9 1.9.9 3V20a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2v-9.5c0-1.1.3-2.1.9-3L9.5 5.2z" fill="#ff9ecf" stroke="#fff" stroke-width="1.4"/><path d="M12 11.5v5M9.5 14h5" stroke="#7a1144" stroke-width="2"/>`),
 };
 
-// ------------------------------------------------------------------ the first fights: captions and pulses (S10)
+/** An icon with its name inside the button, under it (shown the first fights only: the `taught` class). */
+const withWord = (icon: string, word: string) => `${icon}<span class="kt-in">${word}</span>`;
+
+// ------------------------------------------------------------------ the first fights: names and pulses (S10)
 
 interface Taught {
   rooms: number;
   ready: number;
   heal: number;
   swap: number;
+  special: number;
 }
 const TAUGHT_KEY = () => storageKey("krelworld.phone.combatTaught");
 
 function loadTaught(): Taught {
   try {
     const raw = JSON.parse(localStorage.getItem(TAUGHT_KEY()) ?? "null") as Partial<Taught> | null;
-    return { rooms: raw?.rooms ?? 0, ready: raw?.ready ?? 0, heal: raw?.heal ?? 0, swap: raw?.swap ?? 0 };
+    return { rooms: raw?.rooms ?? 0, ready: raw?.ready ?? 0, heal: raw?.heal ?? 0, swap: raw?.swap ?? 0, special: raw?.special ?? 0 };
   } catch {
-    return { rooms: 0, ready: 0, heal: 0, swap: 0 };
+    return { rooms: 0, ready: 0, heal: 0, swap: 0, special: 0 };
   }
 }
 function saveTaught(t: Taught) {
@@ -169,6 +173,8 @@ export interface CombatSnapshot {
   fireHeld: boolean;
   ready: ReadyId | null;
   heal: boolean;
+  /** SPECIAL would go now (so it is on screen in a fight). */
+  specialReady: boolean;
   picker: boolean;
   mash: boolean;
   mashPresses: number;
@@ -240,8 +246,7 @@ export class CombatControls {
       group: grp,
       toCorner: true,
       className: "kt-c kt-fire",
-      html: ICON.fire,
-      caption: "FIRE",
+      html: withWord(ICON.fire, "FIRE"),
       haptic: "tap",
       onDown: () => this.fireDown(),
       onSlide: (_c, dx, dy) => {
@@ -254,21 +259,20 @@ export class CombatControls {
     });
     // side-scrolling rooms (layout v2): JUMP is the big corner button, FIRE sits left of it (no slide-aim: facing +
     // auto-aim), DODGE and SPECIAL stay where they are in top-down rooms
-    const sfire = L.addControl({ id: "c-sfire", slot: "left", group: grp, className: "kt-c kt-fire", html: ICON.fire, caption: "FIRE", haptic: "tap", onDown: () => this.fireDown(), onUp: (_c, i) => this.fireUp(i.cancelled) });
+    const sfire = L.addControl({ id: "c-sfire", slot: "left", group: grp, className: "kt-c kt-fire", html: withWord(ICON.fire, "FIRE"), haptic: "tap", onDown: () => this.fireDown(), onUp: (_c, i) => this.fireUp(i.cancelled) });
     const jump = L.addControl({
       id: "c-jump",
       slot: "prime",
       group: grp,
       toCorner: true,
       className: "kt-c kt-jump",
-      html: ICON.jump,
-      caption: "JUMP",
+      html: withWord(ICON.jump, "JUMP"),
       haptic: "press",
       // (on touch-down: the jump goes on the Dungeon's next frame; held = the full jump, a tap = a hop)
       onDown: () => this.side.press(dungeonOf(this.game) as never),
       onUp: () => this.side.release(dungeonOf(this.game) as never),
     });
-    const dodge = L.addControl({ id: "c-dodge", slot: "upLeft", group: grp, className: "kt-c kt-dodge", html: ICON.dodge, caption: "DODGE", haptic: "press", onDown: () => TOUCH.edges.add("dodge") });
+    const dodge = L.addControl({ id: "c-dodge", slot: "upLeft", group: grp, className: "kt-c kt-dodge", html: withWord(ICON.dodge, "DODGE"), haptic: "press", onDown: () => TOUCH.edges.add("dodge") });
     const swapSpec = (id: string, slot: "left" | "prime", extra: object) => ({
       id,
       slot,
@@ -278,14 +282,13 @@ export class CombatControls {
       onUp: (c: TouchControl, i: { cancelled: boolean }) => this.swapUp(c, i.cancelled),
       ...extra,
     });
-    const swap = L.addControl(swapSpec("c-swap", "left", { group: grp, className: "kt-c kt-swap", html: ICON.swap, caption: "SWAP" }));
+    const swap = L.addControl(swapSpec("c-swap", "left", { group: grp, className: "kt-c kt-swap", html: withWord(ICON.swap, "SWAP") }));
     const special = L.addControl({
       id: "c-special",
       slot: "up",
       group: grp,
       className: "kt-c kt-special",
-      html: `<div class="kt-fill"></div><span class="kt-w">SPECIAL</span>`,
-      caption: "SPECIAL",
+      html: `<span class="kt-w">SPECIAL</span>`,
       haptic: "press",
       onDown: () => {
         TOUCH.edges.add("special");
@@ -300,14 +303,13 @@ export class CombatControls {
       group: grp,
       className: "kt-c kt-ready",
       label: "WONK!",
-      caption: "",
       haptic: "big",
       onDown: () => {
         const id = this.readyId;
         if (id) TOUCH.edges.add(READY[id].edge);
       },
     });
-    const heal = L.addControl({ id: "c-heal", slot: "heal", group: grp, className: "kt-c kt-heal", html: ICON.heal, caption: "HEAL", haptic: "press", onDown: () => TOUCH.edges.add("bottle") });
+    const heal = L.addControl({ id: "c-heal", slot: "heal", group: grp, className: "kt-c kt-heal", html: withWord(ICON.heal, "HEAL"), haptic: "press", onDown: () => TOUCH.edges.add("bottle") });
     const action = L.addControl({ id: "c-action", slot: "combatAction", group: grp, className: "kt-c kt-caction", label: "USE", haptic: "press", onDown: () => TOUCH.edges.add("interact") });
     const chip = L.addControl(
       swapSpec("c-chip", "left", { className: "kt-c kt-chip kt-wchip", html: "", place: (l: TouchLayer) => this.placeWeaponChip(l) }),
@@ -322,7 +324,7 @@ export class CombatControls {
     const bongo = drink("c-bongo", "bongo", () => TOUCH.edges.add("bongo"));
     const fart = drink("c-fart", "fart", () => TOUCH.edges.add("fart"));
     const sanmik = drink("c-sanmik", "sanmik", () => TOUCH.edges.add("sanmik"));
-    const close = L.addControl({ id: "c-close", slot: "prime", className: "kt-c kt-close", label: "✕", caption: "CLOSE", haptic: "tap", onDown: () => this.closePicker() });
+    const close = L.addControl({ id: "c-close", slot: "prime", className: "kt-c kt-close", html: `<span class="kt-x">✕</span><span class="kt-in kt-keep">CLOSE</span>`, haptic: "tap", onDown: () => this.closePicker() });
     this.c = { fire, sfire, jump, dodge, swap, special, ready, heal, action, chip, juice, bongo, fart, sanmik, close };
     // the mash overlay: every finger anywhere on the screen is a press (research M14)
     const m = document.createElement("div");
@@ -835,7 +837,6 @@ export class CombatControls {
     if (!side && !this.c.jump.pressed && this.side.touchHeld) this.side.reset();
     show("dodge", fight);
     const sig = p?.def?.signature;
-    show("special", fight && (!!sig || !!p?.headbuttMode));
     const choices = weaponList(s).filter((w) => !w.empty).length;
     // (side rooms: the weapon chip swaps; layout v2 gives SWAP's place to FIRE)
     show("swap", fight && !side && choices >= 2, true);
@@ -854,7 +855,6 @@ export class CombatControls {
       this.readyId = rid;
       if (rid) {
         rc.setLabel(READY[rid].word);
-        rc.setCaption(teaching ? READY[rid].caption : null);
         if (was && rc.shown) rc.disarmFor(RELABEL_MS);
         if (this.teach.ready < 3) {
           this.teach.ready++;
@@ -872,21 +872,22 @@ export class CombatControls {
       this.pulseUntil.heal = realNow() + 3000;
     }
     show("heal", hw, true);
-    if (this.c.heal.shown) this.c.heal.setHtml(`${ICON.heal}<span class="kt-n">${s.bottles}</span>`);
-    // SPECIAL: its word and its Krezz cost as a fill; dim when it can't go
-    if (fight && p && dun) {
-      const cost = p.headbuttMode ? 0 : Math.max(0, sig?.cost ?? 0);
-      const fill = specialFill(s.krezz, cost);
-      const can = fill >= 1 && dun.now() >= p.noSpecialUntil;
-      const word = specialWord(sig?.id, p.headbuttMode);
-      this.c.special.setHtml(`<div class="kt-fill" style="height:${Math.round(fill * 50) * 2}%"></div><span class="kt-w">${word}</span>`);
-      this.c.special.el.classList.toggle("dim", !can);
-      this.c.special.setCaption(teaching ? "SPECIAL" : null);
+    if (this.c.heal.shown) this.c.heal.setHtml(`${withWord(ICON.heal, "HEAL")}<span class="kt-n">${s.bottles}</span>`);
+    // SPECIAL: the lad's word, only while it would go (no dim "charging" bubble: the KREZZ bar up top shows the
+    // charge); it pops in when it can, pulsing the first two times
+    const spOk = this.specialOk(p, dun);
+    if (spOk && !this.c.special.shown && this.teach.special < 2) {
+      this.teach.special++;
+      saveTaught(this.teach);
+      this.pulseUntil.special = realNow() + 3000;
     }
+    show("special", fight && spOk, true);
+    if (fight && p) this.c.special.setHtml(`<span class="kt-w">${specialWord(sig?.id, p.headbuttMode)}</span>`);
     // ---- the chips
     show("chip", fight);
     if (fight) this.weaponChip();
-    show("juice", fight);
+    // (juice: only while a drink would heal, and not while HEAL itself is up)
+    show("juice", fight && juiceChipWanted(s.hp, maxHp(s), s.bottles, this.c.heal.shown));
     show("bongo", fight && s.bongos > 0);
     const lv = fartLevel();
     // (at IBS READY says it, big, on the right: the 💨 chip steps aside so one ability has one button; P11)
@@ -894,18 +895,11 @@ export class CombatControls {
     // (Mikey ⇄ SanMik can't happen while golden: the game says no, so the chip isn't there)
     show("sanmik", fight && isMikey(s) && !sanmikForced(s) && !!dun && !!p && dun.now() >= p.superUntil);
     if (fight) this.drinkChips(lv);
-    // ---- captions (first fights) and pulses (the first time each matters)
-    for (const [id, word] of [
-      ["fire", "FIRE"],
-      ["sfire", "FIRE"],
-      ["jump", "JUMP"],
-      ["dodge", "DODGE"],
-      ["swap", "SWAP"],
-      ["heal", "HEAL"],
-    ] as const)
-      this.c[id].setCaption(teaching ? word : null);
+    // ---- the first fights: each icon's name inside it (never a caption outside the button, so nothing can land on a
+    // neighbour, the HUD or the home-indicator strip: N1); pulses the first time each matters
+    for (const id of ["fire", "sfire", "jump", "dodge", "swap", "heal"] as const) if (this.c[id].el.classList.contains("taught") !== teaching) this.c[id].el.classList.toggle("taught", teaching);
     const t = realNow();
-    for (const id of ["ready", "heal", "swap"] as const) this.c[id].el.classList.toggle("pulse", (this.pulseUntil[id] ?? 0) > t && this.c[id].shown);
+    for (const id of ["ready", "heal", "swap", "special"] as const) this.c[id].el.classList.toggle("pulse", (this.pulseUntil[id] ?? 0) > t && this.c[id].shown);
     // ---- feedback: a flash on the button that just did something (FIRE flashes with auto-fire's shots too)
     if (p) this.flashes(p);
     this.c.fire.el.classList.toggle("auto", this.autoFiring);
@@ -1078,6 +1072,16 @@ export class CombatControls {
     return out;
   }
 
+  /** Would the lad's special go right now (enough Krezz, no decree against it)? */
+  private specialOk(p: PlayerLike | undefined | null, dun: DungeonLike | null): boolean {
+    if (!p || !dun) return false;
+    const sig = p.def?.signature;
+    if (!sig && !p.headbuttMode) return false;
+    const s = G.s;
+    const cost = specialCost(sig?.cost ?? 0, s.player, s.flags, !!p.headbuttMode);
+    return specialWanted(s.krezz, cost, !p.headbuttMode && dun.now() < p.noSpecialUntil);
+  }
+
   /** For tests and ?mobilediag. */
   snapshot(): CombatSnapshot {
     const t = this.target;
@@ -1090,6 +1094,7 @@ export class CombatControls {
       fireHeld: this.fireHeld,
       ready: this.readyId,
       heal: this.c.heal.shown,
+      specialReady: this.specialOk(dungeonOf(this.game)?.player, dungeonOf(this.game)),
       picker: this.pickerOpen,
       mash: this.mash.classList.contains("show"),
       mashPresses: this.mashPresses,
@@ -1099,7 +1104,7 @@ export class CombatControls {
 
   /** Tests: forget the first-fights teaching (captions and pulses come back). */
   resetTeaching() {
-    this.teach = { rooms: 0, ready: 0, heal: 0, swap: 0 };
+    this.teach = { rooms: 0, ready: 0, heal: 0, swap: 0, special: 0 };
     saveTaught(this.teach);
   }
 }

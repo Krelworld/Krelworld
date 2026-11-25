@@ -3,9 +3,15 @@
 export const COMBAT_STYLE_ID = "krel-mobile-combat-css";
 
 export const COMBAT_CSS = `
-/* ---- the fight's buttons (combat.ts): icons, a word under each for the first fights, fills, pulses */
+/* ---- the fight's buttons (combat.ts): icons, their names inside them for the first fights, pulses */
 .kt-c .kt-face{font-size:13px;letter-spacing:.5px;overflow:hidden}
 .kt-c .kt-face svg{width:46%;height:46%;display:block;filter:drop-shadow(0 1px 1px #000)}
+/* the first fights: the icon's name inside the button, under the icon (never a caption outside it: nothing can land
+   on a neighbour, the HUD or the home-indicator strip; stage 2 polish, N1) */
+.kt-c .kt-in{display:none;font-size:10.5px;letter-spacing:.6px;line-height:1;font-weight:700;color:#fff;text-shadow:0 1px 2px #000,0 0 3px #000;white-space:nowrap}
+.kt-c.taught .kt-in,.kt-c .kt-in.kt-keep{display:block}
+.kt-c.taught .kt-face,.kt-close .kt-face{flex-direction:column;gap:2px}
+.kt-c.taught .kt-face svg{width:38%;height:38%}
 .kt-bcap{position:absolute;left:0;top:0;transform:translateX(-50%);white-space:nowrap;pointer-events:none;color:#fff;font-size:11px;
   letter-spacing:1px;line-height:1;padding:2px 5px;border-radius:6px;background:rgba(10,6,20,.55);text-shadow:0 1px 2px #000}
 .kt-bcap:empty{display:none}
@@ -15,9 +21,12 @@ export const COMBAT_CSS = `
 .kt-dodge .kt-face{border-color:rgba(103,232,249,calc(var(--kt-a) + .25))}
 .kt-jump .kt-face{border-color:rgba(134,239,172,calc(var(--kt-a) + .35))}
 .kt-jump svg{width:46%;height:46%}
+/* JUMP over a pit (see-through so the gap shows): still a solid green outline round a clear icon, never a faint ring
+   (a first-time player's first look at it is often over the first pit; N5) */
+.kt-btn.kt-jump.see:not(.on) .kt-face{opacity:1;border-width:3px;border-color:rgba(134,239,172,.9);box-shadow:0 0 0 1px rgba(0,0,0,.55),inset 0 0 0 1px rgba(0,0,0,.35)}
+.kt-btn.kt-jump.see:not(.on) .kt-face svg{filter:drop-shadow(0 1px 1px #000) drop-shadow(0 0 2px #000)}
 .kt-swap .kt-face{border-color:rgba(103,232,249,calc(var(--kt-a) + .15))}
-.kt-special .kt-face{border-color:rgba(192,132,252,calc(var(--kt-a) + .35));font-size:12px}
-.kt-special .kt-fill{position:absolute;left:0;right:0;bottom:0;background:rgba(192,132,252,.38);pointer-events:none}
+.kt-special .kt-face{border-color:rgba(192,132,252,.85);background:rgba(120,60,180,.42);font-size:12px}
 .kt-special .kt-w{position:relative}
 .kt-ready .kt-face{border-color:#ffd23f;background:rgba(255,190,40,.42);color:#fff;font-size:14px;
   box-shadow:0 0 0 2px rgba(0,0,0,.5),0 0 12px rgba(255,210,63,.55)}
@@ -25,6 +34,7 @@ export const COMBAT_CSS = `
 .kt-heal .kt-n,.kt-chip .kt-n{position:absolute;right:6%;bottom:6%;font-size:12px;line-height:1;color:#fff;text-shadow:0 1px 2px #000}
 .kt-caction .kt-face{border-color:rgba(255,210,63,calc(var(--kt-a) + .25))}
 .kt-close .kt-face{border-color:rgba(255,255,255,.8);background:rgba(10,6,20,.75);font-size:28px}
+.kt-close .kt-x{line-height:1}
 .kt-c.pop .kt-face{animation:kt-pop .22s ease-out}
 .kt-c.pulse .kt-face{animation:kt-pulse .7s ease-in-out infinite}
 .kt-c.pop.pulse .kt-face{animation:kt-pop .22s ease-out,kt-pulse .7s ease-in-out .22s infinite}

@@ -77,8 +77,8 @@ export class BrawlControls {
         group: "brawl",
         toCorner: b.slot === "prime",
         className: `kt-c kt-brawl kt-b-${b.key}`,
+        // (the word is on the button itself: no caption under it, which landed on the next button; N1)
         label: b.word,
-        caption: b.word,
         haptic: b.key === "punch" ? "tap" : "press",
         onDown: () => {
           const p = this.brawl?.pad;

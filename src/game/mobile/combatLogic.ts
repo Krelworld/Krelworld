@@ -28,12 +28,12 @@ export function readyAbility(s: ReadyState): ReadyId | null {
 }
 
 /** The word on READY, and the game action (TOUCH edge) it sends. */
-export const READY: Readonly<Record<ReadyId, { word: string; edge: string; caption: string }>> = Object.freeze({
-  cume: { word: "CUME", edge: "cume", caption: "BEAM" },
-  wonk: { word: "WONK!", edge: "burst", caption: "WONK" },
-  golden: { word: "GOLD", edge: "transform", caption: "GOLDEN" },
-  // (the caption says the button's own word: one name for one ability; P11)
-  ibs: { word: "IBS!", edge: "fart", caption: "IBS" },
+export const READY: Readonly<Record<ReadyId, { word: string; edge: string }>> = Object.freeze({
+  cume: { word: "CUME", edge: "cume" },
+  wonk: { word: "WONK!", edge: "burst" },
+  golden: { word: "GOLD", edge: "transform" },
+  // (one name for one ability: the HUD's pop-up says "TAP IBS!" too; P11)
+  ibs: { word: "IBS!", edge: "fart" },
 });
 
 /** HEAL pops in when health is under this fraction and there is pussy juice to drink (research S3). */
@@ -139,8 +139,34 @@ export function specialFill(krezz: number, cost: number): number {
   return Math.max(0, Math.min(1, krezz / cost));
 }
 
-/** First fights: the one-word captions under the combat icons go after this many rooms fought on a phone (S10). */
+/** First fights: the one-word names inside the combat icons go after this many rooms fought on a phone (S10). */
 export const TEACH_ROOMS = 3;
+
+// ------------------------------------------------------------------ a calm fight screen (stage 2 polish)
+//
+// The user, on the live phone build: "a bunch of bubbles for every potential special even when they're not active".
+// The rule: a fight shows what a thumb needs all the time (the stick, FIRE, or JUMP and FIRE, DODGE, the weapon chip,
+// pause) and anything else only while it can be used right now. Nothing is drawn dim "for later": an ability that
+// can't go takes no space, and pops in (pulsing the first times) the moment it can.
+
+/** What the special really costs this lad (the game takes the same discounts off: Player.trySpecial). */
+export function specialCost(base: number, who: string, flags: Record<string, unknown>, headbutt = false): number {
+  if (headbutt) return 0;
+  let c = base;
+  if (who === "KREBLIS" && flags.pq_done_pq_kreblis) c -= 10;
+  if (who === "MIKEY" && flags.pq_done_pq_mikey) c -= 15;
+  return Math.max(0, c);
+}
+
+/** SPECIAL is on screen only while it would go: enough Krezz, and no decree against it right now. */
+export function specialWanted(krezz: number, cost: number, banned: boolean): boolean {
+  return !banned && specialFill(krezz, cost) >= 1;
+}
+
+/** The juice chip only while a drink would do something, and never beside HEAL (one ability, one button: P11). */
+export function juiceChipWanted(hp: number, max: number, bottles: number, healUp: boolean): boolean {
+  return !healUp && bottles > 0 && hp < max;
+}
 
 // ------------------------------------------------------------------ the rules (replacing stage 1's dungeon row)
 

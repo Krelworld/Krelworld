@@ -48,11 +48,14 @@ describe("phone layer modes: the scene table", () => {
   it("combat: the canvas pad does it (stage 1), the layer takes no touches and shows no pause of its own", () => {
     expect(resolveMode(view(["Dungeon", "UI"]))).toMatchObject({ mode: "combat", legacyPad: true, pause: "edge", pauseButton: false });
     expect(resolveMode(view([{ key: "Dungeon", side: true }, "UI"]))).toMatchObject({ mode: "side", legacyPad: true });
-    expect(resolveMode(view(["Finale"]))).toMatchObject({ mode: "brawl", legacyPad: true });
   });
 
-  it("minigames are tap mode; card menus and boards none", () => {
-    for (const k of ["Minigame", "Whack", "Drive", "BeepBeep"]) expect(resolveMode(view([k])).mode).toBe("tap");
+  it("stage 3: the finale between brawl rounds is tap mode with the PAUSED card as its pause", () => {
+    expect(resolveMode(view(["Finale"]))).toMatchObject({ mode: "tap", legacyPad: false, pause: "card", pauseButton: true, live: true });
+  });
+
+  it("minigames are tap mode with the pause menu as their pause (stage 3); card menus and boards none", () => {
+    for (const k of ["Minigame", "Whack", "Drive", "BeepBeep"]) expect(resolveMode(view([k]))).toMatchObject({ mode: "tap", pause: "menu", pauseButton: true, live: true });
     for (const k of ["Pub", "Pit", "PitLoan", "PolsonHome"]) expect(resolveMode(view([k, "UI"])).mode).toBe("none");
   });
 
@@ -91,11 +94,13 @@ describe("phone layer modes: fights, the stick, coming back (round 1 fixes)", ()
     expect(resolveMode(view([{ key: "Dungeon", busy: true }, "UI", "Dialogue"])).live).toBe(false);
   });
 
-  it("coming back: the pause menu where there is one, the carry-on card where there isn't, nothing in town (P1)", () => {
+  it("coming back: the scene's pause (stage 3: every minigame and the finale have one), nothing in town (P1)", () => {
     expect(wakeCare(resolveMode(view(["Dungeon", "UI"])))).toBe("pause");
     expect(wakeCare(resolveMode(view(["UI", { key: "Kreddle", sub: "rout" }])))).toBe("pause");
-    expect(wakeCare(resolveMode(view(["Finale"])))).toBe("card");
-    expect(wakeCare(resolveMode(view(["BeepBeep"])))).toBe("card");
+    expect(wakeCare(resolveMode(view(["Finale"])))).toBe("pause");
+    for (const k of ["Minigame", "Whack", "Drive", "BeepBeep"]) expect(wakeCare(resolveMode(view([k])))).toBe("pause");
+    // (a live scene with no pause route still gets the carry-on card)
+    expect(wakeCare({ live: true, pause: null, scene: "X" })).toBe("card");
     expect(wakeCare(resolveMode(view(["Hub", "UI"])))).toBe(null);
     expect(wakeCare(resolveMode(view(["Hub", "UI", "Menu"])))).toBe(null);
     expect(wakeCare(null)).toBe(null);

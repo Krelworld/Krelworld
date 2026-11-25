@@ -219,6 +219,14 @@ export class Shell {
     if (!on && h === "resume") {
       this.carryOn = true;
       this.setCardExtra(null);
+      if (this.cardMusic) {
+        this.cardMusic = false;
+        try {
+          synth.resumeMusic();
+        } catch {
+          /* no music */
+        }
+      }
     }
     if (on) {
       this.layer?.releaseAll();
@@ -284,7 +292,20 @@ export class Shell {
   pauseCard(extra: { label: string; fn: () => void } | null = null) {
     this.setCardExtra(extra);
     this.setHold("resume", true);
+    // (a pause: the song holds too, so a scene timed to it picks up in step; unless the pause menu already holds it)
+    const s = synth as unknown as { musicPaused?: boolean };
+    try {
+      if (this.holds.has("resume") && !s.musicPaused) {
+        synth.pauseMusic();
+        this.cardMusic = true;
+      }
+    } catch {
+      /* no music */
+    }
   }
+
+  /** The PAUSED card holds the song (pauseCard): picked up again when the player carries on. */
+  private cardMusic = false;
 
   /** The "tap to carry on" card (a fight with no pause menu: the finale, the minigames). */
   private makeCard(): HTMLDivElement {

@@ -649,9 +649,12 @@ class StadiumScene extends Phaser.Scene {
       const rect = canvas.getBoundingClientRect();
       const x = e.clientX - rect.left, y = e.clientY - rect.top;
       if (x < rect.width * 0.45 && this.joyId === -1) {
-        this.joyId = e.pointerId; this.joyOx = e.clientX; this.joyOy = e.clientY; this.jx = this.jy = 0;
-        joy.hidden = false; joy.style.left = `${e.clientX}px`; joy.style.top = `${e.clientY}px`; knob.style.transform = "";
-        canvas.setPointerCapture(e.pointerId);
+        // Keep the ring clear of the screen edges, so the bottom swipe area never swallows the release.
+        const ox = Math.max(70, Math.min(window.innerWidth - 70, e.clientX)), oy = Math.max(70, Math.min(window.innerHeight - 80, e.clientY));
+        this.joyId = e.pointerId; this.joyOx = ox; this.joyOy = oy; this.jx = this.jy = 0;
+        joy.hidden = false; joy.style.left = `${ox}px`; joy.style.top = `${oy}px`; knob.style.transform = "";
+        try { canvas.setPointerCapture(e.pointerId); } catch { /* not all browsers allow it */ }
+        move(e);
       } else {
         // Tap someone to aim at them.
         const cam = this.cameras.main, P = this.P;
@@ -667,18 +670,35 @@ class StadiumScene extends Phaser.Scene {
         this.picked = best ? best.id : null;
       }
     });
-    const move = (e: PointerEvent) => {
-      if (e.pointerId !== this.joyId) return;
-      let dx = (e.clientX - this.joyOx) / 50, dy = (e.clientY - this.joyOy) / 50;
-      const l = Math.hypot(dx, dy);
-      if (l > 1.25) { dx *= 1.25 / l; dy *= 1.25 / l; }
-      this.jx = dx; this.jy = dy;
-      knob.style.transform = `translate(${dx * 40}px, ${dy * 40}px)`;
-    };
-    const up = (e: PointerEvent) => { if (e.pointerId !== this.joyId) return; this.joyId = -1; this.jx = this.jy = 0; joy.hidden = true; };
+    function move(this: void, e: PointerEvent): void { scene.joyMove(e, knob); }
+    const scene = this;
+    const release = () => { this.joyId = -1; this.jx = this.jy = 0; joy.hidden = true; };
+    const up = (e: PointerEvent) => { if (e.pointerId === this.joyId) release(); };
     canvas.addEventListener("pointermove", move);
-    canvas.addEventListener("pointerup", up);
-    canvas.addEventListener("pointercancel", up);
+    window.addEventListener("pointermove", move);
+    for (const ev of ["pointerup", "pointercancel", "lostpointercapture"] as const) {
+      canvas.addEventListener(ev, up as EventListener);
+      window.addEventListener(ev, up as EventListener);
+    }
+    // Belt and braces for phones: if no finger is on the left half any more, let go.
+    const checkTouches = (e: TouchEvent) => {
+      if (this.joyId === -1) return;
+      const anyLeft = Array.from(e.touches).some((t) => t.clientX < window.innerWidth * 0.5);
+      if (!anyLeft) release();
+    };
+    window.addEventListener("touchend", checkTouches, { passive: true });
+    window.addEventListener("touchcancel", checkTouches, { passive: true });
+    window.addEventListener("blur", release);
+    document.addEventListener("visibilitychange", () => { if (document.hidden) release(); });
+  }
+
+  joyMove(e: PointerEvent, knob: HTMLElement) {
+    if (e.pointerId !== this.joyId) return;
+    let dx = (e.clientX - this.joyOx) / 50, dy = (e.clientY - this.joyOy) / 50;
+    const l = Math.hypot(dx, dy);
+    if (l > 1.25) { dx *= 1.25 / l; dy *= 1.25 / l; }
+    this.jx = dx; this.jy = dy;
+    knob.style.transform = `translate(${dx * 40}px, ${dy * 40}px)`;
   }
 
   toggleDebug() {

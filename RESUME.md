@@ -1,3 +1,8 @@
+## LATEST (2026-11-25 ~05:30 UTC)
+- Live now has 455b3131 (KrelTV no-repeat rounds; Peep Show unlocked from the start, chapter 4 prompt skipped if seen; news_1 "Great Silence" and the Wonking Machine Shopping Network removed; TV fingerprint baselines re-recorded deliberately for desktop tv_from_title, tv_guide, pub and the four profiles' tv_from_title and tv_guide).
+- BEFORE PUBLISHING STAGE 2: merge origin/claude/krelworld-game into "mobile" (it does NOT have 455b3131 yet; the stage 2 agents are mid-run there), re-run the full CHECK (laptop halves, profiles, tsc, vitest, smoke both builds), then push.
+- New user feedback for the phone build is in reports/00-USER-PRIORITIES.md "Latest feedback" (dungeon buttons clutter, tap things to use them, TV guide scrolling) and DEFERRED.md stage 3. Trailer steer in task #67 metadata (features to attract curious players: TV, upgrades, strip club; Polson comedy; pseudo-3D, violence, Kreltalities; light spoilers).
+
 ## LATEST (2026-11-25 ~04:15 UTC)
 - The stage 2 builders all FINISHED (cached in journal). The merge agent was cut off part way (merge commit fac0d1ef done, integration checks TODO); the four reviews and the gate never ran.
 - The user asked to remove the Elon Musk fight: done on live (27107ea1, pushed, alt build triggered) and merged into "mobile" (0d681a8f).

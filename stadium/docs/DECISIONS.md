@@ -338,3 +338,27 @@ look the part (Rose is a woman, Sarge is a big lad, Lionel wears a suit).
 An overcast colour grade (a little desaturated, a little more contrast) and a faint vignette over
 everything, which also pulls the generated sprites together; light drizzle outdoors; the seated
 crowd fidgets and rises in the end the ball is attacking.
+
+## No camera behind the player (docs/research-camera.md)
+
+Asked directly: would a pseudo-3D view from behind the character be better? Researched, and no,
+not as the main view. A chase camera sees a ~78° wedge ahead (we measured our own driving view);
+this game is about reading a crowd and spotting who's coming for you, mostly from behind and the
+sides. Behind-camera crowd games (Hitman, Watch Dogs) need radar, suspicion meters, wall X-ray and
+a second thumb for the camera to get that information back; Square Enix's phone Hitmans dropped
+the free camera, and Rockstar went back to near-overhead for GTA on the DS's small screen. Our
+sprites are drawn from above, so from behind they'd tip back and break the one-pixel rule.
+Behind and close-up cameras are for moments: driving (done), and later the tunnel walk-out, a
+pitch-invasion run-in, knockout replays.
+
+The overhead view's real weakness is the edges (about 9 m above and below you on a phone), so:
+arrows at the screen's edge point to anyone coming for you (red) and the loose dog (yellow); the
+camera leads further in the direction you're going and leans toward pursuers; on a phone it steps
+in one zoom level during a fight and back out after. The zoom button's far step is the overview.
+
+## Voices and crowd (ElevenLabs, stock voices only)
+
+Fight lines and bystander shouts are voiced in stock British voices (a woman says the female
+take), never cloned voices. The ground sings now and then ("Eng-er-land" with a drum, slow
+clapping that builds); near misses get an "ooh"; the pub has its own din; armed police come with
+a siren.

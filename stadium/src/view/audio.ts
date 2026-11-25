@@ -12,8 +12,12 @@ export const CLIPS = [
   "pit_growl", "pit_bark", "pit_gnash",
   "kaching", "bag", "wear", "munch", "gulp", "nope", "tap", "pickup",
   "hit1", "hit2", "hit3", "whoosh", "bodyfall", "weaponhit", "stab", "gasp",
+  "chant_eng", "chant_clap", "crowd_ooh", "crowd_jeer", "pub_bed", "siren",
 ] as const;
-export type Clip = (typeof CLIPS)[number];
+/** Voiced lines (ElevenLabs stock British voices): what's said -> clip; a woman says the `_f` take. */
+import VOICES_JSON from "../../assets/audio/voices.json";
+export const VOICES: Record<string, string> = VOICES_JSON as Record<string, string>;
+export type Clip = (typeof CLIPS)[number] | `v_${string}`;
 
 export class Audio {
   ctx: AudioContext | null = null;
@@ -79,6 +83,7 @@ export class Audio {
     await this.load("crowd_loop");
     this.startCrowd();
     await Promise.all(CLIPS.filter((c) => c !== "crowd_loop").map((c) => this.load(c)));
+    await Promise.all(Object.values(VOICES).flatMap((v) => [this.load(v), this.load(`${v}_f`)]));
   }
 
   private async load(name: string): Promise<void> {

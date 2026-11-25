@@ -27,7 +27,7 @@ import { BUS_LEN, BUS_WID, holdOpen } from "../stadium/bus";
 import { drawFigure, headTop, type FigureStyle } from "./figures";
 import { drawBall, drawGoalFrame, drawPitch } from "./pitchArt";
 import { Projection } from "./projection";
-import { Audio, type Clip } from "./audio";
+import { Audio, VOICES, type Clip } from "./audio";
 import { Drive3D, type DriveView } from "./drive3d";
 import { CELL, dirIndex, FEET, HEAD, SpriteBank, type Base, type Recolour } from "./sprites";
 import { buildings, placements, WorldArt, type Placement } from "./world";
@@ -308,10 +308,12 @@ class StadiumScene extends Phaser.Scene {
         break;
       case "fb_period_end": case "fb_match_end": a.play("whistle_end", vol, { muffle, minGap: 3 }); break;
       case "fb_miss": case "fb_woodwork":
+        a.play("crowd_ooh", vol * 0.8, { muffle, minGap: 3 });
         if (e.team === 0 || s.actors[e.by]?.fb?.team === 0) a.play("groan", vol * 0.6, { muffle, minGap: 4 });
         break;
       case "fb_save":
         if (s.actors[e.shooter]?.fb?.team === 0) a.play("groan", vol * 0.5, { muffle, minGap: 4 });
+        a.play("crowd_ooh", vol * 0.7, { muffle, minGap: 3 });
         break;
       case "fb_shot": {
         const by = s.actors[e.by];
@@ -363,6 +365,7 @@ class StadiumScene extends Phaser.Scene {
       case "body_found": a.play("scream", 0.3 + near(e.x, e.y, 40) * 0.7, { minGap: 2 }); break;
       case "armed_challenge": { const o = s.actors[e.by]; if (o) a.play("armed_police", 0.4 + near(o.x, o.y, 35) * 0.6, { minGap: 3 }); break; }
       case "disarmed": a.play("stw_knife", 1); break;
+      case "armed_called": case "armed_deployed": a.play("siren", 0.6, { minGap: 8 }); break;
       case "dog_sicced": a.play("pit_bark", 1, { minGap: 0.3 }); break;
       case "dog_noise": {
         this.dogNoiseAt = s.tick;
@@ -382,12 +385,18 @@ class StadiumScene extends Phaser.Scene {
           "You're coming with me.": "stw_coming", "Stop wriggling!": "stw_wriggle", "Staff only, mate.": "stw_staff",
         };
         if (VOICE[e.text]) a.play(VOICE[e.text], 0.35 + v * 0.65, { minGap: 1.5 });
+        else if (VOICES[e.text] && v > 0.05) {
+          const who = s.actors[e.by], woman = who && this.spriteFor(who).base === "woman";
+          a.play(`${VOICES[e.text]}${woman ? "_f" : ""}` as Clip, 0.25 + v * 0.75, { minGap: 0.3, rate: 0.95 + (Math.abs(hash(e.by ?? "")) % 10) / 100 });
+        }
         if (e.text === "Get out the road!") a.play("horn", 0.3 + v * 0.7, { minGap: 2 });
         break;
       }
     }
   }
 
+  nextChant = 8000;
+  nextPub = 0;
   /** The crowd bed follows you: loud in the stands, a rumble outside, a murmur in the pub. */
   updateCrowd() {
     const pc = this.pc;
@@ -399,6 +408,13 @@ class StadiumScene extends Phaser.Scene {
     else if (ar.id === "pub") { level = 0.25; bright = 0.05; }
     else { level = pc.y < 62 ? 0.4 : 0.22; bright = pc.y < 62 ? 0.1 : 0.04; }
     if (m.phase === "pre") level *= 0.75;
+    // Now and then the ground sings; the pub has its own din.
+    const now = performance.now();
+    if (now > this.nextChant && (m.phase === "live" || m.phase === "restart" || m.phase === "pre")) {
+      this.nextChant = now + 22000 + Math.random() * 20000;
+      this.audio.play(Math.random() < 0.6 ? "chant_eng" : "chant_clap", 0.15 + level * 0.55, { muffle: ar.seats || ar.pitch ? 0 : !ar.outside ? 0.4 : 0.75, minGap: 10 });
+    }
+    if (ar.id === "pub" && now > this.nextPub) { this.nextPub = now + 14500; this.audio.play("pub_bed", 0.55, { minGap: 10 }); }
     if (m.phase === "break" || m.phase === "finished") level *= 0.6;
     this.audio.setCrowd(level, bright);
   }
@@ -570,6 +586,8 @@ class StadiumScene extends Phaser.Scene {
     if (this.pc?.seated) return Math.min(w / (60 * this.P.S), h / (44 * this.P.S * this.P.K));
     // Whole screen pixels per art pixel, so every pixel of the art is the same size; a bigger screen shows more.
     const steps = zoomSteps();
+    // On a phone, step in during a fight, then back out.
+    if (this.zoomLevel === 0 && performance.now() < this.fightZoomUntil && Math.min(window.innerWidth, window.innerHeight) < 520) return steps[0] + 1;
     return steps[Math.min(this.zoomLevel, steps.length - 1)];
   }
   zoomLevel = 0;
@@ -621,6 +639,8 @@ class StadiumScene extends Phaser.Scene {
   decalG!: Phaser.GameObjects.Graphics;
   kick = { x: 0, y: 0 };
   pcHidden = false;
+  pursuers: Actor[] = [];
+  fightZoomUntil = 0;
   rainG: Phaser.GameObjects.Graphics | null = null;
   ghost: Phaser.GameObjects.Sprite | null = null;
   slowUntil = 0;
@@ -640,6 +660,7 @@ class StadiumScene extends Phaser.Scene {
       // A knockout or a killing: everything slows right down for a moment.
       if (k >= 2 || (who.downUntil - this.s.tick > 300 && byId === this.pc?.id)) this.slowUntil = now + 450;
     } else if (closeness > 0.4) this.trauma = Math.min(1, this.trauma + 0.15 * k);
+    if (mine || (this.pc && Math.hypot(who.x - this.pc.x, who.y - this.pc.y) < 6)) this.fightZoomUntil = now + 2600;
     if (whoId === this.pc?.id) { const v = $("hurt"); v.classList.remove("on"); void v.offsetWidth; v.classList.add("on"); }
     this.flashAt.set(whoId, now);
     if (by && byId !== whoId) this.lunge.set(byId, { dx, dy, at: now });
@@ -1132,6 +1153,26 @@ class StadiumScene extends Phaser.Scene {
       }
     }
 
+    // Who's after you, and arrows at the screen's edge for those you can't see (and the dog).
+    this.pursuers = pc ? Object.values(s.actors).filter((a) => a.npc && !a.hiddenIn && !a.dead && a.npc.target === pc.id && ["approach", "chase", "escort"].includes(a.npc.mode)) : [];
+    if (pc && !pc.seated) {
+      // Kept clear of the score and buttons at the top and the controls at the bottom (CSS px -> world).
+      const v = cam.worldView, u2 = DPR / cam.zoom, pad = 30 * u2, padT = 84 * u2, padB = 96 * u2;
+      const dogA = st.dog ? s.actors[st.dog.id] : null;
+      const marks: [Actor, number][] = this.pursuers.map((a) => [a, 0xd7263d]);
+      if (dogA && st.dog && st.dog.state !== "tied" && st.dog.state !== "led") marks.push([dogA, 0xf2c94c]);
+      for (const [a, col] of marks) {
+        const ax = P.sx(a.x, a.y), ay = P.sy(a.x, a.y) - P.S;
+        if (ax > v.x && ax < v.right && ay > v.y && ay < v.bottom) continue;
+        const cx = v.centerX, cy = v.centerY, ang = Math.atan2(ay - cy, ax - cx);
+        const ex = Phaser.Math.Clamp(ax, v.x + pad, v.right - pad), ey = Phaser.Math.Clamp(ay, v.y + padT, v.bottom - padB);
+        const r = 15 * u2, pulse = 0.65 + 0.35 * Math.sin(tick * 0.2);
+        const pts = [0, 2.5, -2.5].map((o, i) => ({ x: ex + Math.cos(ang + o) * (i ? r * 0.8 : r * 1.4), y: ey + Math.sin(ang + o) * (i ? r * 0.8 : r * 1.4) }));
+        ui.fillStyle(0x000000, 0.5).fillCircle(ex, ey, r * 1.1);
+        ui.fillStyle(col, pulse).fillTriangle(pts[0].x, pts[0].y, pts[1].x, pts[1].y, pts[2].x, pts[2].y);
+      }
+    }
+
     // Speech bubbles near the player.
     const talkers = Object.values(s.actors).filter((a) => a.npc?.bubble && !a.hiddenIn && onScreen(a.x, a.y)).slice(0, this.bubbles.length);
     this.bubbles.forEach((bt, i) => {
@@ -1147,7 +1188,17 @@ class StadiumScene extends Phaser.Scene {
     let tx: number, ty: number;
     if (pc?.seated) {
       tx = clamp(P.sx(b.x, b.y), P.sx(-HL + 18, 0), P.sx(HL - 18, 0)); ty = P.sy(0, clamp(b.y, -HW + 8, HW - 8) * 0.6);
-    } else if (pc) { tx = P.sx(pc.x + pc.vx * 0.4, pc.y + pc.vy * 0.4); ty = P.sy(pc.x + pc.vx * 0.4, pc.y + pc.vy * 0.4) - P.S; }
+    } else if (pc) {
+      // Lead where you're going, and lean toward anyone chasing you, so they're on screen sooner.
+      let lx = pc.vx * 0.55, ly = pc.vy * 0.55;
+      const ch = this.pursuers.filter((a) => Math.hypot(a.x - pc.x, a.y - pc.y) < 28);
+      if (ch.length) {
+        const mx = ch.reduce((t, a) => t + a.x - pc.x, 0) / ch.length, my = ch.reduce((t, a) => t + a.y - pc.y, 0) / ch.length, ml = Math.hypot(mx, my) || 1;
+        const k = Math.min(4, ml * 0.3);
+        lx += (mx / ml) * k; ly += (my / ml) * k;
+      }
+      tx = P.sx(pc.x + lx, pc.y + ly); ty = P.sy(pc.x + lx, pc.y + ly) - P.S;
+    }
     else { tx = 0; ty = 0; }
     const k = 1 - Math.pow(0.004, Math.min(dms, 100) / 1000);
     this.camX += (tx - this.camX) * k; this.camY += (ty - this.camY) * k;

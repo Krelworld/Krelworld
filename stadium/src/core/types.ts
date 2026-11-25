@@ -96,6 +96,8 @@ export interface Actor {
   money: number;
   /** Tick until which the actor is on the floor or otherwise out of action. */
   downUntil: number;
+  /** Thrown back by a blow: metres per second along the ground, until a tick (slows as it goes). */
+  knock?: { vx: number; vy: number; from: number; until: number };
   /** Active effects with the tick they wear off, e.g. { drunk: 5400 }. */
   effects: Record<string, number>;
   /** Present on footballers. */

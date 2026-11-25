@@ -3,9 +3,13 @@
 // barman and disguise, and one steward can be police. A workable stopgap until the full
 // 48px cast is generated.
 import Phaser from "phaser";
+import EXTRAS from "../../assets/art/extras.json";
+
+/** Extra animation sheets each base has (punch, hit, fall, ...): one row per direction, frames across. */
+export const EXTRA: Record<string, string[]> = EXTRAS as Record<string, string[]>;
 
 export const CELL = 88;
-export const BASES = ["fan", "steward", "england", "portugal", "referee"] as const;
+export const BASES = ["fan", "steward", "england", "portugal", "referee", "fanbare", "lad", "woman", "oldboy", "police", "suit", "bigman"] as const;
 export type Base = (typeof BASES)[number];
 /** Pixel rows (within a cell) of the figure's feet and the top of the head. */
 export const FEET = 73, HEAD = 13;
@@ -45,11 +49,31 @@ function shadeTo(data: Uint8ClampedArray, i: number, to: number, ref: number): v
 }
 
 /** What each pixel of a base sheet is, by colour and by where it sits in the body. */
-function classify(base: Base, r: number, g: number, b: number, y: number): keyof Recolour | null {
+function classify(base: Base, r: number, g: number, b: number, y: number, lying = false): keyof Recolour | null {
   const [h, s, l] = hsl(r, g, b);
   const skin = h >= 8 && h <= 40 && s > 0.35 && l > 0.35 && l < 0.85 && r > b + 40;
   if (skin) return "skin";
+  if (lying) {
+    // On the floor the body isn't in its usual rows: go by colour alone.
+    if (base === "steward" || base === "police") return h > 45 && h < 75 && s > 0.35 && l > 0.25 ? "vest" : null;
+    if (s < 0.3 && l > 0.55) return base === "fanbare" ? null : "shirt";
+    if (h > 190 && h < 250 && l > 0.08 && l < 0.3 && s > 0.25) return "trim";
+    if (h > 190 && h < 250 && l >= 0.3) return "legs";
+    return null;
+  }
   switch (base) {
+    case "lad":
+    case "woman": {
+      // A replica shirt over trackies or jeans.
+      if (y >= 27 && y <= 50 && s < 0.3 && l > 0.5) return "shirt";
+      if (y >= 27 && y <= 50 && h > 200 && h < 250 && l < 0.35 && l > 0.05) return "trim";
+      return null;
+    }
+    case "fanbare":
+      if (y > 53 && y <= 66 && h > 190 && h < 250 && l > 0.08) return "legs";
+      return null;
+    case "oldboy": case "police": case "suit": case "bigman":
+      return null;
     case "fan":
     case "england": {
       const shirtRows = base === "fan" ? y >= 26 && y <= 53 : y >= 26 && y <= 50;
@@ -81,6 +105,10 @@ const REF: Record<Base, Partial<Record<keyof Recolour, number>>> = {
   portugal: { shirt: 0.38, legs: 0.25, skin: 0.7 },
   steward: { vest: 0.82, legs: 0.15, skin: 0.7 },
   referee: { shirt: 0.12, skin: 0.7 },
+  fanbare: { legs: 0.5, skin: 0.62 },
+  lad: { shirt: 0.92, trim: 0.15, skin: 0.7 },
+  woman: { shirt: 0.92, trim: 0.15, skin: 0.72 },
+  oldboy: { skin: 0.7 }, police: { skin: 0.7 }, suit: { skin: 0.7 }, bigman: { skin: 0.7 },
 };
 
 export class SpriteBank {
@@ -91,15 +119,20 @@ export class SpriteBank {
     scene.load.image("tiles-street", "art/tiles-street.png");
     scene.load.image("tiles-pitch", "art/tiles-pitch.png");
     for (const k of BASES) {
+      if (!(EXTRA[k] ?? []).includes("rot")) continue;
       scene.load.image(`${k}-rot-src`, `art/${k}-rot.png`);
       scene.load.image(`${k}-walk-src`, `art/${k}-walk.png`);
+      for (const x of EXTRA[k] ?? []) if (x !== "rot" && x !== "walk") scene.load.image(`${k}-${x}-src`, `art/${k}-${x}.png`);
     }
   }
+
+  /** Is this base's art here? */
+  has(base: Base): boolean { return this.scene.textures.exists(`${base}-rot-src`) && this.scene.textures.exists(`${base}-walk-src`); }
 
   ready(): boolean { return this.scene.textures.exists("fan-rot-src") && this.scene.textures.get("fan-rot-src").key !== "__MISSING"; }
 
   /** A recoloured copy of one sheet of a base, as a canvas. */
-  private paint(base: Base, sheet: "rot" | "walk", rc: Recolour): HTMLCanvasElement {
+  private paint(base: Base, sheet: string, rc: Recolour): HTMLCanvasElement {
     const src = this.scene.textures.get(`${base}-${sheet}-src`).getSourceImage() as HTMLImageElement | HTMLCanvasElement;
     const cv = document.createElement("canvas");
     cv.width = src.width; cv.height = src.height;
@@ -110,7 +143,7 @@ export class SpriteBank {
       for (let i = 0; i < d.length; i += 4) {
         if (d[i + 3] < 100) continue;
         const p = i / 4, y = Math.floor(p / W) % CELL;
-        const part = classify(base, d[i], d[i + 1], d[i + 2], y);
+        const part = classify(base, d[i], d[i + 1], d[i + 2], y, sheet === "fall" && Math.floor((p % W) / CELL) >= 4);
         if (!part || rc[part] === undefined) continue;
         shadeTo(d, i, rc[part]!, REF[base][part] ?? 0.6);
       }
@@ -124,7 +157,8 @@ export class SpriteBank {
     const parts = Object.entries(rc).filter(([, v]) => v !== undefined).sort().map(([k, v]) => `${k}${(v as number).toString(16)}`);
     const key = parts.length ? `${base}~${parts.join("_")}` : base;
     if (this.made.has(key)) return key;
-    for (const sheet of ["rot", "walk"] as const) {
+    for (const sheet of new Set(["rot", "walk", ...(EXTRA[base] ?? [])])) {
+      if (!this.scene.textures.exists(`${base}-${sheet}-src`)) continue;
       const tkey = `${key}-${sheet}`;
       if (this.scene.textures.exists(tkey)) this.scene.textures.remove(tkey);
       this.scene.textures.addSpriteSheet(tkey, this.paint(base, sheet, rc) as unknown as HTMLImageElement, { frameWidth: CELL, frameHeight: CELL });
@@ -135,13 +169,14 @@ export class SpriteBank {
 
   /** One sheet of seated supporters for the stands: a row per colour scheme, then
    *  facing south, east, north, west, cropped at the seat. Frame = row * 4 + facing. */
-  crowdAtlas(key: string, rows: Recolour[]): void {
+  crowdAtlas(key: string, rows: (Recolour & { base?: Base })[]): void {
     const SEAT = 52;
     const cv = document.createElement("canvas");
     cv.width = CELL * 4; cv.height = SEAT * rows.length;
     const cx = cv.getContext("2d")!;
     rows.forEach((rc, r) => {
-      const src = this.paint("fan", "rot", rc);
+      const { base = "fan", ...col } = rc;
+      const src = this.paint(this.has(base) ? base : "fan", "rot", col);
       [0, 2, 4, 6].forEach((cell, f) => cx.drawImage(src, cell * CELL, 0, CELL, SEAT, f * CELL, r * SEAT, CELL, SEAT));
     });
     if (this.scene.textures.exists(key)) this.scene.textures.remove(key);

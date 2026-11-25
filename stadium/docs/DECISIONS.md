@@ -300,3 +300,41 @@ So now:
 
 Still to do: the coach and lorry are older art at a lower density (drawn at 3x); the cast is
 still one fat-fan body recoloured; inside the stadium wants tiers, dugouts and boards.
+
+## The angle, researched properly (docs/research-visuals.md)
+
+A survey of twenty comparable games (Escapists, Streets of Rogue, Party Hard, Hotline Miami,
+GTA 1/2 and Chinatown Wars, Prison Architect, Stardew, Eastward, Gungeon, Untitled Goose Game,
+Monaco, Project Zomboid, HD-2D and others) confirms the three-quarter oblique view at 32 px/m with
+~60 px people. Top-down loses faces and uniforms (Monaco's developer dropped it for that reason);
+isometric hides more behind walls, costs draw-order headaches and turns the pitch into a diamond
+on a landscape phone; HD-2D reads cosy, not grim. The oblique view's weakness is occlusion, so:
+your silhouette shows through any wall, roof or van that hides you, and occluders fade.
+
+## Violence that lands
+
+Following the research (hit-stop is the strongest single factor in how combat feels; sound
+coherence and camera framing next): a blow knocks its victim back about a metre and a half in
+the simulation (walls still stop them), they flash white, recoil (PixelLab hit animation), then
+fall (fall animation, last frame is how they lie). Blood sprays along the blow and the drops land
+as spots that stay all day; the badly hurt bleed a spreading pool. Your own blows stop the world
+for 55/90/140 ms (jab/weapon/knockout), add camera trauma (shake = trauma squared, smooth noise,
+whole pixels) and kick the camera along the punch; knockouts and killings drop to 0.3x speed for
+a moment. Sounds: a swing, one of three meaty impacts or a hammer crack, a crowd "ooh", the body
+hitting the floor. A red vignette when you're the one hit. Victims swear. Bystanders form a ring,
+shout, film it on their phones (with the odd flash) or back away.
+
+## The cast
+
+PixelLab characters with realistic proportions: the fat fan (now with punch, kick, hit and fall),
+his shirtless state (take your shirt off and the sunburnt belly and St George tattoo come out), a
+skinny lad, a woman fan, an old boy in a flat cap, a big lad in a Stone Island jacket, a club
+official in a suit, a proper British police constable, and the steward (hit and fall). Fans are a
+mix of all of them, recoloured for either side; the seated crowd uses three bodies. Shopkeepers
+look the part (Rose is a woman, Sarge is a big lad, Lionel wears a suit).
+
+## Atmosphere
+
+An overcast colour grade (a little desaturated, a little more contrast) and a faint vignette over
+everything, which also pulls the generated sprites together; light drizzle outdoors; the seated
+crowd fidgets and rises in the end the ball is attacking.

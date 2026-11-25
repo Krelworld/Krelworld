@@ -258,13 +258,21 @@ export function installRules(): void {
       if (sharpInHand(w, actor) && !t.dead) return stab(w, actor, t);
       const weapon = !!item && hasProp(item, "weapon") && actor.hand === item.id;
       strike.perform(w, act, actor, item);
+      // The blow sends them back: a fist about a metre and a half, anything heavy further.
+      const dx = t.x - actor.x, dy = t.y - actor.y, dl = Math.hypot(dx, dy) || 1, sp = weapon ? 17 : 14;
+      t.knock = { vx: (dx / dl) * sp, vy: (dy / dl) * sp, from: w.state.tick, until: w.state.tick + 26 };
+      w.bus.emit({ type: "struck", t: w.state.tick, by: actor.id, who: t.id, weapon, dx: dx / dl, dy: dy / dl });
       const official = !!t.off, player = !!t.fb && t.fb.status === "playing";
       if (player) t.fb!.stunUntil = w.state.tick + (weapon ? 900 : 160);
       if (official) t.downUntil = w.state.tick + (weapon ? 1800 : 360);
       if (weapon && player) removePlayer(w, t.id, "injured");
       const sev = weapon ? 3 : official || player ? 3 : 2;
       crime(w, actor, weapon ? "an attack with a weapon" : official ? "assaulting the referee" : player ? "assaulting a player" : "assault", sev, t);
-      if (t.npc && !weapon) say(w, t, "Ow! What was that for?");
+      if (t.npc) {
+        const OUCH = weapon ? ["Aaargh!", "My head! My fucking head!", "Help! Somebody help!"]
+          : ["My nose! My fucking nose!", "Ow! You mad bastard!", "What the fuck was that for?", "Jesus Christ!", "Ugh... my teeth...", "You're dead, mate. Dead!"];
+        say(w, t, pick(w.state.rng.world, OUCH));
+      }
     },
   };
 
@@ -355,6 +363,32 @@ function bribe(w: World, by: Actor, t: Actor, amount: number): void {
 export function installReactions(w: World): void {
   w.bus.on((e) => {
     const s = w.state, st = s.stadium!;
+    if (e.type === "struck" || e.type === "killed") {
+      // A fight draws a crowd: fans nearby form a ring, shout, film it; the timid back off.
+      const v = s.actors[e.who], r = s.rng.world;
+      if (!v) return;
+      let n = 0;
+      for (const id in s.actors) {
+        const a = s.actors[id], np = a.npc;
+        if (!np || id === e.who || id === e.by || a.seated || a.heldBy || a.downUntil > s.tick || np.mode !== "routine") continue;
+        if (np.job !== "fan" && np.job !== "local") continue;
+        const d = Math.hypot(a.x - v.x, a.y - v.y);
+        if (d > 10 || n >= 8) continue;
+        n++;
+        const ang = Math.atan2(a.y - v.y, a.x - v.x);
+        if (e.type === "killed" || chance(r, 0.25)) {
+          // Back off, sharpish.
+          np.plan = [{ k: "say", text: pick(r, ["Fucking hell!", "Jesus! Leave it!", "I'm not getting involved."]) }, { k: "go", x: v.x + Math.cos(ang) * 14, y: v.y + Math.sin(ang) * 14, run: true }];
+          np.gawk = undefined;
+        } else {
+          const rad = rndRange(r, 2.6, 3.8), filming = chance(r, 0.45);
+          np.plan = [{ k: "go", x: v.x + Math.cos(ang) * rad, y: v.y + Math.sin(ang) * rad },
+            { k: "say", text: pick(r, filming ? ["This is going on TikTok.", "Get it, get it!", "Are you filming this?"] : ["FIGHT! FIGHT!", "Go on, son!", "Leave it, he's not worth it!", "Ooooh!", "He's sparko!"]) },
+            { k: "wait", s: rndRange(r, 6, 14) }];
+          np.gawk = { until: s.tick + 60 * 16, x: v.x, y: v.y, filming };
+        }
+      }
+    }
     if ((e.type === "item_landed" || e.type === "item_hit") && e.itemDef === "flare") {
       st.smoke.push({ x: e.x, y: e.y, r: 7, until: s.tick + 60 * 25 });
       moveItem(s, e.item, { k: "gone" });

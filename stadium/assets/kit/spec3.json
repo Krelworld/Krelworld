@@ -1,0 +1,26 @@
+{
+ "dugout": {
+  "description": "football stadium team dugout, curved clear perspex roof over a row of padded seats, seen from the front, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 160,
+  "h": 96,
+  "view": "low top-down"
+ },
+ "tvcamera": {
+  "description": "broadcast television camera on a tripod with a big lens, pitchside, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 48,
+  "h": 72,
+  "view": "low top-down"
+ },
+ "stretcher": {
+  "description": "medical stretcher with orange blanket on the ground, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 72,
+  "h": 40,
+  "view": "low top-down"
+ },
+ "cart": {
+  "description": "small green groundsman utility cart with tools, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 96,
+  "h": 72,
+  "view": "low top-down"
+ }
+}

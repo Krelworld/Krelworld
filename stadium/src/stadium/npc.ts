@@ -82,6 +82,7 @@ function runPlan(w: World, a: Actor): void {
     case "wait":
       a.moveX = a.moveY = 0;
       if (n.face !== undefined && n.post && Math.hypot(a.x - n.post.x, a.y - n.post.y) < 0.8) a.facing = n.face;
+      if (n.gawk && tick < n.gawk.until) a.facing = Math.atan2(n.gawk.y - a.y, n.gawk.x - a.x);
       if (!n.waitUntil) n.waitUntil = tick + Math.round(t.s * 60);
       if (tick >= n.waitUntil) { n.waitUntil = 0; n.plan.shift(); }
       return;

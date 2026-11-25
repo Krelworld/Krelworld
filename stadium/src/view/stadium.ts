@@ -31,7 +31,7 @@ import { Audio, type Clip } from "./audio";
 import { Drive3D, type DriveView } from "./drive3d";
 import { CELL, dirIndex, FEET, HEAD, SpriteBank, type Base, type Recolour } from "./sprites";
 import { buildings, placements, WorldArt, type Placement } from "./world";
-import { CAP, ensureFloor, ensureMaterials, facade, floodlight, matOf, banner, pixelText as pixelTextOn, PPM, roof, TILE_FILES, type BuildingSpec } from "./build";
+import { CAP, ensureFloor, ensureMaterials, facade, floodlight, matOf, adBoard, banner, pixelText as pixelTextOn, PPM, roof, TILE_FILES, type BuildingSpec } from "./build";
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 /** The canvas draws at the screen's real pixels (sharp text, and each art pixel a whole number of them). */
@@ -144,10 +144,20 @@ class StadiumScene extends Phaser.Scene {
     this.detailG = this.add.graphics().setDepth(0.3);
     this.crowdG = this.add.graphics().setDepth(0.4);
     this.shadowG = this.add.graphics().setDepth(50);
+    this.decalG = this.add.graphics().setDepth(0.36);
     this.g = this.add.graphics();
     this.layers = [this.g];
     this.ui = this.add.graphics().setDepth(1e7);
     this.d3 = new Drive3D(this);
+    // One overcast grade over everything (it also pulls the different generated sprites together),
+    // and a faint vignette.
+    try {
+      const fl = this.cameras.main.filters.external;
+      const cm = fl.addColorMatrix();
+      cm.colorMatrix.saturate(-0.14);
+      cm.colorMatrix.contrast(0.06, true);
+      fl.addVignette(0.5, 0.5, 1.1, 0.12);
+    } catch { /* no filters on this renderer */ }
     for (let i = 0; i < 10; i++) {
       this.bubbles.push(this.add.text(0, 0, "", {
         fontFamily: '"Barlow Condensed", "Arial Narrow", sans-serif', fontSize: `${Math.round(15 * DPR)}px`, fontStyle: "600", color: "#10140f", backgroundColor: "#f4f1ea",
@@ -314,19 +324,42 @@ class StadiumScene extends Phaser.Scene {
         if (v > 0) a.play(e.itemDef === "pie" || e.itemDef === "pint" ? "splat" : "punch", 0.4 + v * 0.6);
         break;
       }
-      case "action":
-        if (e.action.verb === "strike") { const by = s.actors[e.action.actor]; if (by) a.play("punch", 0.3 + near(by.x, by.y) * 0.7); }
+      case "struck": {
+        // A blow: the swing, the smack, the crowd's gasp; then the world holds still for a beat,
+        // the camera jolts, the victim flashes white and flies back spraying blood.
+        const by = s.actors[e.by], who = s.actors[e.who];
+        if (!by || !who) break;
+        const v = near(who.x, who.y, 35);
+        a.play("whoosh", 0.25 + v * 0.5, { minGap: 0.05, rate: 0.9 + Math.random() * 0.25 });
+        a.play(e.weapon ? "weaponhit" : (["hit1", "hit2", "hit3"] as const)[Math.floor(Math.random() * 3)], 0.35 + v * 0.65, { minGap: 0.05, rate: 0.9 + Math.random() * 0.2 });
+        if (v > 0.3) a.play("gasp", 0.3 + v * 0.4, { minGap: 5 });
+        this.impact(e.by, e.who, e.dx, e.dy, e.weapon ? 1.4 : 1, v);
         break;
+      }
       case "smoke": a.play("flare", 0.4 + near(e.x, e.y, 40) * 0.6); break;
       case "dog_bite": { const v = s.actors[e.who]; const k = near(v?.x ?? 0, v?.y ?? 0, 30); if (e.maul) a.play("dog_maul", 0.3 + k * 0.7, { minGap: 1.2 }); else { a.play("pit_gnash", 0.4 + k * 0.6, { minGap: 0.6 }); a.play("punch", 0.5); } break; }
       case "dog_loose": a.play("pit_bark", 1, { minGap: 0.3 }); break;
-      case "bus_hit": { a.play("punch", 0.9); a.play("horn", 0.6, { minGap: 1 }); const v = s.stadium!.vehicles.bus; if (v && v.drivenBy === pcId) { this.d3.hit(s, e.who, e.hard, v.facing, v.speed, !!e.dodger); this.hitStopUntil = performance.now() + (e.hard ? 120 : 70); } break; }
+      case "bus_hit": { a.play("bodyfall", 0.9); { const who = s.actors[e.who], bv = s.stadium!.vehicles.bus; if (who && bv) { this.spray(who.x, who.y, 1, Math.cos(bv.facing), Math.sin(bv.facing), e.hard ? 40 : 18, 1.8); if (e.hard) this.pools.push({ x: who.x, y: who.y, r: 0.1, max: 1.1, grow: 0.5 }); this.trauma = Math.min(1, this.trauma + 0.5); } } a.play("horn", 0.6, { minGap: 1 }); const v = s.stadium!.vehicles.bus; if (v && v.drivenBy === pcId) { this.d3.hit(s, e.who, e.hard, v.facing, v.speed, !!e.dodger); this.hitStopUntil = performance.now() + (e.hard ? 120 : 70); } break; }
       case "dive": if (s.stadium!.vehicles.bus?.drivenBy === pcId) this.d3.dodge(s); break;
       case "bus_wall": a.play("punch", 1, { rate: 0.6 }); this.d3.wall(s, false); break;
       case "breach": a.play("wall_crash", 0.5 + near(e.x, e.y, 80) * 0.5); this.d3.wall(s, true); break;
       case "fire_alarm": a.play("fire_alarm", 0.4 + near(e.x, e.y, 50) * 0.6); break;
       case "gunshot": a.play("gunshot", 0.5 + near(e.x, e.y, 60) * 0.5, { minGap: 0.15 }); this.flash = { x: e.x, y: e.y, until: s.tick + 5 }; break;
-      case "killed": a.play("scream", 0.3 + near(e.x, e.y, 30) * 0.7, { minGap: 1 }); a.play("punch", 0.7); break;
+      case "killed": {
+        a.play("scream", 0.3 + near(e.x, e.y, 30) * 0.7, { minGap: 1 }); a.play("stab", 0.9);
+        const who = s.actors[e.who], by = e.by ? s.actors[e.by] : null;
+        if (who) {
+          const dx = by ? who.x - by.x : 0, dy = by ? who.y - by.y : 1, l = Math.hypot(dx, dy) || 1;
+          this.impact(e.by ?? e.who, e.who, dx / l, dy / l, 2.2, near(e.x, e.y, 35));
+          this.pools.push({ x: who.x, y: who.y + 0.1, r: 0.1, max: 1.3, grow: 0.5 });
+        }
+        break;
+      }
+      case "mauled": case "flayed": {
+        const who = s.actors[e.who];
+        if (who) { this.spray(who.x, who.y, 1.3, Math.random() * 2 - 1, Math.random() * 2 - 1, 22, 1.4); this.pools.push({ x: who.x, y: who.y + 0.1, r: 0.1, max: 0.9, grow: 0.35 }); }
+        break;
+      }
       case "body_found": a.play("scream", 0.3 + near(e.x, e.y, 40) * 0.7, { minGap: 2 }); break;
       case "armed_challenge": { const o = s.actors[e.by]; if (o) a.play("armed_police", 0.4 + near(o.x, o.y, 35) * 0.6, { minGap: 3 }); break; }
       case "disarmed": a.play("stw_knife", 1); break;
@@ -466,20 +499,36 @@ class StadiumScene extends Phaser.Scene {
     this.drawCrowd();
   }
 
+  crowdImgs: { im: Phaser.GameObjects.Image; y: number; ph: number; sp: number; x: number }[] = [];
+  /** The seated crowd fidgets, and rises the nearer the ball gets to a goal at their end. */
+  stirCrowd(): void {
+    if (!this.crowdImgs.length || (this.s.tick & 1)) return;
+    const t = performance.now() / 1000, b = this.s.match!.ball, m = this.s.match!;
+    const live = m.phase === "live" || m.phase === "restart";
+    const heat = live ? Math.max(0, (Math.abs(b.x) - (HL - 22)) / 22) : 0;
+    for (const c of this.crowdImgs) {
+      const near = heat * Math.max(0, 1 - Math.abs(c.x - Math.sign(b.x) * HL) / 40);
+      const bob = Math.sin(t * c.sp + c.ph);
+      c.im.y = c.y - (bob > 0.75 - near * 0.9 ? 1 + Math.round(near * 3) : 0);
+    }
+  }
+
   drawCrowd() {
     const P = this.P, g = this.crowdG;
     g.clear();
-    this.crowdBlit?.destroy(); this.crowdBlit = null;
+    this.crowdBlit?.destroy(); this.crowdBlit = null; this.crowdImgs = [];
     let seed = 12345;
     const rnd = () => ((seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
     const opp = this.s.match!.teams[1];
     const sprites = this.useSprites && this.bank.ready();
     // Colour schemes for the seated crowd: three England shirts and two of theirs, each in three skins.
     const SK = [0xf1c7a5, 0xd9a47e, 0x8a5a3b];
-    const schemes: Recolour[] = [];
-    for (const sh of [{}, { shirt: 0xc8102e, trim: 0xf4f4f4 }, { shirt: 0x1b2a6b, trim: 0xf4f4f4 }, { shirt: opp.colour, trim: opp.colour2 }, { shirt: opp.colour2, trim: opp.colour }] as Recolour[])
-      for (const sk of SK) schemes.push({ ...sh, skin: sk });
-    if (sprites && !this.textures.exists(`crowd-${opp.short}`)) this.bank.crowdAtlas(`crowd-${opp.short}`, schemes);
+    // Three bodies (fat bloke, lad, woman) x five shirts x three skins.
+    const schemes: (Recolour & { base?: Base })[] = [];
+    for (const base of ["fan", "lad", "woman"] as Base[])
+      for (const sh of [{}, { shirt: 0xc8102e, trim: 0xf4f4f4 }, { shirt: 0x1b2a6b, trim: 0xf4f4f4 }, { shirt: opp.colour, trim: opp.colour2 }, { shirt: opp.colour2, trim: opp.colour }] as Recolour[])
+        for (const sk of SK) schemes.push({ ...sh, skin: sk, base });
+    if (sprites && !this.textures.exists(`crowd2-${opp.short}`)) this.bank.crowdAtlas(`crowd2-${opp.short}`, schemes);
     const scale = P.S === PPM ? 1 : (1.62 * P.KZ * P.S) / (FEET - HEAD);
     const blit = sprites ? this.add.container(0, 0).setDepth(0.4) : null;
     type Seat = { x: number; y: number; row: number; f: number; shirt: number };
@@ -492,15 +541,20 @@ class StadiumScene extends Phaser.Scene {
         for (let x = a.x + 0.6; x < a.x + a.w - 0.3; x += 0.9) {
           if (rnd() < 0.42 || areaAt(x, y).id !== a.id) continue;
           const pickShirt = away ? (rnd() < 0.7 ? 3 : 4) : rnd() < 0.55 ? 0 : rnd() < 0.5 ? 1 : 2;
-          const skin = Math.floor(rnd() * 3);
-          seats.push({ x, y, row: pickShirt * 3 + skin, f, shirt: pickShirt });
+          const skin = Math.floor(rnd() * 3), b = rnd(), body = b < 0.55 ? 0 : b < 0.8 ? 1 : 2;
+          seats.push({ x, y, row: body * 15 + pickShirt * 3 + skin, f, shirt: pickShirt });
         }
       }
     }
     seats.sort((p, q) => p.y - q.y);
     for (const st of seats) {
       const sx = P.sx(st.x, st.y), sy = P.sy(st.x, st.y);
-      if (blit) { blit.add(this.add.image(Math.round(sx), Math.round(sy), `crowd-${opp.short}`, st.row * 4 + st.f).setOrigin(0.5, 46 / 52).setScale(scale)); continue; }
+      if (blit) {
+        const im = this.add.image(Math.round(sx), Math.round(sy), `crowd2-${opp.short}`, st.row * 4 + st.f).setOrigin(0.5, 46 / 52).setScale(scale);
+        blit.add(im);
+        this.crowdImgs.push({ im, y: Math.round(sy), ph: rnd() * Math.PI * 2, sp: 1.5 + rnd() * 2.5, x: st.x });
+        continue;
+      }
       const shirt = [0xf4f4f4, 0xc8102e, 0x1b2a6b, opp.colour, opp.colour2][st.shirt];
       const h = (P.standing ? 0.9 * P.KZ : 0.3) * P.S;
       g.fillStyle(shirt, 1).fillRect(sx - P.S * 0.28, sy - h, P.S * 0.56, h);
@@ -534,7 +588,8 @@ class StadiumScene extends Phaser.Scene {
     if (!st.ending) {
       this.applyInput();
       const ann = (this as any).announcer as Announcer;
-      if (performance.now() >= this.hitStopUntil) this.stepper.advance(dms / 1000, () => { stepGame(this.game2); ann.tick(); this.applyInput(); }, 24);
+      const slow = performance.now() < this.slowUntil ? 0.3 : 1;
+      if (performance.now() >= this.hitStopUntil) this.stepper.advance((dms * slow) / 1000, () => { stepGame(this.game2); ann.tick(); this.applyInput(); }, 24);
     }
     if (st.ending && $("ending").hidden && !this.endingShown) { this.endingShown = true; this.showEnding(); }
     if (!st.ending) this.endingShown = false;
@@ -551,6 +606,82 @@ class StadiumScene extends Phaser.Scene {
 
   /** Behind the wheel, in one of the 3D views? */
   inCab(): boolean { return this.s.stadium!.vehicles.bus?.drivenBy === this.pc?.id && this.driveView !== "map"; }
+
+  // ---------- Violence: hit-stop, shake, flash, spray ----------
+  /** Camera trauma (0-1): the shake is trauma squared, and it drains away. */
+  trauma = 0;
+  /** Blood in the air, metres; it lands as spots that stay. */
+  drops: { x: number; y: number; z: number; vx: number; vy: number; vz: number; r: number }[] = [];
+  /** Pools spreading under the badly hurt. */
+  pools: { x: number; y: number; r: number; max: number; grow: number }[] = [];
+  /** White flash on a sprite (ms timestamp), and the attacker's lunge. */
+  flashAt = new Map<string, number>();
+  lunge = new Map<string, { dx: number; dy: number; at: number }>();
+  burst: { x: number; y: number; at: number; k: number } | null = null;
+  decalG!: Phaser.GameObjects.Graphics;
+  kick = { x: 0, y: 0 };
+  pcHidden = false;
+  rainG: Phaser.GameObjects.Graphics | null = null;
+  ghost: Phaser.GameObjects.Sprite | null = null;
+  slowUntil = 0;
+  decals = 0;
+
+  impact(byId: string, whoId: string, dx: number, dy: number, k: number, closeness: number): void {
+    const s = this.s, by = s.actors[byId], who = s.actors[whoId], now = performance.now();
+    if (!who) return;
+    const mine = byId === this.pc?.id || whoId === this.pc?.id;
+    // Your own blows stop the world for a beat (longer for heavier ones) and jolt the camera along
+    // the blow; other people's fights nearby just shake it a little.
+    if (mine) {
+      const ko = k >= 2 || (who.downUntil - this.s.tick > 300 && byId === this.pc?.id);
+      this.hitStopUntil = Math.max(this.hitStopUntil, now + (ko ? 140 : k > 1 ? 90 : 55));
+      this.trauma = Math.min(1, this.trauma + (ko ? 0.6 : k > 1 ? 0.45 : 0.32));
+      this.kick = { x: dx * (ko ? 7 : k > 1 ? 5 : 3), y: dy * (ko ? 7 : k > 1 ? 5 : 3) };
+      // A knockout or a killing: everything slows right down for a moment.
+      if (k >= 2 || (who.downUntil - this.s.tick > 300 && byId === this.pc?.id)) this.slowUntil = now + 450;
+    } else if (closeness > 0.4) this.trauma = Math.min(1, this.trauma + 0.15 * k);
+    if (whoId === this.pc?.id) { const v = $("hurt"); v.classList.remove("on"); void v.offsetWidth; v.classList.add("on"); }
+    this.flashAt.set(whoId, now);
+    if (by && byId !== whoId) this.lunge.set(byId, { dx, dy, at: now });
+    this.burst = { x: who.x - dx * 0.3, y: who.y - dy * 0.3, at: now, k };
+    this.spray(who.x, who.y, 1.55, dx, dy, Math.round(16 * k), 1 + k * 0.5);
+  }
+
+  /** Throw drops of blood from a point at a height (metres), mostly along (dx, dy). */
+  spray(x: number, y: number, z: number, dx: number, dy: number, n: number, speed: number): void {
+    for (let i = 0; i < n; i++) {
+      const sp = speed * (1.5 + Math.random() * 3), a = Math.atan2(dy, dx) + (Math.random() - 0.5) * 1.3;
+      this.drops.push({ x, y, z, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, vz: 1 + Math.random() * 2.5, r: 0.05 + Math.random() * 0.09 });
+    }
+    if (this.drops.length > 400) this.drops.splice(0, this.drops.length - 400);
+  }
+
+  /** Move the blood in the air; what lands becomes a spot on the floor that stays. */
+  stepGore(dms: number): void {
+    const P = this.P, dt = Math.min(0.05, dms / 1000), S = P.S;
+    const g = this.decalG;
+    if (this.decals > 1500) { g.clear(); this.decals = 0; }
+    this.drops = this.drops.filter((d) => {
+      d.x += d.vx * dt; d.y += d.vy * dt; d.z += d.vz * dt; d.vz -= 14 * dt; d.vx *= 0.97; d.vy *= 0.97;
+      if (d.z > 0) return true;
+      const r = Math.max(1, Math.round(d.r * S * (0.8 + Math.random() * 0.6)));
+      g.fillStyle(Math.random() < 0.5 ? 0x6e0b0b : 0x8a1010, 0.9).fillRect(Math.round(P.sx(d.x, d.y)), Math.round(P.sy(d.x, d.y)), r, Math.max(1, Math.round(r * 0.7)));
+      this.decals++;
+      return false;
+    });
+    for (const p of this.pools) {
+      if (p.r >= p.max) continue;
+      p.r = Math.min(p.max, p.r + p.grow * dt);
+      if (p.r >= p.max) {
+        // Fully spread: paint it in for good (a dark centre, a ragged edge).
+        g.fillStyle(0x5a0808, 0.85).fillEllipse(Math.round(P.sx(p.x, p.y)), Math.round(P.sy(p.x, p.y)), p.r * 2 * S, p.r * 1.5 * S);
+        g.fillStyle(0x7a0c0c, 0.6).fillEllipse(Math.round(P.sx(p.x + p.r * 0.3, p.y)), Math.round(P.sy(p.x, p.y + p.r * 0.2)), p.r * 1.2 * S, p.r * 0.9 * S);
+        this.decals += 2;
+      }
+    }
+    this.pools = this.pools.filter((p) => p.r < p.max);
+    this.trauma = Math.max(0, this.trauma - dt * 1.7);
+  }
 
   honk() {
     const r = dispatch(this.w, { verb: "horn", actor: this.pc.id });
@@ -652,6 +783,7 @@ class StadiumScene extends Phaser.Scene {
     this.shadowG.clear();
     const sprites = this.useSprites && this.bank.ready();
     const seenSprites = new Set<string>();
+    this.pcHidden = false;
     type Thing = { d: number; draw: () => void; spr?: (depth: number) => void };
     const things: Thing[] = [];
     const cam = this.cameras.main;
@@ -690,6 +822,7 @@ class StadiumScene extends Phaser.Scene {
       // The face, a tiled texture standing on the wall's front edge.
       const fx = Math.round(P.sx(wl.x, 0)), fy = Math.round(P.sy(0, wl.y + wl.h)), fw = Math.max(1, Math.round(wl.w * P.S));
       const fa = behind(wl.y + wl.h) ? 0.35 : 1;
+      if (fa < 1) this.pcHidden = true;
       things.push({ d: wl.y + wl.h, draw: () => {}, spr: (dep) => {
         const id = `${fx},${fy},${fw},${lift},${mat}`;
         let ts = this.wallSprites.get(id);
@@ -856,6 +989,14 @@ class StadiumScene extends Phaser.Scene {
       if (st2.ring) sh.lineStyle(3, st2.ring, 1).strokeEllipse(gx, gy, Wd * 2.9, Wd * (P.standing ? 1.25 : 2.9));
       seenSprites.add(a.id);
       things.push({ d: a.y, draw: () => {}, spr: (depth) => this.placeSprite(a, st2, shiver, moving, depth) });
+      // Phones held up to film a fight, with the odd flash.
+      const gk = a.npc?.gawk;
+      if (gk?.filming && gk.until > tick && !a.seated && a.downUntil <= tick) things.push({ d: a.y + 0.0002, draw: () => {
+        const d = P.dir(gk.x - a.x, gk.y - a.y), px = Math.round(P.sx(a.x, a.y) + d.x * 9), py = Math.round(P.sy(a.x, a.y, 1.5) + Math.max(0, d.y) * 4);
+        g.fillStyle(0x15171a, 1).fillRect(px - 3, py - 5, 6, 10);
+        g.fillStyle(0xbfe3ff, 1).fillRect(px - 2, py - 4, 4, 7);
+        if ((tick + Math.abs(hash(a.id))) % 150 < 3) g.fillStyle(0xffffff, 0.9).fillCircle(px, py - 4, 6);
+      } });
       if (st2.hat || st2.face || (a.effects.bloody ?? 0) > tick || a.npc?.job === "police" || a.npc?.job === "armed")
         things.push({ d: a.y + 0.0001, draw: () => this.drawHeadwear(g, a, st2) });
     }
@@ -881,6 +1022,15 @@ class StadiumScene extends Phaser.Scene {
     }
     g = nextLayer();
     for (const [id, sp] of this.spritePool) if (!seenSprites.has(id)) sp.setVisible(false);
+    // Behind a wall, roof or van: your outline drawn through it, so you never lose yourself.
+    {
+      const me = pc && this.spritePool.get(pc.id);
+      if (!this.ghost) this.ghost = this.add.sprite(0, 0, "__DEFAULT").setDepth(9e6).setVisible(false);
+      if (me && this.pcHidden && me.visible) {
+        this.ghost.setTexture(me.texture.key, me.frame.name).setOrigin(me.originX, me.originY).setPosition(me.x, me.y).setScale(me.scaleX).setAngle(me.angle)
+          .setTint(0xf2c94c).setTintMode(Phaser.TintModes.FILL).setAlpha(0.45).setVisible(true);
+      } else this.ghost.setVisible(false);
+    }
     for (const [id, sp] of this.worldSprites) if (!this.worldSeen.has(id)) sp.setVisible(false);
     for (const [id, ts] of this.wallSprites) if (!this.wallSeen.has(id)) ts.setVisible(false);
     for (const [id, ts] of this.shellSprites) if (!this.shellSeen.has(id)) ts.setVisible(false);
@@ -895,6 +1045,24 @@ class StadiumScene extends Phaser.Scene {
       g.fillStyle(0xff5a36, 0.8).fillCircle(P.sx(c.x, c.y), P.sy(c.x, c.y), 3);
     }
 
+    // Blood in the air and spreading pools; the white burst where a blow lands.
+    this.stepGore(dms);
+    for (const d of this.drops) {
+      const r = Math.max(2, Math.round(d.r * P.S));
+      g.fillStyle(0x9a1010, 1).fillRect(Math.round(P.sx(d.x, d.y)), Math.round(P.sy(d.x, d.y, d.z)), r, r);
+    }
+    for (const p of this.pools) this.shadowG.fillStyle(0x5a0808, 0.85).fillEllipse(P.sx(p.x, p.y), P.sy(p.x, p.y), p.r * 2 * P.S, p.r * 1.5 * P.S);
+    if (this.burst) {
+      const age = (performance.now() - this.burst.at) / 110;
+      if (age >= 1) this.burst = null;
+      else {
+        const bx = P.sx(this.burst.x, this.burst.y), by2 = P.sy(this.burst.x, this.burst.y, 1.45), R = P.S * (0.35 + age * 0.5) * this.burst.k;
+        g.fillStyle(0xffffff, 1 - age).fillCircle(bx, by2, R * 0.55);
+        g.lineStyle(3, 0xfff3c4, 1 - age);
+        for (let i = 0; i < 8; i++) { const an = i * Math.PI / 4 + 0.3; g.lineBetween(bx + Math.cos(an) * R * 0.6, by2 + Math.sin(an) * R * 0.6, bx + Math.cos(an) * R * 1.3, by2 + Math.sin(an) * R * 1.3); }
+      }
+    }
+
     // Muzzle flash.
     if (this.flash && this.flash.until > tick) {
       const fx = P.sx(this.flash.x, this.flash.y), fy = P.sy(this.flash.x, this.flash.y, P.standing ? 1.3 : 0);
@@ -902,6 +1070,24 @@ class StadiumScene extends Phaser.Scene {
       if (pc) g.lineStyle(1.5, 0xfff2a0, 0.6).lineBetween(fx, fy, P.sx(pc.x, pc.y), P.sy(pc.x, pc.y, P.standing ? 1.1 : 0));
     }
 
+    this.stirCrowd();
+    // Drizzle: a British November match day. Not indoors.
+    {
+      const here = pc ? areaAt(pc.x, pc.y) : null;
+      if (!this.rainG) this.rainG = this.add.graphics().setDepth(9.9e6);
+      this.rainG.clear();
+      const inside = !!pc && (!here?.outside && !here?.seats && !here?.pitch || this.blds.some((b) => pc.x > b.rect.x0 && pc.x < b.rect.x1 && pc.y > b.rect.y0 && pc.y < b.rect.y1));
+      if (!inside && !this.inCab()) {
+        const v = cam.worldView, t = performance.now() / 1000, rg = this.rainG;
+        rg.lineStyle(1, 0xc8d2dc, 0.22);
+        for (let i = 0; i < 90; i++) {
+          const fx = ((i * 7919) % 1000) / 1000, fy = ((i * 104729) % 1000) / 1000, sp = 0.6 + ((i * 31) % 10) / 25;
+          const x = v.x + ((fx * v.width - t * 60 * sp) % v.width + v.width) % v.width;
+          const y = v.y + ((fy * v.height + t * 520 * sp) % v.height);
+          rg.lineBetween(Math.round(x), Math.round(y), Math.round(x - 3), Math.round(y + 10));
+        }
+      }
+    }
     // Crowd bounce after a goal.
     if (this.crowdJump) {
       const j = Math.abs(Math.sin(this.crowdJump * 0.35)) * 3;
@@ -968,6 +1154,15 @@ class StadiumScene extends Phaser.Scene {
     const zt = this.targetZoom();
     if (Math.abs(cam.zoom - zt) > 0.001) cam.setZoom(cam.zoom + (zt - cam.zoom) * Math.min(1, k * 1.5));
     cam.centerOn(this.camX, this.camY);
+    if (this.trauma > 0 || this.kick.x || this.kick.y) {
+      // Shake: trauma squared through smooth noise (Eiserloh), plus a kick along the blow that springs back.
+      const sh = this.trauma * this.trauma * 7 * (P.S / 16), t = performance.now() / 1000;
+      const nx = Math.sin(t * 47.3) * 0.6 + Math.sin(t * 91.7 + 1.3) * 0.4, ny = Math.sin(t * 53.1 + 2.1) * 0.6 + Math.sin(t * 83.9 + 0.7) * 0.4;
+      cam.scrollX += nx * sh + this.kick.x; cam.scrollY += ny * sh + this.kick.y;
+      this.kick.x *= 0.8; this.kick.y *= 0.8;
+      if (Math.abs(this.kick.x) + Math.abs(this.kick.y) < 0.3) this.kick = { x: 0, y: 0 };
+      cam.scrollX = Math.round(cam.scrollX); cam.scrollY = Math.round(cam.scrollY);
+    }
   }
 
   // ---------- The world ----------
@@ -1009,6 +1204,7 @@ class StadiumScene extends Phaser.Scene {
       // See-through while you're round the back of it.
       const hid = free && pc.x > x0 - 0.5 && pc.x < x1 + 0.5 && pc.y < y1 && pc.y > y0 - H - 1;
       const a = hid ? 0.4 : 1;
+      if (hid) this.pcHidden = true;
       // Its shadow falls to the bottom right: light from the top left, like every other thing here.
       this.shadowG.fillStyle(0x000000, 0.26).fillRect(Math.round(P.sx(x1, 0)), Math.round(P.sy(0, y0 + 1)), Math.round(Math.min(2.2, H * 0.4) * S), Math.round((y1 - y0 - 0.5) * S));
       this.shadowG.fillStyle(0x000000, 0.2).fillRect(Math.round(P.sx(x0, 0)), Math.round(P.sy(0, y1)), Math.round((x1 - x0) * S), 4);
@@ -1032,6 +1228,7 @@ class StadiumScene extends Phaser.Scene {
       if (wM > 3) sh.fillStyle(0x000000, 0.24).fillRect(Math.round(P.sx(p.x - wM / 2 + 0.3, 0)), Math.round(P.sy(0, p.y - 0.5)), Math.round(wM * S), Math.round(0.7 * S));
       else sh.fillStyle(0x000000, 0.28).fillEllipse(Math.round(P.sx(p.x + 0.15, 0)), Math.round(P.sy(0, p.y)) - 2, Math.round(wM * S * 1.1), Math.max(6, Math.round(wM * S * 0.35)));
       const fade = free && hM > 1.4 && pc.y < p.y && pc.y > p.y - hM * 1.1 && Math.abs(pc.x - p.x) < wM / 2 + 0.4;
+      if (fade) this.pcHidden = true;
       things.push({ d: p.y, draw: () => {}, spr: (dep) => place(image(p.id, key)).setDepth(dep).setAlpha(fade ? 0.4 : 1) });
     }
 
@@ -1058,6 +1255,7 @@ class StadiumScene extends Phaser.Scene {
         const x = Math.round(P.sx(b.x0, 0)), w = Math.round((b.x1 - b.x0) * S), lift = H * S;
         const top = Math.round(P.sy(0, b.y0)) - lift, bot = Math.round(P.sy(0, b.y1)) - lift;
         const near = free && pc.x > b.x0 && pc.x < b.x1 && pc.y < b.y1 + 0.3 && pc.y > b.y1 - H - 1 && b.front;
+        if (near) this.pcHidden = true;
         things.push({ d: b.y1 - 0.06, draw: () => {}, spr: (dep) => {
           tile(`roof${i}`, "mat-roofsteel", x, top, w, bot - top, dep);
           tile(`face${i}`, b.front ? "mat-clad" : "mat-seats_h", x, bot, w, lift, dep + 0.1, near ? 0.45 : 1).setTint(b.front ? 0xffffff : 0x8a8f99);
@@ -1094,6 +1292,21 @@ class StadiumScene extends Phaser.Scene {
         xs.forEach((x, i) => image(`tst${i}`, "k-turnstile").setOrigin(0.5, tx.foot / 160).setPosition(Math.round(P.sx(x, 0)), Math.round(P.sy(0, 45))).setDepth(dep + 0.01).setAlpha(nearF ? 0.45 : 1));
       } });
     }
+    // Advertising boards round the pitch: made-up sponsors facing the cameras on the far side
+    // and the ends; on the near side you see their backs.
+    {
+      const ADS: [string, number, number][] = [["STELLAR LAGER", 0xc8102e, 0xf4f1ea], ["GREGGORS PIES", 0x1b3a8a, 0xf2c94c], ["KWIKLOAN 1999%", 0x2f9e5a, 0xffffff],
+        ["LUCKY LIONEL'S", 0x3d2a6b, 0xf2c94c], ["VAPE CITY", 0x111111, 0x6cf0ff], ["NO WIN NO FEE", 0xf2c94c, 0x111111], ["PIE & MASH", 0xf4f1ea, 0x1b2a6b], ["BET RESPONSIBLY", 0x222222, 0xd7263d]];
+      ADS.forEach(([t, bg, fg], i) => { if (!this.textures.exists(`ad${i}`)) this.textures.addCanvas(`ad${i}`, adBoard(t, bg, fg)); });
+      if (!this.textures.exists("adback")) this.textures.addCanvas("adback", adBoard("", 0, 0, true));
+      let i = 0;
+      for (let x = -36; x < 36; x += 6) {
+        if (x > -6 && x < 3) continue; // the tunnel mouth
+        const yN = -24.5, yS = 24.9, k = i++;
+        if (onScreen(x + 3, yN, 300)) things.push({ d: yN, draw: () => {}, spr: (dep) => image(`adN${x}`, `ad${(k + Math.floor(this.s.tick / 900)) % ADS.length}`).setOrigin(0, 1).setPosition(Math.round(P.sx(x, 0)), Math.round(P.sy(0, yN))).setDepth(dep) });
+        if (onScreen(x + 3, yS, 300)) things.push({ d: yS, draw: () => {}, spr: (dep) => image(`adS${x}`, "adback").setOrigin(0, 1).setPosition(Math.round(P.sx(x, 0)), Math.round(P.sy(0, yS))).setDepth(dep).setAlpha(free && pc.y < yS && pc.y > yS - 1.6 && pc.x > x && pc.x < x + 6 ? 0.4 : 1) });
+      }
+    }
     // Floodlights: on the corners of the roof from outside, on their masts from in the ground.
     for (const p of this.placed.list) {
       if (p.key !== "floodlight" || !onScreen(p.x, p.y, 900)) continue;
@@ -1122,6 +1335,12 @@ class StadiumScene extends Phaser.Scene {
   // ---------- Sprites ----------
   /** Which base sheet, recoloured how, for this person as they look right now. */
   spriteFor(a: Actor): { base: Base; rc: Recolour; h: number } {
+    const out = this.spriteFor0(a);
+    if (!this.bank.has(out.base)) out.base = out.base === "police" ? "steward" : "fan";
+    if (out.base === "steward" && a.npc?.job === "police" && !out.rc.vest) out.rc = { vest: 0x1c2a4a };
+    return out;
+  }
+  spriteFor0(a: Actor): { base: Base; rc: Recolour; h: number } {
     const s = this.s, m = s.match!, isPc = a.id === s.stadium!.pc;
     const skin = SKIN[Math.abs(hash(a.id)) % SKIN.length];
     if (a.fb && !a.fb.controlled) {
@@ -1134,7 +1353,7 @@ class StadiumScene extends Phaser.Scene {
     if (a.off) return { base: "referee", rc: a.off.job === "referee" ? {} : { shirt: 0xd9e021 }, h: 1.8 };
     const job = a.npc?.job;
     if (job && ["turnstile", "doorguard", "gateguard", "pitchsteward", "patrol", "corridor", "chief"].includes(job)) return { base: "steward", rc: {}, h: 1.8 };
-    if (job === "police") return { base: "steward", rc: { vest: 0x1c2a4a }, h: 1.85 };
+    if (job === "police") return { base: "police", rc: {}, h: 1.85 };
     if (job === "armed") return { base: "steward", rc: { vest: 0x2a2d33, legs: 0x1a1a1a }, h: 1.85 };
     // Everyone else is built on the fat fan, in their own colours.
     const outer = a.worn.outer ? defOf(s.items[a.worn.outer]) : undefined;
@@ -1148,6 +1367,12 @@ class StadiumScene extends Phaser.Scene {
       if (outer.role === "police" || outer.role === "referee" || outer.role === "footballer") rc.legs = outer.role === "footballer" ? (outer.colour2 ?? 0x1b2a6b) : 0x15171a;
       if (outer.id === "chef_whites") rc.legs = 0x3a3a3a;
     } else if (inner && inner.id !== "shirt_eng") { rc.shirt = inner.colour; rc.trim = inner.colour2; }
+    // Shopkeepers who look the part.
+    const shop = a.npc?.shop;
+    if (shop === "charity" && this.bank.has("woman")) return { base: "woman", rc: { shirt: 0xb07ab0, trim: 0x5a3a5a, skin: rc.skin }, h: 1.6 };
+    if (shop === "surplus" && this.bank.has("bigman")) return { base: "bigman", rc: { skin: rc.skin }, h: 1.85 };
+    if (shop === "bookies" && this.bank.has("suit")) return { base: "suit", rc: { skin: rc.skin }, h: 1.75 };
+    if (a.name === "Barmaid" && this.bank.has("woman")) return { base: "woman", rc: { shirt: 0x222222, trim: 0x222222, skin: rc.skin }, h: 1.6 };
     if (job === "barman" || job === "seller" || job === "cook") { rc.shirt = 0xf0ece2; rc.trim = 0x333333; rc.legs = 0x2a2a2a; }
     if (job === "driver" || job === "worker") { rc.shirt = 0x2d5a8a; rc.trim = 0x1a3050; rc.legs = 0x2a3340; }
     if (job === "cleaner") { rc.shirt = 0x6a7a8a; rc.trim = 0x445566; rc.legs = 0x445566; }
@@ -1164,6 +1389,14 @@ class StadiumScene extends Phaser.Scene {
     if (borrowed) rc.skin = SKIN[Math.abs(hash(borrowed)) % SKIN.length];
     if ((a.effects.bloody ?? 0) > s.tick) rc.trim = 0x9a0a0a;
     const big = isPc ? 1.75 : job === "fan" || job === "local" ? 1.62 + (Math.abs(hash(a.id)) % 4) * 0.05 : 1.7;
+    // Shirt off: the belly.
+    if (!outer && !a.worn.inner && !a.fb && (isPc || job === "fan")) { delete rc.shirt; delete rc.trim; return { base: "fanbare", rc, h: big }; }
+    // Not everyone is the same fat bloke: lads, women, old boys and big lads too.
+    if (!isPc && (job === "fan" || job === "local") && !outer) {
+      const n = Math.abs(hash(a.id + "b")) % 20;
+      const body: Base = n < 8 ? "fan" : n < 12 ? "lad" : n < 15 ? "woman" : n < 17 ? "oldboy" : n < 19 ? "bigman" : "suit";
+      if (body !== "fan" && this.bank.has(body)) return { base: body, rc: body === "lad" || body === "woman" ? rc : { skin: rc.skin }, h: big };
+    }
     return { base: "fan", rc, h: big };
   }
 
@@ -1178,26 +1411,71 @@ class StadiumScene extends Phaser.Scene {
     const scale = P.standing && P.S === PPM ? 1 : (h * P.KZ * P.S) / (FEET - HEAD) * (P.standing ? 1 : 0.7);
     const x = Math.round(P.sx(a.x + shiver, a.y)), y = Math.round(P.sy(a.x, a.y));
     sp.setVisible(true).setDepth(depth).setScale(scale).setAlpha(st2.alpha ?? 1);
+    const now = performance.now(), has = (sheet: string) => this.textures.exists(`${key}-${sheet}`);
+    const flashing = now - (this.flashAt.get(a.id) ?? -1e9) < 70;
+    // Thrown back by a blow: the recoil pose (or a tilt), white for an instant, then the fall.
+    if (a.knock && !a.dead) {
+      const k = (tick - a.knock.from) / Math.max(1, a.knock.until - a.knock.from), back = Math.sign(a.knock.vx) || 1;
+      const faceBlow = dirIndex(Math.atan2(-a.knock.vy, -a.knock.vx));
+      if (has("hit")) sp.setTexture(`${key}-hit`, faceBlow * this.frames(`${key}-hit`) + Math.min(this.frames(`${key}-hit`) - 1, Math.floor(k * this.frames(`${key}-hit`)))).setAngle(0);
+      else sp.setTexture(`${key}-rot`, faceBlow).setAngle(back * (8 + k * 30));
+      sp.setOrigin(0.5, FEET / CELL).setCrop().setPosition(x, y);
+      if (flashing) sp.setTint(0xffffff).setTintMode(Phaser.TintModes.FILL); else sp.clearTint().setTintMode(Phaser.TintModes.MULTIPLY);
+      this.knocked.add(a.id);
+      return;
+    }
+    if (this.knocked.has(a.id)) {
+      // The moment they hit the floor.
+      this.knocked.delete(a.id);
+      if (a.downUntil > tick) { this.fellAt.set(a.id, now); const v = this.pc ? Math.max(0, 1 - Math.hypot(a.x - this.pc.x, a.y - this.pc.y) / 30) : 0.5; if (v > 0) this.audio.play("bodyfall", 0.3 + v * 0.6, { minGap: 0.08 }); }
+    }
+    const fell = now - (this.fellAt.get(a.id) ?? -1e9);
+    if (st2.down && fell < 380 && has("fall") && !a.seated) {
+      const n = this.frames(`${key}-fall`);
+      sp.setTexture(`${key}-fall`, dirIndex(a.facing) * n + Math.min(n - 1, Math.floor((fell / 380) * n))).setAngle(0).setOrigin(0.5, FEET / CELL).setCrop().setPosition(x, y).clearTint();
+      return;
+    }
+    if (st2.down && has("fall") && !a.seated) {
+      // Lying where they fell: the last frame of the fall.
+      const n = this.frames(`${key}-fall`);
+      sp.setTexture(`${key}-fall`, dirIndex(a.facing) * n + n - 1).setAngle(0).setOrigin(0.5, FEET / CELL).setCrop().setPosition(x, y);
+      sp.setTint(a.dead ? 0xb89a9a : 0xffffff).setTintMode(Phaser.TintModes.MULTIPLY);
+      return;
+    }
     if (st2.down) {
       // Lying flat: the side-on frame, turned over.
       sp.setTexture(`${key}-rot`, 2).setOrigin(0.5, 0.5).setAngle(a.dead ? -90 : 90).setCrop();
       sp.setPosition(x, y - (FEET - HEAD) * scale * 0.12);
-      sp.setTint(a.dead ? 0xc8b0b0 : 0xffffff);
+      sp.setTint(a.dead ? 0xc8b0b0 : 0xffffff).setTintMode(Phaser.TintModes.MULTIPLY);
       return;
     }
-    sp.setAngle(0).setOrigin(0.5, FEET / CELL).clearTint();
+    sp.setAngle(0).setOrigin(0.5, FEET / CELL).clearTint().setTintMode(Phaser.TintModes.MULTIPLY);
     if (moving && !a.seated) {
       // The walk cycle, paced to how fast they're going.
-      const rate = Math.min(1.6, Math.hypot(a.vx, a.vy) / 2.2) * (base === "fan" ? 0.13 : 0.18);
+      const rate = Math.min(1.6, Math.hypot(a.vx, a.vy) / 2.2) * (base === "fan" || base === "fanbare" || base === "bigman" ? 0.13 : 0.18);
       const f = Math.floor((tick + Math.abs(hash(a.id)) % 50) * rate) % 8;
       sp.setTexture(`${key}-walk`, di * 8 + f);
     } else sp.setTexture(`${key}-rot`, a.seated ? (Math.sin(a.facing) < 0 ? 4 : 0) : di);
+    // Throwing a punch: the punch frames (or a lunge) for a fifth of a second.
+    const lg = this.lunge.get(a.id), la = lg ? (now - lg.at) / 220 : 1;
+    let lx = 0, ly = 0;
+    if (lg && la < 1 && !a.seated) {
+      const d = this.P.dir(lg.dx, lg.dy), push = Math.sin(Math.min(1, la * 1.6) * Math.PI) * 7;
+      lx = Math.round(d.x * push); ly = Math.round(d.y * push);
+      if (has("punch")) { const n = this.frames(`${key}-punch`); sp.setTexture(`${key}-punch`, dirIndex(Math.atan2(lg.dy, lg.dx)) * n + Math.min(n - 1, Math.floor(la * n))); }
+      else sp.setTexture(`${key}-rot`, dirIndex(Math.atan2(lg.dy, lg.dx)));
+    } else if (lg) this.lunge.delete(a.id);
+    if (flashing) sp.setTint(0xffffff).setTintMode(Phaser.TintModes.FILL);
     if (a.seated) {
       // Only the top half shows over the seat in front.
       sp.setCrop(0, 0, CELL, 52);
       sp.setPosition(x, y + (FEET - 52) * scale * 0.8);
-    } else { sp.setCrop(); sp.setPosition(x, y); }
+    } else { sp.setCrop(); sp.setPosition(x + lx, y + ly); }
   }
+  knocked = new Set<string>();
+  fellAt = new Map<string, number>();
+  /** Frames per direction in an animation sheet. */
+  frames(key: string): number { return Math.max(1, Math.round((this.textures.get(key).getSourceImage() as HTMLCanvasElement).width / CELL)); }
 
   /** Hats, masks, helmets and blood, over the sprite's head. */
   drawHeadwear(g: Phaser.GameObjects.Graphics, a: Actor, st2: FigureStyle): void {
@@ -1208,7 +1486,7 @@ class StadiumScene extends Phaser.Scene {
     const x = P.sx(a.x, a.y), feet = P.sy(a.x, a.y) + (a.seated ? (FEET - 52) * scale * 0.8 : 0);
     const top = feet - (FEET - HEAD) * scale, hw = 7 * scale;
     const job = a.npc?.job;
-    if (job === "police" || st2.hat === 0x101830) {
+    if ((job === "police" && !this.bank.has("police")) || st2.hat === 0x101830) {
       // A custodian helmet.
       g.fillStyle(job === "armed" ? 0x15171a : 0x101830, 1).fillEllipse(x, top + hw * 0.2, hw * 2.1, hw * 1.9).fillRect(x - hw * 1.2, top + hw * 0.9, hw * 2.4, hw * 0.35);
       g.fillStyle(0xd9d9d9, 1).fillCircle(x, top + hw * 0.4, hw * 0.25);

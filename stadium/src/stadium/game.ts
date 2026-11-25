@@ -251,7 +251,12 @@ export function stepGame(g: Game): void {
 
   for (const id in s.actors) {
     const a = s.actors[id];
-    if ((a.fb && !a.fb.controlled) || a.off || a.hiddenIn || a.heldBy) continue;
+    if (a.knock) {
+      // Sent flying by a blow: fast at first, sliding to a stop; walls still stop you.
+      if (s.tick >= a.knock.until || a.hiddenIn || a.heldBy) delete a.knock;
+      else { const k = (a.knock.until - s.tick) / (a.knock.until - a.knock.from); a.x += (a.knock.vx * k * k) / 60; a.y += (a.knock.vy * k * k) / 60; }
+    }
+    if ((a.fb && !a.fb.controlled && !a.knock) || a.off || a.hiddenIn || a.heldBy) continue;
     collide(w, a);
   }
   for (const id in st.vehicles) {

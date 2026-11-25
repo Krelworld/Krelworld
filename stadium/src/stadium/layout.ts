@@ -193,6 +193,10 @@ export const QF_FURNITURE: Furniture[] = [
   f("lockers", -21, -59.6, 2.6, 0.8, true, "dress_home", 2), f("lockers", -13, -59.6, 2.6, 0.8, true, "dress_home", 2), f("kitbench", -17, -51.2, 2.8, 0.6, false, "dress_home"),
   f("lockers", 13, -59.6, 2.6, 0.8, true, "dress_away", 2), f("lockers", 21, -59.6, 2.6, 0.8, true, "dress_away", 2), f("kitbench", 17, -51.2, 2.8, 0.6, false, "dress_away"),
   f("desk", 33, -56.4, 1.9, 0.6, false, "security"), f("desk", 83, 51.6, 1.9, 0.6, false, "cabin"), f("desk", 87.5, -27, 1.9, 0.6, true, "hotel"),
+  // Pitchside: the dugouts either side of the tunnel, TV cameras, the groundsman's cart.
+  f("dugout", -7.5, -26.2, 4.2, 1.2, true), f("dugout", 7.5, -26.2, 4.2, 1.2, true),
+  f("tvcamera", -18, 25.6, 0.8, 0.5, false), f("tvcamera", 18, 25.6, 0.8, 0.5, false), f("tvcamera", 37.8, -6, 0.8, 0.5, false),
+  f("cart", -38.5, -26.5, 2.6, 1.3, true),
   // The street: trees in grates along the approach, a statue, bin bags and pavement boards.
   ...[-45.5, -32.5, -19.5, 19.5, 32.5, 45.5].map((x) => f("tree", x, 59.4, 0.5, 0.5, true, undefined, 3)),
   f("statue", -44, 53.2, 1.3, 1.0, true, undefined, 3),

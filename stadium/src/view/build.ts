@@ -38,7 +38,8 @@ const GLYPHS: Record<string, string> = {
   "2": "01110100010000100010001000100011111", "3": "11111000100010000010000011000101110", "4": "00010001100101010010111110001000010",
   "5": "11111100001111000001000011000101110", "0": "01110100011001110101110011000101110", "/": "00001000010001000100010001000010000",
   ".": "00000000000000000000000000110001100", "-": "00000000000000011111000000000000000", "!": "00100001000010000100001000000000100",
-  "£": "00110010010100011100010000100011111", ":": "00000011000110000000011000110000000",
+  "£": "00110010010100011100010000100011111", "6": "00110010001000011110100011000101110", "7": "11111000010001000100010000100001000",
+  "8": "01110100011000101110100011000101110", "9": "01110100011000101111000010001001100", "%": "11000110010001000100010001001100011", ":": "00000011000110000000011000110000000",
 };
 
 /** Paint words in the pixel font, centred in a box, at the largest whole scale that fits (up to `max`). */
@@ -445,6 +446,23 @@ export function banner(text: string, bg: number, fg: number, trim: number, cross
   if (cross) { rect(cx, W / 2 - 7, 4, 14, H - 14, css(fg)); rect(cx, 2, 70, W - 4, 14, css(fg)); }
   else { rect(cx, 2, 4, W - 4, 6, css(trim)); rect(cx, 2, H - 22, W - 4, 6, css(trim)); pixelText(cx, text, 6, 18, W - 12, H - 50, css(fg), 2); }
   for (const x of [22, 56, 88]) rect(cx, x, 6, 1, H - 20, "rgba(0,0,0,0.12)");
+  return cv;
+}
+
+/** A pitchside advertising board, 6 m by 0.9 m: a made-up sponsor in big letters. Its back is plain. */
+export function adBoard(text: string, bg: number, fg: number, back = false): HTMLCanvasElement {
+  const W = 6 * PPM, H = 29;
+  const [cv, cx] = canvas(W, H);
+  if (back) {
+    rect(cx, 0, 0, W, H, css(0x2b2f35)); rect(cx, 0, 0, W, 2, css(0x4a4f56));
+    for (let x = 8; x < W; x += 46) rect(cx, x, 4, 3, H - 4, css(0x1d2024));
+    return cv;
+  }
+  rect(cx, 0, 0, W, H, css(0x15171a));
+  rect(cx, 1, 1, W - 2, H - 4, css(bg));
+  rect(cx, 1, 1, W - 2, 1, css(bg, 1.3));
+  pixelText(cx, text, 4, 3, W - 8, H - 8, css(fg), 3);
+  rect(cx, 0, H - 3, W, 3, css(0x0d0e10));
   return cv;
 }
 

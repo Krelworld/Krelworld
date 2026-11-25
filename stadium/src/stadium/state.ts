@@ -29,6 +29,8 @@ export interface Npc {
   sitting: boolean;
   bubble: { text: string; until: number } | null;
   nextBark: number;
+  /** Rubbernecking a fight until this tick; `filming` if they've got their phone out. */
+  gawk?: { until: number; x: number; y: number; filming: boolean };
   // Security.
   mode: Mode;
   /** How suspicious this person is of each suspect, 0..2. */

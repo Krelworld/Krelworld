@@ -32,6 +32,9 @@
   }
   #app { position: relative; width: 100%; height: 100%; overflow: hidden; }
   #game { position: absolute; inset: 0; }
+  #hurt { position: absolute; inset: 0; pointer-events: none; z-index: 1; opacity: 0; box-shadow: inset 0 0 120px 40px rgba(170, 0, 0, 0.75); }
+  #hurt.on { animation: hurt 0.45s ease-out; }
+  @keyframes hurt { 0% { opacity: 1; } 100% { opacity: 0; } }
   #game canvas { display: block; touch-action: none; width: 100% !important; height: 100% !important; image-rendering: pixelated; image-rendering: crisp-edges; }
   .float { position: absolute; z-index: 2; }
   .panel { background: var(--night); border: 0; }
@@ -217,6 +220,7 @@
     </div>
   </div>
 
+  <div id="hurt"></div>
   <div id="ticker" class="float"></div>
   <div id="hint" class="float panel" hidden></div>
   <div id="toast" class="float" hidden></div>

@@ -1,6 +1,15 @@
 import { build } from "esbuild";
 import { copyFileSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 
+// Which extra animation sheets exist for each character base (fan-punch.png and so on).
+{
+  const extras = {};
+  for (const f of readdirSync("assets/art")) {
+    const m = f.match(/^([a-z]+)-([a-z]+)\.png$/);
+    if (m && !f.startsWith("tiles")) (extras[m[1]] ??= []).push(m[2]);
+  }
+  writeFileSync("assets/art/extras.json", JSON.stringify(extras));
+}
 mkdirSync("dist/viewer", { recursive: true });
 await build({
   entryPoints: ["src/view/main.ts"], bundle: true, minify: true, format: "iife",
@@ -29,7 +38,7 @@ writeFileSync(
 import { cpSync } from "node:fs";
 cpSync("assets/audio", "dist/stadium/audio", { recursive: true });
 mkdirSync("dist/stadium/art", { recursive: true });
-for (const k of ["fan", "steward", "england", "portugal", "referee"]) for (const sh of ["rot", "walk"]) copyFileSync(`assets/art/${k}-${sh}.png`, `dist/stadium/art/${k}-${sh}.png`);
+for (const f of readdirSync("assets/art")) if (/^[a-z]+-[a-z]+\.png$/.test(f) && !f.startsWith("tiles")) copyFileSync(`assets/art/${f}`, `dist/stadium/art/${f}`);
 for (const t of ["street", "pitch"]) copyFileSync(`assets/art/tiles-${t}.png`, `dist/stadium/art/tiles-${t}.png`);
 mkdirSync("dist/stadium/icons", { recursive: true });
 for (const f of readdirSync("assets/icons")) if (f.endsWith(".png")) copyFileSync(`assets/icons/${f}`, `dist/stadium/icons/${f}`);

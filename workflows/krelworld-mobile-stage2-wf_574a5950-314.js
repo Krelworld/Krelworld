@@ -290,6 +290,10 @@ phase('Merge')
 const merge = await agent(`${CTX}
 # Your role: MERGER (worktree ${WT}, branch "mobile"; Vite ports 5202 and ALT 5212; scratch ${SP}/mobile/work/s2-merge/)
 
+## RESUMING (read first)
+An earlier run of this role was cut off by a usage limit part way through. Read ${REPORTS}/s2-05-merge.md (its resume point) and "git log e8cf3f4f..HEAD": the merge commit fac0d1ef and the follow-up commits after it are that run's work; keep them and carry on with the TODO list there. Since then the coordinator also merged the live game into "mobile" (0d681a8f: the Elon Musk mini-boss was removed from the Citadel's Ascent at the user's request, plus Chef Marina updates under public/) and committed 9770d543 (Add to Home Screen guide: newer iPhones' page button and View More). Keep both.
+Usage may run out again at any time: commit in small working steps (every 30 to 45 minutes) and keep your report updated as you go.
+
 Two tracks of stage 2 were built in parallel:
 - Combat track, on branch "mobile" in ${WT}. Reports: ${REPORTS}/s2-01-combat-topdown.md and s2-02-combat-side.md.
 - Menus and dialogue track, on branch "mobile-ui" in ${UI_WT}. Reports: ${REPORTS}/s2-03-ui-readability-dialogue.md and s2-04-ui-lists-wording.md.
@@ -394,6 +398,8 @@ log(`Review found ${findings.length} findings (${findings.filter(f => f.severity
 // ---------------------------------------------------------------- 4. Fix, then gate (loop)
 const fixPrompt = (list, round) => `${CTX}
 # Your role: FIXER, stage 2 round ${round} (worktree ${WT}; Vite ports 5206 and ALT 5216; scratch ${SP}/mobile/work/s2-fix${round}/)
+
+Usage may run out at any time: commit each fix (or small group) as soon as it passes tsc and its test, and keep your report updated as you go. If ${REPORTS}/s2-06-fix-round${round}.md already exists, an earlier run of this role was cut off: read it and the git log, keep that work and continue.
 
 Independent reviewers examined stage 2 on branch "mobile". Read src/game/mobile/README.md and the s2-* reports in ${REPORTS}/ first. Their findings are below as JSON.
 Reviewers can be wrong. For EACH finding, first confirm it is real: read the code, and reproduce it on an emulated phone or laptop as appropriate. Then:

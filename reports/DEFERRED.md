@@ -75,3 +75,12 @@ Each line: where it came from, what is wrong, what the stage should do. Ids are 
   pause menu, the bubble in the zone, tapping the thing, blur / focus on a held control, three fingers then a cancel,
   and the real `env()` safe-area path. Not yet: four and five simultaneous touches; tap-the-thing in the Hub by touch;
   the Club, the Venue and Kreddle driven by touch.
+
+## Stage 3: the user's own requests (2026-11-25)
+
+- **Manual aim where you can't move.** The user: "in certain parts of the game maybe test whether manual aim might be okay
+  (I'm thinking the sanmik night of freedom sequence, where you can't move)". NIGHT OF FREEDOM is `DriveScene.ts` (SanMik
+  drives, you're on the guns: endless machine gun plus ROCKET). With no stick needed, the whole screen is free for aiming:
+  test a finger-is-the-crosshair scheme (touch and drag anywhere = aim there and fire; a ROCKET button in the corner)
+  against auto-aim, play both, and pick what feels best. Apply the same test to every other "stationary gunner" section
+  (the plane cannon, any turret or on-rails shooter), and say which scheme each one got and why.

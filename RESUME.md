@@ -1,3 +1,10 @@
+## LATEST (2026-11-25 ~04:15 UTC)
+- The stage 2 builders all FINISHED (cached in journal). The merge agent was cut off part way (merge commit fac0d1ef done, integration checks TODO); the four reviews and the gate never ran.
+- The user asked to remove the Elon Musk fight: done on live (27107ea1, pushed, alt build triggered) and merged into "mobile" (0d681a8f).
+- The user's iPhone shows Add to Home Screen through the page button left of the address bar, then Share, then View More: added to the guide (9770d543 on "mobile").
+- The user asked to test manual aim where you can't move (Night of Freedom, DriveScene): written into DEFERRED.md, stage 3.
+- Stage 2 relaunched with resumeFromRunId wf_574a5950-314 (merge prompt now carries a resume note; fixers told to commit often).
+
 # KRELWORLD phone version: how to resume
 
 Written 2026-11-23 ~13:40 UTC, while the stage 2 workflow was running, because the user's usage may run out.

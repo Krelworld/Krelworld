@@ -61,7 +61,7 @@ main.ts ── boot.ts installMobile(game) ──► isMobile()? no → return (
 | `shell.ts` | Page shell, rotate screen, holds (hidden / pagehide / portrait / guide / resume) and what waking needs (`wakeCare`), the carry-on card, Android fullscreen + landscape lock, back guard |
 | `rotate.ts` | The "turn your phone sideways" screen (DOM, so it also covers the first load), with an empty `extra` slot |
 | `css.ts` | All phone CSS, injected at runtime (index.html is never edited) |
-| `combat.ts` | Stage 2: the top-down fights (FIRE with auto-fire and slide-to-aim, DODGE, SWAP, SPECIAL, READY, HEAL, ACTION, the weapon chip, the drink chips, the mash overlay), the hooks it lends the game (`setPhoneHooks`), phone assist, the fight's touch wording |
+| `combat.ts` | Stage 2: the top-down fights (FIRE with auto-fire and slide-to-aim, DODGE, SWAP, SPECIAL, READY, HEAL, ACTION, the weapon chip, the pocket (💨 / 🍺 / SANMIK), the mash overlay), the hooks it lends the game (`setPhoneHooks`), phone assist, the fight's touch wording |
 | `aim.ts` | Pure: target choice (nearest, stick-biased, sticky, objects as a fallback), snap, lead, auto-fire's "in range, on screen, no barrel by your feet" |
 | `combatLogic.ts` | Pure: READY's order, HEAL's rule, tap / hold (`HoldTracker`), SPECIAL's word and fill, the Dungeon's two mode rows |
 | `combatWording.ts` | Pure: the fights' touch wording rows (the weapon picker's how-to line, the first dungeon's how-to-play rows, the finale's inject hint) |
@@ -198,9 +198,9 @@ topmost running scene per rule):
 | Finale with the Super Saiyan brawl running (stage 2 part 2, `brawl.ts`) | brawl: the phone stick (`"2d"`), PUNCH / BLOCK / VANISH / KICK / KI; the rush is a tap anywhere | – | yes |
 | Finale, any other beat | brawl (legacy pad) | – | yes |
 | WeaponPick over a top-down Dungeon (stage 2, in front of everything) | combat, `picker: true` (the thumb that opened it slides onto a gun; CLOSE where FIRE was) | – | yes |
-| Dungeon, top-down room (stage 2) | combat: the phone stick (`"2d"`, gutter included), FIRE / DODGE / SWAP / SPECIAL / READY / HEAL / ACTION, the chips; `mash: true` while the WONK gauge (or the roof's group wonk) is up; none while busy (scripted moments, dying, changing rooms) | the layer's II (`edge`); none while busy (coming back shows "tap to carry on") | yes |
+| Dungeon, top-down room (stage 2) | combat: the phone stick (`"2d"`, gutter included), FIRE / DODGE / SWAP / SPECIAL / READY / HEAL / ACTION, the weapon chip and the pocket; `mash: true` while the WONK gauge (or the roof's group wonk) is up; none while busy (scripted moments, dying, changing rooms) | the layer's II (`edge`); none while busy (coming back shows "tap to carry on") | yes |
 | WeaponPick over a side room | side, `picker: true`, stick `"x"` | – | yes |
-| Dungeon, side-scrolling room (stage 2 part 2) | side: the stick `"x"` (left / right only), JUMP / FIRE / DODGE / SPECIAL / READY / HEAL / ACTION, the chips; none while busy | the layer's II (`edge`) | yes |
+| Dungeon, side-scrolling room (stage 2 part 2) | side: the stick `"x"` (left / right only), JUMP / FIRE / DODGE / SPECIAL / READY / HEAL / ACTION, the weapon chip and the pocket; none while busy | the layer's II (`edge`) | yes |
 | Home, Hub | walk (none while busy) | `edge`: the scene's own Esc path | – |
 | Club, Kreddle, Venue | walk (none while busy or a machine is open) | `menu`: the pause menu over the scene (on a laptop Esc walks you out; each has an exit to walk to) | – |
 | Kreddle with the raid / rout running | walk | `edge` (their own Esc → pause menu) | yes |
@@ -277,17 +277,26 @@ included, P9). The right thumb has research "layout v2" (offsets from the bottom
 | left (60) | **SWAP** | when there is more than one weapon with ammo | tap = next gun (X), hold 300 ms = the slow-motion weapon picker: slide onto a gun and let go; let go elsewhere and it stays up for a tap, with CLOSE where FIRE was. A thumb that moves 12 px before 300 ms cancels |
 | up (60) | **SPECIAL** (the lad's word: DASH, LOAN, NEWS, OMEN, TURRET, KRUNCH, LURK, SLAM, NUKE; HEADBUTT in the troll fight) | only while it would go (enough Krezz, no decree against it); pops in, pulsing the first 2 times | the character special (F / right mouse) |
 | ready (60) | **READY** (gold, pops in) | a meter ability is ready | WONK! (R) when the WONK meter is full, then GOLD (T, golden juice drunk), IBS! (G at level 4); while golden, CUME (C). Never relabelled under a thumb; ignores presses for 300 ms after a new word |
-| heal (56) | **HEAL** (pops in, with the count) | health under 40% and juice to drink | pussy juice (Q) |
+| heal (56) | **HEAL** (pops in, with the count) | a drink would heal (hurt, juice to drink, healing allowed); red and pulsing (the first 2 times) under 40% | pussy juice (Q) |
 | combatAction (56) | **ACTION** (the verb) | a prompt is up | interact (E); tapping the prompt over your head works too |
 | top, 24 px left of pause (140x44) | **weapon chip** (icon, name, ammo) | always | tap = next gun, hold = the picker (same as SWAP; its touch area reaches the top edge) |
-| under the health bars (32 tall) | **🍼 juice**, **🍺 bongo**, **💨 fart** (its level), **SANMIK** (as Mikey) | juice only while a drink would heal and HEAL isn't up; the others when they can do something | drink (Q, ignored at full health), bongo (B), let one rip at any level (G), Mikey ⇄ SanMik (V) |
+| pocketFart (60, in 206 / up 186) | **💨** with its level (FAIRY / BEANS / CABBAGE) | fart level 1 to 3 (at 4 READY says IBS!) | let one rip (G) |
+| pocketBongo (60, in 206 / up 266) | **🍺 BONGO** with the count | a bongo to drink | fizzy bongo (B) |
+| pocketSanmik (60, in 286 / up 226) | **SANMIK** | as Mikey, when the game lets you change | Mikey ⇄ SanMik (V) |
 | the whole screen | the **mash overlay** | the WONK YOUR THANG gauge or the roof's group wonk is up (`mash`) | every finger anywhere is a press (R / Space / click); the buttons hide meanwhile |
 
 The cluster shares its touches (research M3): every control's element reaches `GAP_REACH` (20) px past its drawing; a
 touch that lands on one goes to the control whose centre is nearest if it is inside several controls' drawing + 10 px,
 else to the control whose drawing is nearest within 20 px (`routeTouch`, layout.ts; `ControlSpec.group`). FIRE,
 DODGE, SPECIAL and READY act on touch-down. A control under a thumb stays (and stays live) until the thumb lifts, even if
-its mode has moved on; then it hides. Pop-ins (SWAP, READY, HEAL, ACTION) animate in and ignore presses for 160 ms.
+its mode has moved on; then it hides. Pop-ins (SWAP, READY, HEAL, ACTION, the pocket) animate in and ignore presses for 160 ms.
+
+**The pocket** (thumb-feel round, the user: "the specials, when they do activate, are tiny to press"): the fart, the
+fizzy bongo and the SanMik change were 32 px chips under the health bars, top left, out of the right thumb's reach. They
+are now full-size round buttons (60 px drawn at 844x390, never under 52; 100 px touch areas), each in its own fixed
+place at the cluster's upper left, part of the cluster's shared touch surface, shown only while they can be used (the
+calm-screen rule). The juice chip is gone: HEAL is the one button for the juice, up whenever a drink would heal
+(`healShown`), red under 40% (`healWanted`).
 During a long freeze (more than 400 ms of hit-stop left: the golden transformation's cut-in, a boss's phase break) the
 fight buttons hide rather than queue presses for afterwards; the short hit-stops of a fight don't count. SANMIK is
 only there when the game would let you swap (not while golden).
@@ -340,7 +349,7 @@ mash, mashPresses, taught) and `resetTeaching()`.
 **Side-scrolling rooms** (`combat.ts` serves mode `side` too; `side.ts`, `jump.ts`): every side room (Crobley factory,
 SanMik Zone / Catford, the Nu Warehouse trip, the Cuddle Tower and the citadel's towers and corridors, the plane, the
 colon) drops the old canvas pad on a phone. Layout v2: **JUMP** (84, prime corner, touch area to the corner), **FIRE**
-(60) left of it, DODGE / SPECIAL / READY / HEAL / ACTION / the chips as in top-down rooms, no SWAP button (the weapon
+(60) left of it, DODGE / SPECIAL / READY / HEAL / ACTION / the pocket as in top-down rooms, no SWAP button (the weapon
 chip swaps). The stick is `"x"`: left / right only, full speed at 35% of the travel. Aim: the way you face plus
 auto-aim (no slide-aim); auto-fire is the same setting as top-down rooms (on by default).
 
@@ -353,16 +362,16 @@ speed are the game's):
 | Buffer | none | 150 ms (40 ms with phone assist off). A press made while no step runs (a dodge, a hit-stop over 100 ms) counts from the first step after it, as a held key does on a laptop |
 | Coyote | 110 ms | 140 ms (110 with phone assist off), judged at the moment of the press, not the frame that reads it |
 | Take-off on 120 / 144 Hz | (two full jumps, laptop as it was) | right after a take-off, while rising, "on the ground" (the 60 Hz physics not stepped yet) never gives the jumps back: one first jump and one air jump at any frame rate |
-| Height | always the full jump | released early = cut at the later of the release and 80 ms after take-off, to 300 px/s (air jump 260): tap about 76-78 px, hold about 140-145 px. Worked out from the height already climbed, so a slow frame doesn't give a taller hop |
+| Height | always the full jump | released early = cut at the later of the release and 100 ms after take-off, to 450 px/s (air jump 390): the quickest tap about 126 px (123 measured in a side room), held 140 ms or more the full 145 (135 measured). Worked out from the height already climbed, so a slow frame doesn't give a taller jump. (Thumb-feel round: it was 80 ms / 300 / 260, a 78 px hop, and the side rooms' standard platforms sit one full jump up, so a quick tap never reached them and a press had to last about 240 ms to) |
 | Double jump | release the stick and push up again | a second press of JUMP (buffered like the first) |
 | Air control | 140 ms easing | 100 ms (140 with assist off) |
 | Drop through | stick down past 0.6 | stick held down past 0.7 (sideways under 0.35) for 150 ms, or stick down past 0.5 and sideways under 0.35 + JUMP on a platform (`DropRule`); the layer's `stickRaw` keeps the stick's y for this even though it drives x only |
 | Pits | back at the last safe spot | phone assist: back at least 120 px short of the edge (`pitSafeX`); the stick doesn't walk you toward the pit again until the thumb comes back to the middle or JUMP is pressed (3 s at most); walking away works at once |
-| One-way landing | 14 px | 20 px (phone assist) |
+| One-way landing | 14 px | 20 px (phone assist), and a jump whose top ends up to 20 px under a platform's top (jumped into from below) is put on it: Arcade only lands a body that enters the top within its 4 px bias in one step, so the collider's own tolerance never got the chance (`ledgePop`, thumb-feel round) |
 | Ledge pop / corner correction | none | feet within 8 px below a top, beside it and moving toward it, are put on it (platform tops 4 px wider); a head clipping a solid corner by up to 40% of the body is nudged past it (phone assist) |
 | Moving platforms | carried while standing | their speed kept 100 ms after stepping / jumping off |
 | Crushers / steam | art-sized | reach x0.88 (phone assist, `ASSIST.hazard`) |
-| Camera | lerp 0.12, 80 x 60 dead zone | dead zone 0 x 200, player at 35% / 65% of the width (follow offset -/+144), turning after 0.4 s the other way, eased; the view leads 60 px down while falling. The follow is the game's 0.12 a frame made frame-rate independent (`camLerp`) plus the trail it leaves (`camLagPx`), so 35% / 65% holds at 30, 60 and 120 Hz; the laptop's small velocity lead is skipped in phone side rooms |
+| Camera | lerp 0.12, 80 x 60 dead zone | dead zone 0 x 200, player at 35% / 65% of the width (follow offset -/+144), turning after 0.4 s the other way, eased, the follow offset changing at most 0.45 game px a ms (`CAM_OFFSET_RATE`, `LookAhead.turnMs` 700: a turn used to whip the view up to 135 game px in 60 ms); the view leads 60 px down while falling. The follow is the game's 0.12 a frame made frame-rate independent (`camLerp`) plus the trail it leaves (`camLagPx`), so 35% / 65% holds at 30, 60 and 120 Hz; the laptop's small velocity lead is skipped in phone side rooms |
 | Hazards under the buttons | n/a | pits (and their names), moving platforms and crushers are occluders: JUMP / FIRE go see-through over them (JUMP keeps a solid green outline and its icon, so it still reads as JUMP) |
 
 `window.__krelMobile.combat.side.snapshot()`: held, jumps, the waiting press, coyote, the stick's raw direction, the
@@ -415,8 +424,11 @@ Android camera cutout (16-40), so SPECIAL is never pushed onto DODGE nor READY o
   element it landed on, by id, until it ends; `touchcancel` releases without acting.
 - The stick zone is the thumb's 45% of the window, the black gutter included, below the top 20% (HUD) and above the
   bottom strip, in a mode with a `stick`. Nothing inside it takes touches but the zone (research M4): a touch that
-  starts there is the stick the moment it moves. The stick appears where the thumb lands, follows it past the rim, 8 px
-  dead zone, full speed at 60% of the travel (35% for an "x" stick).
+  starts there is the stick the moment it moves. The stick appears where the thumb lands and its base stays there for
+  that touch (setting `stick: "stays"`, the default since the thumb-feel round; the user: "the joystick ... can slide
+  all over the screen, if your thumb does"): pulling past the rim is full speed that way, the knob stops at the rim.
+  `"follows"` drags the base along past the rim (the old default), never out of the stick zone (`keepInZone`);
+  `"fixed"` keeps it at its resting place. 8 px dead zone, full speed at 60% of the travel (35% for an "x" stick).
 - A touch in the zone that ends within 400 ms having moved under 10 px is a tap: on the prompt bubble, or on the thing
   the prompt is about (around its spot, reaching further up than down: the TV, the console, a door, a person), it is
   ACTION; anywhere else it is handed to the game as a tap at that point (`injectTap`: down now, up two game frames
@@ -482,7 +494,7 @@ silently.
 | `leftHanded` | false | yes (layer) | stick on the right, buttons on the left |
 | `buttonSize` | `"M"` | yes (layer) | S / M / L = 0.85 / 1 / 1.2 (never under 52 px) |
 | `opacity` | 0.3 | yes (layer) | idle outline strength 0.2 to 0.8 |
-| `stick` | `"floating"` | yes (layer) | `"fixed"`: the base stays at its resting place |
+| `stick` | `"stays"` | yes (layer) | STAYS: the base stays where the thumb landed; FOLLOWS (`"follows"`): dragged along past the rim; FIXED (`"fixed"`): at its resting place. A stored `"floating"` (the old default) reads as `"stays"` and is not kept as a choice |
 | `haptics` | true | yes (layer buttons) | `navigator.vibrate` 12 to 25 ms where it exists (Android) |
 | `readability` | **true** (stage 2) | yes (see below) | "Bigger text": the font floor and the reading sizes |
 | `textSize` | `"normal"` | yes, with readability | `"large"`: every floor x1.25 (labels 13.75, reading 20 CSS px) |
@@ -771,9 +783,9 @@ potential special even when they're not active". The rule now (`combatLogic.ts`,
   walked), FIRE (or JUMP and FIRE in a side room), DODGE, the weapon chip (gun and ammo; tap = next gun), pause.
 - **Only while it can be used right now**, popping in (never drawn dim "for later"): SWAP (a second weapon with ammo),
   SPECIAL (enough Krezz for it, no decree against it: `specialWanted`, with the game's own discounts in `specialCost`),
-  READY (a meter ability is ready), HEAL (under 40% with juice), ACTION (a prompt), the juice chip (a drink would heal
-  and HEAL isn't up: `juiceChipWanted`), the bongo chip (a bongo to drink), the 💨 chip (level 1 to 3; IBS is READY's),
-  SANMIK (as Mikey, when the game lets you change).
+  READY (a meter ability is ready), HEAL (a drink would heal: `healShown`; red under 40%), ACTION (a prompt), and the
+  pocket (thumb-feel round): 🍺 (a bongo to drink), 💨 (level 1 to 3; IBS is READY's), SANMIK (as Mikey, when the game
+  lets you change), full-size buttons at the cluster's upper left.
 - **Names, not captions** (N1): the first-fights words live inside the icon buttons; the brawl's buttons carry their
   word; no fight control has a caption under it, so nothing can print on a neighbour, the HUD or the home-indicator
   strip at any size, side or setting.
@@ -787,6 +799,23 @@ Also: the **room name** up top (`roomName.ts`, N2) is fitted between the top-lef
 (`game.events` "poststep"): where it doesn't fit it shows the room's own name (after the last " · "), ellipsised if
 needed, or nothing; out of a fight it goes back as the game made it. The **Krezz Arms Leave card** is drawn 30 px
 higher on a phone (PubScene's guarded hook, N4), clear of the bottom 21 px.
+
+## Thumb-feel round (the user's own iPhone test)
+
+The user, on the live build: "jumping feels a little awkward", "The specials, when they do activate, are tiny to
+press", "Is there a pause button?", "The joystick ... can slide all over the screen, if your thumb does".
+
+- **Stick**: its base stays where the thumb landed (`stick: "stays"`, above); FOLLOWS / FIXED in Settings.
+- **Specials**: the pocket (above): 💨, 🍺 and SANMIK full size on the right; HEAL is the juice's one button.
+- **Jumping**: a quick tap reaches the standard platforms (126 px, was a 78 px hop), a jump ending up to 20 px under a
+  platform's top is put on it, turning round no longer whips the camera, and the idle stick hint moves off the player
+  at a side room's start (it sat on him).
+- **Pause**: the layer's II (52 px drawn, 72 x 68 to touch, top right, clear of the island) shows in every phone mode
+  that has a pause on a laptop: walking (Home, Hub, Club, Kreddle and its raid / rout, the Venue), top-down rooms, boss
+  rooms, side rooms (also while the WONK mash overlay is up), and the finale brawl (its own II, the carry-on card with
+  SKIP FIGHT). Not while a conversation, a scripted moment or the weapon picker is up (none pauses on a laptop either),
+  not on menus (they are the pause), and not in the overlay minigames: none of them pauses on a laptop (Whack and
+  RuneScape's Esc leaves); stage 3 looks at those.
 
 ## Testing
 

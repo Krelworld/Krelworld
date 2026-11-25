@@ -34,7 +34,7 @@ leaves the slot empty. SWAP stays when there is a second gun, as the brief asked
 
 ### Counts, measured (controls on screen, the stick included), before (5bb649ec) and after
 
-Measured by the smoke's new `polish` section on the base source and on this branch, iPhone 14 844x390 with insets
+Measured by the smoke's new `polish` section on the base source (a `git archive` of 5bb649ec on port 5222, its own Vite cache, deleted afterwards) and on this branch, iPhone 14 844x390 with insets
 47/47/21 and Android 740x360 (identical counts on both):
 
 | Situation | Before | After | What went |
@@ -113,7 +113,27 @@ fit only shortens or hides a HUD label (the room's name), never rewords it.
 
 ## Checks
 
-CHECKS_PLACEHOLDER
+All run on the final code (head 37a710d4; the last commit only touched two smoke-test comments) with my own dev servers
+from the worktree (normal 5202, ALT 5212), one browser at a time. Logs in
+`/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/mobile/work/s2-polish/`.
+
+| Check | Result |
+|---|---|
+| (a) fingerprint `shell,front,newgame,hub,meeting,dungeon` (main + ALT) | 40 of 40 identical, **DESKTOP FINGERPRINT: OK** (`fp1.log`) |
+| (a) fingerprint `boss,side,places,minigames,finale,alt` | 25 of 25 identical, **DESKTOP FINGERPRINT: OK** (`fp2.log`) |
+| (b) touchlaptop / ipad / fire7 (`front,newgame`) | 16/16, 16/16, 16/16, all **OK** |
+| (b) androidtab (`front,newgame,hub`) | 29/29 **OK** |
+| (c) `npx vitest run tests/desktopInvariants.test.ts` | 19/19 pass; `git diff 5bb649ec` on `tests/desktopInvariants.test.ts`, `tests/fingerprints/`, `index.html`, `src/main.ts` is empty (no baseline re-recorded) |
+| (d) `npx tsc --noEmit` | clean |
+| (d) `npx vitest run` | 44 files, 550/550 pass (3 new: the calm-screen rules and the room-name shortening) |
+| (e) `mobile-smoke.cjs` normal (5202), full | **418 of 418**, MOBILE SMOKE: OK (1419 s; the new `polish` section included) |
+| (e) `mobile-smoke.cjs` ALT (5212), full | 417 of 418 in the full run: the side room's "a tap hops about 78 px" read 54 px (hold 140 px fine) while the machine's load average was about 3.6 on 4 CPUs (another agent running). Re-run on ALT, `--only side`: 19/19, tap 75 px; again `--only side,polish`: **67/67**, tap 75 px. Nothing in this round touches the jump (the room-name fit only re-measures when its text or bounds change), and the same check passed in the normal run (75 px) |
+
+The new `polish` section, on its own: before (base 5bb649ec) 10 of 34 checks pass (every caption-collision, JUMP, room
+name, Leave and "only usable controls" check fails, i.e. the test can fail); after, 48 of 48 at four sizes.
+
+State left: dev servers stopped, the base-source copy and its Vite cache deleted, worktree clean (no status, no stash),
+nothing pushed, the main checkout untouched. All 6 commits end with the two footer lines.
 
 ## Screenshots (1x)
 

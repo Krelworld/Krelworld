@@ -347,6 +347,12 @@ export class CombatControls {
   private fireUp(cancelled: boolean) {
     this.fireHeld = false;
     this.manual = null;
+    // (a FIRE still under a thumb when the fight ended lifts outside it: it must not start a stream there, where
+    // nothing would ever stop it: the town would read a held attack and punch Mikey)
+    if (!this.active) {
+      this.graceUntil = 0;
+      return;
+    }
     // auto-fire off: the stream carries on a moment, so hopping to DODGE and back doesn't break it (M1)
     this.graceUntil = !cancelled && !phoneSettings().autoFire ? realNow() + FIRE_GRACE_MS : 0;
     TOUCH.attack = this.graceUntil > realNow() || this.autoFiring;
@@ -737,7 +743,9 @@ export class CombatControls {
     this.autoFiring = false;
     this.target = null;
     this.layer.occluders = [];
-    TOUCH.attack = this.fireHeld;
+    // (FIRE belongs to the fight: outside it nothing reads it as held, even with the thumb still down)
+    TOUCH.attack = false;
+    this.graceUntil = 0;
     this.drawAim(null);
     // (a jump held or waiting when the room or the mode changes must not go off later)
     this.side.reset();

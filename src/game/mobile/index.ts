@@ -179,6 +179,12 @@ export function installMobile(game: Phaser.Game) {
       liveScene(game, "PitLoan")?.close?.();
       return true;
     }
+    if (open.name === "archive") {
+      // (Esc on a laptop: leave the archive, unless a record is being re-enacted)
+      const a = liveScene(game, "Archive");
+      if (a && !a.playing) a.leave();
+      return !!a;
+    }
     return false;
   });
   installed = { shell, layer, readability: read, wording, guide, diag, dialogue, settingsPage };

@@ -111,6 +111,61 @@ describe("phone jump: buffer and coyote", () => {
       expect(o.jumpVy).toBe(-660);
     });
   }
+  for (const hz of [30, 60, 120]) {
+    it(`${hz} Hz: walked off a ledge, a press 135 ms later read on the next frame is still the first jump (F6)`, () => {
+      const dt = 1000 / hz;
+      const b = new JumpBrain();
+      let t = 0;
+      let lastGround = 0;
+      for (; t < 500; t += dt) {
+        b.step({ now: t, grounded: true, vy: 0, held: false });
+        lastGround = t;
+      }
+      const pressAt = lastGround + 135;
+      for (; t < pressAt; t += dt) b.step({ now: t, grounded: false, vy: 100, held: false });
+      b.press(pressAt);
+      const o = b.step({ now: t, grounded: false, vy: 100, held: true });
+      expect(o.kind).toBe("first");
+    });
+  }
+  for (const hz of [120, 144, 240]) {
+    it(`${hz} Hz: tapping JUMP three times quickly is one jump and the air jump, never a second first jump (F1)`, () => {
+      for (const gaps of [[30, 150], [60, 120], [100, 60]]) {
+        const at = [0, gaps[0], gaps[0] + gaps[1]];
+        const dt = 1000 / hz;
+        let prev = -1;
+        const r = sim(hz, (t) => {
+          const press = at.some((a) => a > prev && a <= t);
+          prev = t;
+          return { press, held: at.some((a) => t >= a && t < a + 25) };
+        });
+        expect(r.takeoffs.map((x) => x.kind)).toEqual(["first", "air"]);
+        expect(r.apex).toBeLessThan(150);
+        expect(dt).toBeGreaterThan(0);
+      }
+    });
+  }
+  it("a press made during a dodge or a long hit-stop (no step runs) jumps on the first step after it (F2)", () => {
+    for (const into of [0, 20, 50, 100]) {
+      for (const gap of [170, 230, 200]) {
+        const b = new JumpBrain();
+        b.step({ now: 0, grounded: true, vy: 0, held: false });
+        b.step({ now: 16, grounded: true, vy: 0, held: false });
+        // the dodge: no steps from 16 to 16 + gap; JUMP pressed `into` ms in (stamped with the scene clock)
+        b.press(16 + into);
+        const o = b.step({ now: 16 + gap, grounded: true, vy: 0, held: true });
+        expect(o.kind).toBe("first");
+      }
+    }
+    // a normal frame rate never ages a press that way: a press 200 ms old at 60 Hz is still forgotten
+    const b = new JumpBrain();
+    b.jumps = 0;
+    for (let t = 0; t < 800; t += 16) b.step({ now: t, grounded: false, vy: 300, held: false });
+    b.press(800);
+    let jumped = false;
+    for (let t = 800; t <= 1200; t += 16) if (b.step({ now: t, grounded: t >= 1000, vy: 300, held: false }).jumpVy !== undefined) jumped = true;
+    expect(jumped).toBe(false);
+  });
   it("coyote is 140 ms on a phone (the game's 110 with phone assist off)", () => {
     const b = new JumpBrain();
     b.step({ now: 0, grounded: true, vy: 0, held: false });
@@ -162,6 +217,9 @@ describe("phone drop-through: only on purpose", () => {
     expect(d.step(0, { x: 0, y: 0.6 }, true, true)).toBe("drop");
     expect(d.step(0, { x: 0, y: 0.6 }, true, false)).toBeNull();
     expect(d.step(0, { x: 0.9, y: 0.3 }, true, true)).toBeNull(); // running and jumping
+    expect(d.step(0, { x: 0.45, y: 0.6 }, true, true)).toBeNull(); // a thumb sunk low while running right (F7)
+    expect(d.step(0, { x: 0.55, y: 0.55 }, true, true)).toBeNull();
+    expect(d.step(0, { x: 0.2, y: 0.7 }, true, true)).toBe("drop");
     expect(d.step(0, null, true, true)).toBeNull();
   });
 });
@@ -205,7 +263,8 @@ describe("phone ledge forgiveness and air control", () => {
   });
 });
 
-import { padActive } from "../src/game/mobile/pad";
+import { padActive, padWoke, padRest, PadHandover } from "../src/game/mobile/pad";
+import { vi } from "vitest";
 import { resolveMode, setInputSource, currentInputSource } from "../src/game/mobile/modes";
 
 describe("a controller on the phone (S6 / R11)", () => {
@@ -215,6 +274,46 @@ describe("a controller on the phone (S6 / R11)", () => {
     expect(padActive({ buttons: [], axes: [0, 0.6] })).toBe(true);
     expect(padActive({ connected: false, buttons: [{ pressed: true }], axes: [] })).toBe(false);
     expect(padActive(null)).toBe(false);
+  });
+  it("a pad resting off-centre (triggers at -1, a drifting stick, a button resting down) never takes over (R2)", () => {
+    const pad = (axes: number[], pressed: number[] = []) => ({ id: "generic", buttons: Array.from({ length: 12 }, (_, i) => ({ pressed: pressed.includes(i), value: pressed.includes(i) ? 1 : 0 })), axes });
+    const rest = padRest(pad([0, 0, 0, 0, -1, -1]));
+    expect(padWoke(pad([0, 0, 0, 0, -1, -1]), rest)).toBe(false);
+    expect(padWoke(pad([0.6, 0, 0, 0, -1, -1]), rest)).toBe(true);
+    expect(padWoke(pad([0, 0, 0, 0, 0, -1]), rest)).toBe(true);
+    expect(padWoke(pad([0, 0, 0, 0, -1, -1], [3]), rest)).toBe(true);
+    const drift = padRest(pad([0.5, 0, 0, 0]));
+    expect(padWoke(pad([0.55, 0, 0, 0]), drift)).toBe(false);
+    const stuck = padRest(pad([0, 0, 0, 0], [7]));
+    expect(padWoke(pad([0, 0, 0, 0], [7]), stuck)).toBe(false);
+    // the handover itself, frame by frame, with navigator.getGamepads faked
+    let cur = pad([0, 0, 0, 0, -1, -1]);
+    vi.stubGlobal("navigator", { getGamepads: () => [cur] });
+    try {
+      setInputSource("touch");
+      const h = new PadHandover();
+      for (let i = 0; i < 30; i++) h.poll();
+      expect(currentInputSource()).toBe("touch");
+      cur = pad([0, 0, 0, 0, -1, -1], [0]);
+      h.poll();
+      expect(currentInputSource()).toBe("pad");
+      expect(h.handovers).toBe(1);
+      // a finger takes over (what start()'s touchstart listener does) with the button still down: it stays touch
+      setInputSource("touch");
+      (h as unknown as { rest: unknown; touched: boolean }).rest = null;
+      (h as unknown as { touched: boolean }).touched = true;
+      for (let i = 0; i < 30; i++) h.poll();
+      expect(currentInputSource()).toBe("touch");
+      // let go and press again: the pad takes over again
+      cur = pad([0, 0, 0, 0, -1, -1]);
+      h.poll();
+      cur = pad([0, 0, 0, 0, -1, -1], [0]);
+      h.poll();
+      expect(currentInputSource()).toBe("pad");
+    } finally {
+      vi.unstubAllGlobals();
+      setInputSource("touch");
+    }
   });
   it("the decision carries input: pad only while a pad is in use (touch adds nothing)", () => {
     const view = { scenes: [{ key: "Hub" }] };

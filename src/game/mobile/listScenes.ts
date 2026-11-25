@@ -526,6 +526,8 @@ const archive: Adapter = {
       id: "archive",
       rect: { x: 12, y: 62, w: 340, h: 440 },
       title: `${ents.filter((e) => un.includes(e.id)).length}/${ents.length} records`,
+      // (the list sits where the game's own ◀ LEAVE is: the way out is on the card, as chapter select's BACK)
+      back: { label: "◀ LEAVE", id: "archive-leave", fn: () => sc.leave() },
       rows,
       accent: "#c8b88a",
     };

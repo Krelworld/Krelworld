@@ -40,6 +40,12 @@ export const JUMP_TUNE = Object.freeze({
   dropHoldMs: 150,
   /** ...or the stick pulled down past this while JUMP is pressed (on a platform) drops instead of jumping. */
   dropChordDown: 0.5,
+  /** Right after a take-off, while still rising, "on the ground" is the physics not having stepped yet (a 120 / 144 Hz
+   *  screen runs frames between the 60 Hz physics steps): it never gives the jumps back. */
+  liftoffMs: 100,
+  /** A gap between two steps longer than this means the player was not moving (a dodge, a hit-stop): a press made in
+   *  it counts from the first step after it, as a held key does on a laptop. */
+  pauseGapMs: 100,
   /** How long the platforms let you through once a drop starts (the game's own window). */
   dropWindowMs: 220,
   /** One-way platforms accept a landing this far below their top (the game's is 14). */
@@ -96,6 +102,8 @@ export class JumpBrain {
   cutDone = true;
   /** Was the last press used to drop through a platform instead? (the caller decides; this just stops it jumping) */
   wasGrounded = false;
+  /** The scene time of the last step (-1: none yet). */
+  lastStepAt = -1;
 
   press(now: number) {
     this.pressAt = now;
@@ -111,6 +119,7 @@ export class JumpBrain {
   /** Forget everything held or pending (a room change, a mode change, the page hidden): no stuck jump. */
   reset() {
     this.pressAt = null;
+    this.lastStepAt = -1;
     this.heldNow = false;
     this.cutDone = true;
     this.takeoffKind = null;
@@ -126,7 +135,14 @@ export class JumpBrain {
     const T = JUMP_TUNE;
     const assist = i.assist !== false;
     const out: JumpStepOut = {};
-    if (i.grounded) {
+    // (still on the ground the frame after a take-off only because the 60 Hz physics hasn't stepped yet: F1)
+    const justUp = this.takeoffKind !== null && i.vy < 0 && i.now - this.takeoffAt < T.liftoffMs;
+    const grounded = i.grounded && !justUp;
+    // a press made while the player wasn't moving at all (no step ran: a dodge, a long hit-stop) is fresh on the first
+    // step after it, not stale (F2)
+    if (this.pressAt !== null && this.lastStepAt >= 0 && i.now - this.lastStepAt > T.pauseGapMs && this.pressAt >= this.lastStepAt) this.pressAt = i.now;
+    this.lastStepAt = i.now;
+    if (grounded) {
       this.jumps = 2;
       this.coyoteUntil = i.now + (assist ? T.coyoteMs : T.gameCoyoteMs);
     }
@@ -135,8 +151,9 @@ export class JumpBrain {
     const buffer = assist ? T.bufferMs : T.noAssistBufferMs;
     if (this.pressAt !== null && i.now - this.pressAt > buffer) this.pressAt = null;
     if (this.pressAt !== null) {
-      const coyote = i.now < this.coyoteUntil;
-      if (i.grounded || coyote) {
+      // (coyote is judged at the moment of the press, not at the frame that reads it: F6)
+      const coyote = this.pressAt < this.coyoteUntil;
+      if (grounded || coyote) {
         out.jumpVy = -T.firstVy;
         out.kind = "first";
         this.jumps = 1;
@@ -173,7 +190,7 @@ export class JumpBrain {
         this.cutDone = true;
       }
     }
-    this.wasGrounded = i.grounded;
+    this.wasGrounded = grounded;
     return out;
   }
 }
@@ -199,7 +216,8 @@ export class DropRule {
       if (this.downSince < 0) this.downSince = now;
     } else this.downSince = -1;
     if (!onPlatform) return null;
-    if (jumpPressed && !!raw && raw.y > T.dropChordDown && Math.abs(raw.x) < Math.max(T.dropSide, raw.y * 0.8)) return "drop";
+    // (mostly straight down: a thumb that has sunk low while running right is still running and jumping: F7)
+    if (jumpPressed && !!raw && raw.y > T.dropChordDown && Math.abs(raw.x) < T.dropSide) return "drop";
     if (down && now - this.downSince >= T.dropHoldMs) {
       this.downSince = now + 10_000; // once per hold
       return "drop";

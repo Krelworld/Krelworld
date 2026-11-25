@@ -281,9 +281,12 @@ already), a still tap (under 10 px, under 400 ms) anywhere on the picture:
    stick's numbers (`TOUCH.mx / my`), so the speed, the drunk wobble, the slippery modifier and every collider are the
    game's. When the scene's prompt names the thing, the same edge ACTION sends uses it (`pressInteract()`) and the ring
    flashes white. Already in reach: used at once.
-2. **The floor**: walk there (it felt right in research and in testing; a still tap is a deliberate act, a stray thumb
-   that moves is the stick). Not from the HUD strip along the top, not onto yourself.
+2. **No thing under the tap, but round the thing the prompt is about** (stage 1's generous area: around its spot,
+   reaching further up than down): ACTION, as in stage 1 (the trophy shelf from just under it). A neighbour's picture
+   still wins where it is; only then the floor.
 3. **A canvas button of the game's own** under the tap (the Club's UP CLOSE): the game gets the tap, as before.
+4. **The floor**: walk there (it felt right in research and in testing; a still tap is a deliberate act, a stray thumb
+   that moves is the stick). Not from the HUD strip along the top, not onto yourself.
 
 Which thing (`pickTarget`): each thing can be tapped within its picture grown to at least 44 CSS px, plus 6 px. Inside
 a picture beats near one; among pictures the tap is inside, the smallest wins (the book lying on the bed); among near

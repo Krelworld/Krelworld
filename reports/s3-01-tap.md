@@ -104,7 +104,21 @@ change happens..." (ch7.ts:19), the gig heckle "NOT DURING THE KEY CHANGE!" (cit
 ## Checks
 
 During the work: tsc, the new unit tests, `--only tapuse` on the iPhone profile with its 47/47/21 insets (32 of 32).
-Full check at the end: see the bottom of this file.
+Full check at the end (on 7875e3b8, own servers 5302 / 5312, stopped after):
+
+| Check | Result |
+|---|---|
+| (a) laptop fingerprint, first half (shell, front, newgame, hub, meeting, dungeon) | 40 of 40 identical, DESKTOP FINGERPRINT: OK |
+| (a) second half (boss, side, places, minigames, finale, alt) | 25 of 25 identical, OK |
+| (b) touchlaptop, ipad, fire7 (front, newgame); androidtab (front, newgame, hub) | all OK |
+| (c) `tests/desktopInvariants.test.ts` | 19 passed; it, `tests/fingerprints/` and index.html unedited |
+| (d) `tsc --noEmit`; `vitest run` | OK; 45 files, 571 tests passed |
+| (e) phone smoke, main | 447 of 449. The two misses are fight checks: `review1` timed out waiting for the Dungeon to load (passed on a rerun: `--only combat,review1`, 52 of 53), and `HEAL pops in under 40% health` (hp read back as 265 / 229 after the test set it to 10; it fails the same way, `{"hp0":265,"hp":265}`, in the other wave 1 builder's s3-perf run on main, and passes on ALT). Tap to use is not active in fights (its controller is for the "walk" mode only and `covers()` is false there), so this is pre-existing / load-related; flagged for the coordinator |
+| (e) phone smoke, ALT | 448 of 450: `SWAP tap: the next gun` and `weapon chip tap` (pistol → pistol) under load; `--only combat` rerun on ALT: 46 of 46 |
+| `tapuse` section | 32 of 32 in both full runs |
+
+The first full run caught that tap to use had dropped stage 1's "tap just under the prompted thing" (the phone
+section's trophy shelf and console checks); fixed in b3fed80d (see Kept from stages 1/2), then everything was run again.
 
 ## Judged against "mega intuitive and fun"
 

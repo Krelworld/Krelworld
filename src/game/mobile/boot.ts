@@ -64,7 +64,7 @@ export interface PhoneHooks {
   /** The finale's brawl starts (SsjBrawl): true = the phone draws its controls (the brawl's canvas pad is skipped). */
   brawl?(brawl: unknown): boolean;
   /** The Kreltality prompt opens: big touch targets for it; returns what takes them away again. */
-  finisher?(p: { yes(): void; no(): void }): (() => void) | null;
+  finisher?(p: { yes(): void; no(): void; ms?: number; all?: boolean }): (() => void) | null;
   /** Crushers' and steam vents' reach, as a share of the game's (phone assist: a little smaller). */
   hazardScale?(): number;
 }

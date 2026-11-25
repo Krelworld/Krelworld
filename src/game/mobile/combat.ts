@@ -30,14 +30,14 @@ import { SCENE_RULES, addSceneRule, currentInputSource } from "./modes";
 import { rightStick } from "./pad";
 import { registerModeController, type ModeContext, type TouchControl, type TouchLayer } from "./touchLayer";
 import { ACQUIRE, AIM_TUNE, MELEE_REACH, SLIDE_PX, aimPointFor, autoFireOk, pickTarget, snapAim, type AimTarget, type Pt } from "./aim";
-import { DUNGEON_RULE, FIRE_GRACE_MS, HoldTracker, PICKER_RULE, READY, RELABEL_MS, TEACH_ROOMS, healWanted, readyAbility, spamGap, specialFill, specialWord, type ReadyId } from "./combatLogic";
+import { DUNGEON_RULE, FIRE_GRACE_MS, HoldTracker, MashQueue, PICKER_RULE, READY, RELABEL_MS, TEACH_ROOMS, healWanted, readyAbility, spamGap, specialFill, specialWord, type ReadyId } from "./combatLogic";
 import { controlScale, MIN_CONTROL, safeRect, type Placed, type Rect } from "./layout";
 import { COMBAT_CSS, COMBAT_STYLE_ID } from "./combatCss";
 import { haptic } from "./haptics";
 import { SideMove } from "./side";
 import { JUMP_TUNE } from "./jump";
-import { NARRATOR_TIPS, UI_TEXTS, addWording, wordText } from "./wording";
-import { COMBAT_NARRATOR_TIPS, COMBAT_WORDING, COMBAT_WORDING_FIRST, TUTORIAL_TEXT } from "./combatWording";
+import { NARRATOR_TIPS, STORY_UI_LINES, UI_TEXTS, addWording, wordText } from "./wording";
+import { COMBAT_NARRATOR_TIPS, COMBAT_WORDING, COMBAT_WORDING_FIRST, FIGHT_UI_LINES, TUTORIAL_TEXT } from "./combatWording";
 
 // ------------------------------------------------------------------ what we read off the Dungeon (from outside)
 
@@ -208,7 +208,15 @@ export class CombatControls {
   /** The room counted last (its Player: the Dungeon scene object itself is reused from room to room). */
   private teachRoomCounted: unknown = null;
   private pulseUntil: Partial<Record<CtlId, number>> = {};
-  private mashPresses = 0;
+  private readonly mashQ = new MashQueue();
+  /** Presses the game was actually handed (not fingers: the queue hands them over one a frame). */
+  private get mashPresses() {
+    return this.mashQ.delivered;
+  }
+
+  private feedMash() {
+    if (this.mashQ.next(TOUCH.edges.has("burst"))) TOUCH.edges.add("burst");
+  }
   private wasMash = false;
   private fsWas = false;
   private dodgeSeen = 0;
@@ -324,10 +332,9 @@ export class CombatControls {
       (e) => {
         if (e.cancelable) e.preventDefault();
         if (this.layer.held) return;
-        for (let i = 0; i < e.changedTouches.length; i++) {
-          TOUCH.edges.add("burst");
-          this.mashPresses++;
-        }
+        // (every finger counts, even two in one frame: queued, one a frame)
+        this.mashQ.press(e.changedTouches.length);
+        this.feedMash();
         haptic("tap");
       },
       { passive: false },
@@ -799,6 +806,8 @@ export class CombatControls {
     };
     // the mash overlay: the whole screen
     this.mash.classList.toggle("show", mash);
+    if (mash) this.feedMash();
+    else this.mashQ.clear();
     if (mash) TOUCH.attack = false;
     // (a tap in its last moment must not reach the fight as a WONK press: "WONK 0%")
     else if (this.wasMash) TOUCH.edges.delete("burst");
@@ -1166,6 +1175,7 @@ export function installCombat(game: Phaser.Game, layer: TouchLayer): CombatContr
   // dungeon's how-to-play pages, which named the old pad's buttons
   UI_TEXTS.WeaponPick = [/^\(the world's slowed right down\) · Tap one/];
   UI_TEXTS.Tutorial = [TUTORIAL_TEXT];
+  STORY_UI_LINES.Dungeon = [...(STORY_UI_LINES.Dungeon ?? []), ...FIGHT_UI_LINES];
   for (const r of COMBAT_WORDING) addWording(r);
   // (in front of stage 1's "Press E" → "Tap", which would leave "walk up, Tap")
   for (const r of COMBAT_WORDING_FIRST) addWording(r, "front");

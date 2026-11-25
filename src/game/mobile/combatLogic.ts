@@ -166,3 +166,31 @@ export const PICKER_RULE: SceneRule = {
   },
 };
 
+
+/**
+ * Mash presses for a game that reads one press a frame (an edge in a Set): two thumbs landing in the same frame would
+ * count once. Every finger is queued and handed over one a frame (a few at most, so nothing trails on after the
+ * drumming stops; F10). Pure.
+ */
+export class MashQueue {
+  pending = 0;
+  delivered = 0;
+  constructor(readonly cap = 4) {}
+
+  /** Fingers that just landed. */
+  press(n = 1) {
+    this.pending = Math.min(this.cap, this.pending + Math.max(0, n));
+  }
+
+  /** May one press go to the game now? (`waiting`: the game hasn't read the last one yet.) */
+  next(waiting: boolean): boolean {
+    if (waiting || this.pending <= 0) return false;
+    this.pending--;
+    this.delivered++;
+    return true;
+  }
+
+  clear() {
+    this.pending = 0;
+  }
+}

@@ -211,7 +211,10 @@ export class Shell {
     if (on === had) return;
     if (on) this.holds.add(h);
     else this.holds.delete(h);
-    if (!on && h === "resume") this.carryOn = true;
+    if (!on && h === "resume") {
+      this.carryOn = true;
+      this.setCardExtra(null);
+    }
     if (on) {
       this.layer?.releaseAll();
       if (h === "hidden") this.save();
@@ -259,17 +262,38 @@ export class Shell {
     if (!this.holds.size) this.layer?.rearm();
   }
 
+  private cardExtra: { label: string; fn: () => void } | null = null;
+
+  private setCardExtra(x: { label: string; fn: () => void } | null) {
+    this.cardExtra = x;
+    const b = this.card?.querySelector(".kres-x") as HTMLElement | null;
+    if (!b) return;
+    b.textContent = x?.label ?? "";
+    b.classList.toggle("on", !!x);
+  }
+
+  /**
+   * Pause where the scene has no pause menu (the finale brawl's II): the "tap to carry on" card, with one extra
+   * button (the laptop's Esc for that scene, e.g. SKIP FIGHT). Tapping elsewhere on the card carries on.
+   */
+  pauseCard(extra: { label: string; fn: () => void } | null = null) {
+    this.setCardExtra(extra);
+    this.setHold("resume", true);
+  }
+
   /** The "tap to carry on" card (a fight with no pause menu: the finale, the minigames). */
   private makeCard(): HTMLDivElement {
     const el = document.createElement("div");
     el.className = "kres";
     el.setAttribute("role", "button");
-    el.innerHTML = `<div class="kres-in"><div class="kres-t">PAUSED</div><div class="kres-s">Tap to carry on</div></div>`;
+    el.innerHTML = `<div class="kres-in"><div class="kres-t">PAUSED</div><div class="kres-s">Tap to carry on</div><div class="kres-x" role="button"></div></div>`;
     let down = false;
+    let onX = false;
     el.addEventListener("touchstart", (e) => {
       if (e.cancelable) e.preventDefault();
       e.stopPropagation();
       down = true;
+      onX = !!(e.target as HTMLElement | null)?.closest?.(".kres-x.on");
     }, { passive: false });
     el.addEventListener("touchmove", (e) => {
       if (e.cancelable) e.preventDefault();
@@ -280,7 +304,10 @@ export class Shell {
       e.stopPropagation();
       if (!down) return;
       down = false;
+      // (the card's extra button, where a scene has one: the game wakes first, then it acts)
+      const fn = onX ? this.cardExtra?.fn : null;
       this.setHold("resume", false);
+      fn?.();
     }, { passive: false });
     el.addEventListener("touchcancel", () => (down = false));
     // (a mouse, for ?mobile=1 on a computer)

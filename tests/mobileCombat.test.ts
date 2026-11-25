@@ -6,6 +6,9 @@ import bossesSrc from "../src/content/bosses.ts?raw";
 import citadelSrc from "../src/content/citadel.ts?raw";
 import clubSrc from "../src/game/scenes/ClubScene.ts?raw";
 import squeezeSrc from "../src/game/systems/squeeze.ts?raw";
+import combatBossesSrc from "../src/game/combat/Bosses.ts?raw";
+import citadelSceneSrc from "../src/game/scenes/citadel/Citadel.ts?raw";
+import heroSrc from "../src/game/combat/HeroPassengers.ts?raw";
 import { ACQUIRE, AIM_TUNE, aimPointFor, angleDiff, autoFireOk, barrelInTheWay, BARREL_DANGER, pickTarget, snapAim, targetScore, type AimTarget } from "../src/game/mobile/aim";
 import {
   DUNGEON_RULE,
@@ -18,6 +21,7 @@ import {
   READY,
   readyAbility,
   spamGap,
+  MashQueue,
   SPAM_BURST_MS,
   SPAM_GAP_MS,
   specialFill,
@@ -361,6 +365,22 @@ describe("phone combat: the fights' toasts and narrated control tips (merged wit
     expect(touchWording("Get to Bob first and press E, or he'll cuddle them for health.", rules)).toBe("Get to Bob first and tap ACTION, or he'll cuddle them for health.");
     expect(touchWording("Alistair is dazed. Get close and HEADBUTT him (F / right click)!", rules)).toBe("Alistair is dazed. Get close and HEADBUTT him (tap HEADBUTT)!");
   });
+  it("the Cronster's hostage tags and the Citadel's exchange sign lose their key (R3), matched whole when made", async () => {
+    const { FIGHT_UI_LINES } = await import("../src/game/mobile/combatWording");
+    const tag = "MOLLOR\n(tied up: E to free)";
+    expect(FIGHT_UI_LINES.some((r) => r.test(tag))).toBe(true);
+    expect(touchWording(tag, rules)).toBe("MOLLOR\n(tied up: tap ACTION to free)");
+    const sign = "🎁 KREDDLE\nEXCHANGE (E)";
+    expect(FIGHT_UI_LINES.some((r) => r.test(sign))).toBe(true);
+    expect(touchWording(sign, rules)).not.toMatch(/\(E\)/);
+    // the game still writes them that way (so the rows are not dead)
+    expect(combatBossesSrc).toContain("(tied up: E to free)");
+    expect(citadelSceneSrc).toContain('"🎁 KREDDLE\\nEXCHANGE (E)"');
+    // the hero passengers' finisher has phone words and the phone's big buttons
+    const hp = heroSrc;
+    expect(hp).toMatch(/isMobile\(\) \? \(n > 1 \? "☠ ALL OF THEM" : "☠ KRELTALITY"\)/);
+    expect(hp).toMatch(/phoneHooks\(\)\?\.finisher\?\.\(/);
+  });
   it("every narrated fight tip still exists as written in the game and is reworded on a phone only by its control words", () => {
     const lines: [string, RegExp][] = [
       ["src/data/dungeons.ts", /"(SIDE-ON CONTROLS: [^"]+)"/],
@@ -382,5 +402,32 @@ describe("phone combat: the fights' toasts and narrated control tips (merged wit
       expect(out, m![1]).not.toBe(m![1]);
       expect(out, out).not.toMatch(/\b(WASD|A \/ D|W \/ SPACE|press [EFT]\b|Press T\b|\(F\)|\(W \/ up\)|mouse)/);
     }
+  });
+});
+
+describe("phone mash: every finger counts (F10)", () => {
+  it("two thumbs in one frame are two presses, handed over one a frame", () => {
+    const q = new MashQueue();
+    const edges = new Set<string>();
+    let got = 0;
+    const gameFrame = () => {
+      if (edges.delete("burst")) got++;
+    };
+    // two fingers land together
+    q.press(2);
+    if (q.next(edges.has("burst"))) edges.add("burst");
+    gameFrame();
+    // the next frame hands over the second
+    if (q.next(edges.has("burst"))) edges.add("burst");
+    gameFrame();
+    if (q.next(edges.has("burst"))) edges.add("burst");
+    gameFrame();
+    expect(got).toBe(2);
+    expect(q.delivered).toBe(2);
+    // a flood is capped (nothing trails on long after the drumming stops), and clear() drops what's left
+    q.press(20);
+    expect(q.pending).toBe(4);
+    q.clear();
+    expect(q.next(false)).toBe(false);
   });
 });

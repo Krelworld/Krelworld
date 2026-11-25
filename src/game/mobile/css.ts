@@ -57,6 +57,9 @@ html.mobile input,html.mobile textarea{-webkit-user-select:text;user-select:text
 .kres-in{padding:14px 26px;border-radius:14px;background:rgba(23,15,38,.9);border:2px solid #ffd23f}
 .kres-t{font-size:28px;color:#ffd23f;letter-spacing:2px}
 .kres-s{font-size:16px;margin-top:6px;color:#e9e3ff}
+.kres-x{display:none;margin:16px auto 0;min-width:150px;min-height:48px;padding:0 18px;border-radius:12px;align-items:center;justify-content:center;
+  background:#3b1d1d;border:2px solid #fca5a5;color:#fff;font-size:16px;letter-spacing:1px}
+.kres-x.on{display:flex}
 
 /* ---- turn your phone sideways */
 .krot{position:fixed;left:0;top:0;width:100%;height:100%;z-index:40;display:none;align-items:center;justify-content:center;

@@ -466,6 +466,8 @@ export class TouchLayer {
    * player in a fight, the target): a control over one goes see-through, like over the walking player.
    */
   occluders: Rect[] = [];
+  /** Things drawn on the layer outside a control (the Kreltality prompt's buttons): placed again on every layout. */
+  readonly onLayout = new Set<() => void>();
 
   private probe: HTMLDivElement;
   private zone: HTMLDivElement;
@@ -636,12 +638,14 @@ export class TouchLayer {
       el.style.marginLeft = el.style.marginTop = `${-d / 2}px`;
     }
     this.capEl.style.marginTop = `${-g.base / 2 - 22}px`;
-    this.builtIn?.fullscreen.setSlot(this.builtIn.pause.shown ? "fullscreen" : "pause");
+    // (in a fight the offer stays under pause, as apply() puts it)
+    if (this.builtIn) this.builtIn.fullscreen.setSlot(fsSlot(this.decision, this.builtIn.pause.shown));
     for (const c of this.controls.values()) c.place();
     if (!this.stick) this.placeGhost();
     this.tapKeys();
     const ctx = { layer: this, game: this.game, decision: this.decision };
     for (const c of controllersFor(this.decision.mode)) c.layout?.(ctx);
+    for (const f of [...this.onLayout]) f();
   }
 
   /**

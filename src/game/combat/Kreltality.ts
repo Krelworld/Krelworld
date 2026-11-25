@@ -145,10 +145,12 @@ export function prompt(sc: Phaser.Scene): Promise<boolean> {
     };
     // (phones: the buttons without keys, and a big ☠ KRELTALITY under the right thumb; src/game/mobile/brawl.ts)
     const yesB = mk(-140, isMobile() ? "☠ KRELTALITY" : sc.input.gamepad?.total ? "☠ KRELTALITY (K / Ⓐ)" : "☠ KRELTALITY (K)", "#991b1b", () => done(true));
-    mk(150, isMobile() ? "spare them" : sc.input.gamepad?.total ? "spare them (ESC / Ⓑ)" : "spare them (ESC)", "#1f2937", () => done(false));
+    const noB = mk(150, isMobile() ? "spare them" : sc.input.gamepad?.total ? "spare them (ESC / Ⓑ)" : "spare them (ESC)", "#1f2937", () => done(false));
     const closePhone = isMobile() ? (phoneHooks()?.finisher?.({ yes: () => done(true), no: () => done(false) }) ?? null) : null;
     sc.tweens.add({ targets: yesB, scale: { from: k, to: k * 1.08 }, yoyo: true, repeat: -1, duration: 300 });
     const bar = pin(sc.add.rectangle(cx - 200 * k, cy + 70 * k, 400 * k, 6 * k, 0xef4444).setOrigin(0, 0.5).setDepth(D + 52));
+    // (phones: the phone's two big buttons are the only targets, its countdown a ring round KRELTALITY)
+    if (closePhone) for (const o of [yesB, noB, bar]) (o as Phaser.GameObjects.Text).setVisible(false).disableInteractive();
     sc.tweens.add({ targets: bar, scaleX: 0, duration: 7000, onComplete: () => done(false) });
     const kb = sc.input.keyboard;
     const onK = () => done(true);

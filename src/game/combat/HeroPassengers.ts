@@ -5,6 +5,8 @@ import { BOSS_TEXT } from "../../content/bosses";
 import { synth } from "../audio/Synth";
 import { G } from "../G";
 import type { KrelTarget } from "./Kreltality";
+import { isMobile } from "../mobile/flag";
+import { phoneHooks } from "../mobile/boot";
 
 /**
  * THE HERO PASSENGERS (Flight KR-069, first class, just before the cockpit door): three passengers who have decided
@@ -507,10 +509,13 @@ export function krelAllPrompt(sc: Phaser.Scene, n: number): Promise<boolean> {
       b.on("pointerdown", fn);
       return b;
     };
-    const yesB = mk(-150, n > 1 ? "☠ ALL OF THEM (K)" : "☠ KRELTALITY (K)", "#991b1b", () => done(true));
-    mk(160, "spare them (ESC)", "#1f2937", () => done(false));
+    // (phones: no keys in the words, and the phone's big buttons are the only targets; src/game/mobile/brawl.ts)
+    const yesB = mk(-150, isMobile() ? (n > 1 ? "☠ ALL OF THEM" : "☠ KRELTALITY") : n > 1 ? "☠ ALL OF THEM (K)" : "☠ KRELTALITY (K)", "#991b1b", () => done(true));
+    const noB = mk(160, isMobile() ? "spare them" : "spare them (ESC)", "#1f2937", () => done(false));
+    const closePhone = isMobile() ? (phoneHooks()?.finisher?.({ yes: () => done(true), no: () => done(false), ms: 8000, all: n > 1 }) ?? null) : null;
     sc.tweens.add({ targets: yesB, scale: { from: k, to: k * 1.08 }, yoyo: true, repeat: -1, duration: 300 });
     const bar = pin(sc.add.rectangle(cx - 200 * k, cy + 76 * k, 400 * k, 6 * k, 0xef4444).setOrigin(0, 0.5).setDepth(D + 2));
+    if (closePhone) for (const o of [yesB, noB, bar]) (o as Phaser.GameObjects.Text).setVisible(false).disableInteractive();
     sc.tweens.add({ targets: bar, scaleX: 0, duration: 8000, onComplete: () => done(false) });
     const kb = sc.input.keyboard;
     const onK = () => done(true);
@@ -521,6 +526,7 @@ export function krelAllPrompt(sc: Phaser.Scene, n: number): Promise<boolean> {
     function done(v: boolean) {
       if (fin) return;
       fin = true;
+      closePhone?.();
       kb?.off("keydown-K", onK);
       kb?.off("keydown-ESC", onEsc);
       for (const o of objs) {

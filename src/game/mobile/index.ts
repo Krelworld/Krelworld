@@ -99,6 +99,7 @@ export function installMobile(game: Phaser.Game) {
   const combat = installCombat(game, layer);
   // stage 2 part 2: the finale's brawl, the Kreltality prompt, a controller handed over (brawl.ts, pad.ts)
   const brawl = installBrawl(game, layer);
+  brawl.pauseCard = (extra) => shell.pauseCard(extra);
   const picture = new ControlsPicture(layer);
   const pad = new PadHandover();
   pad.start((fn) => {

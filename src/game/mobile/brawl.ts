@@ -17,6 +17,7 @@ import { haptic } from "./haptics";
 import type { Placed } from "./layout";
 import { UI_TEXTS, addWording } from "./wording";
 import { BRAWL_TEXTS, BRAWL_WORDING } from "./combatWording";
+import { MashQueue } from "./combatLogic";
 
 interface BrawlLike {
   on: boolean;
@@ -39,6 +40,7 @@ export function brawlRule(active: () => boolean): SceneRule {
   return {
     name: "finale brawl (phone)",
     match: (k) => k === "Finale",
+    // (pause: the brawl's own II, brawl.ts: the carry-on card with SKIP FIGHT, the laptop's Esc there; F9)
     decide: () => (active() ? { mode: "brawl", legacyPad: false, stick: "2d", live: true, pause: null, pauseButton: false } : null),
   };
 }
@@ -52,7 +54,16 @@ export class BrawlControls {
   private started = false;
   readonly c: Record<string, TouchControl> = {};
   private mash: HTMLDivElement;
-  mashPresses = 0;
+  private readonly mashQ = new MashQueue();
+  /** Punches the brawl was actually handed. */
+  get mashPresses() {
+    return this.mashQ.delivered;
+  }
+
+  private feedMash() {
+    const p = this.brawl?.pad;
+    if (p && this.mashQ.next(p.edges.has("punch"))) p.edges.add("punch");
+  }
 
   constructor(
     readonly game: Phaser.Game,
@@ -79,6 +90,9 @@ export class BrawlControls {
         onUp: () => this.brawl?.pad.held.delete(b.key),
       });
     }
+    // II: the finale has no pause menu; on a laptop Esc skips the fight. On a phone II pauses (the carry-on card) and
+    // the card offers SKIP FIGHT (research M11: a pause button in every mode; F9)
+    this.c.pause = L.addControl({ id: "b-pause", slot: "pause", className: "kt-pause", html: `<span class="kt-bars"><i></i><i></i></span>`, fade: false, onDown: () => this.pause() });
     // the finishing rush: every finger anywhere is a punch
     const m = document.createElement("div");
     m.className = "kt-mash";
@@ -88,10 +102,9 @@ export class BrawlControls {
         if (e.cancelable) e.preventDefault();
         const p = this.brawl?.pad;
         if (!p) return;
-        for (let i = 0; i < e.changedTouches.length; i++) {
-          p.edges.add("punch");
-          this.mashPresses++;
-        }
+        // (every finger counts, even two in one frame: queued, one a frame; F10)
+        this.mashQ.press(e.changedTouches.length);
+        this.feedMash();
         haptic("tap");
       },
       { passive: false },
@@ -99,6 +112,18 @@ export class BrawlControls {
     for (const ev of ["touchmove", "touchend", "touchcancel"]) m.addEventListener(ev, (e) => e.cancelable && e.preventDefault(), { passive: false });
     L.root.appendChild(m);
     this.mash = m;
+  }
+
+  /** Set by index.ts: the shell's carry-on card with one extra button. */
+  pauseCard: ((extra: { label: string; fn: () => void }) => void) | null = null;
+  pauses = 0;
+
+  private pause() {
+    const sc = this.brawl?.sc as unknown as { finish?: (skipped: boolean) => void } | undefined;
+    if (!sc || !this.pauseCard) return;
+    this.pauses++;
+    this.release();
+    this.pauseCard({ label: "SKIP FIGHT ▸▸", fn: () => sc.finish?.(true) });
   }
 
   /** The brawl starts (SsjBrawl's guarded hook). True: the phone has the controls (its canvas pad isn't drawn). */
@@ -164,6 +189,8 @@ export class BrawlControls {
       if (c.shown !== on) c.show(on);
     }
     this.mash.classList.toggle("show", rush);
+    if (rush) this.feedMash();
+    else this.mashQ.clear();
   }
 
   leave() {
@@ -190,31 +217,38 @@ export class BrawlControls {
 export interface FinisherPrompt {
   yes(): void;
   no(): void;
+  /** The prompt's countdown (default FINISHER_MS). */
+  ms?: number;
+  /** Several at once (Flight KR-069's hero passengers): the button says ALL OF THEM. */
+  all?: boolean;
 }
 
+/** The prompt's buttons ignore touches this long after they appear: a FIRE tap meant for the fight's last moment
+ *  must not pick (and it can't be undone) before the question can be read (R4). */
+export const FINISHER_ARM_MS = 400;
+/** The prompt's own countdown (Kreltality.ts: 7 s, then it spares them). */
+export const FINISHER_MS = 7000;
+
 /**
- * The Kreltality prompt on a phone: a big ☠ KRELTALITY where the right thumb is (the prime corner) and SPARE beside
- * it. Returns the function that takes them away again (the prompt's own close calls it).
+ * The Kreltality prompt on a phone: the one big ☠ KRELTALITY where the right thumb is (the prime corner), with the
+ * 7 s countdown as a ring round it, and SPARE beside it; the game's own pair is hidden on a phone (Kreltality.ts), so
+ * there are two targets for two choices (P7). A button acts on a touch that starts on it at least FINISHER_ARM_MS
+ * after the prompt opened (R4). Placed again whenever the layer lays out (Safari's bars). Returns the function that
+ * takes them away again (the prompt's own close calls it).
  */
-export function showFinisher(layer: TouchLayer, p: FinisherPrompt): () => void {
+export function showFinisher(layer: TouchLayer, p: FinisherPrompt, armMs = FINISHER_ARM_MS): () => void {
   const root = document.createElement("div");
   root.className = "kt-fin";
-  const mk = (cls: string, html: string, place: Placed | undefined, fn: () => void) => {
+  const t0 = performance.now();
+  const mk = (cls: string, html: string, fn: () => void) => {
     const b = document.createElement("div");
     b.className = `kt-fin-b ${cls}`;
     b.innerHTML = html;
-    if (place) {
-      const w = Math.max(place.size, 84);
-      const h = Math.max(place.size, 60);
-      b.style.left = `${place.cx - w / 2}px`;
-      b.style.top = `${place.cy - h / 2}px`;
-      b.style.width = `${w}px`;
-      b.style.height = `${h}px`;
-    }
     b.addEventListener(
       "touchstart",
       (e) => {
         if (e.cancelable) e.preventDefault();
+        if (performance.now() - t0 < armMs) return;
         haptic("big");
         fn();
       },
@@ -223,19 +257,31 @@ export function showFinisher(layer: TouchLayer, p: FinisherPrompt): () => void {
     root.appendChild(b);
     return b;
   };
-  const s = layer.slots;
-  const yes = mk("yes", `<span class="i">☠</span><span>KRELTALITY</span>`, s?.prime, () => p.yes());
-  const spare = mk("no", `<span>SPARE</span>`, s?.combatAction, () => p.no());
-  // (the drawn size: the yes button grows to 1.25x the prime slot so it reads as THE button)
-  if (s?.prime) {
-    const sz = Math.round(s.prime.size * 1.25);
-    yes.style.width = yes.style.height = `${sz}px`;
-    yes.style.left = `${s.prime.cx - sz / 2}px`;
-    yes.style.top = `${s.prime.cy - sz / 2}px`;
-    void spare;
-  }
+  const yes = mk("yes", `<svg class="ring" viewBox="0 0 100 100"><circle cx="50" cy="50" r="46"/></svg><span class="i">☠</span><span>${p.all ? "ALL OF THEM" : "KRELTALITY"}</span>`, () => p.yes());
+  const spare = mk("no", `<span>SPARE</span>`, () => p.no());
+  const ring = yes.querySelector("circle") as SVGCircleElement | null;
+  if (ring) ring.style.animationDuration = `${p.ms ?? FINISHER_MS}ms`;
+  const place = () => {
+    const s = layer.slots;
+    if (s?.prime) {
+      // (the yes button is 1.25x the prime slot so it reads as THE button)
+      const sz = Math.round(s.prime.size * 1.25);
+      Object.assign(yes.style, { width: `${sz}px`, height: `${sz}px`, left: `${s.prime.cx - sz / 2}px`, top: `${s.prime.cy - sz / 2}px` });
+    }
+    const a = s?.combatAction;
+    if (a) {
+      const w = Math.max(a.size, 84);
+      const h = Math.max(a.size, 60);
+      Object.assign(spare.style, { width: `${w}px`, height: `${h}px`, left: `${a.cx - w / 2}px`, top: `${a.cy - h / 2}px` });
+    }
+  };
+  place();
+  layer.onLayout.add(place);
   layer.root.appendChild(root);
-  return () => root.remove();
+  return () => {
+    layer.onLayout.delete(place);
+    root.remove();
+  };
 }
 
 export const BRAWL_CSS = `
@@ -251,6 +297,10 @@ export const BRAWL_CSS = `
 .kt-fin-b.yes{background:rgba(153,27,27,.88);border:3px solid #fca5a5;box-shadow:0 0 0 3px rgba(0,0,0,.5),0 0 18px rgba(239,68,68,.7);
   animation:ktFin .6s ease-in-out infinite alternate}
 .kt-fin-b.yes .i{font-size:30px;line-height:1}
+.kt-fin-b .ring{position:absolute;left:-6px;top:-6px;width:calc(100% + 12px);height:calc(100% + 12px);transform:rotate(-90deg);pointer-events:none;overflow:visible}
+.kt-fin-b .ring circle{fill:none;stroke:#fde68a;stroke-width:5;stroke-linecap:round;stroke-dasharray:289;stroke-dashoffset:0;
+  animation:ktFinRing linear forwards}
+@keyframes ktFinRing{to{stroke-dashoffset:289}}
 .kt-fin-b.no{background:rgba(31,41,55,.85);border:2px solid rgba(255,255,255,.5);border-radius:14px;font-size:13px}
 @keyframes ktFin{from{transform:scale(1)}to{transform:scale(1.06)}}
 `;

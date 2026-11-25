@@ -59,7 +59,16 @@ export const COMBAT_WORDING_FIRST: WordingRule[] = [
   { id: "krezz-shield", re: /\bhit him with a KREZZ BURST \(R\) to break the shield\./g, to: "hit him with a KREZZ BURST (WONK!) to break the shield." },
   { id: "hostage-press-e", re: /^(Get to .{1,40} first) and press E, (or he'll cuddle them for health\.)$/, to: "$1 and tap ACTION, $2" },
   { id: "headbutt-staggered", re: /\bHEADBUTT him \(F \/ right click\)!/g, to: "HEADBUTT him (tap HEADBUTT)!" },
+  // the Cronster's hostage tags over each hostage (combat/Bosses.ts), so they agree with the toast (R3)
+  { id: "hostage-tag", re: /\n\(tied up: E to free\)$/, to: "\n(tied up: tap ACTION to free)" },
 ];
+
+/**
+ * Fight captions made once with their whole text, inside the Dungeon (wording.ts STORY_UI_LINES.Dungeon: checked when
+ * a text is added, never every setText of a fight): the Cronster's hostage tags and the Citadel's Kreddle Exchange
+ * sign (its "(E)" goes by the stage 1 "(E)" rule).
+ */
+export const FIGHT_UI_LINES: RegExp[] = [/^[^\n]{1,40}\n\(tied up: E to free\)$/, /^🎁 KREDDLE\nEXCHANGE \(E\)$/];
 
 /**
  * Narrated control tips in fights (research rule 3's exception: the game's own NARRATOR / stage-direction voice, never a

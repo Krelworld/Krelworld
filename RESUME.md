@@ -1,3 +1,10 @@
+## LATEST (2026-11-25, stage 2 gate PASSED)
+- Stage 2 workflow wf_574a5950-314 finished: merge, 4 reviews (31 findings), fix round 1, gate PASS at 06d2ac08 (reports s2-05..s2-07). Gate left non-blocking N1-N7.
+- Coordinator merged live (455b3131) into "mobile": 5bb649ec.
+- Running now: polish + independent verify workflow, script work/s2-polish.js, run id wf_0c237194-e84 (task wwl19uk4h). Fixes N1 caption overlap, the user's dungeon "bubbles" clutter, N2, N4, N5; then the verify agent runs the full CHECK and touch checks (TV guide scroll, Peep Show, dungeon clutter).
+- If cut off: Workflow({scriptPath: "<SP>/mobile/work/s2-polish.js", resumeFromRunId: "wf_0c237194-e84"}).
+- When verify passes: fetch origin/claude/krelworld-game, merge if moved (re-check), push mobile HEAD to claude/krelworld-game, trigger the alt build, tell the user (key-mention lines and swapped narrator tips are in s2-01..s2-06 reports and the stage 2 workflow result at tasks/w3nnfv3m2.output).
+
 ## LATEST (2026-11-25 ~05:30 UTC)
 - Live now has 455b3131 (KrelTV no-repeat rounds; Peep Show unlocked from the start, chapter 4 prompt skipped if seen; news_1 "Great Silence" and the Wonking Machine Shopping Network removed; TV fingerprint baselines re-recorded deliberately for desktop tv_from_title, tv_guide, pub and the four profiles' tv_from_title and tv_guide).
 - BEFORE PUBLISHING STAGE 2: merge origin/claude/krelworld-game into "mobile" (it does NOT have 455b3131 yet; the stage 2 agents are mid-run there), re-run the full CHECK (laptop halves, profiles, tsc, vitest, smoke both builds), then push.

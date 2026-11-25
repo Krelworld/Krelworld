@@ -365,7 +365,7 @@ export const PHONE_SETTINGS: SettingSpec[] = [
     group: "combat",
     live: true,
     label: "Firing",
-    help: "AUTO shoots for you. LIGHT: slower. STILL: when you stop. HOLD: only while you hold FIRE.",
+    help: "STILL: when you stop. HOLD: only with FIRE.",
     options: [{ value: "auto", label: "AUTO" }, { value: "light", label: "LIGHT" }, { value: "still", label: "STILL" }, { value: "hold", label: "HOLD" }],
     read: (s) => fireStyle(s),
     also: (v) => ({ autoFire: v !== "hold" }),

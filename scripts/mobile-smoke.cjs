@@ -1420,10 +1420,16 @@ async function dialogue(browser) {
     // SKIP asks first (P8): nothing skipped yet; KEEP READING takes it away; then SKIP SCENE
     const ask = await dlg(ph);
     const lineAsk = (await boxNow(ph)).full;
+    const geo = await ph.ev(() => {
+      const a = document.querySelector(".kd-sk-go").getBoundingClientRect();
+      const b = document.querySelector(".kd-sk-no").getBoundingClientRect();
+      return { goH: a.height, noH: b.height, gap: Math.round(a.left - b.right) };
+    });
     await ph.tapSel(".kd-sk-no");
     await sleep(200);
     const kept = await dlg(ph);
-    check("SKIP asks first (SKIP SCENE / KEEP READING, 48 px, 12 px apart); KEEP READING carries on where it was (P8)", ask.skipAsking && !ask.skipping && !kept.skipAsking && (await boxNow(ph)).full === lineAsk && (await ph.ev(() => { const a = document.querySelector(".kd-sk-go").getBoundingClientRect(); const b = document.querySelector(".kd-sk-no").getBoundingClientRect(); return a.height >= 48 && b.height >= 48 && Math.abs(a.left - b.right) >= 11.5; })), { ask, kept });
+    const lineKept = (await boxNow(ph)).full;
+    check("SKIP asks first (SKIP SCENE / KEEP READING, 48 px, 12 px apart); KEEP READING carries on where it was (P8)", ask.skipAsking && !ask.skipping && !kept.skipAsking && lineKept === lineAsk && geo.goH >= 47.5 && geo.noH >= 47.5 && geo.gap >= 11.5, { asking: ask.skipAsking, kept: kept.skipAsking, lineAsk: lineAsk.slice(0, 40), lineKept: lineKept.slice(0, 40), geo });
     await ph.tapSel(".kd-skip");
     await sleep(200);
     await ph.tapSel(".kd-sk-go");

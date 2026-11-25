@@ -317,6 +317,15 @@ you). When the gun runs dry the game's own auto-switch runs (and, the first time
 bans holding the trigger (NO_ATTACK_SPAM, 2.5 s), auto-fire lets go for 160 ms every 2 s, the way a laptop player taps.
 FIRE glows red while auto-fire is shooting and flashes with each shot.
 
+**Firing styles** (the auto-fire audit, report `ga-02-autofire.md`; Settings > Firing, one row: AUTO / LIGHT / STILL /
+HOLD; AUTO is the default until the user picks). Every style keeps FIRE by hand exactly as above (hold = fire with
+aim assist, slide = aim by hand), so the right thumb's job never changes; only what happens with no thumb on FIRE does:
+AUTO as above; LIGHT waits out the gun's cooldown and then 2/3 of it again after each auto shot (`AutoPace`); STILL
+fires only while the stick rests (under 0.2 push for 120 ms, not mid-dodge; `StillGate`), in side rooms too; HOLD never.
+LIGHT, STILL and HOLD give FIRE the 200 ms grace after the thumb lifts. The Controls picture's FIRE line follows the
+style (`fireLine`, combatWording.ts). `combat.snapshot()` adds `autoShooting` (auto-fire shooting this frame, after
+LIGHT's pace and STILL's gate; `autoFiring` is the wish, which FIRE's glow shows) and `firing`.
+
 **Phone assist** (`phoneAssist`, research S9; numbers in `ASSIST`): pick-ups (coins, ammo, health, Krezz, bottles,
 bongos; never quest items) come to you from 140 world px instead of 90 and faster (0.5 px/ms, 2 px/ms inside 60); a
 dodge's safe window lasts 60 ms longer (touch and frame delay; about the audit's x1.25 timing lever); enemy bullets
@@ -499,7 +508,8 @@ silently.
 | `readability` | **true** (stage 2) | yes (see below) | "Bigger text": the font floor and the reading sizes |
 | `textSize` | `"normal"` | yes, with readability | `"large"`: every floor x1.25 (labels 13.75, reading 20 CSS px) |
 | `batterySaver` | false | yes | 30 frames a second |
-| `autoFire` | true | yes (top-down fights) | combat fires by itself at an enemy in range, on screen, with no barrel by your feet in the line |
+| `autoFire` | true | yes (fights) | combat fires by itself at an enemy in range, on screen, with no barrel by your feet in the line. No row of its own since the auto-fire audit: the Firing row's HOLD is `autoFire: false`, and the row keeps it in step |
+| `firing` | `"auto"` | yes (fights) | Settings > Firing (the auto-fire audit, `fireStyle()`): `auto` (the above), `light` (auto-fire at 60% of the gun's pace, `LIGHT_PACE`; a held FIRE goes at the full pace), `still` (auto-fire only once the stick has rested 120 ms, `StillGate`; hold FIRE to shoot on the move), `hold` (never by itself). `autoFire: false` reads as `hold` whatever this says |
 | `aimAssist` | `"normal"` | yes | `off` (FIRE shoots straight ahead, slides don't snap) / `normal` (stick-biased, sticky, 15° snap) / `strong` (stickier, 25° snap, leads moving targets) |
 | `phoneAssist` | true | yes (top-down fights; part 2 adds the jump help) | pick-ups come from further and faster, a dodge's safe window +60 ms, enemy bullets drawn 1.25x |
 | `syncOffsetMs` | 0 | stage 3 | rhythm offset, -300 to 300 ms |

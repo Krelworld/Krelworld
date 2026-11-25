@@ -72,6 +72,7 @@ main.ts ── boot.ts installMobile(game) ──► isMobile()? no → return (
 | `art.ts` / `artLogic.ts` | Stage 3: the texture budget. The big one-scene pictures (`PARKED_ART`) are parked (texture kept, pixels dropped) until drawn or asked for, then fetched back from the browser's cache; parked again 30 s after their last use |
 | `audio.ts` / `audioLogic.ts` | Stage 3: sound on iPhone. `new Audio()` hands out pooled elements the first tap unlocked, each through its own gain node (the volume settings work on iOS); audio session; resume checks; one song at a time; the route self-test |
 | `perf.ts` / `perfLogic.ts` | Stage 3: off-screen Images / Sprites skipped when drawing, blood pools capped at 40, the player's ring in dark or crowded rooms |
+| `games.ts` / `gamesLogic.ts` | Stage 3 wave 2: every minigame by touch (RuneScape's CHOP / DROP ALL / RE-UP, the crocodile's columns, Flip It's rings, LEAVE / END GIG clear of pause, Whack's buttons out of the strip, the first-time cue, the rhythm lag); the pure part (the minigames' touch wording, `rhythmLag`, the crocodile's columns, RuneScape's buttons) |
 | `storage.ts` | Stage 3: `navigator.storage.persist()` asked quietly (never in Firefox), a save on `freeze`; the boot's download held in an app's own browser until PLAY HERE ANYWAY |
 | `index.ts` | The phone chunk's `installMobile()`, `mobileLayer()`, `mobileShell()` and re-exports |
 
@@ -556,7 +557,7 @@ silently.
 | `autoFire` | true | yes (top-down fights) | combat fires by itself at an enemy in range, on screen, with no barrel by your feet in the line |
 | `aimAssist` | `"normal"` | yes | `off` (FIRE shoots straight ahead, slides don't snap) / `normal` (stick-biased, sticky, 15° snap) / `strong` (stickier, 25° snap, leads moving targets) |
 | `phoneAssist` | true | yes (top-down fights; part 2 adds the jump help) | pick-ups come from further and faster, a dodge's safe window +60 ms, enemy bullets drawn 1.25x |
-| `syncOffsetMs` | 0 | stage 3 | rhythm offset, -300 to 300 ms |
+| `syncOffsetMs` | 0 | yes (stage 3 wave 2: the crocodile, the burpees) | "Rhythm sync", -300 to 300 ms: + when taps are judged late (added to the sound output delay, `rhythmLag`) |
 | `playOverMyMusic` | false | stage 3 | iPhone audio session "ambient" (player's music keeps playing) instead of "playback" |
 
 ```ts
@@ -910,6 +911,66 @@ Hook added in stage 3 (guarded; the laptop fingerprint is unchanged):
 On a phone `window.__krelMobile` also has `art` (`report()`, `resident()`, `isParked(key)`, `sweep(ms)`), `audio`
 (`diag()`, `musicGain()`), `perf` (`lastCulled`, `lastDrawn`, `poolsHidden`, `enabled`) and `storage` (`state`, `held()`).
 
+## Minigames by touch (`games.ts`, `gamesLogic.ts`): stage 3 wave 2
+
+Every minigame already took taps on a laptop's touchscreen path; a phone needed bigger targets, nothing under pause or in
+the home-indicator strip, no key names, and a way to win that a thumb can manage. One rule in front of stage 1's
+(`minigames by touch`: the Minigame scene is `tap` mode with the pause menu, and the decision carries `game`, the
+mode), one controller on `tap` mode (`games`), and per-game fixes made from outside when the scene builds its objects.
+The results and rewards are the laptop's: no game's numbers changed.
+
+| Game | Scheme on a phone | Why |
+|---|---|---|
+| BULLY, DEADLIFT | a tap anywhere is a hit; every finger counts (three touch pointers), so two thumbs drum | research M14: mashers count touch-downs anywhere; no hold ever needed |
+| GIRLFRIENDS | tap the ringing phone (its picture, 100 x 178 CSS px); the `[1] [2] [3]` captions gone | the phones are already big targets |
+| FLIP IT (renovate) | each problem's tap area is the ring drawn round it (radius 40 game px, about 58 CSS px), not its 40 px picture | the audit: 40 x 30 px targets |
+| RUNESCAPE | **CHOP** (84 px, the right thumb) = the laptop's SPACE: walks to the nearest tree and chops, and when the ring closes it is the timed hit (it glows gold then); **DROP ALL** pops in with logs in the bag, the re-up (**RE-UP / ROLL / PUD**, the game's own word) when the game would take one (gear under 85, or the dealer is there); Log out lifted out of the strip; trees, the chest, logs and the dealer still take taps | the audit: 33 of 41 targets under 40 px, Drop all / Re-up in the strip |
+| BURPEES | a tap anywhere is the right move (the laptop's SPACE), ▼ / ▲ stay in the bottom corners under the thumbs | one verb; the corners were already thumb-sized |
+| FACEBROOK / THE MODULATOR | tap a reply row (549 x 39 CSS px, 44 with the tap snap); the `[1]` in front of each reply gone | |
+| THE CROCODILE | three pads lifted out of the strip; each pad's touch area is the whole column under the note lane (left third LEFT, middle CHOMP, right third RIGHT: one per thumb, either thumb for CHOMP); the score line moved up under the lane; LEAVE left of pause | research M13: big lanes, two thumbs |
+| THE CANNON | a tap anywhere: angle, then power | already one verb |
+| THE GIG (Krebon's, optional) and watching it | a held thumb walks Benn that way, a tap on him prances (watching: drag low, tap high, tap a mosher); END GIG / LEAVE GIG moved left of pause (the safe cut: it finishes the set, the laptop's finish) | the user's "safe cut" |
+| The golden juice squeeze (`systems/squeeze.ts`, guarded hook) | a tap anywhere squeezes; the circle is bigger and says TAP | the audit: a 35 px circle showing E / F / R / SPACE |
+| Whack-a-Drongus | PLAY / BACK TO THE STRIP lifted out of the strip (it was already touch-aware) | |
+| The Wonky Pole | UP CLOSE a thumb-sized button; the close-up's "ESC / CLICK: skip" says "tap: skip" | the audit: 36 x 29 px |
+| The vignettes' mashes and timing games (the turnstile, the lamp, the jets, the restaurant bulking, the gauge, the plane's steering, the parachute) | a tap anywhere, as before; their how-to lines in touch words | |
+| The Krunch Pit (optional), the raid's cut-in | their cards: "▶ tap", "tap: skip" | |
+| Console replays (optional) | the same minigames, the same touch schemes | |
+
+**Rhythm lag** (`rhythmLag`, through `phoneHooks().rhythmLag`): the crocodile and the burpees take this many seconds
+off a tap's judged time: the phone's sound output delay (`AudioContext.baseLatency + outputLatency`, the songs go through
+Web Audio on a phone; a Bluetooth headset reports its delay there; capped at 0.25 s) plus the "Rhythm sync" setting (now
+live). The windows are the laptop's (research: ours are already wider than every rhythm game checked).
+
+**The first-time cue** (research S5): the first time each minigame is played on this phone, once its intro conversation
+is over, one line in the middle of the screen for 3.2 s ("👆 TAP ANYWHERE TO VENT", "👆👆 MASH WITH BOTH THUMBS",
+"👆 TAP ◀ LEFT · ▲ CHOMP · RIGHT ▶ ON THE BEAT"...); it takes no touches. Remembered under
+`storageKey("krelworld.phone.gameCues")`.
+
+**Pause**: wave 1's route (the II opens the pause menu, which holds the scene and its song; coming back to the phone opens
+it too). A minigame's own button that sat under the II is moved left of it (`clearOfPause`).
+
+Touch wording (`GAME_WORDING`, phones only, each row anchored to its whole caption): the how-to lines of DEADLIFT, FLIP IT,
+BURPEES, THE GIG (both), THE CROCODILE; the `[1]`..`[3]` captions; RuneScape's hint, first chat message, level-up "Click
+here to continue", its buttons' `(D)` / `(G)` and its hover keys; the close-up's and the cut-in's skip lines; the Pit's
+card; the vignettes' "WASD / ARROWS (or drag) to steer" and "PARACHUTE TO FREEDOM [ E / SPACE / TAP ]". The bully's,
+the cannon's and the vignettes' "Tap / SPACE" lines go through stage 1's row once their scene is listed
+(`GAME_UI_TEXTS`, `GAME_STORY_LINES`). One narrator tip (`GAME_NARRATOR_TIPS`): the squeeze's "Hit the buttons as they
+come up, fast" → "Tap the screen, fast". No character's line mentions a key in these scenes.
+
+Hooks added in stage 3 wave 2 (all `isMobile()`-guarded; the laptop fingerprint is unchanged):
+
+| Where | What | Why |
+|---|---|---|
+| `src/game/scenes/MinigameScene.ts` burpees `press` and crocodile `judge` | `- (isMobile() ? (phoneHooks()?.rhythmLag?.() ?? 0) : 0)` on the judged time (and the flag / boot imports) | The phone's sound delay and the Rhythm sync setting |
+| `src/game/scenes/minigame/runescape.ts` | `if (isMobile()) sc.phoneRs = { chop: space, dropAll, reup, quit, word, state }` (and the flag import) | CHOP / DROP ALL / RE-UP do what SPACE / D / G do, shown only when they'd do something |
+| `src/game/systems/squeeze.ts` | `phone ? 32 : 24` radius, `phone ? "TAP" : k.label`, and on a phone the scene's `pointerdown` (anywhere) instead of the circle's (and the flag import) | Research M14: a masher is a tap anywhere |
+| `src/game/mobile/boot.ts` `PhoneHooks` | `rhythmLag?(): number` (a type) | |
+
+`window.__krelMobile.games`: `state()` (game, fixes made, buttons showing, lag, presses, cue) and `lag()`. Smoke:
+`--only games` (every compulsory minigame won by touch, on a stepped clock so the machine's load can't make a tap late;
+`GAMES_ONLY=bully,crocodile` runs a few).
+
 ## Thumb-feel round (the user's own iPhone test)
 
 The user, on the live build: "jumping feels a little awkward", "The specials, when they do activate, are tiny to
@@ -934,7 +995,7 @@ npx vitest run tests/mobile tests/desktopNotPhone.test.ts   # flag, modes, layou
 
 npx vite --port 5202 --strictPort &                       # normal build
 VITE_KREL_ALT=1 npx vite --port 5212 --strictPort &       # ALT build
-node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,together,review1,polish,platform,android,tapuse,desktop]
+node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,together,review1,polish,platform,android,tapuse,games,desktop]
 node scripts/mobile-smoke.cjs --url http://localhost:5212/
 # (tapuse: at Home the telly, the book and the gun rack from the far side of the room, the stick stopping a walk, a
 #  second tap re-targeting, the floor, in reach = at once; a person and the Krezz Arms in the town; a Kreddle local;

@@ -19,12 +19,13 @@
 import Phaser from "phaser";
 import { addSceneRule } from "./modes";
 import { registerModeController, type TouchControl, type TouchLayer } from "./touchLayer";
-import { STORY_UI_LINES, UI_TEXTS, addWording } from "./wording";
+import { NARRATOR_TIPS, STORY_UI_LINES, UI_TEXTS, addWording } from "./wording";
 import { liveScene } from "./listScenes";
 import { phoneSettings } from "./settings";
 import { phoneHooks, setPhoneHooks } from "./boot";
-import { GAME_STORY_LINES, GAME_UI_TEXTS, GAME_WORDING, clearOfPause, crocColumn, liftOutOfStrip, rhythmLag, rsButtons, rsWord, type RsState } from "./gamesLogic";
+import { GAME_CUE_KEY, GAME_CUE_MS, GAME_NARRATOR_TIPS, GAME_STORY_LINES, GAME_UI_TEXTS, GAME_WORDING, clearOfPause, cueFor, crocColumn, liftOutOfStrip, rhythmLag, rsButtons, rsWord, type RsState } from "./gamesLogic";
 import { synth } from "../audio/Synth";
+import { storageKey } from "../variant";
 
 type Bag = Record<string, any>;
 
@@ -46,7 +47,31 @@ export const GAMES_CSS = `
 .kt-g-drop .kt-face{border-color:rgba(251,146,60,calc(var(--kt-a) + .35))}
 .kt-g-reup .kt-face{border-color:rgba(134,239,172,calc(var(--kt-a) + .35))}
 @keyframes ktGHot{from{transform:scale(1)}to{transform:scale(1.07)}}
+.kt-gcue{position:absolute;left:50%;top:58%;transform:translate(-50%,-50%);pointer-events:none;z-index:4;padding:10px 18px;
+  border-radius:999px;background:rgba(0,0,0,.72);border:2px solid rgba(255,224,102,.85);color:#fff;white-space:nowrap;
+  font:900 17px/1.1 Impact,system-ui,sans-serif;letter-spacing:.8px;text-shadow:0 1px 2px #000;opacity:0;transition:opacity .25s}
+.kt-gcue.show{opacity:1;animation:ktGCue .7s ease-in-out infinite alternate}
+@keyframes ktGCue{from{transform:translate(-50%,-50%) scale(1)}to{transform:translate(-50%,-50%) scale(1.05)}}
 `;
+
+/** The minigames whose first-time cue this phone has shown (its own key; storage that throws: shown every visit). */
+function cuesSeen(): string[] {
+  try {
+    const v = JSON.parse(window.localStorage.getItem(storageKey(GAME_CUE_KEY)) ?? "[]");
+    return Array.isArray(v) ? v.filter((x) => typeof x === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
+function cueShown(mode: string) {
+  try {
+    const s = cuesSeen();
+    if (!s.includes(mode)) window.localStorage.setItem(storageKey(GAME_CUE_KEY), JSON.stringify([...s, mode]));
+  } catch {
+    /* private mode: shown again next visit */
+  }
+}
 
 /** What the phone did to a minigame (for the smoke test and ?mobilediag). */
 export interface GamesState {
@@ -55,11 +80,16 @@ export interface GamesState {
   buttons: string[];
   lag: number;
   presses: Record<string, number>;
+  /** The first-time cue showing now (its words), or null. */
+  cue: string | null;
 }
 
 export class PhoneGames {
   private c: Record<string, TouchControl> = {};
-  readonly state: GamesState = { game: null, fixed: [], buttons: [], lag: 0, presses: {} };
+  readonly state: GamesState = { game: null, fixed: [], buttons: [], lag: 0, presses: {}, cue: null };
+  private cueEl: HTMLDivElement | null = null;
+  private cueUntil = 0;
+  private cueFor: unknown = null;
 
   constructor(
     readonly game: Phaser.Game,
@@ -139,6 +169,7 @@ export class PhoneGames {
     const mode = (sc?.mode as string | undefined) ?? null;
     this.state.game = decision.scene === "Minigame" ? mode : (decision.scene as string | null);
     if (sc) this.fixMinigame(sc, mode);
+    this.cue(sc, mode);
     const wk = liveScene(this.game, "Whack");
     if (wk) this.fixWhack(wk);
     if (mode !== "runescape" || decision.scene !== "Minigame") return this.hideAll();
@@ -156,12 +187,39 @@ export class PhoneGames {
       .map(([k]) => k);
   }
 
+  /** The first time a minigame is played on this phone, once its intro conversation is over: its one line. */
+  private cue(sc: Bag | null, mode: string | null) {
+    const t = typeof performance !== "undefined" ? performance.now() : Date.now();
+    if (this.cueEl && this.cueUntil && (t > this.cueUntil || !sc || sc.ended || this.cueFor !== sc.startData)) {
+      this.cueEl.classList.remove("show");
+      this.cueUntil = 0;
+      this.state.cue = null;
+    }
+    if (!sc || !mode || sc.ended || sc.box?.active || this.cueFor === sc.startData) return;
+    this.cueFor = sc.startData;
+    const words = cueFor(mode, cuesSeen());
+    if (!words) return;
+    cueShown(mode);
+    if (!this.cueEl) {
+      this.cueEl = document.createElement("div");
+      this.cueEl.className = "kt-gcue";
+      this.layer.root.appendChild(this.cueEl);
+    }
+    this.cueEl.textContent = words;
+    this.cueEl.classList.add("show");
+    this.cueUntil = t + GAME_CUE_MS;
+    this.state.cue = words;
+  }
+
   release() {
     /* the buttons act on touch-down only: nothing is ever held */
   }
 
   leave() {
     this.hideAll();
+    this.cueEl?.classList.remove("show");
+    this.cueUntil = 0;
+    this.state.cue = null;
   }
 
   // ------------------------------------------------------------------ fixes to the scenes, from outside
@@ -307,6 +365,7 @@ export function installGames(game: Phaser.Game, layer: TouchLayer): PhoneGames {
     if (UI_TEXTS[k]) UI_TEXTS[k].push(...pats);
     else UI_TEXTS[k] = [...pats];
   }
+  NARRATOR_TIPS.push(...GAME_NARRATOR_TIPS);
   for (const [k, pats] of Object.entries(GAME_STORY_LINES)) STORY_UI_LINES[k] = [...(STORY_UI_LINES[k] ?? []), ...pats];
   // the minigame decision carries which game it is (the controller shows that game's buttons)
   addSceneRule(

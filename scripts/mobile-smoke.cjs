@@ -100,7 +100,7 @@ const arg = (k, d) => {
 };
 const URL0 = arg("--url", "http://localhost:5202/");
 const SHOTS = arg("--shots", "");
-const ONLY = (arg("--only", "phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,together,review1,polish,platform,android,tapuse,desktop") || "").split(",").filter(Boolean);
+const ONLY = (arg("--only", "phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,together,review1,polish,platform,android,tapuse,games,desktop") || "").split(",").filter(Boolean);
 const IOS_UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1";
 const IPHONE = { viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, userAgent: IOS_UA };
 const DESKTOP = { viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1, hasTouch: false, isMobile: false };
@@ -4766,6 +4766,522 @@ async function tapuse(browser) {
   }
 }
 
+// ------------------------------------------------------------------ games (stage 3 wave 2: the minigames by touch)
+
+/** The minigame scene's state (mode, over, talking, its HUD line, and whether the game counted it a win). */
+const mgNow = (ph) =>
+  ph.ev(() => {
+    const s = window.__krel.game.scene.getScene("Minigame");
+    const live = window.__krel.game.scene.isActive("Minigame");
+    const f = window.__krel.G.s.flags;
+    return { live, mode: s.mode, ended: !!s.ended, talking: !!(s.box && s.box.active), hud: s.hud ? s.hud.text : "", won: !!f[`mg_${s.mode}_won`], played: !!f[`mg_${s.mode}_played`] };
+  });
+
+/** A quick tap by one finger (CDP touch, its own id). */
+async function fingerTap(ph, x, y, id = 1) {
+  await ph.touch("touchStart", [{ x, y, id }]);
+  await ph.touch("touchEnd", []);
+}
+
+/** A minigame by itself (no arc step: the laptop's own finish), the intro conversation tapped through by touch. */
+async function mgInto(ph, mode, who, data = {}) {
+  await ph.ev(
+    ({ mode, who, data }) => {
+      const k = window.__krel;
+      k.newRun(who);
+      Object.assign(k.G.s.flags, { ch1_intro: true, ch1_home: true, home_seen: true, flyover_seen: true, tv_klerble_welcome: true, prologue_done: true, met_emergency: true, founding_seen: true });
+      const g = k.game;
+      for (const sc of g.scene.getScenes(true)) if (sc.sys.settings.key !== "UI") g.scene.stop(sc.sys.settings.key);
+      g.scene.start("Minigame", { mode, ...data });
+    },
+    { mode, who, data },
+  );
+  await ph.until(() => window.__krel.game.scene.isActive("Minigame") && !!window.__krel.game.scene.getScene("Minigame").box, null, 60000, "the minigame");
+  await sleep(900);
+  // (the intro conversation: a tap advances it, as on a laptop's Space)
+  for (let i = 0; i < 12; i++) {
+    const m = await mgNow(ph);
+    if (!m.talking) break;
+    await ph.tapCss(422, 120);
+    await sleep(450);
+  }
+  await sleep(300);
+}
+
+/** Tap through the outcome conversation until the scene has gone. */
+async function mgOut(ph, ms = 30000) {
+  const t0 = Date.now();
+  while (Date.now() - t0 < ms) {
+    const live = await ph.ev(() => window.__krel.game.scene.isActive("Minigame"));
+    if (!live) return true;
+    await ph.tapCss(422, 120);
+    await sleep(500);
+  }
+  return false;
+}
+
+/** Mash with two thumbs, the second landing while the first is still down (every finger counts). */
+async function twoThumbs(ph, n, until) {
+  const L = { x: 300, y: 230 };
+  const R = { x: 560, y: 230 };
+  for (let i = 0; i < n; i++) {
+    await ph.touch("touchStart", [{ ...L, id: 1 }]);
+    await ph.touch("touchStart", [{ ...L, id: 1 }, { ...R, id: 2 }]);
+    await ph.touch("touchEnd", [{ ...R, id: 2 }]);
+    await ph.touch("touchEnd", []);
+    if (i % 4 === 3 && until && (await until())) return i + 1;
+    await sleep(25);
+  }
+  return n;
+}
+
+/** The page position of a game point in the Minigame scene. */
+const gpos = (ph, gx, gy) => ph.g2c(gx, gy);
+
+/** FACEBROOK / THE MODULATOR's answers, read from the game's own source (the bot knows the jokes, like a player who has played it). */
+function fbAnswers() {
+  const src = fs.readFileSync(path.join(__dirname, "../src/game/scenes/MinigameScene.ts"), "utf8");
+  const out = {};
+  for (const m of src.matchAll(/text: "((?:[^"\\]|\\.)*)",\s*opts: \[[\s\S]*?\],\s*troll: (\d)/g)) out[m[1].replace(/\\"/g, '"').replace(/\\'/g, "'")] = Number(m[2]);
+  return out;
+}
+
+async function games(browser) {
+  console.log("GAMES (every compulsory minigame won by touch, the optional ones finished or skipped)");
+  const { ctx, page, ph, errors } = await phoneAtTitle(browser);
+  const shot = async (n) => ph.shot(`games-${n}`);
+  // (GAMES_ONLY=bully,crocodile runs just those, for working on one)
+  const only = (process.env.GAMES_ONLY || "").split(",").filter(Boolean);
+  const want = (g) => !only.length || only.includes(g);
+  try {
+    await ph.ev(() => window.__krelMobile.setInsets({ top: 0, right: 47, bottom: 21, left: 47 }));
+    await sleep(400);
+
+    if (want("bully")) {
+      // ---- BULLY: two thumbs drumming anywhere; the II is there; the first-time cue
+      await mgInto(ph, "bully", "FLENKY");
+      let s = await ph.snap();
+      const st0 = await ph.ev(() => window.__krelMobile.games.state());
+      check("games: a minigame is tap mode with the II (the pause menu) and says which game it is", s.decision.mode === "tap" && s.decision.pause === "menu" && s.buttons.pause && s.decision.game === "bully", s.decision);
+      check("games: the first time, a one-line cue in touch words shows over it (and takes no touches)", /TAP ANYWHERE/.test(st0.cue || ""), st0.cue);
+      const hits = async () => Number(((await mgNow(ph)).hud.match(/HITS (\d+)/) || [])[1] || 0);
+      const h0 = await hits();
+      await twoThumbs(ph, 3);
+      await sleep(250);
+      const h1 = await hits();
+      check("games: BULLY: two thumbs, the second landing while the first is down, both count (3 rounds = 6 hits)", h1 - h0 === 6, { h0, h1 });
+      await shot("bully");
+      await twoThumbs(ph, 300, async () => (await mgNow(ph)).ended);
+      await ph.until(() => window.__krel.G.s.flags.mg_bully_won, null, 8000, "bully won").catch(() => {});
+      check("games: BULLY won by tapping anywhere", (await mgNow(ph)).won, await mgNow(ph));
+      await mgOut(ph);
+    }
+
+    if (want("deadlift")) {
+      // ---- DEADLIFT (Jenko's lift: the gentle one, as on a laptop)
+      await mgInto(ph, "deadlift", "FLENKY");
+      const help = await ph.ev(() => window.__krel.game.scene.getScene("Minigame").children.list.filter((o) => o.type === "Text" && /Mash/.test(o.text)).map((o) => o.text));
+      check("games: DEADLIFT's how-to line says the screen, not SPACE", help.length === 1 && /Mash the screen/.test(help[0]) && !/SPACE/.test(help[0]), help);
+      await twoThumbs(ph, 400, async () => (await mgNow(ph)).ended);
+      await ph.until(() => window.__krel.G.s.flags.mg_deadlift_won, null, 8000, "deadlift won").catch(() => {});
+      check("games: DEADLIFT won by mashing with two thumbs", (await mgNow(ph)).won, await mgNow(ph));
+      await mgOut(ph);
+    }
+
+    if (want("girlfriends")) {
+      // ---- GIRLFRIENDS: tap the phone that's ringing
+      await mgInto(ph, "girlfriends", "KREZWONK");
+      const keyCaps = await ph.ev(() => window.__krel.game.scene.getScene("Minigame").children.list.filter((o) => o.type === "Text" && /^\[[123]\]$/.test(o.text)).length);
+      check("games: GIRLFRIENDS: no [1] [2] [3] key captions under the phones", keyCaps === 0, keyCaps);
+      let answered = 0;
+      for (let i = 0; i < 400 && !(await mgNow(ph)).ended; i++) {
+        const ring = await ph.ev(() => {
+          const sc = window.__krel.game.scene.getScene("Minigame");
+          const c = sc.children.list.find((o) => o.type === "Container" && o.list.length > 4 && o.list[0].fillAlpha > 0.2);
+          return c ? { x: c.x, y: c.y } : null;
+        });
+        if (ring && !ring.done) {
+          const [x, y] = await gpos(ph, ring.x, ring.y + 40);
+          await fingerTap(ph, x, y);
+          answered++;
+          await sleep(380);
+        } else await sleep(60);
+      }
+      await ph.until(() => window.__krel.G.s.flags.mg_girlfriends_won, null, 8000, "girlfriends won").catch(() => {});
+      check("games: GIRLFRIENDS won by tapping the ringing phone", (await mgNow(ph)).won, { answered, now: await mgNow(ph) });
+      await mgOut(ph);
+    }
+
+    if (want("renovate")) {
+      // ---- FLIP IT: tap each problem on its ring, off its picture (the ring is the tap area on a phone)
+      await mgInto(ph, "renovate", "SCROMBUS");
+      const flipHelp = await ph.ev(() => window.__krel.game.scene.getScene("Minigame").children.list.filter((o) => o.type === "Text" && /problems before they ROT/.test(o.text)).map((o) => o.text));
+      check("games: FLIP IT's how-to line says tap (no arrows, WASD, SPACE)", flipHelp.length === 1 && /^Tap problems/.test(flipHelp[0]) && !/WASD|SPACE/.test(flipHelp[0]), flipHelp);
+      let ringHits = 0;
+      let tapsDone = 0;
+      for (let i = 0; i < 2000 && !(await mgNow(ph)).ended; i++) {
+        const ps = await ph.ev(() => {
+          const sc = window.__krel.game.scene.getScene("Minigame");
+          const r = sc.sys.game.canvas.getBoundingClientRect();
+          const k = r.width / 960;
+          return sc.children.list
+            .filter((o) => o.input && o.input.enabled && o.depth === 10 && o.active && o.scaleX > 0.9 && !o.__tapped)
+            .map((o) => {
+              o.__tapped = true;
+              // (34 game px right of the centre: off the picture, inside the ring that is its tap area on a phone)
+              const off = Math.max(o.displayWidth / 2 + 3, 34);
+              return { x: r.x + (o.x + off) * k, y: r.y + o.y * k };
+            });
+        });
+        if (!ps.length) {
+          await sleep(25);
+          continue;
+        }
+        const v0 = await ph.ev(() => window.__krel.game.scene.getScene("Minigame").children.list.filter((o) => o.input && o.input.enabled && o.depth === 10 && o.active).length);
+        for (const p of ps) await fingerTap(ph, p.x, p.y, 9);
+        tapsDone += ps.length;
+        await sleep(20);
+        const v1 = await ph.ev(() => window.__krel.game.scene.getScene("Minigame").children.list.filter((o) => o.input && o.input.enabled && o.depth === 10 && o.active).length);
+        ringHits += Math.max(0, v0 - v1);
+      }
+      await ph.until(() => window.__krel.G.s.flags.mg_renovate_won, null, 8000, "flip won").catch(() => {});
+      const flip = await mgNow(ph);
+      check("games: FLIP IT won by tapping the problems' rings (taps off the picture count)", flip.won && ringHits >= 5, { ringHits, tapsDone, flip });
+      await mgOut(ph);
+    }
+
+    if (want("facebook")) {
+      // ---- FACEBROOK: tap a reply row (the bot knows which reply is the troll)
+      const ans = fbAnswers();
+      await mgInto(ph, "facebook", "KREBLIS");
+      const fbKeys = await ph.ev(() => window.__krel.game.scene.getScene("Minigame").children.list.flatMap((o) => (o.type === "Container" ? o.list : [o])).filter((o) => o.type === "Text" && /^\[[123]\] /.test(o.text)).length);
+      check("games: FACEBROOK's replies lose their [1] [2] [3]", fbKeys === 0, fbKeys);
+      for (let i = 0; i < 12 && !(await mgNow(ph)).ended; i++) {
+        const post = await ph.ev(() => {
+          const sc = window.__krel.game.scene.getScene("Minigame");
+          const card = sc.children.list.find((o) => o.type === "Container" && o.list.some((c) => c.type === "Text" && c.style && c.style.fontSize === "16px"));
+          const t = card && card.list.find((c) => c.type === "Text" && c.y === 150);
+          const rows = card ? card.list.filter((c) => c.type === "Rectangle" && c.input && c.input.enabled).length : 0;
+          return t ? { text: t.text, rows } : null;
+        });
+        if (!post || post.rows < 3) {
+          await sleep(300);
+          continue;
+        }
+        const key = Object.keys(ans).find((k) => k.replace(/\s+/g, " ").trim() === post.text.replace(/\s+/g, " ").trim());
+        const pick = key !== undefined ? ans[key] : 0;
+        const [x, y] = await gpos(ph, 480, 300 + pick * 62);
+        await fingerTap(ph, x, y);
+        await sleep(2900);
+      }
+      await ph.until(() => window.__krel.G.s.flags.mg_facebook_won, null, 8000, "facebook won").catch(() => {});
+      check("games: FACEBROOK won by tapping the troll replies", (await mgNow(ph)).won, await mgNow(ph));
+      await mgOut(ph);
+    }
+
+    if (want("cannon")) {
+      // ---- THE CANNON: tap for the angle, tap for the power, as many goes as it takes
+      await mgInto(ph, "cannon", "FLENKY");
+      for (let i = 0; i < 40 && !(await mgNow(ph)).ended; i++) {
+        await sleep(650 + (i % 3) * 170);
+        await fingerTap(ph, 500, 220);
+        await sleep(500 + (i % 4) * 140);
+        await fingerTap(ph, 500, 220);
+        await ph.until(() => { const s = window.__krel.game.scene.getScene("Minigame"); return s.ended || !s.box.active; }, null, 8000).catch(() => {});
+        await sleep(2600);
+        for (let k = 0; k < 6 && (await mgNow(ph)).talking && !(await mgNow(ph)).ended; k++) {
+          await ph.tapCss(422, 120);
+          await sleep(400);
+        }
+      }
+      await ph.until(() => window.__krel.G.s.flags.mg_cannon_won, null, 8000, "cannon won").catch(() => {});
+      check("games: THE CANNON won by tapping (angle, then power)", (await mgNow(ph)).won, await mgNow(ph));
+      await mgOut(ph);
+    }
+
+    if (want("burpees")) {
+      // ---- BURPEES: tap anywhere as the ring closes (the right move, as SPACE); ▼ / ▲ stay under the thumbs
+      await mgInto(ph, "burpees", "KREBLIS");
+      await ph.ev(() => {
+        const sc = window.__krel.game.scene.getScene("Minigame");
+        const g = sc.children.list.find((o) => o.type === "Graphics" && o.depth === 110);
+        // (the test reads the closing ring's radius the way a player sees it: what the scene draws)
+        let lw = 0;
+        const ls = g.lineStyle.bind(g);
+        g.lineStyle = (w, c, a) => ((lw = w), ls(w, c, a));
+        window.__judged = [];
+        const hf = sc.hitFx.bind(sc);
+        const mf = sc.missFx.bind(sc);
+        sc.hitFx = (...a) => (window.__judged.push(Math.round(a[2] * 1000)), hf(...a));
+        sc.missFx = (...a) => (window.__judged.push("miss"), mf(...a));
+        const sc0 = g.strokeCircle.bind(g);
+        g.strokeCircle = (x, y, r) => {
+          if (lw === 7) window.__burpR = { r, t: performance.now() };
+          return sc0(x, y, r);
+        };
+      });
+      const burpHelp = await ph.ev(() => window.__krel.game.scene.getScene("Minigame").children.list.filter((o) => o.type === "Text" && /^Ring closes/.test(o.text)).map((o) => o.text));
+      check("games: BURPEES' how-to line: tap (no keys)", burpHelp.length === 1 && /tap to drop/.test(burpHelp[0]) && !/Space|S W/.test(burpHelp[0]), burpHelp);
+      // (the ring closes from 46 + 120 px over two beats: its radius says how long until the beat; the round's beat is the
+      // game's EMOM table)
+      let lastDue = 0;
+      for (let i = 0; i < 20000 && !(await mgNow(ph)).ended; i++) {
+        const due = await ph.ev(() => {
+          const sc = window.__krel.game.scene.getScene("Minigame");
+          const R = window.__burpR;
+          if (!R || performance.now() - R.t > 200) return null;
+          const roundT = sc.children.list.find((o) => o.type === "Text" && /^EMOM · ROUND \d/.test(o.text));
+          const ri = roundT ? Number(roundT.text.match(/ROUND (\d)/)[1]) - 1 : 0;
+          const beat = sc.constructor.EMOM[ri].beat * 1000;
+          return Math.max(0, ((R.r - 46) / 120) * 2 * beat - (performance.now() - R.t));
+        });
+        if (due === null) {
+          await sleep(15);
+          continue;
+        }
+        if (due < 80 && Date.now() - lastDue > 200) {
+          lastDue = Date.now();
+          await fingerTap(ph, 422, 230);
+        } else await sleep(due > 120 ? 40 : 8);
+      }
+      await ph.until(() => window.__krel.G.s.flags.mg_burpees_won, null, 8000, "burpees won").catch(() => {});
+      check("games: BURPEES won by tapping on the ring", (await mgNow(ph)).won, { now: await mgNow(ph), judged: (await ph.ev(() => window.__judged || [])).slice(0, 24) });
+      await mgOut(ph, 40000);
+    }
+
+    if (want("crocodile")) {
+      // ---- THE CROCODILE: tap the column (left LEFT, middle CHOMP, right RIGHT) as each move reaches the ring
+      await mgInto(ph, "crocodile", "MIKEY");
+      const pads = await ph.ev(() => {
+        const sc = window.__krel.game.scene.getScene("Minigame");
+        return sc.children.list.filter((o) => o.type === "Rectangle" && o.width === 250 && o.input).map((o) => ({ x: o.x, bottom: o.y + o.height / 2, hit: { x: o.input.hitArea.x, y: o.input.hitArea.y, w: o.input.hitArea.width, h: o.input.hitArea.height } }));
+      });
+      const rect = await ph.rect();
+      const k = rect.w / 960;
+      check("games: CROCODILE's three pads sit above the home-indicator strip (bottom edge over 21 CSS px from the screen's bottom)", pads.length === 3 && pads.every((p) => rect.y + p.bottom * k <= 390 - 21), pads.map((p) => p.bottom));
+      check("games: CROCODILE: each pad's touch area is its whole column under the note lane", pads.length === 3 && pads.every((p) => p.hit.h >= 360 && p.hit.w >= 280), pads.map((p) => p.hit));
+      await ph.ev(() => {
+        const sc = window.__krel.game.scene.getScene("Minigame");
+        window.__judged = [];
+        const hf = sc.hitFx.bind(sc);
+        const mf = sc.missFx.bind(sc);
+        sc.hitFx = (...a) => (window.__judged.push(Math.round(a[2] * 1000)), hf(...a));
+        sc.missFx = (...a) => (window.__judged.push("miss"), mf(...a));
+      });
+      const croc = { L: [rect.x + 170 * k, rect.y + 380 * k], C: [rect.x + 480 * k, rect.y + 300 * k], R: [rect.x + 790 * k, rect.y + 250 * k] };
+      await shot("crocodile");
+      for (let i = 0; i < 40000; i++) {
+        const m = await ph.ev(() => {
+          const sc = window.__krel.game.scene.getScene("Minigame");
+          if (sc.ended) return { end: true };
+          let best = null;
+          for (const o of sc.children.list) {
+            if (o.type !== "Container" || o.depth !== 150 || !o.active || o.__tapped || o.x > 420 || o.x < 100) continue;
+            // (a gold rim: double time, twice as fast)
+            const fast = o.list[0].strokeColor === 0xffd23f;
+            const ms = ((o.x - 150) / (330 * (fast ? 2 : 1))) * 1000;
+            if (!best || ms < best.ms) best = { o, ms };
+          }
+          if (!best) return null;
+          if (best.ms > 110) return { wait: best.ms };
+          best.o.__tapped = true;
+          const t = best.o.list.find((c) => c.type === "Text");
+          return { k: t.text === "◀" ? "L" : t.text === "▶" ? "R" : "C" };
+        });
+        if (m && m.end) break;
+        if (m && m.k) await fingerTap(ph, croc[m.k][0], croc[m.k][1], 3);
+        else await sleep(m && m.wait > 120 ? 40 : 6);
+      }
+      const cr = await mgNow(ph);
+      const crHits = Number((cr.hud.match(/🐊 (\d+)/) || [])[1] || 0);
+      const crMiss = Number((cr.hud.match(/MISSED (\d+)/) || [])[1] || 0);
+      await ph.until(() => window.__krel.G.s.flags.mg_crocodile_won, null, 15000, "croc done").catch(() => {});
+      check("games: CROCODILE danced to the end by tapping the columns, most moves in time", (await mgNow(ph)).won && crHits > 2 * crMiss, { crHits, crMiss, hud: cr.hud, judged: (await ph.ev(() => window.__judged || [])).slice(0, 30) });
+      await mgOut(ph, 40000);
+    }
+
+    if (want("runescape")) {
+      // ---- RUNESCAPE: CHOP (the right thumb), DROP ALL and the re-up when they'd do something; win 99 Woodcutting
+      await mgInto(ph, "runescape", "KREBLIS");
+      await sleep(400);
+      let g = await ph.ev(() => window.__krelMobile.games.state());
+      check("games: RUNESCAPE shows CHOP under the right thumb, and nothing it can't use yet (no DROP ALL with an empty bag)", g.buttons.includes("chop") && !g.buttons.includes("drop"), g.buttons);
+      const btn = async (id) =>
+        ph.ev((id) => {
+          const e = document.querySelector(`[data-ctl="${id}"]`);
+          if (!e || !e.classList.contains("show")) return null;
+          const b = e.getBoundingClientRect();
+          return { x: b.x + b.width / 2, y: b.y + b.height / 2, w: b.width };
+        }, id);
+      const chop = await btn("g-chop");
+      check("games: CHOP is a big thumb button (84 CSS px) inside the screen", !!chop && chop.w >= 80 && chop.x < 844 - 47 && chop.y < 390 - 21, chop);
+      let st;
+      let rings = 0;
+      let lastChop = 0;
+      let dropped = false;
+      let reup = false;
+      for (let i = 0; i < 40000; i++) {
+        st = await ph.ev(() => {
+          const s = window.__krel.game.scene.getScene("Minigame");
+          const box = window.__krel.game.scene.getScene("Minigame").children.list.find((o) => o.type === "Container" && o.depth === 70);
+          return { ...s.phoneRs.state(), talking: !!s.box.active, ended: !!s.ended, lvlBox: !!(box && box.visible) };
+        });
+        if (st.ended || st.over) break;
+        if (st.lvlBox) {
+          // (the level-up box in the chat: "Tap here to continue")
+          await ph.tapCss(...(await ph.g2c(300, 440)));
+          await sleep(60);
+          continue;
+        }
+        if (st.logs >= 24) {
+          const d = await btn("g-drop");
+          if (d) {
+            await fingerTap(ph, d.x, d.y, 4);
+            dropped = true;
+            await sleep(120);
+            continue;
+          }
+        }
+        if (st.gear < 30) {
+          const r = await btn("g-reup");
+          if (r && Date.now() - lastChop > 1200) {
+            await fingerTap(ph, r.x, r.y, 5);
+            reup = true;
+            lastChop = Date.now();
+            await sleep(200);
+            continue;
+          }
+        }
+        const c = await btn("g-chop");
+        if (!c) {
+          await sleep(30);
+          continue;
+        }
+        if (st.ring && st.ringR <= 22 && st.ringR >= 12) {
+          await fingerTap(ph, c.x, c.y, 6);
+          rings++;
+          await sleep(40);
+        } else if (!st.chopping && !st.ring && Date.now() - lastChop > 700) {
+          lastChop = Date.now();
+          await fingerTap(ph, c.x, c.y, 6);
+        } else await sleep(5);
+      }
+      await ph.until(() => window.__krel.G.s.flags.mg_runescape_won, null, 15000, "rs won").catch(() => {});
+      const rs = await mgNow(ph);
+      check("games: RUNESCAPE won (99 Woodcutting) with CHOP, DROP ALL and the re-up by touch", rs.won && rings > 5, { rings, dropped, reup, level: st && st.level, rs });
+      await mgOut(ph, 40000);
+    }
+
+    if (want("gig")) {
+      // ---- the corner under the II: the minigames' own LEAVE / END GIG moved left of it
+      await mgInto(ph, "gig", "KREBON");
+      const gigCheck = await ph.ev(() => {
+        const sc = window.__krel.game.scene.getScene("Minigame");
+        const b = sc.children.list.find((o) => o.type === "Text" && /END GIG/.test(o.text));
+        const r = b.getBounds();
+        return { right: r.right, w: r.width, h: r.height, help: sc.children.list.filter((o) => o.type === "Text" && /prance/.test(o.text)).map((o) => o.text) };
+      });
+      const rect = await ph.rect();
+      const k = rect.w / 960;
+      const pz = await ph.ev(() => {
+        const e = document.querySelector(".kt-pause");
+        const b = e.getBoundingClientRect();
+        return { x: b.x, y: b.y, w: b.width, h: b.height };
+      });
+      check("games: THE GIG's END GIG ends left of the II (never under it)", rect.x + gigCheck.right * k < pz.x - 4, { endRight: rect.x + gigCheck.right * k, pause: pz });
+      check("games: THE GIG's how-to line: hold and tap, no keys", gigCheck.help.length === 1 && !/A\/D|SPACE/.test(gigCheck.help[0]), gigCheck.help);
+      // a tap on Benn prances; a held thumb moves him
+      const benn0 = await ph.ev(() => window.__krel.game.scene.getScene("Minigame").children.list.find((o) => o.type === "Sprite" && o.texture.key === "spr_KREBON" && o.depth === 10).x);
+      const [hx, hy] = await gpos(ph, 800, 420);
+      await ph.touch("touchStart", [{ x: hx, y: hy, id: 8 }]);
+      await sleep(900);
+      await ph.touch("touchEnd", []);
+      const benn1 = await ph.ev(() => window.__krel.game.scene.getScene("Minigame").children.list.find((o) => o.type === "Sprite" && o.texture.key === "spr_KREBON" && o.depth === 10).x);
+      check("games: THE GIG (optional): a held thumb walks Benn that way", benn1 > benn0 + 60, { benn0, benn1 });
+      // the safe cut: END GIG appears after 45 s of the set and finishes it (the laptop's own finish)
+      await ph.until(() => { const sc = window.__krel.game.scene.getScene("Minigame"); const b = sc.children.list.find((o) => o.type === "Text" && /END GIG/.test(o.text)); return b && b.visible; }, null, 70000, "END GIG").catch(() => {});
+      const end = await ph.ev(() => {
+        const sc = window.__krel.game.scene.getScene("Minigame");
+        const b = sc.children.list.find((o) => o.type === "Text" && /END GIG/.test(o.text));
+        const r = b.getBounds();
+        return { x: r.centerX, y: r.centerY, visible: b.visible };
+      });
+      if (end.visible) await ph.tapGame(end.x, end.y);
+      await sleep(600);
+      check("games: THE GIG (optional) can be finished by touch (END GIG), the laptop's finish", (await mgNow(ph)).played, await mgNow(ph));
+      await mgOut(ph);
+    }
+
+    if (want("console")) {
+      // ---- a console replay (Home's console): the same minigame, back home after
+      await ph.ev(() => {
+        const k = window.__krel;
+        k.newRun("FLENKY");
+        Object.assign(k.G.s.flags, { ch1_intro: true, ch1_home: true, home_seen: true, flyover_seen: true, tv_klerble_welcome: true, prologue_done: true, met_emergency: true, founding_seen: true });
+        const g = k.game;
+        for (const sc of g.scene.getScenes(true)) if (sc.sys.settings.key !== "UI") g.scene.stop(sc.sys.settings.key);
+        g.scene.start("Minigame", { mode: "bully", console: true });
+      });
+      await ph.until(() => window.__krel.game.scene.isActive("Minigame"), null, 30000);
+      await sleep(900);
+      for (let i = 0; i < 8 && (await mgNow(ph)).talking; i++) {
+        await ph.tapCss(422, 120);
+        await sleep(450);
+      }
+      await twoThumbs(ph, 300, async () => (await mgNow(ph)).ended);
+      await mgOut(ph);
+      await ph.until(() => window.__krel.game.scene.isActive("Home"), null, 20000, "home").catch(() => {});
+      check("games: a console replay (optional) plays by touch and goes back home", await ph.ev(() => window.__krel.game.scene.isActive("Home") && !!window.__krel.G.s.flags.mg_bully_won), await ph.active());
+    }
+
+    if (want("squeeze")) {
+      // ---- the golden juice squeeze: a tap anywhere squeezes; the circle says TAP
+      await toWalk(ph, "Hub");
+      const sq = await ph.ev(async () => {
+        const m = await import("/src/game/systems/squeeze.ts");
+        const hub = window.__krel.game.scene.getScene("Hub");
+        const me = hub.av;
+        const her = { name: "TRACY", spr: hub.children.list.find((o) => o.type === "Sprite" && o !== me) };
+        const G = window.__krel.G;
+        // (the conversations answer themselves: Hug her, then Drink it)
+        const talk = async (lines) => {
+          for (const l of lines) if (l.choice) Object.assign(G.s.flags, l.choice[0].set);
+        };
+        window.__sq = m.squeeze(hub, talk, her, me).then((v) => (window.__sqDone = v));
+        return true;
+      });
+      await sleep(600);
+      const sqUi = await ph.ev(() => {
+        const hub = window.__krel.game.scene.getScene("Hub");
+        const t = hub.children.list.flatMap((o) => (o.type === "Container" ? o.list : [o])).filter((o) => o.type === "Text" && o.text === "TAP");
+        return t.length;
+      });
+      check("games: the squeeze's circle says TAP on a phone (no key names)", sq && sqUi === 1, sqUi);
+      for (let i = 0; i < 30; i++) {
+        await fingerTap(ph, 200 + (i % 5) * 90, 300);
+        await sleep(90);
+        if (await ph.ev(() => window.__sqDone !== undefined)) break;
+      }
+      await ph.until(() => window.__sqDone !== undefined, null, 15000, "squeeze").catch(() => {});
+      check("games: the golden juice squeeze is won by tapping anywhere (never on its little circle)", await ph.ev(() => window.__sqDone === true), await ph.ev(() => window.__sqDone));
+    }
+
+    if (want("pit")) {
+      // ---- the Krunch Pit (optional): its card, by tap, and out again
+      await ph.ev(() => window.__krel.go("Pit", { result: { mode: "range", outcome: "quit", earned: { coins: 0, krokens: 0 } } }));
+      await ph.scene("Pit");
+      await sleep(2500);
+      const pitKeys = await ph.ev(() => window.__krel.game.scene.getScene("Pit").children.list.filter((o) => o.type === "Text" && /any key/.test(o.text)).length);
+      check("games: the Krunch Pit's card has no 'any key' line on a phone", pitKeys === 0, pitKeys);
+      await shot("pit");
+    }
+
+    check("games: no page errors", errors.length === 0, errors.slice(0, 3));
+  } finally {
+    await ctx.close();
+  }
+}
+
 (async () => {
   const t0 = Date.now();
   let browser;
@@ -4798,6 +5314,7 @@ async function tapuse(browser) {
       ["platform", platform],
       ["android", android],
       ["tapuse", tapuse],
+      ["games", games],
       ["desktop", desktop],
     ]) {
       if (!ONLY.includes(id)) continue;

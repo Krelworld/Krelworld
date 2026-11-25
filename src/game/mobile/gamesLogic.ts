@@ -153,6 +153,9 @@ export interface RsState {
   ring: boolean;
   chopping: boolean;
   gary: string;
+  /** The closing ring's radius now (16 is the hit), 0 with no ring. */
+  ringR?: number;
+  level?: number;
 }
 
 /**
@@ -196,3 +199,39 @@ export const STRIP_CLEAR_GAME = 32;
 export function liftOutOfStrip(bottom: number, clear = STRIP_CLEAR_GAME): number {
   return Math.min(0, 540 - clear - bottom);
 }
+
+// ------------------------------------------------------------------ the first-time cue
+
+/**
+ * The first time each minigame is played on this phone (research S5, "one verb and an icon"): a short line in the
+ * middle of the screen for a few seconds, in touch words, over the real game (it takes no touches). UI, never dialogue.
+ */
+export const GAME_CUES: Readonly<Record<string, string>> = {
+  bully: "👆 TAP ANYWHERE TO VENT",
+  deadlift: "👆👆 MASH WITH BOTH THUMBS",
+  girlfriends: "👆 TAP THE PHONE THAT'S RINGING",
+  renovate: "👆 TAP THE PROBLEMS",
+  runescape: "👆 TAP CHOP",
+  burpees: "👆 TAP AS THE RING CLOSES",
+  facebook: "👆 TAP A REPLY",
+  modulator: "👆 TAP A REPLY",
+  crocodile: "👆 TAP ◀ LEFT · ▲ CHOMP · RIGHT ▶ ON THE BEAT",
+  cannon: "👆 TAP: ANGLE, THEN POWER",
+  gig: "👆 HOLD TO MOVE · TAP TO PLAY",
+};
+
+export const GAME_CUE_KEY = "krelworld.phone.gameCues";
+/** How long a cue shows (ms). */
+export const GAME_CUE_MS = 3200;
+
+/** The cue for this game, or null (none for it, or already shown on this phone). */
+export function cueFor(mode: string | null | undefined, seen: readonly string[]): string | null {
+  if (!mode || seen.includes(mode)) return null;
+  return GAME_CUES[mode] ?? null;
+}
+
+/** The narrator's control tip in the golden juice squeeze (hard rule 3's exception: a narrator line, phones only). */
+export const GAME_NARRATOR_TIPS: WordingRule[] = [
+  // systems/squeeze.ts: "You hug her. Now: SQUEEZE. Hit the buttons as they come up, fast, before she gets bored."
+  { id: "squeeze-buttons", re: /\bHit the buttons as they come up, fast, before she gets bored\./g, to: "Tap the screen, fast, before she gets bored." },
+];

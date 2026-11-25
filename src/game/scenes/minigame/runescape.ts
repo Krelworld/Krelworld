@@ -925,7 +925,7 @@ export function runescape(host: RsHost) {
       reup: () => !over() && !host.box.active && callGary(true),
       quit,
       word: P.res.button,
-      state: () => ({ over: over(), logs: invCount(), gear, ring: !!ring, chopping, gary: garyState }),
+      state: () => ({ over: over(), logs: invCount(), gear, ring: !!ring, ringR: ring ? ringR() : 0, chopping, gary: garyState, level }),
     };
 
   // ---------------------------------------------------------------- the loop

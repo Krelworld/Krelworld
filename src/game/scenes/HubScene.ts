@@ -3448,7 +3448,10 @@ You are required by law to sign the Sex Offenders Register.`, {
     } else this.arrow.setVisible(false);
   }
 
-  /** The bike outside Home (on the grass right of the front door), and the prompt to get on it there. */
+  /**
+   * The bike outside Home (on the grass right of the front door), and the prompt to get on it there ("E: Ride your
+   * bike"). The first ride brings the one-time tip with the bike key (mountBike).
+   */
   /** The town paused under a conversation or a scene (not the pause menu): off the bike. */
   private onBikePause = () => {
     if (this.bike?.riding && !this.scene.isActive("Menu")) this.bike.dismount(this.av);
@@ -3502,13 +3505,6 @@ You are required by law to sign the Sex Offenders Register.`, {
     } else if (press) {
       if (bike.riding) bike.dismount(this.av);
       else this.mountBike();
-    }
-    // the first time you walk up to it outside Home: how to ride (a system hint)
-    const s = G.s;
-    const p = bike.parkedAt();
-    if (ok && !s.flags.bike_tip && p && bike.isHome() && Phaser.Math.Distance.Between(p.x, p.y, this.av.x, this.av.y) < 190) {
-      s.flags.bike_tip = true;
-      G.emit("toast", bikeTip(prettyKey(keysFor("bike")[0] ?? "Z")));
     }
     reportBike("Hub", ok && bike.ok, bike.riding);
   }

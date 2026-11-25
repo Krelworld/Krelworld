@@ -2,7 +2,7 @@
 // PHONE MODE smoke test (Playwright, real touch events). Needs a running dev server.
 //
 //   npx vite --port 5202 --strictPort &
-//   node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,together,review1,polish,platform,android,desktop]
+//   node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,together,review1,polish,platform,android,tapuse,scenes,desktop]
 //
 // phone    iPhone 14 landscape (844x390, DPR 3, touch, mobile Safari UA). Boots by taps, starts a new game by taps,
 //          clears the welcome at home by taps, then checks: the idle stick and pause are up; a drag moves the player
@@ -84,6 +84,14 @@
 // android  Android Chrome 740x360: a press held past the Enter gate's fade still gets fullscreen and the back guard;
 //          the guide's written steps leave fullscreen (and closing it goes back in); the crash guard's notices show
 //          in fullscreen; an in-app browser shows "open it in Chrome first" during the load.
+// scenes   (stage 3 wave 2) iPhone 14, touch only: Night of Freedom (the how-to line in touch words; no gun button
+//          during the conversation; ROCKET big and the canvas ones hidden; the score clear of II; a finger near a car
+//          locks the crosshair and fires; ROCKET with a second thumb while aiming, and with no finger; SLOPPY only
+//          when full; II pauses; the drawbridge's mash by taps and its SKIP pill left of II, then back to the level);
+//          Beep Beep (BOOST / BRAKE / HORN and a left / right stick, no key hint; the stick steers, a thumb on the
+//          picture doesn't; BOOST, BRAKE, HORN work; a win by taps, nothing held after); the cannon's TAP line and two
+//          taps fire it; the finale's II card with SKIP SCENE skips it; the advert's SKIP pill; a long TV subtitle
+//          paged two lines at a time with the same words; the Lair's SKIP SCENE; the raid's FIRE held by touch id.
 // desktop  1280x720, mouse: phone mode off, no class, no layer, no CSS, no global, and at home the UI scene has no
 //          touch pad and TOUCH stays off (exactly as before). Also: a laptop with "1" left in storage by an old
 //          ?mobile=1 link, and a laptop opening ?mobile=1, are laptops; the phone code reads no storage and asks no
@@ -100,7 +108,7 @@ const arg = (k, d) => {
 };
 const URL0 = arg("--url", "http://localhost:5202/");
 const SHOTS = arg("--shots", "");
-const ONLY = (arg("--only", "phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,together,review1,polish,platform,android,tapuse,desktop") || "").split(",").filter(Boolean);
+const ONLY = (arg("--only", "phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,together,review1,polish,platform,android,tapuse,scenes,desktop") || "").split(",").filter(Boolean);
 const IOS_UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1";
 const IPHONE = { viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, userAgent: IOS_UA };
 const DESKTOP = { viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1, hasTouch: false, isMobile: false };
@@ -4766,6 +4774,369 @@ async function tapuse(browser) {
   }
 }
 
+// ------------------------------------------------------------------ scenes (stage 3 wave 2)
+
+/**
+ * The special scenes by touch only (iPhone profile, real touches): Night of Freedom (finger aim, ROCKET, SLOPPY, the
+ * drawbridge's mash and SKIP), Beep Beep (the stick steers, BOOST / BRAKE / HORN, a win), the cannon's wording and
+ * taps, the finale's PAUSED card with SKIP SCENE, the advert's SKIP pill, the telly's paged subtitles, the Lair's
+ * SKIP SCENE, a pseudo-3D shot skipped by a tap, the raid's FIRE.
+ */
+async function scenesSection(browser) {
+  console.log("SCENES (Night of Freedom, Beep Beep, the cannon, the finale's card, skip pills, the telly, the raid)");
+  const { ctx, ph, errors } = await phoneAtTitle(browser);
+  const ctlOf = async (id) => (await ph.snap()).controls.find((c) => c.id === id);
+  const mid = (c) => [c.face.x + c.face.w / 2, c.face.y + c.face.h / 2];
+  const T = () =>
+    ph.ev(async () => {
+      const T = (await import("/src/game/ui/TouchControls.ts")).TOUCH;
+      return { mx: +T.mx.toFixed(2), attack: T.attack };
+    });
+  /** Tap the screen's top middle (conversations advance on a tap) until `fn` says so. */
+  const tapUntil = async (fn, arg, n = 90) => {
+    for (let i = 0; i < n; i++) {
+      if (await ph.ev(fn, arg).catch(() => false)) return true;
+      await ph.tapCss(422, 140);
+      await sleep(220);
+    }
+    return !!(await ph.ev(fn, arg).catch(() => false));
+  };
+  const into = (key, data) =>
+    ph.ev(({ key, data }) => {
+      const k = window.__krel;
+      k.newRun("FLENKY");
+      k.setChapter(5);
+      k.go(key, data);
+    }, { key, data });
+  try {
+    await ph.ev(() => window.__krelMobile.setInsets({ top: 0, right: 47, bottom: 21, left: 47 }));
+    const resume = { dungeon: "arena_sanmik", room: 0 };
+
+    // ---- Night of Freedom
+    await into("Drive", { chain: [], resume });
+    await ph.scene("Drive");
+    await sleep(1500);
+    let s = await ph.snap();
+    check("scenes: Night of Freedom's intro has no gun buttons (only the conversation)", !s.controls.some((c) => c.id === "sc-rocket" && c.shown), s.controls.filter((c) => c.shown).map((c) => c.id));
+    const seen = { touch: false, keys: false };
+    const ran = await tapUntil(() => {
+      const d = window.__krel.scene("Drive");
+      const w = (window.__scSeen = window.__scSeen || { touch: false, keys: false });
+      const walk = (o) => (o.type === "Container" ? o.list.forEach(walk) : o.type === "Text" && o.visible && ((w.touch = w.touch || /Hold a finger on whatever you want to shoot/.test(o.text)), (w.keys = w.keys || /Hold the mouse|Right-click, Space/.test(o.text))));
+      d.children.list.forEach(walk);
+      return d.running;
+    });
+    Object.assign(seen, await ph.ev(() => window.__scSeen || {}));
+    check("scenes: Night of Freedom's how-to line is in touch words on a phone (no mouse / keys)", seen.touch && !seen.keys, seen);
+    check("scenes: tapping through the intro starts the chase", ran);
+    await sleep(2500);
+    s = await ph.snap();
+    const canvasBtns = await ph.ev(() => window.__krel.scene("Drive").children.list.filter((o) => o.depth === 451 && /^(ROCKET|SLOPPY)$/.test(o.text) && o.visible).length);
+    const rocket = await ctlOf("sc-rocket");
+    check("scenes: the chase shows ROCKET (big, under the right thumb) and II; the canvas ROCKET / SLOPPY are hidden; SLOPPY only when full", s.decision.gunner === true && rocket?.shown && rocket.face.w >= 60 && rocket.face.x > 600 && canvasBtns === 0 && !(await ctlOf("sc-sloppy"))?.shown && s.buttons.pause, { rocket, canvasBtns });
+    const scoreClear = await ph.ev(() => {
+      const d = window.__krel.scene("Drive");
+      const p = document.querySelector(".kt-pause").getBoundingClientRect();
+      const cb = window.__krel.game.scale.canvasBounds;
+      const right = cb.x + (d.scoreText.x * cb.width) / 960;
+      return { right, pause: p.left };
+    });
+    check("scenes: the score sits left of II (it was under it)", scoreClear.right <= scoreClear.pause, scoreClear);
+    await ph.shot("scenes-nof-chase");
+    // a finger on a car: the gun pulls onto it and fires
+    const aimAt = async () => {
+      const f = await ph.ev(() => {
+        const d = window.__krel.scene("Drive");
+        const f = d.foes.filter((f) => !f.dead && f.kind !== "spikes" && f.kind !== "ramp" && f.spr.x > 40 && f.spr.x < 900).sort((a, b) => Math.abs(a.spr.x - 400) - Math.abs(b.spr.x - 400))[0];
+        return f ? [f.spr.x, f.spr.y] : null;
+      });
+      return f;
+    };
+    let foe = null;
+    for (let i = 0; i < 30 && !foe; i++) {
+      foe = await aimAt();
+      if (!foe) await sleep(300);
+    }
+    const shots0 = await ph.ev(() => window.__krel.scene("Drive").shotN);
+    let locked = false;
+    if (foe) {
+      for (let i = 0; i < 25 && !(locked && i >= 8); i++) {
+        const f = (await aimAt()) || foe;
+        const [cx, cy] = await ph.g2c(f[0] + 12, f[1] - 36);
+        await ph.touch(i ? "touchMove" : "touchStart", [{ x: cx, y: cy, id: 11 }]);
+        await sleep(90);
+        locked = locked || (await ph.ev(() => window.__krelMobile.scenes.gunner.locked));
+      }
+    }
+    await ph.shot("scenes-nof-aim");
+    const g1 = await ph.ev(() => ({ shots: window.__krel.scene("Drive").shotN, finger: window.__krelMobile.scenes.gunner.fingerDown }));
+    check("scenes: a finger near a car pulls the aim onto it (the crosshair locks) and the gun fires while it is held", !!foe && locked && g1.shots > shots0 && g1.finger, { foe, locked, shots0, g1 });
+    // ROCKET with the other thumb while aiming (two fingers at once)
+    const r0 = await ph.ev(() => window.__krel.scene("Drive").nextRocket);
+    const [rx, ry] = mid(rocket);
+    const f2 = (await aimAt()) || foe;
+    const [ax, ay] = await ph.g2c(f2[0], f2[1] - 30);
+    await ph.touch("touchMove", [{ x: ax, y: ay, id: 11 }]);
+    await ph.touch("touchStart", [{ x: ax, y: ay, id: 11 }, { x: rx, y: ry, id: 12 }]);
+    await sleep(120);
+    // (CDP's touchEnd names the fingers that lift: the ROCKET thumb)
+    await ph.touch("touchEnd", [{ x: rx, y: ry, id: 12 }]);
+    await sleep(150);
+    const g2 = await ph.ev(() => ({ rocket: window.__krel.scene("Drive").nextRocket, finger: window.__krelMobile.scenes.gunner.fingerDown }));
+    check("scenes: ROCKET with the other thumb fires a rocket while the aim finger stays down", g2.rocket > r0 && g2.finger, { r0, g2 });
+    await ph.touch("touchEnd", []);
+    await sleep(800);
+    // ROCKET with no finger: it goes at the biggest thing on screen
+    const r1 = await ph.ev(() => window.__krel.scene("Drive").nextRocket);
+    await ph.tapCss(rx, ry);
+    await sleep(500);
+    check("scenes: ROCKET with no finger aiming still fires (at the biggest thing on screen)", (await ph.ev(() => window.__krel.scene("Drive").nextRocket)) > r1);
+    // SLOPPY shows when full and does the Sloppy Surprise
+    await ph.ev(() => (window.__krel.scene("Drive").sloppy = 100));
+    await sleep(500);
+    const sl = await ctlOf("sc-sloppy");
+    check("scenes: SLOPPY appears above ROCKET when it is full", !!sl?.shown, sl);
+    if (sl?.shown) {
+      await ph.tapCss(...mid(sl));
+      await sleep(400);
+      check("scenes: SLOPPY does the Sloppy Surprise (and hides again)", (await ph.ev(() => window.__krel.scene("Drive").sloppy)) < 100 && !(await ctlOf("sc-sloppy")).shown);
+    }
+    // pause: II opens the pause menu over the chase; RESUME carries on
+    await tapPause(ph);
+    await ph.until(() => window.__krel.game.scene.isActive("Menu"), null, 10000, "the pause menu").catch(() => 0);
+    check("scenes: II pauses the chase (the pause menu, the chase held)", await ph.ev(() => window.__krel.game.scene.isActive("Menu") && window.__krel.game.scene.isPaused("Drive")));
+    await ph.tapText("RESUME", { scene: "Menu" }).catch(() => 0);
+    await ph.until(() => !window.__krel.game.scene.isActive("Menu"), null, 10000, "the menu closed").catch(() => 0);
+    // the drawbridge: the mash is a tap anywhere, SKIP a pill left of II
+    await ph.ev(() => (window.__krel.scene("Drive").t = 84.9));
+    check("scenes: the drawbridge's conversation comes and goes by taps", await tapUntil(() => !!window.__krel.scene("Drive").db && !window.__krel.scene("Drive").box.active, null, 60));
+    let geared = false;
+    for (let i = 0; i < 24 && !geared; i++) {
+      await ph.tapCss(300 + (i % 8) * 20, 200);
+      await sleep(90);
+      geared = await ph.ev(() => window.__krel.scene("Drive").children.list.some((o) => o.type === "Text" && /^(GEAR [2-9]|HIGHEST GEAR!!)$/.test(o.text)));
+    }
+    check("scenes: mashing by tapping shifts gears", geared);
+    await ph.until(() => !!window.__krel.scene("Drive").db?.skipBtn?.active, null, 15000, "the drawbridge's SKIP").catch(() => 0);
+    await sleep(300);
+    const sk = await ph.ev(() => {
+      const b = window.__krel.scene("Drive").db?.skipBtn;
+      if (!b) return null;
+      const r = b.getBounds();
+      const cb = window.__krel.game.scale.canvasBounds;
+      const k = cb.width / 960;
+      const p = document.querySelector(".kt-pause").getBoundingClientRect();
+      return { x: cb.x + r.centerX * k, y: cb.y + r.centerY * k, w: r.width * k, h: r.height * k, right: cb.x + r.right * k, pause: p.left, text: b.text };
+    });
+    check("scenes: the drawbridge's SKIP is a 44 px pill left of II (it was 13 px under II)", !!sk && sk.h >= 43 && sk.right <= sk.pause && /SKIP/.test(sk.text), sk);
+    await ph.shot("scenes-nof-drawbridge");
+    if (sk) await ph.tapCss(sk.x, sk.y);
+    check("scenes: SKIP ends the drawbridge; the chase's ending conversation then goes on by taps, back to the level", await tapUntil(() => !window.__krel.active().includes("Drive"), null, 120), await ph.active());
+
+    // ---- Beep Beep
+    await into("BeepBeep", { chain: [], resume });
+    await ph.scene("BeepBeep");
+    await sleep(1200);
+    check("scenes: Beep Beep's briefing goes by taps; then the stick and the pedals come up", await tapUntil(() => window.__krel.scene("BeepBeep").running && !window.__krel.scene("BeepBeep").box.active));
+    await sleep(800);
+    s = await ph.snap();
+    const shownB = s.controls.filter((c) => c.shown).map((c) => c.id);
+    check("scenes: Beep Beep shows BOOST, BRAKE, HORN and II, a left / right stick, and no key hint", ["sc-boost", "sc-brake", "sc-horn", "pause"].every((id) => shownB.includes(id)) && s.decision.stick === "x" && !(await ph.ev(() => window.__krel.scene("BeepBeep").hint.visible)), { shownB, stick: s.decision.stick });
+    await ph.shot("scenes-beepbeep");
+    // steer left with the stick (a drag on the left)
+    const px0 = await ph.ev(() => window.__krel.scene("BeepBeep").px);
+    await ph.touch("touchStart", [{ x: 200, y: 260, id: 21 }]);
+    for (let i = 1; i <= 6; i++) {
+      await ph.touch("touchMove", [{ x: 200 - i * 10, y: 260, id: 21 }]);
+      await sleep(40);
+    }
+    await sleep(700);
+    const steerL = await ph.ev(() => ({ px: window.__krel.scene("BeepBeep").px, a: window.__krel.scene("BeepBeep").keys.A.isDown }));
+    await ph.touch("touchEnd", []);
+    await sleep(200);
+    check("scenes: dragging left on the left steers left (the game's A key held)", steerL.px < px0 - 0.05 && steerL.a, { px0, steerL });
+    check("scenes: letting go lets the steering go", !(await ph.ev(() => window.__krel.scene("BeepBeep").keys.A.isDown)));
+    // a touch on the right of the picture no longer steers (only the stick does)
+    const px1 = await ph.ev(() => window.__krel.scene("BeepBeep").px);
+    await ph.touch("touchStart", [{ x: 560, y: 260, id: 22 }]);
+    await sleep(600);
+    const px2 = await ph.ev(() => window.__krel.scene("BeepBeep").px);
+    await ph.touch("touchEnd", []);
+    check("scenes: a thumb resting on the picture's right does not steer", Math.abs(px2 - px1) < 0.25, { px1, px2 });
+    // BOOST held
+    const boost = await ctlOf("sc-boost");
+    const [bx, by] = mid(boost);
+    await ph.touch("touchStart", [{ x: bx, y: by, id: 23 }]);
+    await sleep(500);
+    const bst = await ph.ev(() => ({ boosting: window.__krel.scene("BeepBeep").boosting, speed: window.__krel.scene("BeepBeep").speed }));
+    await ph.touch("touchEnd", []);
+    await sleep(300);
+    check("scenes: holding BOOST boosts; letting go stops it", bst.boosting && !(await ph.ev(() => window.__krel.scene("BeepBeep").keys.SHIFT.isDown)), bst);
+    // BRAKE held slows the car
+    const brake = await ctlOf("sc-brake");
+    const v0 = await ph.ev(() => window.__krel.scene("BeepBeep").speed);
+    await ph.touch("touchStart", [{ x: mid(brake)[0], y: mid(brake)[1], id: 24 }]);
+    await sleep(600);
+    const v1 = await ph.ev(() => window.__krel.scene("BeepBeep").speed);
+    await ph.touch("touchEnd", []);
+    check("scenes: holding BRAKE slows the car", v1 < v0 - 1000, { v0, v1 });
+    // HORN
+    const h0 = await ph.ev(() => window.__krel.scene("BeepBeep").hornReady);
+    await sleep(2600);
+    await ph.tapCss(...mid(await ctlOf("sc-horn")));
+    await sleep(300);
+    check("scenes: HORN honks", (await ph.ev(() => window.__krel.scene("BeepBeep").hornReady)) > h0);
+    // win: the end conversation by taps, then on to the next part of the chain
+    await ph.ev(() => (window.__krel.scene("BeepBeep").hits = 25));
+    await sleep(500);
+    check("scenes: Beep Beep's win and its conversation go by taps, then the game moves on; nothing is held", await tapUntil(() => !window.__krel.active().includes("BeepBeep"), null, 80), await ph.active());
+    const t1 = await T();
+    check("scenes: no held input after Beep Beep", t1.mx === 0 && !t1.attack, t1);
+
+    // ---- the cannon (the airport): its how-to line in touch words, taps set ANGLE and POWER
+    await into("Minigame", { mode: "cannon", chain: [], resume });
+    await ph.scene("Minigame");
+    await sleep(1500);
+    const tip = await ph.ev(() => window.__krel.scene("Minigame").children.list.filter((o) => o.type === "Text" && /ANGLE, then POWER/.test(o.text)).map((o) => o.text));
+    check("scenes: the cannon's how-to line says TAP (no SPACE)", tip.length === 1 && /^TAP: ANGLE/.test(tip[0]), tip);
+    await tapUntil(() => !window.__krel.scene("Minigame").box?.active, null, 30);
+    await sleep(400);
+    await ph.tapCss(500, 200);
+    await sleep(700);
+    await ph.tapCss(500, 200);
+    await sleep(300);
+    const flying = await ph.ev(() => window.__krel.scene("Minigame").children.list.some((o) => o.type === "Sprite" && o.visible && o.depth === 19));
+    check("scenes: two taps fire the cannon (ANGLE, POWER)", flying);
+
+    // ---- the finale between its fights: II → the PAUSED card with SKIP SCENE (Esc on a laptop)
+    await into("Finale", { beat: "emerge" });
+    await ph.scene("Finale");
+    await sleep(2500);
+    await tapPause(ph);
+    await sleep(500);
+    const card = await ph.ev(() => {
+      const x = document.querySelector(".kres-x");
+      return { shown: !!document.querySelector(".kres") && getComputedStyle(document.querySelector(".kres")).display !== "none", label: x?.textContent ?? "", on: !!x?.classList.contains("on") };
+    });
+    check("scenes: the finale's II shows the PAUSED card with SKIP SCENE ▸▸", card.on && /SKIP SCENE/.test(card.label), card);
+    await ph.shot("scenes-finale-card");
+    if (card.on) {
+      await ph.tapSel(".kres-x.on");
+      check("scenes: SKIP SCENE skips the finale's scene (as Esc does)", await ph.until(() => !window.__krel.active().includes("Finale"), null, 30000, "the finale skipped").then(() => true).catch(() => false), await ph.active());
+    }
+
+    // ---- the telly: a long line is paged, two lines at a time, every word kept
+    const ep = await ph.ev(async () => {
+      const { ALL_EPISODES } = await import("/src/content/television/channels.ts");
+      for (const e of ALL_EPISODES) {
+        if (e.style === "pov" || e.style === "news" || e.contentNote) continue;
+        const i = e.beats.findIndex((b) => b.type === "speaker" && b.text.length > 150);
+        if (i >= 0 && i < 30) return { id: e.id, beat: i, text: e.beats[i].character + ": " + e.beats[i].text };
+      }
+      return null;
+    });
+    if (ep) {
+      await into("TV", { episode: ep.id, once: true });
+      await ph.scene("TV");
+      await ph.until(() => window.__krel.scene("TV").mode === "playing", null, 30000, "the show playing").catch(() => 0);
+      await sleep(500);
+      await ph.ev((b) => {
+        const tv = window.__krel.scene("TV");
+        tv.beat = b;
+        tv.runBeat();
+      }, ep.beat);
+      await ph.until(() => window.__krel.scene("TV").subs.text.length > 0, null, 15000, "the subtitle").catch(() => 0);
+      const p1 = await ph.ev(() => {
+        const t = window.__krel.scene("TV").subs;
+        return { text: t.text, lines: t.getWrappedText(t.text).length };
+      });
+      await ph.shot("scenes-tv-subs");
+      await ph.until((a) => window.__krel.scene("TV").subs.text !== a, p1.text, 40000, "the next page").catch(() => 0);
+      const p2 = await ph.ev(() => window.__krel.scene("TV").subs.text);
+      const norm = (x) => x.replace(/\s+/g, " ").trim();
+      const shown = norm(p1.text + " " + p2);
+      check("scenes: a long TV subtitle shows two lines at a time, then the rest of the same words", p1.lines <= 2 && p1.text !== p2 && norm(ep.text).startsWith(norm(p1.text)) && norm(ep.text).includes(norm(p2)), { p1, p2: p2.slice(0, 80), full: ep.text.slice(0, 80), shown: shown.length });
+    } else check("scenes: found a TV episode with a long line", false);
+
+    // ---- the Crobley advert: SKIP ADVERT ▸▸ does what Tab does
+    await into("Vignette", { id: "crobley_ad" });
+    await ph.scene("Vignette");
+    await ph.until(() => window.__krel.scene("Vignette").children.list.some((o) => o.type === "Text" && o.text === "SKIP ADVERT ▸▸"), null, 30000, "the advert's skip pill").catch(() => 0);
+    const adv = await ph.find("SKIP ADVERT", { scene: "Vignette" });
+    check("scenes: the advert's \"TAB: skip advert\" is a SKIP ADVERT ▸▸ pill up top", !!adv && adv.y < 80, adv);
+    await ph.shot("scenes-advert");
+    if (adv) {
+      await ph.tapGame(adv.x, adv.y);
+      check("scenes: SKIP ADVERT ends the advert", await ph.until(() => !window.__krel.scene("Vignette").children.list.some((o) => o.type === "Text" && o.text === "SKIP ADVERT ▸▸" && o.active), null, 15000, "advert gone").then(() => true).catch(() => false));
+    }
+
+    // (the advert's vignette carries on after the advert: its conversation by taps, until it has moved on)
+    await tapUntil(() => !window.__krel.active().includes("Vignette"), null, 120);
+    // ---- the raid (Kreddle): FIRE is a layer button under the right thumb that holds the game's attack
+    await ph.ev(() => {
+      const k = window.__krel;
+      k.newRun("FLENKY");
+      k.setChapter(6, { revenge_meeting: true, raid_march: true });
+      k.go("Kreddle", { raid: true });
+    });
+    await ph.scene("Kreddle");
+    // (taps carry the raid's opening conversations on, until FIRE is up)
+    await tapUntil(() => {
+      const r = window.__krel.scene("Kreddle").raid;
+      return !!r && !r.busy && !!window.__krelMobile.snapshot().controls.find((c) => c.id === "sc-raidfire" && c.shown);
+    }, null, 160);
+    await sleep(300);
+    const fire = await ctlOf("sc-raidfire");
+    const canvasFire = await ph.ev(() => !!window.__krel.scene("Kreddle").raid?.fireBtn?.visible);
+    check("scenes: the raid's FIRE is a big layer button (the canvas one hidden)", !!fire?.shown && fire.face.w >= 60 && !canvasFire, { fire, canvasFire, active: await ph.active() });
+    await ph.shot("scenes-raid");
+    if (fire?.shown) {
+      // (the raid has scripted beats where FIRE steps away: try a fresh press up to three times, each once it is up)
+      let res = null;
+      for (let tries = 0; tries < 3 && !(res && res.held.attack && res.slid.attack && !res.after.attack); tries++) {
+        await tapUntil(() => !!window.__krelMobile.snapshot().controls.find((c) => c.id === "sc-raidfire" && c.shown) && !window.__krel.scene("Kreddle").raid.busy, null, 60);
+        const c = await ctlOf("sc-raidfire");
+        if (!c) continue;
+        const [fx, fy] = mid(c);
+        await ph.touch("touchStart", [{ x: fx, y: fy, id: 31 }]);
+        await sleep(250);
+        const held = await T();
+        // slide off the button: it keeps firing (held by touch id), then let go
+        await ph.touch("touchMove", [{ x: fx - 90, y: fy - 60, id: 31 }]);
+        await sleep(200);
+        const slid = await T();
+        await ph.touch("touchEnd", []);
+        await sleep(200);
+        const after = await T();
+        res = { tries, held, slid, after };
+      }
+      check("scenes: holding FIRE fires (also after the thumb slides off it); letting go stops", !!res && res.held.attack && res.slid.attack && !res.after.attack, res);
+    }
+    // ---- the first dungeon's how-to-play pages: a SKIP pill does what Esc does (over a paused scene, as the dungeon launches it)
+    await ph.ev(() => {
+      const g = window.__krel.game;
+      g.scene.pause("Kreddle");
+      g.scene.run("Tutorial", { caller: "Kreddle" });
+    });
+    await ph.scene("Tutorial");
+    await sleep(800);
+    const tut = await ph.find("SKIP ▸▸", { scene: "Tutorial" });
+    if (tut) await ph.tapGame(tut.x, tut.y);
+    check("scenes: the how-to-play pages' SKIP pill closes them (Esc on a laptop) and the game carries on", !!tut && (await ph.until(() => !window.__krel.active().includes("Tutorial") && window.__krel.game.scene.isActive("Kreddle"), null, 15000, "tutorial closed").then(() => true).catch(() => false)), tut);
+    // ---- the Lair's SKIP SCENE (stage 2) still skips by touch; a pseudo-3D shot skips with a tap
+    await into("Lair", {});
+    await ph.scene("Lair");
+    await ph.until(() => window.__krel.scene("Lair").children.list.some((o) => o.type === "Text" && o.text === "SKIP SCENE ▸▸" && o.input), null, 20000, "the Lair's skip").catch(() => 0);
+    const lair = await ph.find("SKIP SCENE", { scene: "Lair" });
+    if (lair) await ph.tapGame(lair.x, lair.y);
+    check("scenes: the Lair's SKIP SCENE skips it by touch", !!lair && (await ph.until(() => !window.__krel.active().includes("Lair"), null, 20000, "lair skipped").then(() => true).catch(() => false)));
+
+    check("scenes: no page errors", errors.length === 0, errors.slice(0, 3));
+  } finally {
+    await ctx.close();
+  }
+}
+
 (async () => {
   const t0 = Date.now();
   let browser;
@@ -4798,6 +5169,7 @@ async function tapuse(browser) {
       ["platform", platform],
       ["android", android],
       ["tapuse", tapuse],
+      ["scenes", scenesSection],
       ["desktop", desktop],
     ]) {
       if (!ONLY.includes(id)) continue;

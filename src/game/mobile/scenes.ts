@@ -118,6 +118,9 @@ function pill(game: Phaser.Game, t: Bag, text: string) {
   const fs = gpx(game, 16);
   const pad = Math.max(4, Math.ceil((gpx(game, 44) - fs * 1.25) / 2));
   t.setText(text).setFontSize(fs).setColor("#ffffff").setBackgroundColor("#000000cc").setPadding(Math.round(pad * 1.4), pad, Math.round(pad * 1.4), pad);
+  // (the font's own line height varies: make sure the drawn pill is at least 44 CSS px tall)
+  const short = gpx(game, 45) - (t.height ?? 0);
+  if (short > 0) t.setPadding(Math.round(pad * 1.4), pad + Math.ceil(short / 2), Math.round(pad * 1.4), pad + Math.ceil(short / 2));
 }
 
 // ------------------------------------------------------------------ Night of Freedom
@@ -328,6 +331,75 @@ class Pedals {
   }
 }
 
+// ------------------------------------------------------------------ Kreddle's raid and rout
+
+/** The raid or the rout running in Kreddle (not mid-script), or null. */
+function fightIn(game: Phaser.Game): Bag | null {
+  const k = live(game, "Kreddle");
+  const f = (k?.raid ?? k?.rout) as Bag | null | undefined;
+  return f && !f.busy ? f : null;
+}
+
+/**
+ * The raid's / rout's FIRE: the game draws a canvas button on touch screens (its own touchFire, let go when the thumb
+ * slides off it). On a phone it is a layer control (held by touch id, under the right thumb, the stick free to move at
+ * the same time) that holds the game's own TOUCH.attack; the canvas one is hidden.
+ */
+class RaidFire {
+  c: TouchControl | null = null;
+  held = false;
+
+  frame(game: Phaser.Game, layer: TouchLayer, d: ModeDecision) {
+    const f = d.mode === "walk" ? fightIn(game) : null;
+    if (!f) {
+      if (this.c) this.leave(layer);
+      return;
+    }
+    if (!this.c)
+      this.c = layer.addControl({
+        id: "sc-raidfire",
+        slot: "prime",
+        className: "kt-fire",
+        label: "FIRE",
+        haptic: "press",
+        onDown: () => {
+          this.held = true;
+          TOUCH.attack = true;
+        },
+        onUp: () => {
+          this.held = false;
+          TOUCH.attack = false;
+        },
+      });
+    // (ACTION has the corner when something can be used: FIRE steps left of it)
+    this.c.setSlot(layer.control("action")?.shown ? "left" : "prime");
+    this.c.show(true, true);
+    const btn = f.fireBtn as Bag | undefined;
+    if (btn?.visible) {
+      btn.setVisible(false).disableInteractive();
+      const sc = btn.scene as Bag;
+      for (const o of (sc?.children?.list ?? []) as Bag[]) if (o.type === "Text" && o.text === "🔥\nFIRE" && Math.round(o.x) === Math.round(btn.x)) o.setVisible(false);
+    }
+  }
+
+  leave(layer: TouchLayer) {
+    if (this.held) TOUCH.attack = false;
+    this.held = false;
+    layer.removeControl("sc-raidfire");
+    this.c = null;
+  }
+}
+
+/** The raid's / rout's aim on a phone: the game's own touch aim (the nearest target, else where you walk). */
+function raidAim(scene: Bag): number | null {
+  if (scene?.sys?.settings?.key !== "Kreddle") return null;
+  const f = (scene.raid ?? scene.rout) as Bag | null;
+  const c = f?.controls as Bag | undefined;
+  if (!c) return null;
+  const auto = phoneSettings().aimAssist !== "off" ? (c.autoAim as number | null) : null;
+  return auto ?? (c.lastMoveAngle as number) ?? 0;
+}
+
 // ------------------------------------------------------------------ the telly's subtitles (P5)
 
 type PagedText = Phaser.GameObjects.Text & { __mfPaged?: boolean; __mfPages?: { timer: Phaser.Time.TimerEvent | null } };
@@ -381,8 +453,9 @@ export function pageSubtitles(scene: Bag) {
 export interface PhoneScenes {
   gunner: Gunner;
   pedals: Pedals;
+  raid: RaidFire;
   /** For tests: what the scenes part has done. */
-  stats: { advertPills: number; skip3d: number; tvPaged: number; drawbridgePills: number; finaleSkips: number };
+  stats: { advertPills: number; skip3d: number; tvPaged: number; drawbridgePills: number; finaleSkips: number; tutorialSkips: number };
 }
 
 export function installScenes(game: Phaser.Game, layer: TouchLayer, shell: Shell): PhoneScenes {
@@ -395,7 +468,7 @@ export function installScenes(game: Phaser.Game, layer: TouchLayer, shell: Shell
   for (const r of SCENE_NARRATOR_TIPS) if (!NARRATOR_TIPS.includes(r)) NARRATOR_TIPS.push(r);
   const gunner = new Gunner(game, layer);
   const pedals = new Pedals();
-  const stats = { advertPills: 0, skip3d: 0, tvPaged: 0, drawbridgePills: 0, finaleSkips: 0 };
+  const stats = { advertPills: 0, skip3d: 0, tvPaged: 0, drawbridgePills: 0, finaleSkips: 0, tutorialSkips: 0 };
 
   // the mode rows, in front of the minigames' (after the screens and overlays, so the pause menu still wins)
   const rules: SceneRule[] = [
@@ -434,6 +507,9 @@ export function installScenes(game: Phaser.Game, layer: TouchLayer, shell: Shell
         pedals.boost = l.addControl({ id: "sc-boost", slot: "prime", className: "kt-fire", label: "BOOST", haptic: "press", onDown: () => (pedals.boostHeld = true), onUp: () => (pedals.boostHeld = false) });
         pedals.brake = l.addControl({ id: "sc-brake", slot: "left", label: "BRAKE", haptic: "tap", onDown: () => (pedals.brakeHeld = true), onUp: () => (pedals.brakeHeld = false) });
         pedals.horn = l.addControl({ id: "sc-horn", slot: "up", label: "HORN", haptic: "tap", onDown: () => pedals.honk(live(game, "BeepBeep") as BeepLike | null) });
+        // (the stick's caption says what it does here)
+        const cap = l.root.querySelector(".kt-cap");
+        if (cap) cap.textContent = "STEER";
       }
     },
     frame: ({ game: g, decision }) => {
@@ -479,13 +555,29 @@ export function installScenes(game: Phaser.Game, layer: TouchLayer, shell: Shell
         pedals.boostHeld = pedals.brakeHeld = false;
         pedals.letGo(live(game, "BeepBeep") as BeepLike | null);
         for (const id of ["sc-boost", "sc-brake", "sc-horn"]) l.removeControl(id);
+        const cap = l.root.querySelector(".kt-cap");
+        if (cap) cap.textContent = "MOVE";
         pedals.boost = pedals.brake = pedals.horn = null;
       }
     },
   });
 
+  // Kreddle's raid and rout: FIRE as a layer control, the game's own touch aim
+  const raid = new RaidFire();
+  registerModeController({
+    id: "scenes-raid",
+    mode: "walk",
+    frame: ({ game: g, layer: l, decision }) => raid.frame(g, l, decision),
+    release: () => {
+      if (raid.held) TOUCH.attack = false;
+      raid.held = false;
+    },
+    leave: ({ layer: l }) => raid.leave(l),
+  });
+  const prevAim = phoneHooks()?.aim;
   setPhoneHooks({
     ...(phoneHooks() ?? {}),
+    aim: (scene, px, py) => prevAim?.(scene, px, py) ?? raidAim(scene as unknown as Bag),
     gunAim: (scene, ptr) => gunner.aim(scene as DriveLike, ptr),
     wheelTouch: () => false,
   });
@@ -508,6 +600,21 @@ export function installScenes(game: Phaser.Game, layer: TouchLayer, shell: Shell
       if (key === "TV") {
         pageSubtitles(sc as unknown as Bag);
         stats.tvPaged++;
+      }
+      if (key === "Tutorial") {
+        // Esc closes the how-to-play pages on a laptop: a SKIP pill up top does it on a phone (NEXT still pages)
+        const sc2 = sc as unknown as Bag;
+        const t = sc.add.text(960 - gpx(game, 12), gpx(game, 8), "", { fontFamily: "sans-serif", fontStyle: "bold" }).setOrigin(1, 0).setDepth(10000);
+        pill(game, t as unknown as Bag, "SKIP ▸▸");
+        t.setInteractive({ useHandCursor: true });
+        let down = false;
+        t.on("pointerdown", () => (down = true));
+        t.on("pointerup", () => {
+          if (!down) return;
+          down = false;
+          sc2.close?.();
+        });
+        stats.tutorialSkips++;
       }
       if (key === "Minigame") {
         // the cannon's how-to line (a UI line) in touch words; its dark pill fitted to it again
@@ -555,7 +662,7 @@ export function installScenes(game: Phaser.Game, layer: TouchLayer, shell: Shell
       }
     }
     // the 3D epilogue's "skip ▶▶" (a DOM link, 11 px): a 44 px pill
-    if (live(game, "Ending") || live(game, "Hub")) {
+    if (live(game, "Ending")) {
       for (const el of document.querySelectorAll("div")) {
         if (el.textContent !== "skip ▶▶" || el.classList.contains("ksc-skip3d") || el.children.length) continue;
         el.classList.add("ksc-skip3d");
@@ -564,5 +671,5 @@ export function installScenes(game: Phaser.Game, layer: TouchLayer, shell: Shell
     }
   });
 
-  return { gunner, pedals, stats };
+  return { gunner, pedals, raid, stats };
 }

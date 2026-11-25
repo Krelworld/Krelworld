@@ -82,6 +82,7 @@ h1{margin:4px 0 14px;font-size:54px;color:#ffcf4a;text-shadow:0 4px 0 #b5482f,0 
 .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
 .gallery img{width:100%;border-radius:10px;background:#fff}
 .dio{position:relative;flex:1;min-height:240px;border-radius:12px;overflow:hidden;touch-action:none}
+@media (orientation:landscape){.dio{min-height:96px}}
 .dio canvas.bg{position:absolute;inset:0;width:100%;height:100%}
 .dio .piece{position:absolute;touch-action:none;max-width:40%;max-height:40%}
 

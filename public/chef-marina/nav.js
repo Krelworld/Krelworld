@@ -58,13 +58,13 @@
     if (!on) return clearHints();
     const want = pic && !ROOMS[G.room].outside ? [{ id: 'wall', ico: '🖼️', pos: () => [clamp(marina.x, 30, ROOMS[G.room].w - 30), 74], go: () => { G.holding = null; Pics.hang(h.url); } }] : [];
     // carrying a picture or a plate of food: a glowing button over each grown-up to hand it to them
-    for (const e of [daddy, mommy, rory]) if (e.here && !e.hidden && e.state !== 'toilet') want.push({ id: e.id + (dish ? 'D' : ''), ico: dish ? '🍽️' : '🎁', pos: () => [e.x, e.y - (e === mommy ? 86 : 104)],
-      go: () => { if (!dish) return Pics.gift(h.url, e); if (e.state === 'lie') e.state = 'idle'; approach(e.x, () => (e === mommy ? serveMommy() : serve(e)), 26); } });
+    for (const e of (window.Clarity && Clarity.is('G17') ? Clarity.G17.people(dish) : [daddy, mommy, rory])) if (e.here && !e.hidden && e.state !== 'toilet') want.push({ id: e.id + (dish ? 'D' : ''), ico: dish ? '🍽️' : '🎁', pos: () => [e.x, window.Clarity && Clarity.is('G17') && (e === nunu || e === jeff) ? Clarity.G17.top(e) : e.y - (e === mommy ? 86 : 104)], /* G17 */
+      go: () => { if (!dish) return Pics.gift(h.url, e); if (e === jeff && window.Clarity && Clarity.is('G17')) return Clarity.G17.serveJeff(); /* G17 */ if (e.state === 'lie') e.state = 'idle'; approach(e.x, () => (e === mommy ? serveMommy() : serve(e)), 26); } });
     if (hints.map(x => x.id).join() !== want.map(x => x.id).join()) {
       clearHints();
       for (const w of want) { const n = mk('button', 'pichint ' + (w.id === 'wall' ? 'wall' : 'gift'), w.ico); n.setAttribute('aria-label', w.id === 'wall' ? 'hang it here' : 'give it'); press(n, () => { clearHints(); UI.closeActions(); w.go(); }); fxL.append(n); hints.push({ ...w, n }); }
     }
-    for (const x of hints) { x.pos = want.find(w => w.id === x.id).pos; const [sx, sy] = toScreen(...x.pos()); x.n.style.left = sx + 'px'; x.n.style.top = sy + 'px'; }
+    for (const x of hints) { x.pos = want.find(w => w.id === x.id).pos; const [sx, sy] = toScreen(...x.pos()); x.n.style.left = sx + 'px'; x.n.style.top = sy + 'px'; } if (window.Clarity && Clarity.is('G17')) Clarity.G17.place(hints); /* G17 */
   }
   Pics.carry = function (url) { G.holding = { type: 'pic', url, ico: '🖼️' }; if (['perch', 'sit'].includes(marina.state)) { marina.state = 'idle'; marina.offY = 0; } say(pick(['m_look', 'm_made'])); };
   const _dh = drawHolding;
@@ -98,7 +98,7 @@
   const _ft = featTick; featTick = function (dt) { _ft(dt); picHints(); };
 
   // face cards: tap one to run to that person / baby / cat
-  stage.addEventListener('pointerup', e => { const c = e.target.closest('.facecard'); if (!c) return; e.stopPropagation(); const who = c.dataset.who, ent = { daddy, mommy, rory, miles, niko }[who]; if (!ent || ent.hidden || G.busy || !quiet()) return; UI.closeActions(); Audio2.jingle([0, 7, 12], 0.06); goEnt(ent); }, true);
+  stage.addEventListener('pointerup', e => { const c = e.target.closest('.facecard'); if (!c) return; e.stopPropagation(); const who = c.dataset.who, ent = { daddy, mommy, rory, miles, niko, nunu, jeff }[who]; if (!ent || ent.hidden || G.busy || !quiet()) return; UI.closeActions(); Audio2.jingle([0, 7, 12], 0.06); goEnt(ent); }, true);
   stage.addEventListener('pointerdown', e => { if (e.target.closest('.facecard')) e.stopPropagation(); }, true);
 
   // ------------------------------------------------------------ outfits stay on when she cheers, sits, swings or rides
@@ -160,7 +160,7 @@
   }
   const _dp = drawProp;
   drawProp = function (p) {
-    const usable = !p.nohit && p.a && propVisible(p), g = ease(p, usable && near(p, Math.max(30, (p.w || spriteSize(p.k)[0] * (p.scale || 1) || 40) * 0.5 + 12)));
+    const usable = !p.nohit && p.a && propVisible(p), nr = usable && near(p, Math.max(30, (p.w || spriteSize(p.k)[0] * (p.scale || 1) || 40) * 0.5 + 12)), g = ease(p, window.Clarity && Clarity.is('G18') && Clarity.G18 ? Clarity.G18.glow(p, nr) : nr); /* G18 */
     if (g > 0.02 && p.k.startsWith('p:')) {      // painted into the background: a soft pool of light instead of an outline
       const c = E.ctx, w = (p.w || 50) * 0.6, h = (p.h || 40) * 0.6, x = p.x - E.camX, y = p.y - (p.h || 40) * 0.5;
       const gr = c.createRadialGradient(x, y, 2, x, y, Math.max(w, h)); gr.addColorStop(0, 'rgba(255,240,170,' + (0.34 * g).toFixed(3) + ')'); gr.addColorStop(1, 'rgba(255,240,170,0)');
@@ -171,7 +171,7 @@
   const _de = drawEnt;
   drawEnt = function (e) {
     if (e === marina || !e.here || e.hidden) return _de(e);
-    lit(ease(e, near(e, 42) && !marina.mount), () => _de(e));
+    const nr = near(e, 42) && !marina.mount; lit(ease(e, window.Clarity && Clarity.is('G18') && Clarity.G18 ? Clarity.G18.glow(e, nr) : nr), () => _de(e)); /* G18 */
   };
 })();
 
@@ -294,18 +294,18 @@
 
 // ------------------------------------------------------------ straight from the cooker to someone: they appear beside her and she hands it over
 function giveDishTo(who) {
-  const e = { daddy, mommy, rory }[who]; if (!e || !G.holding || G.holding.type !== 'dish') return;
+  const e = { daddy, mommy, rory, jeff }[who]; if (!e || !G.holding || G.holding.type !== 'dish') return;
   if (e === rory) G.rory = true; if (G.bathWho === e) { G.bathLocked = false; G.bathWho = null; G.needTP = false; }
   const W = ROOMS[G.room].w, side = marina.x > W - 70 ? -1 : 1;
   AI.hold(e, true); e.stop(); e.hidden = false; e.room = G.room; e.state = 'idle'; e.holdingMiles = false; e.x = clamp(marina.x + side * 38, 16, W - 16); e.y = marina.y; e.dir = -side; marina.dir = side; marina.stop();
   emit('sparkle', e.x, e.y - 50, 14); try { chip('magic'); } catch (x) { }
   G.busy = true; setTimeout(() => { G.busy = false; AI.hold(e, false); if (G.holding && G.holding.type === 'dish') (e === mommy ? serveMommy() : serve(e)); }, 700);
 }
-(function () { const s = document.createElement('style'); s.textContent = '.giverow{align-items:center;gap:10px;margin:2px 0 6px}@media (orientation:landscape){#panel .result{display:grid;grid-template-columns:minmax(110px,26vw) 1fr;column-gap:18px;align-items:center;justify-items:center;align-content:center}#panel .result canvas{grid-row:1 / span 4;height:min(52vh,220px);width:auto;max-width:100%}#panel .result .row{margin:2px 0}#panel .result .pbtn{width:72px !important;height:72px !important;font-size:38px !important}#panel .result .givebtn{width:72px !important;height:72px !important}}.givebtn{width:84px;height:84px;padding:4px;background:#7be07b;border:4px solid #fff;animation:pulse .7s ease-in-out infinite alternate}.givebtn img{width:100%;height:100%;object-fit:contain;image-rendering:pixelated}.pichint[aria-label^=give]{}'; document.head.append(s); })();
+(function () { const s = document.createElement('style'); s.textContent = '.giverow{align-items:center;gap:10px;margin:2px 0 6px}@media (orientation:landscape){#panel .result{display:grid;grid-template-columns:minmax(110px,26vw) 1fr;column-gap:18px;align-items:center;justify-items:center;align-content:center}#panel .result canvas{grid-row:1 / span 4;height:min(52vh,220px);width:auto;max-width:100%}#panel .result .row{margin:2px 0}#panel .result .pbtn{width:72px !important;height:72px !important;font-size:38px !important}#panel .result .givebtn{width:72px !important;height:72px !important}}.givebtn{width:min(84px,20vw);height:min(84px,20vw);padding:4px;background:#7be07b;border:4px solid #fff;animation:pulse .7s ease-in-out infinite alternate}.givebtn img{width:100%;height:100%;object-fit:contain;image-rendering:pixelated}.pichint[aria-label^=give]{}'; document.head.append(s); })();
 
 // ------------------------------------------------------------ straight from the easel to someone: they appear beside her and she gives them the picture
 Pics.giveTo = function (url, who) {
-  const e = { daddy, mommy, rory }[who]; if (!e) return; if (e === rory) G.rory = true; if (G.bathWho === e) { G.bathLocked = false; G.bathWho = null; G.needTP = false; }
+  const e = { daddy, mommy, rory, nunu, jeff }[who]; if (!e) return; if (e === rory) G.rory = true; if (G.bathWho === e) { G.bathLocked = false; G.bathWho = null; G.needTP = false; }
   if (marina.mount) dismount(); const W = ROOMS[G.room].w, side = marina.x > W - 70 ? -1 : 1;
   e.stop(); e.hidden = false; e.room = G.room; e.state = 'idle'; e.holdingMiles = false; e.x = clamp(marina.x + side * 40, 16, W - 16); e.y = marina.y; e.dir = -side; marina.dir = side; marina.stop(); marina.state = 'idle'; marina.offY = 0;
   emit('sparkle', e.x, e.y - 50, 14); try { chip('magic'); } catch (x) { }

@@ -43,7 +43,6 @@ export const CITADEL_SHEETS: Record<string, SheetDef> = {
   en_x_logo: { file: "combat/en_x_logo.png", frameWidth: 64, frameHeight: 64, hd: 0.32 },
   en_honour_guard: { file: "combat/en_honour_guard.png", frameWidth: 64, frameHeight: 64, hd: 0.6 },
   boss_krex: { file: "combat/boss_krex.png", frameWidth: 128, frameHeight: 128 },
-  boss_elon: { file: "combat/boss_elon.png", frameWidth: 128, frameHeight: 128 },
   boss_drongus2: { file: "combat/boss_drongus2.png", frameWidth: 128, frameHeight: 128 },
   c7d_door: { file: "props/c7d_door.png", frameWidth: 128, frameHeight: 128 },
 };
@@ -192,7 +191,6 @@ const GALLERY: [string, string][] = [
   ["boss_rik", "rik"],
   ["boss_pudding_demon", "pudding_demon"],
   ["boss_krex", "krex"],
-  ["boss_elon", "elon"],
 ];
 
 export class Citadel {
@@ -620,7 +618,7 @@ export class Citadel {
     sc.add.rectangle(0, gy + 2, r.w, 12, 0x7f1d1d).setOrigin(0).setDepth(3.5);
     sc.add.rectangle(0, gy + 2, r.w, 2, 0xd4a017).setOrigin(0).setDepth(3.6);
     // the portraits of everyone you've beaten, high on the wall, candles underneath
-    const pics = GALLERY.filter(([t]) => sc.textures.exists(t) || t === "boss_krex" || t === "boss_elon");
+    const pics = GALLERY.filter(([t]) => sc.textures.exists(t) || t === "boss_krex");
     const x0 = 700;
     const x1 = r.w - 900;
     const step = (x1 - x0) / Math.max(1, pics.length - 1);

@@ -5,7 +5,7 @@ const G = {
   fort: null, tv: null, chase: null, tidy: false, moodCtx: null, lastGreet: {}, lastTidyAsk: 0, lastClimbScold: 0, rory: false, night: 0,
 };
 const ENTS = [];
-const SPEAK = { m: 'marina', d: 'daddy', mo: 'mommy', r: 'rory' };
+const SPEAK = { m: 'marina', d: 'daddy', mo: 'mommy', r: 'rory', nu: 'nunu', j: 'jeff' };
 
 // ---------------------------------------------------------------- entities
 class Ent {
@@ -35,7 +35,7 @@ function nikoPose(e) {
 }
 function frameKey(base, t, fps = 10) { const n = frameCount(base); if (!n) return null; return base + '_' + (1 + (Math.floor(t * fps) % n)); }
 
-let marina, daddy, mommy, rory, miles, niko;
+let marina, daddy, mommy, rory, miles, niko, nunu, jeff;
 function makeEnts() {
   marina = new Ent({ id: 'marina', room: 'living', x: 300, speed: 78, scale: 1.18 });
   daddy = new Ent({ id: 'daddy', room: 'living', x: 90, speed: 52, dir: -1 });
@@ -43,12 +43,14 @@ function makeEnts() {
   rory = new Ent({ id: 'rory', room: 'yard', x: 300, speed: 50, hidden: true });
   miles = new Ent({ id: 'miles', room: 'living', x: 534, spot: 'crib', crying: false, cryT: rnd(100, 170) });
   niko = new Ent({ id: 'niko', room: 'dining', x: 318, speed: 46, state: 'sleep', perch: 'cattower', t: rnd(15, 25) });
+  nunu = new Ent({ id: 'nunu', room: 'den', x: 300, speed: 44, dir: -1 });        // Marina's grandmother, who lives in the basement
+  jeff = new Ent({ id: 'jeff', room: 'backyard', x: 262, speed: 50, dir: 1 });     // Grandpa Jeff the handyman, out in the backyard
 }
 
 // ---------------------------------------------------------------- speech
 function lineSpeaker(key) { return SPEAK[key.split('_')[0]]; }
 function say(key, ent) {
-  ent = ent || { marina, daddy, mommy, rory }[lineSpeaker(key)] || marina;
+  ent = ent || { marina, daddy, mommy, rory, nunu, jeff }[lineSpeaker(key)] || marina;
   const icon = SAY_ICON[key] || '💬';
   UI.bubble(ent, icon, 2200);
   const pr = Audio2.voice(key, lineSpeaker(key) || key);
@@ -57,7 +59,7 @@ function say(key, ent) {
   return pr;
 }
 function lineMood(key) {
-  const k = key.replace(/^(m|d|mo|r)_/, '');
+  const k = key.replace(/^(m|d|mo|r|nu|j)_/, '');
   if (/stomach|vomit|burp|nervous|ok_ok|^ok$|food_meh|stinky|ugh|uhoh|diarrhea|notp|fort_fall|squirrel|wow|tired/.test(k)) return k === 'wow' ? 'surprised' : /food_meh|nervous|ok/.test(k) ? 'surprised' : /stinky|ugh/.test(k) ? 'angry' : 'surprised';
   if (/notfair|dontlike|angry|eat_angry|notbrainrot|hey|appropriate|bedtime|climb|tidy|tv|brainrot|cat$|chase|niko_poo|no$/.test(k)) return /chase/.test(k) ? 'happy' : (/cat$|tidy/.test(k) && key.startsWith('r_')) ? 'neutral' : 'angry';
   if (/cry|sad|eat_sad|comfort|tantrum|fort_down/.test(k)) return /comfort|tantrum|fort_down/.test(k) ? 'neutral' : 'sad';
@@ -83,6 +85,7 @@ function drawEnt(e) {
       if (e.state === 'toilet') return;
       if (e.state === 'shoulders' && has('daddy_shoulders') && e.id === 'daddy') { drawSprite(e.moving ? (frameKey('daddy_shoulders_walk', t, 12) || 'daddy_shoulders') : 'daddy_shoulders', e.x, e.y + Math.abs(Math.sin(t * 10)) * (e.moving ? -2 : 0), { flip, opt: null }); return; }
       if (e.hugT > E.t && has(e.id + '_hug')) { drawSprite(e.id + '_hug', e.x, e.y, { flip }); return; }
+      if (e.state === 'phone' && !e.moving) { if (frameCount(e.id + '_phone')) drawSprite(frameKey(e.id + '_phone', t, 3), e.x, e.y, { flip }); else { drawSprite(e.id, e.x, e.y, { flip }); emoji('📱', e.x + e.dir * 9, e.y - 48 + Math.sin(t * 5), 9); } return; }
       if (e.state === 'eat' && frameCount(e.id + '_eat')) { drawSprite(frameKey(e.id + '_eat', t, 7), e.x, e.y, { flip }); if (chance(0.1)) emit('dust', e.x + e.dir * 10, e.y - 60, 1, { col: '#e8c27a', g: 200, vy: -10 }); return; }
       const k = e.moving ? frameKey(e.id + '_walk', t, e.curSpeed > 80 ? 16 : 9) : e.id;
       let sy = 1, rot = 0, oy = 0;
@@ -95,6 +98,7 @@ function drawEnt(e) {
       if (e.state === 'sick' && chance(0.08)) emit('stink', e.x - e.dir * 6, e.y - 30);
       if (e.face) emoji(e.face, e.x + (flip ? -8 : 8), e.y - 78, 12);
       return; }
+    case 'nunu': case 'jeff': return typeof drawGrand === 'function' ? drawGrand(e) : undefined;
     case 'mommy': {
       if (e.state === 'sit') { drawSprite('mommy_sit', e.x, e.y - 2, { flip }); if (e.holdingMiles) drawSprite('miles', e.x + (flip ? -10 : 10), e.y - 30, { flip, scale: 0.7 }); return; }
       const k = e.moving ? frameKey('mommy_roll', t, e.curSpeed > 70 ? 16 : 9) : (e.hugT > E.t && frameCount('mommy_hug') ? frameKey('mommy_hug', t, 6) : 'mommy');
@@ -279,7 +283,7 @@ function update(dt) {
   // camera
   const R = ROOMS[G.room];
   // the view may slide a little past the room's ends, so nothing in the room sits underneath the side buttons
-  const land = E.cv.width > E.cv.height, cs = E.cssScale || 1, padL = (R.left ? 62 : 6) / cs, padR = (land ? (R.right ? 62 : 6) + 76 : 78) / cs, free = E.viewW - padL - padR;
+  const land = E.cv.width > E.cv.height, cs = E.cssScale || 1, padL = (R.left ? 62 : 6) / cs, padR = (land ? (R.right ? 62 : 6) + (/* G19 */ window.Clarity && Clarity.is('G19') && Clarity.landscape() ? 0 : 76) : 78) / cs, free = E.viewW - padL - padR;
   const target = R.w <= free ? -(padL + (free - R.w) / 2) : clamp(marina.x - (padL + free / 2), -padL, R.w - E.viewW + padR);
   E.camX += (target - E.camX) * Math.min(1, dt * 6); if (Math.abs(target - E.camX) < 0.3) E.camX = target;
   if (G.fridgeOpen > 0) G.fridgeOpen -= dt;
@@ -328,7 +332,7 @@ function setMusic() {
   else if (G.room === 'yard') m = WEATHER === 'snow' ? 'snow' : 'yard'; else if (G.room === 'kitchen') m = 'kitchen'; else if (G.room === 'bathroom') m = 'bath';
   Audio2.Music.set(m);
 }
-function family() { return [daddy, mommy, rory].filter(e => e.here && !['toilet'].includes(e.state)); }
+function family() { return [daddy, mommy, rory, nunu, jeff].filter(e => e.here && !['toilet'].includes(e.state)); }
 function nearestFamily() { const f = family().filter(e => e.state !== 'lie'); f.sort((a, b) => Math.abs(a.x - marina.x) - Math.abs(b.x - marina.x)); return f[0]; }
 function parentsHere() { return [daddy, mommy].filter(e => e.here && e.state !== 'toilet' && e.state !== 'lie'); }
 

@@ -17,7 +17,8 @@
   // ================================================================ sticker book
   const STK = [['cook', '🍳'], ['gross', '🤢'], ['serve', '🍽️'], ['meal', '🍝'], ['draw', '🖍️'], ['hang', '🖼️'], ['gift', '🎁'], ['fort', '⛺'], ['dress', '👗'], ['story', '📖'], ['bars', '🐒'], ['swing', '🛝'],
     ['leaves', '🍂'], ['yard', '🍁'], ['snowman', '⛄'], ['bottle', '🍼'], ['nappy', '🧷'], ['niko', '🐈'], ['feedniko', '🥫'], ['poop', '💩'], ['tidy', '🧹'], ['joke', '😜'], ['wake', '⏰'], ['horse', '🤼'],
-    ['gym', '🤸'], ['song', '🎹'], ['tv', '📺'], ['ride', '🐴'], ['bath', '🛁'], ['tea', '🫖'], ['secret', '💎'], ['secretall', '👑'], ['helper', '⭐'], ['superhelper', '🏆']];
+    ['gym', '🤸'], ['song', '🎹'], ['tv', '📺'], ['ride', '🐴'], ['bath', '🛁'], ['tea', '🫖'], ['secret', '💎'], ['secretall', '👑'], ['helper', '⭐'], ['superhelper', '🏆'], ['lego', '🧱'], ['wash', '🫧'], ['hoop', '🏀'], ['upstairs', '🪜'], ['lift', '💺'], ['spa', '🦆'], ['stuffies', '🧸'], ['sleep', '😴'], ['slide', '🧗'], ['trampoline', '🤸'], ['cape', '🦸'],
+    ['swim', '🏊'], ['treetop', '🌲'], ['build', '🔨'], ['treehouse', '🏡'], ['deer', '🦌'], ['movie', '🎬'], ['septic', '📞'], ['phone', '📱'], ['minka', '🐈‍⬛'], ['legoshelf', '🗄️']];
   let owned = store.get('stickers', []);
   function award(id) {
     const s = STK.find(x => x[0] === id); if (!s || owned.includes(id)) return;
@@ -34,7 +35,7 @@
     const grid = mk('div', 'stk-grid');
     STK.forEach(([id, ch], i) => { const got = owned.includes(id), c = mk('div', 'stk' + (got ? ' got' : ''), got ? ch : '❔'); c.style.setProperty('--r', ((i * 37) % 13 - 6) + 'deg'); if (got) press(c, () => { c.animate([{ transform: 'scale(1.35) rotate(8deg)' }, { transform: 'none' }], 300); Audio2.blip(pick([0, 4, 7, 12]), 'triangle', 0.1); }); grid.append(c); });
     const found = SECRETS.filter(s => s.found).length;
-    box.append(press(mk('button', 'st-x', '✖️'), () => box.remove()), mk('div', 'stk-h', '📒 <b>' + owned.length + '</b> / ' + STK.length + ' &nbsp; 💎 ' + found + ' / ' + SECRETS.length), grid, press(mk('button', 'stk-ok', '✅'), () => box.remove()));
+    box.append(press(mk('button', 'st-x', window.Clarity && Clarity.is('G33') ? '❌' : '✖️'), () => box.remove()), mk('div', 'stk-h', '📒 <b>' + owned.length + '</b> / ' + STK.length + ' &nbsp; 💎 ' + found + ' / ' + SECRETS.length), grid, press(mk('button', 'stk-ok', '✅'), () => box.remove()));      /* G33 */
     (hid('title') ? stage : document.getElementById('title')).append(box); try { chip('pop'); } catch (e) { }
   }
   const book = mk('button', 'hud off', '📒'); book.id = 'bookBtn'; book.setAttribute('aria-label', 'sticker book'); press(book, () => { if (!G.busy) openBook(); }); stage.append(book);
@@ -78,8 +79,8 @@
   function askReq(r) {
     clearReq(); const e = { daddy, mommy, rory, niko }[r.who]; req = { ...r, ent: e, t: E.t }; lastReq = E.t; lastWish = E.t; ping();
     e.dir = Math.sign(marina.x - e.x) || 1;
-    if (r.line) say(r.line, e); else { Audio2.sfx(pick(['trill1', 'trill2'])); UI.face('niko', 'happy', 1800); UI.bubble(niko, '🥫', 2400); }
-    const b = mk('button', '', '<span>' + r.ico + '</span><i>➡️</i><b>' + ({ daddy: '👨‍🦲', mommy: '👩', rory: '🧔', niko: '🐈' })[r.who] + '</b>'); b.id = 'reqBtn'; b.setAttribute('aria-label', 'help ' + r.who);
+    const ico = (window.Clarity && Clarity.is('G31') && ({ '🥫': '🐟' })[r.ico]) || r.ico; if (r.line) say(r.line, e); else { Audio2.sfx(pick(['trill1', 'trill2'])); UI.face('niko', 'happy', 1800); UI.bubble(niko, ico, 2400); } /* G31 */
+    const b = mk('button', '', '<span>' + ico + '</span><i>➡️</i><b>' + ({ daddy: '👨‍🦲', mommy: '👩', rory: '🧔', niko: '🐈' })[r.who] + '</b>'); b.id = 'reqBtn'; b.setAttribute('aria-label', 'help ' + r.who); /* G31 */
     press(b, () => { if (G.busy && G.sceneOn) return; b.remove(); reqEl = null; G.busy = false; UI.closeActions(); Audio2.jingle([0, 7, 12], 0.06); try { r.go(); } catch (x) { console.warn('req', x); } });
     stage.append(b); reqEl = b; const mine = req; setTimeout(() => { if (reqEl === b) { b.remove(); reqEl = null; } }, 25000); setTimeout(() => { if (req === mine && !mine.done) req = null; }, 150000);
   }

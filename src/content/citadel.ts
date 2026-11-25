@@ -70,13 +70,6 @@ export const ASCENT_PA: Line[] = [
   say("DRONGUS", "(over the tannoy) Perfect. That's the news. That's literally just the news."),
 ];
 
-/** Half way up: the AI Elon arrives. */
-export const ELON_PA: Line[] = [
-  dir("*DING-DONG.*"),
-  say("DRONGUS", "(over the tannoy) Grok. Do Elon."),
-  say("GROK", "generating elon musk 🚀 he's literally my dad btw"),
-];
-
 // ---------------------------------------------------------------- 4. THE ANTHEM CORRIDOR
 
 export const ANTHEM_ENTER: Line[] = [

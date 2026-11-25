@@ -3268,6 +3268,25 @@ async function brawl(browser) {
     const pc = s.controls.find((c) => c.id === "b-punch");
     check("PUNCH is the big one in the prime corner (84 px); BLOCK, VANISH, KICK and KI around it, each labelled", ["b-punch", "b-block", "b-vanish", "b-kick", "b-ki"].every(shown) && pc && Math.abs(pc.face.w - 84) <= 1 && s.decision.stick === "2d", s.controls.filter((c) => c.shown).map((c) => `${c.id}:${c.caption ?? ""}`));
     await ph.shot("brawl");
+    // the brawl's own how-to legend (bigger text on) sits clear of the buttons and the stick, on the screen
+    const leg = await ph.ev(() => {
+      const g = window.__krel.game;
+      const sc = g.scene.getScene("Finale");
+      let t = null;
+      const walk = (o) => {
+        if (t) return;
+        if (Array.isArray(o.list)) for (const c of o.list) walk(c);
+        if (o.type === "Text" && /^PUNCH: mash/.test(o.text)) t = o;
+      };
+      for (const o of sc.sys.displayList.list) walk(o);
+      if (!t) return null;
+      const b = t.getBounds();
+      const cb = g.scale.canvasBounds;
+      const k = cb.width / 960;
+      return { x: cb.x + b.x * k, y: cb.y + b.y * k, w: b.width * k, h: b.height * k };
+    });
+    const hit = leg ? s.controls.filter((c) => c.shown && c.face && !(c.face.x > leg.x + leg.w || c.face.x + c.face.w < leg.x || c.face.y > leg.y + leg.h || c.face.y + c.face.h < leg.y)).map((c) => c.id) : [];
+    check("the brawl's how-to legend sits clear of the buttons, on the screen (bigger text on)", !!leg && hit.length === 0 && leg.x >= 0 && leg.x + leg.w <= s.viewport.w + 1 && leg.y >= 0, { leg, hit });
     const r0 = await raw();
     await ph.touch("touchStart", [{ x: mid(pc)[0], y: mid(pc)[1], id: 80 }]);
     await sleep(80);

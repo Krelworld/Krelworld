@@ -43,6 +43,10 @@ export function brawlRule(active: () => boolean): SceneRule {
   };
 }
 
+/** Where the brawl's legend sits on a phone (game px): under the health bars and the KI bar, centred. */
+const LEGEND_Y = 74;
+const LEGEND_W = 820;
+
 export class BrawlControls {
   brawl: BrawlLike | null = null;
   private started = false;
@@ -101,6 +105,7 @@ export class BrawlControls {
   attach(b: unknown): boolean {
     this.brawl = b as BrawlLike;
     this.started = false;
+    this.legendDone = false;
     return true;
   }
 
@@ -120,11 +125,38 @@ export class BrawlControls {
   private forget() {
     this.brawl = null;
     this.started = false;
+    this.legendDone = false;
+  }
+
+  private legendDone = false;
+
+  /**
+   * The brawl's own how-to legend (its first 9 seconds, bottom centre) grows with the bigger text and wraps onto two
+   * lines under PUNCH and BLOCK. On a phone it moves up under the two health bars, where no thumb or button is.
+   */
+  private fitLegend(b: BrawlLike) {
+    let found: Phaser.GameObjects.Text | null = null;
+    const walk = (o: Phaser.GameObjects.GameObject) => {
+      if (found) return;
+      const list = (o as unknown as { list?: Phaser.GameObjects.GameObject[] }).list;
+      if (Array.isArray(list)) for (const c of list) walk(c);
+      if (o.type === "Text" && /^PUNCH: mash for a flurry/.test((o as Phaser.GameObjects.Text).text)) found = o as Phaser.GameObjects.Text;
+    };
+    try {
+      for (const o of b.sc.sys.displayList.list) walk(o);
+    } catch {
+      return;
+    }
+    const t = found as Phaser.GameObjects.Text | null;
+    if (!t) return;
+    this.legendDone = true;
+    t.setOrigin(0.5, 0).setPosition(480, LEGEND_Y).setWordWrapWidth(LEGEND_W);
   }
 
   frame() {
     const b = this.brawl;
     const rush = !!b?.finishing;
+    if (b && !this.legendDone) this.fitLegend(b);
     for (const k of Object.keys(this.c)) {
       const c = this.c[k];
       const on = !!b && !rush;

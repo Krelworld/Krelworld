@@ -5281,7 +5281,19 @@ async function games(browser) {
       const benn1 = await ph.ev(() => window.__krel.game.scene.getScene("Minigame").children.list.find((o) => o.type === "Sprite" && o.texture.key === "spr_KREBON" && o.depth === 10).x);
       check("games: THE GIG (optional): a held thumb walks Benn that way", benn1 > benn0 + 60, { benn0, benn1 });
       // the safe cut: END GIG appears after 45 s of the set and finishes it (the laptop's own finish)
-      await ph.until(() => { const sc = window.__krel.game.scene.getScene("Minigame"); const b = sc.children.list.find((o) => o.type === "Text" && /END GIG/.test(o.text)); return b && b.visible; }, null, 70000, "END GIG").catch(() => {});
+      // (END GIG shows after 45 s of the set, on the game's clock: stepped there, so a loaded machine can't stretch it)
+      await freeze(ph);
+      await ph.ev(() => {
+        const l = window.__krel.game.loop;
+        const sc = window.__krel.game.scene.getScene("Minigame");
+        for (let f = 0; f < 60 * 70; f++) {
+          const b = sc.children.list.find((o) => o.type === "Text" && /END GIG/.test(o.text));
+          if ((b && b.visible) || sc.ended) return;
+          window.__ft += 1000 / 60;
+          l.step(window.__ft);
+        }
+      });
+      await thaw(ph);
       const end = await ph.ev(() => {
         const sc = window.__krel.game.scene.getScene("Minigame");
         const b = sc.children.list.find((o) => o.type === "Text" && /END GIG/.test(o.text));

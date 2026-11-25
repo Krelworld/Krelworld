@@ -29,6 +29,7 @@ import { drawBall, drawGoalFrame, drawPitch } from "./pitchArt";
 import { Projection } from "./projection";
 import { Audio, type Clip } from "./audio";
 import { Drive3D, type DriveView } from "./drive3d";
+import { CELL, dirIndex, FEET, HEAD, SpriteBank, type Base, type Recolour } from "./sprites";
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 /** Screen pixels per metre at zoom 1: matches 48px character art drawn at 1:1. */
@@ -47,6 +48,9 @@ class StadiumScene extends Phaser.Scene {
   staticG!: Phaser.GameObjects.Graphics;
   crowdG!: Phaser.GameObjects.Graphics;
   pitchG!: Phaser.GameObjects.Graphics;
+  detailG!: Phaser.GameObjects.Graphics;
+  groundTiles: Phaser.GameObjects.TileSprite[] = [];
+  crowdBlit: Phaser.GameObjects.Container | null = null;
   g!: Phaser.GameObjects.Graphics;
   ui!: Phaser.GameObjects.Graphics;
   labels: Phaser.GameObjects.Text[] = [];
@@ -76,19 +80,35 @@ class StadiumScene extends Phaser.Scene {
   get s() { return this.game2.w.state; }
   get pc(): Actor { return this.s.actors[this.s.stadium!.pc]; }
 
+  bank!: SpriteBank;
+  /** Graphics layers interleaved with sprites, so a wall still hides whoever is behind it. */
+  layers: Phaser.GameObjects.Graphics[] = [];
+  /** Ground-level marks under everyone: shadows, rings. */
+  shadowG!: Phaser.GameObjects.Graphics;
+  spritePool = new Map<string, Phaser.GameObjects.Sprite>();
+  /** Off = the old drawn figures (debug, or if the art failed to load). */
+  useSprites = true;
+
+  preload() { SpriteBank.preload(this); }
+
   create() {
     (window as any).__scene = this; // for automated checks
-    this.pitchG = this.add.graphics();
-    this.staticG = this.add.graphics();
-    this.crowdG = this.add.graphics();
+    (window as any).__fast = (secs: number) => { for (let i = 0; i < secs * 60 && !this.s.stadium!.ending; i++) stepGame(this.game2); };
+    this.bank = new SpriteBank(this);
+    this.pitchG = this.add.graphics().setDepth(0.25);
+    this.staticG = this.add.graphics().setDepth(0);
+    this.detailG = this.add.graphics().setDepth(0.3);
+    this.crowdG = this.add.graphics().setDepth(0.4);
+    this.shadowG = this.add.graphics().setDepth(50);
     this.g = this.add.graphics();
-    this.ui = this.add.graphics().setDepth(10);
+    this.layers = [this.g];
+    this.ui = this.add.graphics().setDepth(1e7);
     this.d3 = new Drive3D(this);
     for (let i = 0; i < 10; i++) {
       this.bubbles.push(this.add.text(0, 0, "", {
         fontFamily: "system-ui, sans-serif", fontSize: "12px", color: "#10140f", backgroundColor: "#f4f1ea",
         padding: { x: 5, y: 3 }, wordWrap: { width: 170 }, align: "center",
-      }).setOrigin(0.5, 1).setDepth(20).setResolution(2).setVisible(false));
+      }).setOrigin(0.5, 1).setDepth(1e7 + 1).setResolution(2).setVisible(false));
     }
     this.newGame();
     this.keys = this.input.keyboard!.addKeys("W,A,S,D,UP,DOWN,LEFT,RIGHT,SHIFT") as Record<string, Phaser.Input.Keyboard.Key>;
@@ -298,13 +318,35 @@ class StadiumScene extends Phaser.Scene {
 
   // ---------- Static drawing ----------
   drawStatic() {
-    const P = this.P, g = this.staticG;
+    const P = this.P;
+    let g = this.staticG;
     g.clear();
     for (const a of AREAS) {
       if (a.id === "pitch") continue;
       g.fillStyle(a.floor, 1).fillRect(...P.rect(a.x, a.y, a.w, a.h));
     }
+    // PixelLab tiles over the flat floors where the ground is paving, tarmac, concrete or grass.
+    for (const t of this.groundTiles) t.destroy();
+    this.groundTiles = [];
+    if (this.useSprites && this.textures.exists("tiles-street")) {
+      const st = this.textures.get("tiles-street"), pt = this.textures.get("tiles-pitch");
+      if (!st.has("pave")) { st.add("pave", 0, 0, 96, 32, 32); st.add("road", 0, 64, 32, 32, 32); pt.add("concrete", 0, 0, 96, 32, 32); pt.add("grass", 0, 64, 32, 32, 32); }
+      const PAVE = new Set(["plaza", "hotel_court", "pub_yard", "ticket_office", "merch"]), ROAD = new Set(["road", "eastroad", "carpark", "street"]);
+      const CONC = new Set(["concourse_s", "concourse_w", "concourse_e", "corner_sw", "corner_se", "corner_nw", "corner_ne", "loading", "staffway"]);
+      for (const a of AREAS) {
+        const which = PAVE.has(a.id) ? ["tiles-street", "pave"] : ROAD.has(a.id) ? ["tiles-street", "road"] : CONC.has(a.id) ? ["tiles-pitch", "concrete"] : a.id === "verge" ? ["tiles-pitch", "grass"] : null;
+        if (!which) continue;
+        const [rx, ry, rw, rh] = P.rect(a.x, a.y, a.w, a.h);
+        // One tile = 1.5 m.
+        const k = (1.5 * P.S) / 32;
+        const ts = this.add.tileSprite(rx, ry, rw, rh, which[0], which[1]).setOrigin(0).setDepth(0.2).setTileScale(k, k * (P.standing ? P.K : 1));
+        if (a.id === "street") ts.setAlpha(0.55);
+        this.groundTiles.push(ts);
+      }
+    }
     // Road markings.
+    const detail = this.detailG; detail.clear();
+    g = detail;
     g.fillStyle(0xd8d2b8, 0.7);
     for (let x = -88; x < 90; x += 6) g.fillRect(...P.rect(x, 87.9, 3, 0.25));
     for (let y = -46; y < 90; y += 6) g.fillRect(...P.rect(66.9, y, 0.25, 3));
@@ -343,23 +385,46 @@ class StadiumScene extends Phaser.Scene {
   drawCrowd() {
     const P = this.P, g = this.crowdG;
     g.clear();
+    this.crowdBlit?.destroy(); this.crowdBlit = null;
     let seed = 12345;
     const rnd = () => ((seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
+    const opp = this.s.match!.teams[1];
+    const sprites = this.useSprites && this.bank.ready();
+    // Colour schemes for the seated crowd: three England shirts and two of theirs, each in three skins.
+    const SK = [0xf1c7a5, 0xd9a47e, 0x8a5a3b];
+    const schemes: Recolour[] = [];
+    for (const sh of [{}, { shirt: 0xc8102e, trim: 0xf4f4f4 }, { shirt: 0x1b2a6b, trim: 0xf4f4f4 }, { shirt: opp.colour, trim: opp.colour2 }, { shirt: opp.colour2, trim: opp.colour }] as Recolour[])
+      for (const sk of SK) schemes.push({ ...sh, skin: sk });
+    if (sprites && !this.textures.exists(`crowd-${opp.short}`)) this.bank.crowdAtlas(`crowd-${opp.short}`, schemes);
+    const scale = (1.62 * P.KZ * P.S) / (FEET - HEAD);
+    const blit = sprites ? this.add.container(0, 0).setDepth(0.4) : null;
+    type Seat = { x: number; y: number; row: number; f: number; shirt: number };
+    const seats: Seat[] = [];
     for (const a of AREAS.filter((x) => x.seats)) {
       const away = a.id === "stand_e";
+      // Everyone faces the pitch.
+      const f = a.id === "stand_s" ? 2 : a.id === "stand_n" ? 0 : a.id === "stand_w" ? 1 : 3;
       for (let y = a.y + 0.6; y < a.y + a.h - 0.3; y += 1.1) {
         for (let x = a.x + 0.6; x < a.x + a.w - 0.3; x += 0.9) {
-          if (rnd() < 0.42) continue;
-          const opp = this.s.match!.teams[1];
-          const shirt = away ? (rnd() < 0.7 ? opp.colour : opp.colour2) : rnd() < 0.55 ? 0xf4f4f4 : rnd() < 0.5 ? 0xc8102e : 0x1b2a6b;
-          const sx = P.sx(x, y), sy = P.sy(x, y);
-          const h = (P.standing ? 0.9 * P.KZ : 0.3) * P.S;
-          g.fillStyle(shirt, 1).fillRect(sx - P.S * 0.28, sy - h, P.S * 0.56, h);
-          g.fillStyle(SKIN[Math.floor(rnd() * SKIN.length)], 1).fillCircle(sx, sy - h - P.S * 0.16, P.S * 0.17);
+          if (rnd() < 0.42 || areaAt(x, y).id !== a.id) continue;
+          const pickShirt = away ? (rnd() < 0.7 ? 3 : 4) : rnd() < 0.55 ? 0 : rnd() < 0.5 ? 1 : 2;
+          const skin = Math.floor(rnd() * 3);
+          seats.push({ x, y, row: pickShirt * 3 + skin, f, shirt: pickShirt });
         }
       }
     }
+    seats.sort((p, q) => p.y - q.y);
+    for (const st of seats) {
+      const sx = P.sx(st.x, st.y), sy = P.sy(st.x, st.y);
+      if (blit) { blit.add(this.add.image(sx, sy, `crowd-${opp.short}`, st.row * 4 + st.f).setOrigin(0.5, 46 / 52).setScale(scale)); continue; }
+      const shirt = [0xf4f4f4, 0xc8102e, 0x1b2a6b, opp.colour, opp.colour2][st.shirt];
+      const h = (P.standing ? 0.9 * P.KZ : 0.3) * P.S;
+      g.fillStyle(shirt, 1).fillRect(sx - P.S * 0.28, sy - h, P.S * 0.56, h);
+      g.fillStyle(SKIN[st.row % SKIN.length], 1).fillCircle(sx, sy - h - P.S * 0.16, P.S * 0.17);
+    }
+    this.crowdBlit = blit;
   }
+
 
   /** Exploring: about 40 metres across. Sitting: the whole width of the pitch, like the telly. */
   targetZoom() {
@@ -495,9 +560,13 @@ class StadiumScene extends Phaser.Scene {
   }
 
   draw(dms: number) {
-    const P = this.P, g = this.g, s = this.s, tick = s.tick, pc = this.pc, st = s.stadium!, m = s.match!;
-    g.clear();
-    type Thing = { d: number; draw: () => void };
+    const P = this.P, s = this.s, tick = s.tick, pc = this.pc, st = s.stadium!, m = s.match!;
+    let g = this.g;
+    for (const l of this.layers) l.clear().setVisible(false);
+    this.shadowG.clear();
+    const sprites = this.useSprites && this.bank.ready();
+    const seenSprites = new Set<string>();
+    type Thing = { d: number; draw: () => void; spr?: (depth: number) => void };
     const things: Thing[] = [];
     const cam = this.cameras.main;
     const view = cam.worldView;
@@ -622,10 +691,18 @@ class StadiumScene extends Phaser.Scene {
       if (a.hiddenIn || (a.fb && a.fb.status === "gone" && !a.dead)) continue;
       if (!onScreen(a.x, a.y)) continue;
       if (a.dead) things.push({ d: a.y - 0.4, draw: () => g.fillStyle(0x6a0a0a, 0.85).fillEllipse(P.sx(a.x, a.y), P.sy(a.x, a.y), P.S * 2.4, P.S * (P.standing ? 1.1 : 1.8)) });
-      if (a.npc?.job === "dog") { things.push({ d: a.y, draw: () => this.drawDog(a) }); continue; }
+      if (a.npc?.job === "dog") { things.push({ d: a.y, draw: () => this.drawDog(a, g) }); continue; }
       const st2 = this.styleOf(a), moving = Math.hypot(a.vx, a.vy) > 0.4;
       const shiver = (a.effects.frozen ?? 0) > tick ? Math.sin(tick * 1.7 + hash(a.id)) * 0.06 : 0;
-      things.push({ d: a.y, draw: () => drawFigure(g, P, a.x + shiver, a.y, a.facing, st2, tick + hash(a.id), moving) });
+      if (!sprites) { things.push({ d: a.y, draw: () => drawFigure(g, P, a.x + shiver, a.y, a.facing, st2, tick + hash(a.id), moving) }); continue; }
+      // Shadow and ring on the ground, the sprite, then anything worn on the head.
+      const sh = this.shadowG, Wd = 0.5 * (st2.girth ?? 1) * P.S, gx = P.sx(a.x, a.y), gy = P.sy(a.x, a.y);
+      if (!a.seated) sh.fillStyle(0x000000, 0.28).fillEllipse(gx, gy, Wd * 2.2, Wd * 0.9 * (P.standing ? 1 : 2));
+      if (st2.ring) sh.lineStyle(2, st2.ring, 1).strokeEllipse(gx, gy, Wd * 2.9, Wd * (P.standing ? 1.25 : 2.9));
+      seenSprites.add(a.id);
+      things.push({ d: a.y, draw: () => {}, spr: (depth) => this.placeSprite(a, st2, shiver, moving, depth) });
+      if (st2.hat || st2.face || (a.effects.bloody ?? 0) > tick || a.npc?.job === "police" || a.npc?.job === "armed")
+        things.push({ d: a.y + 0.0001, draw: () => this.drawHeadwear(g, a, st2) });
     }
     // Ball and goals.
     const b = m.ball;
@@ -633,7 +710,22 @@ class StadiumScene extends Phaser.Scene {
     for (const sgn of [-1, 1]) things.push({ d: PITCH.goalW / 2, draw: () => drawGoalFrame(g, P, sgn) });
 
     things.sort((p, q) => p.d - q.d);
-    for (const t of things) t.draw();
+    // Paint in order, starting a fresh graphics layer after each sprite.
+    let order = 100, li = 0, open = false;
+    const nextLayer = () => {
+      let l = this.layers[li];
+      if (!l) { l = this.add.graphics(); this.layers.push(l); }
+      li++;
+      l.setVisible(true).setDepth(order++);
+      return l;
+    };
+    for (const t of things) {
+      if (t.spr) { t.spr(order++); open = false; continue; }
+      if (!open) { g = nextLayer(); open = true; }
+      t.draw();
+    }
+    g = nextLayer();
+    for (const [id, sp] of this.spritePool) if (!seenSprites.has(id)) sp.setVisible(false);
     for (const c of st.smoke) {
       if (c.until < tick) continue;
       const left = (c.until - tick) / (60 * 25);
@@ -656,8 +748,9 @@ class StadiumScene extends Phaser.Scene {
     if (this.crowdJump) {
       const j = Math.abs(Math.sin(this.crowdJump * 0.35)) * 3;
       this.crowdG.y = this.crowdJump > 0 ? -j : 0;
+      if (this.crowdBlit) this.crowdBlit.y = this.crowdG.y;
       this.crowdJump += this.crowdJump > 0 ? -1 : 1;
-    } else this.crowdG.y = 0;
+    } else { this.crowdG.y = 0; if (this.crowdBlit) this.crowdBlit.y = 0; }
 
     // Aim marker and the player's own marker.
     const ui = this.ui;
@@ -697,10 +790,117 @@ class StadiumScene extends Phaser.Scene {
     cam.centerOn(this.camX, this.camY);
   }
 
+  // ---------- Sprites ----------
+  /** Which base sheet, recoloured how, for this person as they look right now. */
+  spriteFor(a: Actor): { base: Base; rc: Recolour; h: number } {
+    const s = this.s, m = s.match!, isPc = a.id === s.stadium!.pc;
+    const skin = SKIN[Math.abs(hash(a.id)) % SKIN.length];
+    if (a.fb && !a.fb.controlled) {
+      const team = m.teams[a.fb.team], gk = a.fb.role === "GK";
+      if (a.fb.team === 0) return { base: "england", rc: gk ? { shirt: 0x2fbf71, trim: 0x10202a } : {}, h: 1.8 };
+      if (team.short === "POR") return { base: "portugal", rc: gk ? { shirt: 0xf08a24 } : {}, h: 1.8 };
+      if (team.short === "BRA") return { base: "portugal", rc: gk ? { shirt: 0x2a2a2a, legs: 0x2a2a2a } : { shirt: 0xf7d417, legs: 0x1a4fa0 }, h: 1.8 };
+      return { base: "england", rc: { shirt: gk ? 0xf08a24 : team.colour, trim: team.colour2, legs: team.colour2 }, h: 1.8 };
+    }
+    if (a.off) return { base: "referee", rc: a.off.job === "referee" ? {} : { shirt: 0xd9e021 }, h: 1.8 };
+    const job = a.npc?.job;
+    if (job && ["turnstile", "doorguard", "gateguard", "pitchsteward", "patrol", "corridor", "chief"].includes(job)) return { base: "steward", rc: {}, h: 1.8 };
+    if (job === "police") return { base: "steward", rc: { vest: 0x1c2a4a }, h: 1.85 };
+    if (job === "armed") return { base: "steward", rc: { vest: 0x2a2d33, legs: 0x1a1a1a }, h: 1.85 };
+    // Everyone else is built on the fat fan, in their own colours.
+    const outer = a.worn.outer ? defOf(s.items[a.worn.outer]) : undefined;
+    const inner = a.worn.inner ? defOf(s.items[a.worn.inner]) : undefined;
+    const rc: Recolour = {};
+    if (a.fb?.controlled) {
+      const team = m.teams[a.fb.team];
+      rc.shirt = team.colour; rc.trim = team.colour2; rc.legs = a.fb.team === 0 ? 0x1b2a6b : team.colour2;
+    } else if (outer) {
+      rc.shirt = outer.id === "hivis" ? 0xd9e021 : outer.colour; rc.trim = outer.colour2;
+      if (outer.role === "police" || outer.role === "referee" || outer.role === "footballer") rc.legs = outer.role === "footballer" ? (outer.colour2 ?? 0x1b2a6b) : 0x15171a;
+      if (outer.id === "chef_whites") rc.legs = 0x3a3a3a;
+    } else if (inner && inner.id !== "shirt_eng") { rc.shirt = inner.colour; rc.trim = inner.colour2; }
+    if (job === "barman" || job === "seller" || job === "cook") { rc.shirt = 0xf0ece2; rc.trim = 0x333333; rc.legs = 0x2a2a2a; }
+    if (job === "driver" || job === "worker") { rc.shirt = 0x2d5a8a; rc.trim = 0x1a3050; rc.legs = 0x2a3340; }
+    if (job === "cleaner") { rc.shirt = 0x6a7a8a; rc.trim = 0x445566; rc.legs = 0x445566; }
+    if (job === "fan") {
+      const n = Math.abs(hash(a.id + "s"));
+      if (a.npc!.team === 1) { const opp = m.teams[1]; rc.shirt = n % 3 ? opp.colour : opp.colour2; rc.trim = n % 3 ? opp.colour2 : opp.colour; }
+      else if (n % 5 === 1) { rc.shirt = 0xc8102e; rc.trim = 0xf4f4f4; }
+      else if (n % 5 === 2) { rc.shirt = 0x1b2a6b; rc.trim = 0xf4f4f4; }
+    }
+    if (job === "local") { const n = Math.abs(hash(a.id + "l")) % 4; rc.shirt = [0x3d4a5c, 0x7a2a2a, 0x2a5a3a, 0xf4f4f4][n]; }
+    if (!isPc) rc.skin = skin;
+    // A borrowed face is somebody else's skin.
+    const borrowed = a.worn.face && s.items[a.worn.face].def === "face" ? s.items[a.worn.face].of : undefined;
+    if (borrowed) rc.skin = SKIN[Math.abs(hash(borrowed)) % SKIN.length];
+    if ((a.effects.bloody ?? 0) > s.tick) rc.trim = 0x9a0a0a;
+    const big = isPc ? 1.75 : job === "fan" || job === "local" ? 1.62 + (Math.abs(hash(a.id)) % 4) * 0.05 : 1.7;
+    return { base: "fan", rc, h: big };
+  }
+
+  placeSprite(a: Actor, st2: FigureStyle, shiver: number, moving: boolean, depth: number): void {
+    const P = this.P, tick = this.s.tick;
+    const { base, rc, h } = this.spriteFor(a);
+    const key = this.bank.variant(base, rc);
+    let sp = this.spritePool.get(a.id);
+    if (!sp) { sp = this.add.sprite(0, 0, `${key}-rot`, 0); this.spritePool.set(a.id, sp); }
+    const di = dirIndex(a.facing);
+    const scale = (h * P.KZ * P.S) / (FEET - HEAD) * (P.standing ? 1 : 0.7);
+    const x = P.sx(a.x + shiver, a.y), y = P.sy(a.x, a.y);
+    sp.setVisible(true).setDepth(depth).setScale(scale).setAlpha(st2.alpha ?? 1);
+    if (st2.down) {
+      // Lying flat: the side-on frame, turned over.
+      sp.setTexture(`${key}-rot`, 2).setOrigin(0.5, 0.5).setAngle(a.dead ? -90 : 90).setCrop();
+      sp.setPosition(x, y - (FEET - HEAD) * scale * 0.12);
+      sp.setTint(a.dead ? 0xc8b0b0 : 0xffffff);
+      return;
+    }
+    sp.setAngle(0).setOrigin(0.5, FEET / CELL).clearTint();
+    if (moving && !a.seated) {
+      // The walk cycle, paced to how fast they're going.
+      const rate = Math.min(1.6, Math.hypot(a.vx, a.vy) / 2.2) * (base === "fan" ? 0.13 : 0.18);
+      const f = Math.floor((tick + Math.abs(hash(a.id)) % 50) * rate) % 8;
+      sp.setTexture(`${key}-walk`, di * 8 + f);
+    } else sp.setTexture(`${key}-rot`, a.seated ? (Math.sin(a.facing) < 0 ? 4 : 0) : di);
+    if (a.seated) {
+      // Only the top half shows over the seat in front.
+      sp.setCrop(0, 0, CELL, 52);
+      sp.setPosition(x, y + (FEET - 52) * scale * 0.8);
+    } else { sp.setCrop(); sp.setPosition(x, y); }
+  }
+
+  /** Hats, masks, helmets and blood, over the sprite's head. */
+  drawHeadwear(g: Phaser.GameObjects.Graphics, a: Actor, st2: FigureStyle): void {
+    const P = this.P, s = this.s, tick = s.tick;
+    if (st2.down || !this.bank.ready()) return;
+    const { h } = this.spriteFor(a);
+    const scale = (h * P.KZ * P.S) / (FEET - HEAD) * (P.standing ? 1 : 0.7);
+    const x = P.sx(a.x, a.y), feet = P.sy(a.x, a.y) + (a.seated ? (FEET - 52) * scale * 0.8 : 0);
+    const top = feet - (FEET - HEAD) * scale, hw = 7 * scale;
+    const job = a.npc?.job;
+    if (job === "police" || st2.hat === 0x101830) {
+      // A custodian helmet.
+      g.fillStyle(job === "armed" ? 0x15171a : 0x101830, 1).fillEllipse(x, top + hw * 0.2, hw * 2.1, hw * 1.9).fillRect(x - hw * 1.2, top + hw * 0.9, hw * 2.4, hw * 0.35);
+      g.fillStyle(0xd9d9d9, 1).fillCircle(x, top + hw * 0.4, hw * 0.25);
+    } else if (job === "armed") {
+      g.fillStyle(0x15171a, 1).fillEllipse(x, top + hw * 0.5, hw * 2.2, hw * 1.4);
+    } else if (st2.hat) g.fillStyle(st2.hat, 1).fillEllipse(x, top + hw * 0.5, hw * 2.2, hw * 1.1).fillRect(x - hw * 1.4, top + hw * 0.8, hw * 2.8, hw * 0.3);
+    if (st2.face) {
+      const fy = top + hw * 1.6;
+      if (st2.face.kind === "full") g.fillStyle(st2.face.colour, 1).fillEllipse(x, fy, hw * 2, hw * 2.3);
+      else if (st2.face.kind === "tache") g.fillStyle(st2.face.colour, 1).fillRect(x - hw * 0.6, fy + hw * 0.45, hw * 1.2, hw * 0.3);
+      else g.fillStyle(st2.face.colour, 1).fillRect(x - hw * 0.8, fy - hw * 0.15, hw * 1.6, hw * 0.35);
+    }
+    if ((a.effects.bloody ?? 0) > tick) {
+      g.fillStyle(0x8a0a0a, 0.85);
+      for (let i = 0; i < 5; i++) g.fillCircle(x + Math.sin(i * 2.1 + hash(a.id)) * hw * 1.4, top + hw * (3 + (i % 3) * 1.2), hw * 0.35);
+    }
+  }
+
   /** A stocky brown dog, side-on, legs going when it runs. The lead, if somebody has it. */
-  drawDog(a: Actor) {
+  drawDog(a: Actor, g: Phaser.GameObjects.Graphics) {
     // Tyson: a pit bull. Low, wide, all chest and jaw; brindle with a white bib and a studded collar.
-    const P = this.P, g = this.g, S = P.S * 1.35, tick = this.s.tick, dg = this.s.stadium!.dog, pc = this.pc;
+    const P = this.P, S = P.S * 1.35, tick = this.s.tick, dg = this.s.stadium!.dog, pc = this.pc;
     const x0 = P.sx(a.x, a.y), y = P.sy(a.x, a.y), speed = Math.hypot(a.vx, a.vy), run = speed > 0.5;
     const dir = Math.cos(a.facing) >= 0 ? 1 : -1;
     const angry = !!dg && (dg.state === "loose" || dg.state === "sicced" || speed > 5 || tick - this.dogNoiseAt < 50);

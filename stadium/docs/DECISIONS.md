@@ -216,3 +216,16 @@ Krelworld's pixel art is its own cast (characters from that world) at a differen
 palette; mixing it in would look like a crossover rather than a stopgap, and the figures here
 are drawn by code, so using sprites means building the sprite pipeline anyway. That pipeline
 is better spent on the 48px PixelLab art already chosen.
+
+## Workable art (stopgap)
+
+The game now draws people with the PixelLab sheets from the art test (fan, steward, England,
+Portugal, referee; 8 directions standing, 8 x 8 walk frames). Colours are swapped at load time
+by colour band and body region, so the one fat fan is every supporter, local, barman, cleaner
+and the player in any disguise; the steward is also police and armed officers (with a drawn
+helmet); Portugal's sheet becomes Brazil. Hats, masks, glasses and blood are drawn over the
+sprite. The stands are filled with cropped seated fans facing the pitch. Paving, tarmac,
+concrete and pitchside grass use the PixelLab tiles. Walls, vehicles, items and the dog are
+still drawn in code. The 3D driving views still use simple shapes.
+Drawing order: each wall, item and overlay goes into graphics layers interleaved with the
+sprites in depth order, so walls still hide people behind them.

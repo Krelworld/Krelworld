@@ -102,9 +102,9 @@ export class Drive3D {
   private steerShown = 0;
 
   constructor(private scene: Phaser.Scene) {
-    this.g = scene.add.graphics().setScrollFactor(0).setDepth(30).setVisible(false);
+    this.g = scene.add.graphics().setScrollFactor(0).setDepth(2e7).setVisible(false);
     this.text = scene.add.text(0, 0, "", { fontFamily: "system-ui, sans-serif", fontSize: "28px", fontStyle: "900", color: "#fde047", stroke: "#000000", strokeThickness: 6, align: "center" })
-      .setOrigin(0.5).setScrollFactor(0).setDepth(31).setVisible(false);
+      .setOrigin(0.5).setScrollFactor(0).setDepth(2e7 + 1).setVisible(false);
   }
 
   /** The painted crowd in the stands, scattered once per ground. */
@@ -359,7 +359,7 @@ export class Drive3D {
       }
     }
     if (this.yell && this.yell.until > tick) {
-      if (!this.yellText) this.yellText = this.scene.add.text(0, 0, "", { fontFamily: "system-ui, sans-serif", fontSize: "18px", fontStyle: "900", color: "#fde047", stroke: "#000000", strokeThickness: 5, align: "center", wordWrap: { width: 520 } }).setOrigin(0.5).setScrollFactor(0).setDepth(31);
+      if (!this.yellText) this.yellText = this.scene.add.text(0, 0, "", { fontFamily: "system-ui, sans-serif", fontSize: "18px", fontStyle: "900", color: "#fde047", stroke: "#000000", strokeThickness: 5, align: "center", wordWrap: { width: 520 } }).setOrigin(0.5).setScrollFactor(0).setDepth(2e7 + 1);
       this.yellText.setVisible(true).setText(this.yell.text).setColor(this.yell.colour);
       this.place(this.yellText, w / 2, view === "cab" ? h * 0.66 : h * 0.74);
     } else this.yellText?.setVisible(false);
@@ -377,7 +377,7 @@ export class Drive3D {
 
   private speedLabel: Phaser.GameObjects.Text | null = null;
   private speedText(x: number, y: number, t: string): void {
-    if (!this.speedLabel) this.speedLabel = this.scene.add.text(0, 0, "", { fontFamily: "system-ui, sans-serif", fontSize: "18px", fontStyle: "800", color: "#f1f4f1" }).setOrigin(0.5).setScrollFactor(0).setDepth(31);
+    if (!this.speedLabel) this.speedLabel = this.scene.add.text(0, 0, "", { fontFamily: "system-ui, sans-serif", fontSize: "18px", fontStyle: "800", color: "#f1f4f1" }).setOrigin(0.5).setScrollFactor(0).setDepth(2e7 + 1);
     this.speedLabel.setText(t).setVisible(true);
     this.place(this.speedLabel, x, y);
   }

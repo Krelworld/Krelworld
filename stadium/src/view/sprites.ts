@@ -1,0 +1,150 @@
+// PixelLab characters in the game: five base sheets (8 directions standing, 8 x 8 walk
+// frames, 88px cells), recoloured at load time so one fat fan can be every supporter,
+// barman and disguise, and one steward can be police. A workable stopgap until the full
+// 48px cast is generated.
+import Phaser from "phaser";
+
+export const CELL = 88;
+export const BASES = ["fan", "steward", "england", "portugal", "referee"] as const;
+export type Base = (typeof BASES)[number];
+/** Pixel rows (within a cell) of the figure's feet and the top of the head. */
+export const FEET = 73, HEAD = 13;
+
+/** Which of the 8 directions a facing angle (radians, y down) is closest to. Sheet order: S, SE, E, NE, N, NW, W, SW. */
+export function dirIndex(a: number): number {
+  const order = [2, 1, 0, 7, 6, 5, 4, 3];
+  const k = Math.round(((a % (2 * Math.PI)) + 2 * Math.PI) / (Math.PI / 4)) % 8;
+  return order[k];
+}
+
+export interface Recolour {
+  shirt?: number;
+  trim?: number;
+  legs?: number;
+  vest?: number;
+  skin?: number;
+}
+
+const rgb = (c: number) => [(c >> 16) & 255, (c >> 8) & 255, c & 255];
+const lum = (r: number, g: number, b: number) => (0.3 * r + 0.59 * g + 0.11 * b) / 255;
+function hsl(r: number, g: number, b: number): [number, number, number] {
+  const mx = Math.max(r, g, b) / 255, mn = Math.min(r, g, b) / 255, l = (mx + mn) / 2, d = mx - mn;
+  if (d < 1e-6) return [0, 0, l];
+  const s = d / (1 - Math.abs(2 * l - 1));
+  let h = 0;
+  const R = r / 255, G = g / 255, B = b / 255;
+  if (mx === R) h = ((G - B) / d) % 6; else if (mx === G) h = (B - R) / d + 2; else h = (R - G) / d + 4;
+  return [(h * 60 + 360) % 360, s, l];
+}
+
+/** Paint a shade of `to`, as light or dark as the source pixel is relative to `ref` lightness. */
+function shadeTo(data: Uint8ClampedArray, i: number, to: number, ref: number): void {
+  const k = Math.max(0.2, Math.min(1.35, lum(data[i], data[i + 1], data[i + 2]) / ref));
+  const [r, g, b] = rgb(to);
+  data[i] = Math.min(255, r * k); data[i + 1] = Math.min(255, g * k); data[i + 2] = Math.min(255, b * k);
+}
+
+/** What each pixel of a base sheet is, by colour and by where it sits in the body. */
+function classify(base: Base, r: number, g: number, b: number, y: number): keyof Recolour | null {
+  const [h, s, l] = hsl(r, g, b);
+  const skin = h >= 8 && h <= 40 && s > 0.35 && l > 0.35 && l < 0.85 && r > b + 40;
+  if (skin) return "skin";
+  switch (base) {
+    case "fan":
+    case "england": {
+      const shirtRows = base === "fan" ? y >= 26 && y <= 53 : y >= 26 && y <= 50;
+      const legRows = base === "fan" ? y > 53 && y <= 66 : y > 50 && y <= 60;
+      if (shirtRows && s < 0.3 && l > 0.5) return "shirt";
+      if (shirtRows && h > 200 && h < 250 && l < 0.35 && l > 0.05) return "trim";
+      if (legRows && h > 190 && h < 250 && l > 0.08) return "legs";
+      return null;
+    }
+    case "portugal": {
+      if (y > 50 && y <= 60 && ((h > 100 && h < 200) || l < 0.25) && l > 0.04) return "legs";
+      if (y >= 26 && y <= 50 && s > 0.3 && ((h < 15 || h > 330) || (h > 100 && h < 200))) return "shirt";
+      return null;
+    }
+    case "steward":
+      if (y >= 26 && y <= 52 && h > 45 && h < 75 && s > 0.35 && l > 0.25) return "vest";
+      if (y > 52 && y <= 68 && l < 0.35) return "legs";
+      return null;
+    case "referee":
+      if (y >= 26 && y <= 50 && l < 0.3) return "shirt";
+      return null;
+  }
+}
+
+/** Reference lightness of each part on each base, so shading maps across. */
+const REF: Record<Base, Partial<Record<keyof Recolour, number>>> = {
+  fan: { shirt: 0.93, trim: 0.15, legs: 0.5, skin: 0.7 },
+  england: { shirt: 0.95, trim: 0.15, legs: 0.15, skin: 0.7 },
+  portugal: { shirt: 0.38, legs: 0.25, skin: 0.7 },
+  steward: { vest: 0.82, legs: 0.15, skin: 0.7 },
+  referee: { shirt: 0.12, skin: 0.7 },
+};
+
+export class SpriteBank {
+  private made = new Set<string>();
+  constructor(private scene: Phaser.Scene) {}
+
+  static preload(scene: Phaser.Scene): void {
+    scene.load.image("tiles-street", "art/tiles-street.png");
+    scene.load.image("tiles-pitch", "art/tiles-pitch.png");
+    for (const k of BASES) {
+      scene.load.image(`${k}-rot-src`, `art/${k}-rot.png`);
+      scene.load.image(`${k}-walk-src`, `art/${k}-walk.png`);
+    }
+  }
+
+  ready(): boolean { return this.scene.textures.exists("fan-rot-src") && this.scene.textures.get("fan-rot-src").key !== "__MISSING"; }
+
+  /** A recoloured copy of one sheet of a base, as a canvas. */
+  private paint(base: Base, sheet: "rot" | "walk", rc: Recolour): HTMLCanvasElement {
+    const src = this.scene.textures.get(`${base}-${sheet}-src`).getSourceImage() as HTMLImageElement | HTMLCanvasElement;
+    const cv = document.createElement("canvas");
+    cv.width = src.width; cv.height = src.height;
+    const cx = cv.getContext("2d", { willReadFrequently: true })!;
+    cx.drawImage(src, 0, 0);
+    if (Object.values(rc).some((v) => v !== undefined)) {
+      const img = cx.getImageData(0, 0, cv.width, cv.height), d = img.data, W = cv.width;
+      for (let i = 0; i < d.length; i += 4) {
+        if (d[i + 3] < 100) continue;
+        const p = i / 4, y = Math.floor(p / W) % CELL;
+        const part = classify(base, d[i], d[i + 1], d[i + 2], y);
+        if (!part || rc[part] === undefined) continue;
+        shadeTo(d, i, rc[part]!, REF[base][part] ?? 0.6);
+      }
+      cx.putImageData(img, 0, 0);
+    }
+    return cv;
+  }
+
+  /** The key of a recoloured copy of a base (its `-rot` and `-walk` sheets), made on first use. */
+  variant(base: Base, rc: Recolour = {}): string {
+    const parts = Object.entries(rc).filter(([, v]) => v !== undefined).sort().map(([k, v]) => `${k}${(v as number).toString(16)}`);
+    const key = parts.length ? `${base}~${parts.join("_")}` : base;
+    if (this.made.has(key)) return key;
+    for (const sheet of ["rot", "walk"] as const) {
+      const tkey = `${key}-${sheet}`;
+      if (this.scene.textures.exists(tkey)) this.scene.textures.remove(tkey);
+      this.scene.textures.addSpriteSheet(tkey, this.paint(base, sheet, rc) as unknown as HTMLImageElement, { frameWidth: CELL, frameHeight: CELL });
+    }
+    this.made.add(key);
+    return key;
+  }
+
+  /** One sheet of seated supporters for the stands: a row per colour scheme, then
+   *  facing south, east, north, west, cropped at the seat. Frame = row * 4 + facing. */
+  crowdAtlas(key: string, rows: Recolour[]): void {
+    const SEAT = 52;
+    const cv = document.createElement("canvas");
+    cv.width = CELL * 4; cv.height = SEAT * rows.length;
+    const cx = cv.getContext("2d")!;
+    rows.forEach((rc, r) => {
+      const src = this.paint("fan", "rot", rc);
+      [0, 2, 4, 6].forEach((cell, f) => cx.drawImage(src, cell * CELL, 0, CELL, SEAT, f * CELL, r * SEAT, CELL, SEAT));
+    });
+    if (this.scene.textures.exists(key)) this.scene.textures.remove(key);
+    this.scene.textures.addSpriteSheet(key, cv as unknown as HTMLImageElement, { frameWidth: CELL, frameHeight: SEAT });
+  }
+}

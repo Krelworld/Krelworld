@@ -1,0 +1,896 @@
+{
+ "shots": [
+  {
+   "kind": "clip",
+   "clip": "c_room",
+   "f0": 20,
+   "n": 80,
+   "fr": "room",
+   "fin": 0.3
+  },
+  {
+   "kind": "clip",
+   "clip": "c_relax",
+   "f0": 268,
+   "n": 172,
+   "fr": "set",
+   "static": 9
+  },
+  {
+   "kind": "clip",
+   "clip": "c_relax",
+   "f0": 440,
+   "n": 105,
+   "fr": "scr"
+  },
+  {
+   "kind": "card",
+   "card": "tonight",
+   "n": 144,
+   "static": 7,
+   "fout": 0.08
+  },
+  {
+   "kind": "clip",
+   "clip": "c_nine",
+   "f0": 165,
+   "n": 218,
+   "fr": "set",
+   "static": 6,
+   "osd": 1
+  },
+  {
+   "kind": "clip",
+   "clip": "c_nine",
+   "f0": 545,
+   "n": 197,
+   "fr": "scr"
+  },
+  {
+   "kind": "clip",
+   "clip": "v_north",
+   "f0": 138,
+   "n": 158,
+   "fr": "set",
+   "static": 6,
+   "osd": 1
+  },
+  {
+   "kind": "clip",
+   "clip": "v_north",
+   "f0": 296,
+   "n": 280,
+   "fr": "scr"
+  },
+  {
+   "kind": "clip",
+   "clip": "v_nuke",
+   "f0": 296,
+   "n": 94,
+   "fr": "set",
+   "static": 6,
+   "osd": 1
+  },
+  {
+   "kind": "clip",
+   "clip": "v_nuke",
+   "f0": 390,
+   "n": 262,
+   "fr": "scr"
+  },
+  {
+   "kind": "clip",
+   "clip": "v_buylow",
+   "f0": 110,
+   "n": 103,
+   "fr": "set",
+   "static": 6,
+   "osd": 1
+  },
+  {
+   "kind": "clip",
+   "clip": "v_buylow",
+   "f0": 213,
+   "n": 179,
+   "fr": "scr"
+  },
+  {
+   "kind": "clip",
+   "clip": "v_defence",
+   "f0": 0,
+   "n": 169,
+   "fr": "set",
+   "static": 6,
+   "osd": 1
+  },
+  {
+   "kind": "clip",
+   "clip": "v_defence",
+   "f0": 169,
+   "n": 217,
+   "fr": "scrlo"
+  },
+  {
+   "kind": "clip",
+   "clip": "c_ktp",
+   "f0": 132,
+   "n": 128,
+   "fr": "set",
+   "static": 5,
+   "osd": 1
+  },
+  {
+   "kind": "clip",
+   "clip": "c_ktp",
+   "f0": 260,
+   "n": 150,
+   "fr": "scr"
+  },
+  {
+   "kind": "clip",
+   "clip": "v_smell",
+   "f0": 528,
+   "n": 194,
+   "fr": "set",
+   "static": 6,
+   "osd": 1
+  },
+  {
+   "kind": "clip",
+   "clip": "v_smell",
+   "f0": 722,
+   "n": 271,
+   "fr": "scr"
+  },
+  {
+   "kind": "clip",
+   "clip": "v_real",
+   "f0": 384,
+   "n": 35,
+   "fr": "set"
+  },
+  {
+   "kind": "clip",
+   "clip": "v_real",
+   "f0": 419,
+   "n": 201,
+   "fr": "scr"
+  },
+  {
+   "kind": "clip",
+   "clip": "v_real",
+   "f0": 628,
+   "n": 29,
+   "fr": "scr"
+  },
+  {
+   "kind": "clip",
+   "clip": "c_telly",
+   "f0": 4,
+   "n": 136,
+   "fr": "scr",
+   "static": 4,
+   "osd": 1
+  },
+  {
+   "kind": "clip",
+   "clip": "c_arse",
+   "f0": 158,
+   "n": 134,
+   "fr": "set",
+   "static": 5,
+   "osd": 1
+  },
+  {
+   "kind": "clip",
+   "clip": "c_arse",
+   "f0": 292,
+   "n": 146,
+   "fr": "scr"
+  },
+  {
+   "kind": "clip",
+   "clip": "v_whitty",
+   "f0": 230,
+   "n": 202,
+   "fr": "set"
+  },
+  {
+   "kind": "clip",
+   "clip": "v_whitty",
+   "f0": 432,
+   "n": 142,
+   "fr": "scr"
+  },
+  {
+   "kind": "clip",
+   "clip": "c_keep",
+   "f0": 0,
+   "n": 184,
+   "fr": "set",
+   "static": 6,
+   "osd": 1
+  },
+  {
+   "kind": "clip",
+   "clip": "c_keep",
+   "f0": 184,
+   "n": 100,
+   "fr": "scr"
+  },
+  {
+   "kind": "seq",
+   "pattern": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/cards/crtoff/%03d.png",
+   "n": 26,
+   "tag": "crtoff"
+  },
+  {
+   "kind": "black",
+   "n": 21
+  },
+  {
+   "kind": "card",
+   "card": "endcard",
+   "n": 336,
+   "fin": 0.25,
+   "fout": 0.4
+  }
+ ],
+ "events": [
+  {
+   "bus": "sfx",
+   "file": "/home/user/Rory-s-rangers-/public/audio/sfx/amb_town.mp3",
+   "at": 0.0,
+   "gain": 0.18,
+   "dur": 1.5,
+   "fo": 0.4,
+   "fin": 0.0
+  },
+  {
+   "bus": "sfx",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/sfx/click.mp3",
+   "at": 1.2133333333333334,
+   "gain": 1.0,
+   "dur": null,
+   "fo": 0.0,
+   "fin": 0.0
+  },
+  {
+   "bus": "sfx",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/sfx/crt_on.mp3",
+   "at": 1.2833333333333332,
+   "gain": 0.75,
+   "dur": null,
+   "fo": 0.0,
+   "fin": 0.0
+  },
+  {
+   "bus": "line",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/lines/k_cfe3c585.wav",
+   "at": 1.3333333333333333,
+   "fin": 4.466666666666667,
+   "dur": 2.8666666666666667,
+   "fi": 0.02,
+   "fo": 0.04,
+   "who": "PRESIDENT KLERBLE",
+   "text": "Most of all, we want Krelworld to relax. Sit down. Watch the telly. Get hooked on the telly. Be pliant and addicted to your TVs\u2026",
+   "clip": "c_relax"
+  },
+  {
+   "bus": "line",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/lines/k_cfe3c585.wav",
+   "at": 4.2,
+   "fin": 7.333333333333333,
+   "dur": 1.75,
+   "fi": 0.02,
+   "fo": 0.04,
+   "who": "PRESIDENT KLERBLE",
+   "text": "Most of all, we want Krelworld to relax. Sit down. Watch the telly. Get hooked on the telly. Be pliant and addicted to your TVs\u2026",
+   "clip": "c_relax"
+  },
+  {
+   "bus": "mus",
+   "file": "/home/user/Rory-s-rangers-/public/audio/klerble.mp3",
+   "at": 1.3333333333333333,
+   "gain": 0.22,
+   "dur": 4.916666666666667,
+   "fin": 0.0,
+   "fi": 0.05,
+   "fo": 0.3
+  },
+  {
+   "bus": "sfx",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/sfx/click.mp3",
+   "at": 5.9,
+   "gain": 0.9,
+   "dur": null,
+   "fo": 0.0,
+   "fin": 0.0
+  },
+  {
+   "bus": "sfx",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/sfx/static.wav",
+   "at": 5.95,
+   "gain": 0.35,
+   "dur": 0.16666666666666669,
+   "fo": 0.03,
+   "fin": 0.0
+  },
+  {
+   "bus": "vo",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/vo/vo_tonight.mp3",
+   "at": 6.25,
+   "gain": 1.0
+  },
+  {
+   "bus": "sfx",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/sfx/news_sting.mp3",
+   "at": 6.0,
+   "gain": 0.45,
+   "dur": 2.4,
+   "fo": 0.4,
+   "fin": 0.0
+  },
+  {
+   "bus": "sfx",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/sfx/click.mp3",
+   "at": 8.299999999999999,
+   "gain": 0.9,
+   "dur": null,
+   "fo": 0.0,
+   "fin": 0.0
+  },
+  {
+   "bus": "sfx",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/sfx/static.wav",
+   "at": 8.35,
+   "gain": 0.35,
+   "dur": 0.15000000000000002,
+   "fo": 0.03,
+   "fin": 0.0
+  },
+  {
+   "bus": "line",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/lines/k_e865765c.wav",
+   "at": 8.35,
+   "fin": 2.75,
+   "dur": 3.6333333333333333,
+   "fi": 0.02,
+   "fo": 0.04,
+   "who": "NEWSREADER",
+   "text": "The song, titled The Krezzing Hour, was seen by nine people. Nine. The Ministry of Strange Occurrences has described this as \"fuuuuuuuuuuuuuuuuuuuckkkk\".",
+   "clip": "c_nine"
+  },
+  {
+   "bus": "line",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/lines/k_e865765c.wav",
+   "at": 11.983333333333333,
+   "fin": 9.083333333333334,
+   "dur": 3.283333333333333,
+   "fi": 0.02,
+   "fo": 0.04,
+   "who": "NEWSREADER",
+   "text": "The song, titled The Krezzing Hour, was seen by nine people. Nine. The Ministry of Strange Occurrences has described this as \"fuuuuuuuuuuuuuuuuuuuckkkk\".",
+   "clip": "c_nine"
+  },
+  {
+   "bus": "sfx",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/sfx/click.mp3",
+   "at": 15.216666666666667,
+   "gain": 0.9,
+   "dur": null,
+   "fo": 0.0,
+   "fin": 0.0
+  },
+  {
+   "bus": "sfx",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/sfx/static.wav",
+   "at": 15.266666666666667,
+   "gain": 0.35,
+   "dur": 0.15000000000000002,
+   "fo": 0.03,
+   "fin": 0.0
+  },
+  {
+   "bus": "line",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/lines/k_5c096ee7.wav",
+   "at": 15.266666666666667,
+   "fin": 2.3,
+   "dur": 2.6333333333333333,
+   "fi": 0.02,
+   "fo": 0.04,
+   "who": "ANDY BURNHAM",
+   "text": "The law states, quite simply: The North is much better than the South! Legally binding. No appeals. We're putting it in the bloody constitution!",
+   "clip": "v_north"
+  },
+  {
+   "bus": "line",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/lines/k_5c096ee7.wav",
+   "at": 17.9,
+   "fin": 4.933333333333334,
+   "dur": 4.444645666666665,
+   "fi": 0.02,
+   "fo": 0.0,
+   "who": "ANDY BURNHAM",
+   "text": "The law states, quite simply: The North is much better than the South! Legally binding. No appeals. We're putting it in the bloody constitution!",
+   "clip": "v_north"
+  },
+  {
+   "bus": "sfx",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/sfx/click.mp3",
+   "at": 22.516666666666666,
+   "gain": 0.9,
+   "dur": null,
+   "fo": 0.0,
+   "fin": 0.0
+  },
+  {
+   "bus": "sfx",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/sfx/static.wav",
+   "at": 22.566666666666666,
+   "gain": 0.35,
+   "dur": 0.15000000000000002,
+   "fo": 0.03,
+   "fin": 0.0
+  },
+  {
+   "bus": "line",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/lines/k_2f21a8a3.wav",
+   "at": 22.566666666666666,
+   "fin": 4.933333333333334,
+   "dur": 1.5666666666666667,
+   "fi": 0.02,
+   "fo": 0.04,
+   "who": "JEREMY CORBYN",
+   "text": "It is important that we all take a break from the everyday stress of life, and what could be more fun than watching a nuclear explosion?",
+   "clip": "v_nuke"
+  },
+  {
+   "bus": "line",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/lines/k_2f21a8a3.wav",
+   "at": 24.133333333333333,
+   "fin": 6.5,
+   "dur": 4.079604000000001,
+   "fi": 0.02,
+   "fo": 0.0,
+   "who": "JEREMY CORBYN",
+   "text": "It is important that we all take a break from the everyday stress of life, and what could be more fun than watching a nuclear explosion?",
+   "clip": "v_nuke"
+  },
+  {
+   "bus": "sfx",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/sfx/click.mp3",
+   "at": 28.45,
+   "gain": 0.9,
+   "dur": null,
+   "fo": 0.0,
+   "fin": 0.0
+  },
+  {
+   "bus": "sfx",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/sfx/static.wav",
+   "at": 28.5,
+   "gain": 0.35,
+   "dur": 0.15000000000000002,
+   "fo": 0.03,
+   "fin": 0.0
+  },
+  {
+   "bus": "line",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/lines/k_8d09ee93.wav",
+   "at": 28.5,
+   "fin": 1.8333333333333333,
+   "dur": 1.7166666666666666,
+   "fi": 0.02,
+   "fo": 0.04,
+   "who": "KEIR STARMER",
+   "text": "Buy low, sell high! Buy low, sell high! BUY LOW, SELL HIGH!",
+   "clip": "v_buylow"
+  },
+  {
+   "bus": "line",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/lines/k_8d09ee93.wav",
+   "at": 30.216666666666665,
+   "fin": 3.55,
+   "dur": 2.771646,
+   "fi": 0.02,
+   "fo": 0.0,
+   "who": "KEIR STARMER",
+   "text": "Buy low, sell high! Buy low, sell high! BUY LOW, SELL HIGH!",
+   "clip": "v_buylow"
+  },
+  {
+   "bus": "sfx",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/sfx/click.mp3",
+   "at": 33.150000000000006,
+   "gain": 0.9,
+   "dur": null,
+   "fo": 0.0,
+   "fin": 0.0
+  },
+  {
+   "bus": "sfx",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/sfx/static.wav",
+   "at": 33.2,
+   "gain": 0.35,
+   "dur": 0.15000000000000002,
+   "fo": 0.03,
+   "fin": 0.0
+  },
+  {
+   "bus": "line",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/lines/k_b0cc5409.wav",
+   "at": 33.2,
+   "fin": 0.0,
+   "dur": 1.750208,
+   "fi": 0,
+   "fo": 0.0,
+   "who": "KREZMAR",
+   "text": "We have no defence minister?!",
+   "clip": "v_defence"
+  },
+  {
+   "bus": "line",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/lines/k_18b84323.wav",
+   "at": 36.016666666666666,
+   "fin": 0.0,
+   "dur": 3.2130629999999996,
+   "fi": 0,
+   "fo": 0.0,
+   "who": "DRONGUS",
+   "text": "I was distracted by the need for all the other ministers.",
+   "clip": "v_defence"
+  },
+  {
+   "bus": "sfx",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/sfx/click.mp3",
+   "at": 39.583333333333336,
+   "gain": 0.9,
+   "dur": null,
+   "fo": 0.0,
+   "fin": 0.0
+  },
+  {
+   "bus": "sfx",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/sfx/static.wav",
+   "at": 39.63333333333333,
+   "gain": 0.35,
+   "dur": 0.13333333333333333,
+   "fo": 0.03,
+   "fin": 0.0
+  },
+  {
+   "bus": "line",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/lines/k_f0cf81d6.wav",
+   "at": 39.63333333333333,
+   "fin": 2.2,
+   "dur": 1.9012289999999998,
+   "fi": 0.02,
+   "fo": 0.0,
+   "who": "REPORTER",
+   "text": "Asked to explain the difference, a spokesperson replied...",
+   "clip": "c_ktp"
+  },
+  {
+   "bus": "line",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/lines/k_5c3bd549.wav",
+   "at": 41.766666666666666,
+   "fin": 0.0,
+   "dur": 1.9330630000000004,
+   "fi": 0,
+   "fo": 0.0,
+   "who": "HOSPITAL SPOKESPERSON",
+   "text": "This is the sequel.",
+   "clip": "c_ktp"
+  },
+  {
+   "bus": "sfx",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/sfx/click.mp3",
+   "at": 44.21666666666667,
+   "gain": 0.9,
+   "dur": null,
+   "fo": 0.0,
+   "fin": 0.0
+  },
+  {
+   "bus": "sfx",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/sfx/static.wav",
+   "at": 44.266666666666666,
+   "gain": 0.35,
+   "dur": 0.15000000000000002,
+   "fo": 0.03,
+   "fin": 0.0
+  },
+  {
+   "bus": "line",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/lines/k_b13f59f1.wav",
+   "at": 44.266666666666666,
+   "fin": 8.8,
+   "dur": 1.7012290000000008,
+   "fi": 0.02,
+   "fo": 0.0,
+   "who": "KEIR STARMER",
+   "text": "And so, on this Election Day, I say to the British people: change is coming. And to the Prime Minister, I say just one thing.",
+   "clip": "v_smell"
+  },
+  {
+   "bus": "line",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/lines/k_3c3179f9.wav",
+   "at": 47.5,
+   "fin": 0.0,
+   "dur": 4.022874999999999,
+   "fi": 0,
+   "fo": 0.0,
+   "who": "KEIR STARMER",
+   "text": "Smell that, Sunak! Phwoar! Lovely!",
+   "clip": "v_smell"
+  },
+  {
+   "bus": "line",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/lines/k_433788c9.wav",
+   "at": 52.016666666666666,
+   "fin": 6.4,
+   "dur": 0.07837499999999978,
+   "fi": 0.02,
+   "fo": 0.0,
+   "who": "KEIR STARMER",
+   "text": "I understand the hurt and confusion it has caused, and I am committed to earning back the trust of the British people.",
+   "clip": "v_real"
+  },
+  {
+   "bus": "line",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/lines/k_21949f02.wav",
+   "at": 52.6,
+   "fin": 0.0,
+   "dur": 3.2130629999999996,
+   "fi": 0,
+   "fo": 0.0,
+   "who": "REPORTER",
+   "text": "Mr Starmer! Was it a real one?",
+   "clip": "v_real"
+  },
+  {
+   "bus": "sfx",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/sfx/click.mp3",
+   "at": 56.38333333333333,
+   "gain": 0.9,
+   "dur": null,
+   "fo": 0.0,
+   "fin": 0.0
+  },
+  {
+   "bus": "sfx",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/sfx/static.wav",
+   "at": 56.43333333333333,
+   "gain": 0.35,
+   "dur": 0.11666666666666667,
+   "fo": 0.03,
+   "fin": 0.0
+  },
+  {
+   "bus": "line",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/lines/k_5653eab0.wav",
+   "at": 56.43333333333333,
+   "fin": 0.06666666666666667,
+   "dur": 1.7880413333333334,
+   "fi": 0.02,
+   "fo": 0.0,
+   "who": "NEWSREADER",
+   "text": "You're watching it either way.",
+   "clip": "c_telly"
+  },
+  {
+   "bus": "sfx",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/sfx/click.mp3",
+   "at": 58.650000000000006,
+   "gain": 0.9,
+   "dur": null,
+   "fo": 0.0,
+   "fin": 0.0
+  },
+  {
+   "bus": "sfx",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/sfx/static.wav",
+   "at": 58.7,
+   "gain": 0.35,
+   "dur": 0.13333333333333333,
+   "fo": 0.03,
+   "fin": 0.0
+  },
+  {
+   "bus": "line",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/lines/k_653c1d9c.wav",
+   "at": 58.7,
+   "fin": 2.6333333333333333,
+   "dur": 2.2333333333333334,
+   "fi": 0.02,
+   "fo": 0.04,
+   "who": "KEIR STARMER",
+   "text": "It's time we faced the simple truth: we should also brush the inside of our arseholes \u2014 to get all the shit out.",
+   "clip": "c_arse"
+  },
+  {
+   "bus": "line",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/lines/k_653c1d9c.wav",
+   "at": 60.93333333333333,
+   "fin": 4.866666666666666,
+   "dur": 2.343146333333333,
+   "fi": 0.02,
+   "fo": 0.0,
+   "who": "KEIR STARMER",
+   "text": "It's time we faced the simple truth: we should also brush the inside of our arseholes \u2014 to get all the shit out.",
+   "clip": "c_arse"
+  },
+  {
+   "bus": "line",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/lines/k_2fdb3e18.wav",
+   "at": 63.36666666666667,
+   "fin": 3.8333333333333335,
+   "dur": 2.8278956666666657,
+   "fi": 0.02,
+   "fo": 0.0,
+   "who": "JOURNALIST",
+   "text": "Prime Minister! Will the NHS be issuing official guidance? Or equipment?",
+   "clip": "v_whitty"
+  },
+  {
+   "bus": "line",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/lines/k_c1e616c7.wav",
+   "at": 66.51666666666667,
+   "fin": 0.0,
+   "dur": 0.21666666666666667,
+   "fi": 0,
+   "fo": 0.04,
+   "who": "CHRIS WHITTY",
+   "text": "Research is ongoing.",
+   "clip": "v_whitty"
+  },
+  {
+   "bus": "line",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/lines/k_c1e616c7.wav",
+   "at": 66.73333333333333,
+   "fin": 0.21666666666666667,
+   "dur": 1.6380413333333328,
+   "fi": 0.02,
+   "fo": 0.0,
+   "who": "CHRIS WHITTY",
+   "text": "Research is ongoing.",
+   "clip": "v_whitty"
+  },
+  {
+   "bus": "sfx",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/sfx/click.mp3",
+   "at": 69.05,
+   "gain": 0.9,
+   "dur": null,
+   "fo": 0.0,
+   "fin": 0.0
+  },
+  {
+   "bus": "sfx",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/sfx/static.wav",
+   "at": 69.1,
+   "gain": 0.35,
+   "dur": 0.15000000000000002,
+   "fo": 0.03,
+   "fin": 0.0
+  },
+  {
+   "bus": "line",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/lines/k_a2a98191.wav",
+   "at": 69.1,
+   "fin": 0.0,
+   "dur": 3.066666666666667,
+   "fi": 0,
+   "fo": 0.04,
+   "who": "PRESIDENT KLERBLE",
+   "text": "Keep watching, Krelworld. Keep watching. NO FURTHER QUESTIONS!",
+   "clip": "c_keep"
+  },
+  {
+   "bus": "line",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/lines/k_a2a98191.wav",
+   "at": 72.16666666666667,
+   "fin": 3.066666666666667,
+   "dur": 1.5831463333333338,
+   "fi": 0.02,
+   "fo": 0.0,
+   "who": "PRESIDENT KLERBLE",
+   "text": "Keep watching, Krelworld. Keep watching. NO FURTHER QUESTIONS!",
+   "clip": "c_keep"
+  },
+  {
+   "bus": "mus",
+   "file": "/home/user/Rory-s-rangers-/public/audio/klerble.mp3",
+   "at": 69.1,
+   "gain": 0.22,
+   "dur": 4.9333333333333345,
+   "fin": 6.0,
+   "fi": 0.05,
+   "fo": 0.2
+  },
+  {
+   "bus": "sfx",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/sfx/crt_off.mp3",
+   "at": 73.81333333333333,
+   "gain": 0.8,
+   "dur": null,
+   "fo": 0.0,
+   "fin": 0.0
+  },
+  {
+   "bus": "vo",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/vo/vo_end.mp3",
+   "at": 75.06666666666666,
+   "gain": 1.0
+  },
+  {
+   "bus": "mus",
+   "file": "/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/tvtrailer/sfx/jingle.mp3",
+   "at": 74.61666666666666,
+   "gain": 0.5,
+   "dur": 5.6,
+   "fin": 0.0,
+   "fi": 0.05,
+   "fo": 1.0
+  }
+ ],
+ "chan": [
+  [
+   1.33,
+   "KRUNCHE NEWS \u00b7 A Message From Our Neighbours (President Klerble of Kreddle)",
+   "Ch1 (game's opening broadcast)"
+  ],
+  [
+   8.35,
+   "KRUNCHE NEWS \u00b7 News at Six 1: The Great Silence",
+   "Ch1"
+  ],
+  [
+   15.27,
+   "KRUNCHE NEWS \u00b7 Andy Burnham's First Act",
+   "Ch1 (always on)"
+  ],
+  [
+   22.57,
+   "KRUNCHE NEWS \u00b7 Government Announces Plan to Nuke Antarctica",
+   "Ch1 (always on)"
+  ],
+  [
+   28.5,
+   "KRUNCHE NEWS \u00b7 Markets Rally on \u00a320 Billion 'Random Public Investment'",
+   "Ch1 (always on)"
+  ],
+  [
+   33.2,
+   "KRUNCHE NEWS: CABINET PROCEEDINGS LIVE \u00b7 Highlights: The Ministries",
+   "Ch1 (always on)"
+  ],
+  [
+   39.63,
+   "KRUNCHE NEWS \u00b7 Kill the Patient 2: No Alibi",
+   "Ch1 (always on)"
+  ],
+  [
+   44.27,
+   "KRUNCHE NEWS \u00b7 Election Special: FartGate",
+   "Ch1 (always on)"
+  ],
+  [
+   56.43,
+   "KRUNCHE NEWS \u00b7 The Department of Telly",
+   "Ch1 (always on)"
+  ],
+  [
+   58.7,
+   "KRUNCHE NEWS \u00b7 #ArsebrushGate",
+   "Ch1 (always on)"
+  ],
+  [
+   69.1,
+   "KRUNCHE NEWS \u00b7 A Message From Our Neighbours (President Klerble)",
+   "Ch1"
+  ]
+ ],
+ "total": 80.21666666666667
+}

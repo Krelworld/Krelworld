@@ -3,7 +3,13 @@
 import type { Access, Role } from "../core/types";
 
 export interface Rect { x: number; y: number; w: number; h: number }
-export interface Wall extends Rect { h3: number; colour: number; top: number; /** A gate that can be opened for someone. */ gate?: string }
+export interface Wall extends Rect {
+  h3: number; colour: number; top: number;
+  /** A gate that can be opened for someone. */
+  gate?: string;
+  /** Street furniture: solid, low, and drawn as a picture rather than a box. */
+  prop?: boolean;
+}
 export interface Area extends Rect {
   id: string;
   name: string;
@@ -158,6 +164,17 @@ const QF_WALLS: Wall[] = [
   wall(76, 50, 76.5, 52, 2.8, CABIN, 0x8a9a7a), wall(76, 55, 76.5, 58, 2.8, CABIN, 0x8a9a7a), wall(87.5, 50, 88, 58, 2.8, CABIN, 0x8a9a7a),
 ];
 
+/** Street furniture you bump into: queue barriers, bins, bollards, lamp posts, the vans. */
+const prop = (cx: number, cy: number, w: number, h: number, h3 = 1): Wall => ({ x: cx - w / 2, y: cy - h, w, h, h3, colour: 0x555555, top: 0x777777, prop: true });
+const QF_PROPS: Wall[] = [
+  ...[-9, -3, 3, 9].map((x) => prop(x, 50.6, 2.4, 0.3)),
+  ...[-52, -39, -26, -13, 13, 26, 39, 52].map((x) => prop(x, 60.7, 0.4, 0.4)),
+  ...[-84, -60, -36, -12, 12, 36, 60, 84].map((x) => prop(x, 83.7, 0.35, 0.35, 3)),
+  prop(-2, 73.5, 0.9, 0.7), prop(23.6, 73.5, 0.9, 0.7), prop(-33, 81.7, 0.9, 0.7), prop(45.6, 73.5, 0.9, 0.7),
+  prop(46, 53, 6.2, 2.2, 2.6), prop(32, 55.6, 5.6, 2.2, 2.4),
+  prop(-34, 50, 2.2, 0.9), prop(-30, 83.4, 1.2, 1.1, 2.5),
+];
+
 export const KICKOFF_AT = 330; // seconds after arrival
 
 const QF_SPOTS = {
@@ -274,7 +291,7 @@ const QF_LABELS: Venue["labels"] = [
 export const VENUES: Record<Venue["id"], Venue> = {
   qf: {
     id: "qf", round: "quarter-final", opp: "POR", ground: "Wembley Park",
-    areas: QF_AREAS, walls: QF_WALLS, spots: QF_SPOTS, labels: QF_LABELS,
+    areas: QF_AREAS, walls: [...QF_WALLS, ...QF_PROPS], spots: QF_SPOTS, labels: QF_LABELS,
     delivery: { name: "beer lorry", route: [-28, 74, -28, 88, 67, 88, 67, -43, 56, -43, 50, -44], gateStop: { x: 67, y: -43 }, loadDoor: { x: -34.8, y: 68 }, unloadDoor: { x: 46, y: -48.6 }, gateInspect: 0.25 },
     busRoute: [83, -7, 67, -7, 67, -41, 56, -41, 46, -40.8],
     patrolLoop: [{ x: -45, y: 41 }, { x: 45, y: 41 }, { x: 53, y: 0 }, { x: 45, y: 41 }, { x: -45, y: 41 }, { x: -53, y: 0 }],
@@ -292,7 +309,7 @@ function buildSemiFinal(): Venue {
   // The same kind of bowl, the other way round: the fan zone, the car park, the
   // stewards' cabin and the service road are all on the opposite side.
   let areas = QF_AREAS.map(mirrorRect);
-  let walls = QF_WALLS.map(mirrorRect);
+  let walls = [...QF_WALLS, ...QF_PROPS].map(mirrorRect);
   const spots = mirrorSpots(QF_SPOTS);
   // The pub is an open-air fan zone: its walls come down, the bar stays.
   const pub = QF_AREAS.find((a) => a.id === "pub")!;

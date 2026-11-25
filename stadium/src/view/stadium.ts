@@ -362,8 +362,8 @@ class StadiumScene extends Phaser.Scene {
         const which = PAVE.has(a.id) ? ["tiles-street", "pave"] : ROAD.has(a.id) ? ["tiles-street", "road"] : CONC.has(a.id) ? ["tiles-pitch", "concrete"] : a.id === "verge" ? ["tiles-pitch", "grass"] : null;
         if (!which) continue;
         const [rx, ry, rw, rh] = P.rect(a.x, a.y, a.w, a.h);
-        // One tile = 1.5 m.
-        const k = (1.5 * P.S) / 32;
+        // Paving slabs and kerbstones at a believable size; tarmac and grass can be coarser.
+        const k = ((which[1] === "pave" || which[1] === "concrete" ? 0.9 : 1.5) * P.S) / 32;
         const ts = this.add.tileSprite(rx, ry, rw, rh, which[0], which[1]).setOrigin(0).setDepth(0.2).setTileScale(k, k * (P.standing ? P.K : 1));
         if (a.id === "street") ts.setAlpha(0.55);
         this.groundTiles.push(ts);
@@ -616,7 +616,7 @@ class StadiumScene extends Phaser.Scene {
     const world = sprites ? this.worldThings(things, onScreen, () => g) : { hides: (_w: unknown) => false };
     for (const wl of SOLID) {
       if (!onScreen(wl.x + wl.w / 2, wl.y + wl.h / 2, 200)) continue;
-      if (world.hides(wl)) continue;
+      if (world.hides(wl) || (sprites && wl.prop)) continue;
       const open = wl.gate && st.gates[wl.gate] && st.gates[wl.gate].until > tick;
       const behind = pc && pc.y < wl.y + wl.h && pc.y > wl.y - wl.h3 * 1.6 - 0.5 && pc.x > wl.x - 0.5 && pc.x < wl.x + wl.w + 0.5 && wl.h3 > 1.6;
       const alpha = behind ? 0.35 : 1;
@@ -887,6 +887,18 @@ class StadiumScene extends Phaser.Scene {
       const meta = this.world.base[p.key];
       if (!meta || !onScreen(p.x, p.y, 400)) continue;
       this.worldSeen.add(p.id);
+      // A shadow on the ground: the footprint for buildings, a soft blob for props.
+      {
+        const sh = this.shadowG;
+        if (p.inside && !cut.has(p.id)) {
+          const fp = p.inside;
+          sh.fillStyle(0x000000, 0.28).fillRect(...P.rect(fp.x0 + 0.5, fp.y1 - 0.2, fp.x1 - fp.x0, 1.4));
+        } else if (!p.inside && !(p.key === "turnstiles" && pc && (VENUE.inside(pc.x, pc.y) || pc.seated))) {
+          // Small things get a soft blob; long things (booths, the turnstile block) a strip along their base.
+          if (p.w > 4) sh.fillStyle(0x000000, 0.25).fillRect(...P.rect(p.x - p.w / 2 + 0.3, p.y - 0.4, p.w, 1.1));
+          else sh.fillStyle(0x000000, 0.3).fillEllipse(P.sx(p.x + 0.2, p.y), P.sy(p.x, p.y) - 1, p.w * P.S * 1.05, Math.max(4, p.w * P.S * 0.28));
+        }
+      }
       things.push({ d: p.y, draw: () => {}, spr: (depth) => {
         let im = this.worldSprites.get(p.id);
         if (!im) { im = this.add.image(0, 0, `w-${p.key}`); this.worldSprites.set(p.id, im); }
@@ -897,20 +909,20 @@ class StadiumScene extends Phaser.Scene {
         im.setOrigin(ox, meta.foot).setScale(scale).setFlipX(!!p.flip).setPosition(P.sx(p.x, p.y), P.sy(p.x, p.y)).setDepth(depth).setVisible(true);
         // Cut away when you're inside; see-through when you're behind it or close to the turnstiles.
         let alpha = 1;
-        if (cut.has(p.id)) alpha = 0.12;
+        if (cut.has(p.id)) alpha = 0;
         else if (pc && !pc.hiddenIn) {
           const hM = (tex.height * meta.foot * scale) / (P.KZ * P.S);
           const half = p.w / 2 + 0.5;
           if (pc.y < p.y && pc.y > p.y - hM * 1.25 && Math.abs(pc.x - p.x) < half) alpha = 0.4;
           if (p.key === "turnstiles" && Math.abs(pc.x - p.x) < 12 && Math.abs(pc.y - p.y) < 6) alpha = Math.min(alpha, 0.45);
-          if (p.key === "turnstiles" && (VENUE.inside(pc.x, pc.y) || pc.seated)) alpha = 0.12;
+          if (p.key === "turnstiles" && (VENUE.inside(pc.x, pc.y) || pc.seated)) alpha = 0;
         }
         im.setAlpha(alpha);
       } });
     }
     // The stadium from outside: a roofed ring of stands and a clad facade, see-through once you're in.
     const ins = !!pc && (VENUE.inside(pc.x, pc.y) || !!pc.seated) && !pc.hiddenIn;
-    const roofA = ins ? 0.1 : 1;
+    const roofA = ins ? 0 : 1;
     const H = 9, ROOF = 0x59616b, RIDGE = 0x6c7580, EDGE = 0xe8eaec, FACE = 0x2a3038;
     const gx0 = VENUE.id === "qf" ? -57 : -56.5, gx1 = VENUE.id === "qf" ? 56.5 : 57;
     const blocks = [
@@ -934,7 +946,7 @@ class StadiumScene extends Phaser.Scene {
         const x0 = P.sx(gx0, 45), x1 = P.sx(gx1, 45);
         if (!this.facade) this.facade = this.add.tileSprite(0, 0, 10, 10, "w-facade");
         this.facade.setPosition(x0, P.sy(0, 45)).setOrigin(0, 1).setSize((x1 - x0), faceH).setTileScale(k, k)
-          .setTilePosition(0, tex.height * (1 - meta.foot) * -1).setDepth(depth).setAlpha(ins ? 0.15 : 1).setVisible(true);
+          .setTilePosition(0, tex.height * (1 - meta.foot) * -1).setDepth(depth).setAlpha(1).setVisible(!ins);
         // Keep the gaps for the turnstiles and the staff door clear of cladding: they're drawn as pictures in front.
       } });
     }

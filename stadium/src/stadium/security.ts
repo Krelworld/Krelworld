@@ -183,7 +183,7 @@ export function stepSecurity(w: World, g: Actor): void {
   // Perception, staggered so not everybody looks on the same tick.
   if ((tick + g.id.length * 7 + g.id.charCodeAt(g.id.length - 1)) % 6 === 0) {
     for (const t of suspects(w)) {
-      if (t.heldBy || st.ending) continue;
+      if (t.heldBy || st.ending || (st.flags.graceUntil ?? 0) > tick) continue;
       const range = (n.job === "pitchsteward" || n.job === "police" ? 22 : 14) + Math.min(5, st.flags.securityLevel ?? 0) * 0.8;
       const sees = canSee(w, g, t, range);
       let sus = n.sus[t.id] ?? 0;
@@ -310,20 +310,15 @@ function escort(w: World, g: Actor): void {
   if (!t || t.heldBy !== g.id) { setMode(w, g, "routine"); return; }
   n.goal && (n.goal.run = false);
   const to = n.escortTo ?? { x: g.x, y: g.y };
-  // Nobody wants to watch a long walk: after a few seconds, cut to the destination.
-  if (n.intent !== "warn" && s.tick - (n.escortAt ?? s.tick) > 60 * 5) {
+  // Nobody wants to watch a long walk: a moment to struggle, then cut to the destination.
+  if (s.tick - (n.escortAt ?? s.tick) > 60 * 1.5) {
     g.x = to.x; g.y = to.y + 0.9; t.x = to.x; t.y = to.y; n.goal = null; n.path = [];
     w.bus.emit({ type: "escort_cut", t: s.tick, who: t.id, intent: n.intent });
   }
   if (!n.goal && Math.hypot(g.x - to.x, g.y - to.y) > 1.5) goTo(g, to.x, to.y);
   follow(w, g);
   g.speed = 2.6;
-  if (!n.goal && Math.hypot(g.x - to.x, g.y - to.y) > 1.5) {
-    // No way through on foot: walk him straight there (stewards have keys).
-    const dx = to.x - g.x, dy = to.y - g.y, d = Math.hypot(dx, dy);
-    g.moveX = dx / d; g.moveY = dy / d;
-    if (w.state.tick % 120 === 0) { g.x += (dx / d) * 1.5; g.y += (dy / d) * 1.5; }
-  }
+  if (!n.goal && Math.hypot(g.x - to.x, g.y - to.y) > 1.5) { g.moveX = g.moveY = 0; }
   const arrived = Math.hypot(g.x - to.x, g.y - to.y) < 1.5;
   // Drag him along just behind.
   const bx = g.x - Math.cos(g.facing) * 0.85, by = g.y - Math.sin(g.facing) * 0.85;
@@ -331,7 +326,7 @@ function escort(w: World, g: Actor): void {
   if (!arrived) return;
   t.heldBy = undefined;
   const intent = n.intent;
-  if (intent === "warn") { say(w, g, "Don't let me see you back in there."); n.sus[t.id] = 0.35; }
+  if (intent === "warn") { say(w, g, "Don't let me see you back in there."); n.sus[t.id] = 0.35; calmDown(w, t, 8); }
   else if (intent === "eject") eject(w, g, t);
   else if (intent === "detain") {
     st.detainedUntil = s.tick + 60 * 45;
@@ -360,7 +355,20 @@ export function eject(w: World, g: Actor | null, t: Actor): void {
   st.warnings = 0;
   st.detainedUntil = 0;
   if (g) say(w, g, "You're barred. Don't come back.");
+  calmDown(w, t, 25);
   w.bus.emit({ type: "ejected", t: s.tick, who: t.id, taken });
+}
+
+/** Everyone stops being after him for a while: thrown out is thrown out, not thrown out again. */
+export function calmDown(w: World, t: Actor, seconds: number): void {
+  const s = w.state, st = s.stadium!;
+  st.flags.graceUntil = s.tick + 60 * seconds;
+  for (const id in s.actors) {
+    const n = s.actors[id].npc;
+    if (!n) continue;
+    n.sus[t.id] = 0;
+    if (n.target === t.id && n.mode !== "escort") { n.target = null; n.mode = "routine"; n.intent = null; n.crime = 0; n.plan = []; }
+  }
 }
 
 export function finishArrest(w: World, t: Actor, text: string): void {

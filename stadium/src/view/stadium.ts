@@ -42,6 +42,11 @@ const esc = (t: string) => t.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&l
 
 interface TickerLine { text: string; src: string; big: boolean }
 
+/** A PixelLab picture of an item, if there is one. */
+const ICONS = new Set(["pint", "pie", "knife", "whistle", "ticket", "wallet", "laxative", "powder", "shirt_eng", "shirt_por", "shirt_bra", "shirt_arg", "police_uniform", "kit_eng", "kit_opp",
+  "staff_pass", "hivis", "ref_kit", "police_hat", "mask", "flat_cap", "sunglasses", "moustache", "tracksuit", "chef_whites", "overalls", "balaclava", "hammer", "flare", "betslip", "face", "hands"]);
+const icon = (def: string) => (ICONS.has(def) ? `<img class="ico" src="icons/${def}.png" alt="" onerror="this.remove()">` : `<span class="ico none"></span>`);
+
 /** The main button's words: short enough for a thumb. The full sentence is still in More. */
 function shortLabel(o: Option): string {
   const v = o.action?.verb, L = o.label;
@@ -175,7 +180,10 @@ class StadiumScene extends Phaser.Scene {
       if (e.type === "ejected" && e.who === this.s.stadium!.pc) this.hint(e.taken.length ? `Thrown out. They took your ${e.taken.join(", ")}.` : "Thrown out. They'll know your face now.");
       if (e.type === "escort_cut" && e.who === this.s.stadium!.pc) { const f = $("fade"); f.classList.add("on"); setTimeout(() => f.classList.remove("on"), 450); }
       if (e.type === "broke_free" && e.who === this.s.stadium!.pc) this.hint("You broke free. Run!");
-      if (e.type === "winded") this.hint("You're out of breath.");
+      if (e.type === "action" && e.action.actor === this.s.stadium!.pc && e.action.verb === "take" && e.action.item) {
+        const it = this.s.items[e.action.item];
+        if (it) { this.audio.play("pickup", 0.9); this.toast(it.def, itemName(it), "Picked up"); }
+      }
       if (e.type === "bus_stolen" && e.by === this.s.stadium!.pc) this.hint(this.driveView === "map" ? "Steer with the stick. The view button (top right) switches to Chase or Cab." : "Up to go, down to brake, left and right to steer. Beep (or H) freezes everyone in front so they can't dive clear. The view button switches Chase, Cab and Map.");
       if (e.type === "killed" && e.by === this.s.stadium!.pc) this.hint("He's dead. You're covered in his blood: change your top or everyone will see it.");
       if (e.type === "armed_called") this.hint("Someone's called the armed police. You've got about forty seconds.");
@@ -785,7 +793,6 @@ class StadiumScene extends Phaser.Scene {
     g = nextLayer();
     for (const [id, sp] of this.spritePool) if (!seenSprites.has(id)) sp.setVisible(false);
     for (const [id, sp] of this.worldSprites) if (!this.worldSeen.has(id)) sp.setVisible(false);
-    if (this.facade && !this.worldSeen.has("facade")) this.facade.setVisible(false);
     for (const c of st.smoke) {
       if (c.until < tick) continue;
       const left = (c.until - tick) / (60 * 25);
@@ -936,18 +943,22 @@ class StadiumScene extends Phaser.Scene {
       things.push({ d: b.y1 - 0.05, draw: () => this.drawRoof(layer(), b) });
     }
     this.roofSpec = { blocks, H, ROOF, RIDGE, EDGE, FACE, alpha: roofA };
-    // The facade along the front of the south stand.
-    if (this.textures.exists("w-facade")) {
-      this.worldSeen.add("facade");
+    // The facade along the front of the south stand: the cladding picture repeated as plain images.
+    if (this.textures.exists("w-facade") && !ins) {
       things.push({ d: 45.01, draw: () => {}, spr: (depth) => {
         const meta = this.world.base.facade!;
         const tex = this.textures.get("w-facade").getSourceImage() as HTMLCanvasElement;
-        const faceH = H * P.KZ * P.S, k = faceH / (tex.height * meta.foot);
-        const x0 = P.sx(gx0, 45), x1 = P.sx(gx1, 45);
-        if (!this.facade) this.facade = this.add.tileSprite(0, 0, 10, 10, "w-facade");
-        this.facade.setPosition(x0, P.sy(0, 45)).setOrigin(0, 1).setSize((x1 - x0), faceH).setTileScale(k, k)
-          .setTilePosition(0, tex.height * (1 - meta.foot) * -1).setDepth(depth).setAlpha(1).setVisible(!ins);
-        // Keep the gaps for the turnstiles and the staff door clear of cladding: they're drawn as pictures in front.
+        const faceH = H * P.KZ * P.S, k = faceH / (tex.height * meta.foot), segW = tex.width * k;
+        const x0 = P.sx(gx0, 45), x1 = P.sx(gx1, 45), n = Math.ceil((x1 - x0) / segW);
+        for (let i = 0; i < n; i++) {
+          const id = `facade${i}`;
+          let im = this.worldSprites.get(id);
+          if (!im) { im = this.add.image(0, 0, "w-facade"); this.worldSprites.set(id, im); }
+          this.worldSeen.add(id);
+          const w = Math.min(segW, x1 - x0 - i * segW);
+          im.setOrigin(0, meta.foot).setScale(k).setPosition(x0 + i * segW, P.sy(0, 45)).setDepth(depth).setVisible(true).setAlpha(1);
+          im.setCrop(0, 0, w / k, tex.height);
+        }
       } });
     }
     void tick; void st;
@@ -1331,10 +1342,44 @@ class StadiumScene extends Phaser.Scene {
 
   openShop(who: string) {
     const seller = this.s.actors[who], shop = SHOPS[seller.npc!.shop!];
-    const rows = Object.entries(shop.stock).map(([def, price]) =>
-      `<div class="item"><b>${esc(ITEM_DEFS[def].name)}</b><div class="row"><button data-buy="${def}" data-who="${who}" ${this.pc.money < price ? "disabled" : ""}>Buy for £${price}</button></div></div>`).join("");
-    this.sheet("shop", `<h2>${esc(shop.name)}</h2><p>You have £${this.pc.money}.</p><div class="list">${rows}</div>`);
+    const rows = Object.entries(shop.stock).map(([def, price]) => {
+      const poor = this.pc.money < price;
+      return `<button class="ware${poor ? " poor" : ""}" data-buy="${def}" data-who="${who}" data-price="${price}">${icon(def)}<span class="nm">${esc(ITEM_DEFS[def].name)}</span><span class="pr">£${price}</span></button>`;
+    }).join("");
+    this.sheet("shop", `<h2>${esc(shop.name)}</h2><p class="purse">You have <b>£${this.pc.money}</b></p><div class="wares">${rows}</div>`);
   }
+
+  /** A purchase: the till, the money going down, the thing flying into your bag. */
+  bought(btn: HTMLElement, def: string, price: number): void {
+    this.audio.play("kaching", 1);
+    setTimeout(() => this.audio.play("bag", 0.8), 260);
+    const money = $("money");
+    money.classList.remove("spent"); void money.offsetWidth; money.classList.add("spent");
+    const mr = money.getBoundingClientRect(), app = $("app").getBoundingClientRect();
+    const minus = document.createElement("div");
+    minus.className = "minus"; minus.textContent = `−£${price}`;
+    minus.style.left = `${mr.left - app.left + mr.width / 2}px`; minus.style.top = `${mr.bottom - app.top + 4}px`;
+    $("app").appendChild(minus); setTimeout(() => minus.remove(), 1100);
+    // The icon flies from the shelf to the Bag button.
+    const from = (btn.querySelector(".ico") as HTMLElement | null)?.getBoundingClientRect() ?? btn.getBoundingClientRect();
+    const to = $("bagBtn").getBoundingClientRect();
+    const fly = document.createElement("div");
+    fly.className = "fly"; fly.innerHTML = icon(def);
+    fly.style.left = `${from.left - app.left}px`; fly.style.top = `${from.top - app.top}px`;
+    $("app").appendChild(fly);
+    requestAnimationFrame(() => { fly.style.transform = `translate(${to.left - from.left}px, ${to.top - from.top}px) scale(0.5)`; fly.style.opacity = "0.2"; });
+    setTimeout(() => { fly.remove(); const bag = $("bagBtn"); bag.classList.remove("bump"); void bag.offsetWidth; bag.classList.add("bump"); }, 520);
+    this.toast(def, ITEM_DEFS[def].name);
+  }
+
+  /** A short strap: "Bought" with the thing's picture. */
+  toast(def: string, name: string, verb = "Bought"): void {
+    const t = $("toast");
+    t.innerHTML = `${icon(def)}<span><small>${esc(verb)}</small>${esc(name)}</span>`;
+    t.hidden = false; t.classList.remove("in"); void t.offsetWidth; t.classList.add("in");
+    clearTimeout(this.toastTimer); this.toastTimer = window.setTimeout(() => { t.hidden = true; }, 1800);
+  }
+  toastTimer = 0;
 
   openBet() {
     const book = prices(this.w), pc = this.pc, where = canBetHere(this.w, pc);
@@ -1373,7 +1418,7 @@ class StadiumScene extends Phaser.Scene {
       const opts = itemOptions(this.w, pc, it);
       (this as any)[`bag_${it.id}`] = opts;
       const extra = it.def === "ticket" ? (it.void ? " (cancelled)" : it.used ? " (scanned)" : "") : it.spiked ? " (spiked)" : "";
-      return `<div class="item"><span class="where">${where(it)}</span><b>${esc(itemName(it))}${extra}</b><div class="row">${opts.map((o, i) => `<button data-bag="${it.id}" data-i="${i}">${esc(o.label)}</button>`).join("")}</div></div>`;
+      return `<div class="item bagged">${icon(it.def)}<div class="col"><span class="where">${where(it)}</span><b>${esc(itemName(it))}${extra}</b></div><div class="row">${opts.map((o, i) => `<button data-bag="${it.id}" data-i="${i}">${esc(o.label)}</button>`).join("")}</div></div>`;
     }).join("");
     this.sheet("bag", `<h2>Bag</h2><p>£${pc.money} in cash. Pockets: ${pc.pockets.length} of 3.</p><div class="list">${rows || "<p>Nothing.</p>"}</div>`);
   }
@@ -1444,13 +1489,33 @@ class StadiumScene extends Phaser.Scene {
       const b = (ev.target as HTMLElement).closest("button") as HTMLButtonElement | null;
       if (!b) return;
       const d = b.dataset;
+      if (!d.buy && !d.bag) this.audio.play("tap", 0.5);
       if (d.close) { if (this.sheetKind === "menu") this.setSpeed(1); this.closeSheet(); return; }
       if (d.opt) { this.run(((this as any).moreOpts as Option[])[+d.opt]); this.closeSheet(); return; }
-      if (d.buy) { const r = dispatch(this.w, { verb: "buy", actor: this.pc.id, target: { k: "actor", id: d.who! }, arg: d.buy }); if (!r.ok) this.hint(r.reason ?? ""); this.openShop(d.who!); return; }
+      if (d.buy) {
+        const r = dispatch(this.w, { verb: "buy", actor: this.pc.id, target: { k: "actor", id: d.who! }, arg: d.buy });
+        if (r.ok) this.bought(b, d.buy, +(d.price ?? 0));
+        else { this.audio.play("nope", 0.8); b.classList.remove("shake"); void b.offsetWidth; b.classList.add("shake"); this.hint(r.reason === "not enough money" ? "You can't afford that." : r.reason ?? ""); }
+        setTimeout(() => this.sheetKind === "shop" && this.openShop(d.who!), 420);
+        return;
+      }
       if (d.bet) { const r = dispatch(this.w, { verb: "bet", actor: this.pc.id, arg: d.bet, amount: +d.amt! }); if (!r.ok) this.hint(r.reason ?? ""); this.openBet(); return; }
       if (d.report) { const r = dispatch(this.w, { verb: "report", actor: this.pc.id, target: { k: "actor", id: d.report } }); if (!r.ok) this.hint(r.reason ?? ""); this.closeSheet(); return; }
       if (d.bribe) { const r = dispatch(this.w, { verb: "bribe", actor: this.pc.id, target: { k: "actor", id: d.who! }, amount: +d.bribe }); if (!r.ok) this.hint(r.reason ?? ""); this.closeSheet(); return; }
-      if (d.bag) { const o = ((this as any)[`bag_${d.bag}`] as Option[])[+d.i!]; if (o?.action) { const r = dispatch(this.w, o.action); if (!r.ok) this.hint(r.reason ?? ""); } this.openBag(); return; }
+      if (d.bag) {
+        const o = ((this as any)[`bag_${d.bag}`] as Option[])[+d.i!];
+        if (o?.action) {
+          const def = this.s.items[o.action.item ?? ""]?.def;
+          const r = dispatch(this.w, o.action);
+          if (!r.ok) { this.audio.play("nope", 0.8); this.hint(r.reason ?? ""); }
+          else {
+            const v = o.action.verb;
+            const food = def && ITEM_DEFS[def]?.props.includes("food"), drink = def && ITEM_DEFS[def]?.props.includes("liquid");
+            this.audio.play(v === "wear" || v === "remove" ? "wear" : v === "consume" ? (drink ? "gulp" : food ? "munch" : "pickup") : "tap", 0.9);
+          }
+        }
+        this.openBag(); return;
+      }
       if (d.cp) { loadCheckpoint(this.game2, d.cp as any); this.closeSheet(); $("ending").hidden = true; this.setSpeed(1); this.hint("Back to the checkpoint."); this.setZoom(); return; }
       if (d.new) { this.newGame(); this.closeSheet(); this.setSpeed(1); $("ending").hidden = true; return; }
       if (d.next) { this.continueTournament(); return; }

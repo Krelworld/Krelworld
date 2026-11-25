@@ -1,0 +1,194 @@
+{
+ "pint": {
+  "description": "a full pint glass of lager with foam, single item icon, realistic, muted natural colours, detailed pixel art",
+  "w": 48,
+  "h": 48,
+  "view": "low top-down"
+ },
+ "pie": {
+  "description": "a meat pie in a foil tray, single item icon, realistic, muted natural colours, detailed pixel art",
+  "w": 48,
+  "h": 48,
+  "view": "low top-down"
+ },
+ "knife": {
+  "description": "a kitchen knife, single item icon, realistic, muted natural colours, detailed pixel art",
+  "w": 48,
+  "h": 48,
+  "view": "low top-down"
+ },
+ "whistle": {
+  "description": "a black referee whistle on a cord, single item icon, realistic, muted natural colours, detailed pixel art",
+  "w": 48,
+  "h": 48,
+  "view": "low top-down"
+ },
+ "ticket": {
+  "description": "a football match ticket, single item icon, realistic, muted natural colours, detailed pixel art",
+  "w": 48,
+  "h": 48,
+  "view": "low top-down"
+ },
+ "wallet": {
+  "description": "a brown leather wallet, single item icon, realistic, muted natural colours, detailed pixel art",
+  "w": 48,
+  "h": 48,
+  "view": "low top-down"
+ },
+ "laxative": {
+  "description": "a small bottle of laxative pills, single item icon, realistic, muted natural colours, detailed pixel art",
+  "w": 48,
+  "h": 48,
+  "view": "low top-down"
+ },
+ "powder": {
+  "description": "a small plastic bag of white powder, single item icon, realistic, muted natural colours, detailed pixel art",
+  "w": 48,
+  "h": 48,
+  "view": "low top-down"
+ },
+ "shirt_eng": {
+  "description": "a white England football shirt, single item icon, realistic, muted natural colours, detailed pixel art",
+  "w": 48,
+  "h": 48,
+  "view": "low top-down"
+ },
+ "shirt_por": {
+  "description": "a red and green Portugal football shirt, single item icon, realistic, muted natural colours, detailed pixel art",
+  "w": 48,
+  "h": 48,
+  "view": "low top-down"
+ },
+ "shirt_bra": {
+  "description": "a yellow Brazil football shirt, single item icon, realistic, muted natural colours, detailed pixel art",
+  "w": 48,
+  "h": 48,
+  "view": "low top-down"
+ },
+ "shirt_arg": {
+  "description": "a sky blue and white striped Argentina football shirt, single item icon, realistic, muted natural colours, detailed pixel art",
+  "w": 48,
+  "h": 48,
+  "view": "low top-down"
+ },
+ "police_uniform": {
+  "description": "a folded British police uniform jacket with hi-vis, single item icon, realistic, muted natural colours, detailed pixel art",
+  "w": 48,
+  "h": 48,
+  "view": "low top-down"
+ },
+ "kit_eng": {
+  "description": "a white England football kit with shorts, single item icon, realistic, muted natural colours, detailed pixel art",
+  "w": 48,
+  "h": 48,
+  "view": "low top-down"
+ },
+ "kit_opp": {
+  "description": "an opposition football kit with shorts, single item icon, realistic, muted natural colours, detailed pixel art",
+  "w": 48,
+  "h": 48,
+  "view": "low top-down"
+ },
+ "staff_pass": {
+  "description": "a stadium staff pass on a lanyard, single item icon, realistic, muted natural colours, detailed pixel art",
+  "w": 48,
+  "h": 48,
+  "view": "low top-down"
+ },
+ "hivis": {
+  "description": "a yellow hi-vis vest, single item icon, realistic, muted natural colours, detailed pixel art",
+  "w": 48,
+  "h": 48,
+  "view": "low top-down"
+ },
+ "ref_kit": {
+  "description": "a black referee shirt, single item icon, realistic, muted natural colours, detailed pixel art",
+  "w": 48,
+  "h": 48,
+  "view": "low top-down"
+ },
+ "police_hat": {
+  "description": "a British police custodian helmet, single item icon, realistic, muted natural colours, detailed pixel art",
+  "w": 48,
+  "h": 48,
+  "view": "low top-down"
+ },
+ "mask": {
+  "description": "a cheap novelty rubber face mask, single item icon, realistic, muted natural colours, detailed pixel art",
+  "w": 48,
+  "h": 48,
+  "view": "low top-down"
+ },
+ "flat_cap": {
+  "description": "a tweed flat cap, single item icon, realistic, muted natural colours, detailed pixel art",
+  "w": 48,
+  "h": 48,
+  "view": "low top-down"
+ },
+ "sunglasses": {
+  "description": "black sunglasses, single item icon, realistic, muted natural colours, detailed pixel art",
+  "w": 48,
+  "h": 48,
+  "view": "low top-down"
+ },
+ "moustache": {
+  "description": "a stick-on false moustache, single item icon, realistic, muted natural colours, detailed pixel art",
+  "w": 48,
+  "h": 48,
+  "view": "low top-down"
+ },
+ "tracksuit": {
+  "description": "a grey tracksuit top, single item icon, realistic, muted natural colours, detailed pixel art",
+  "w": 48,
+  "h": 48,
+  "view": "low top-down"
+ },
+ "chef_whites": {
+  "description": "a white chef jacket, single item icon, realistic, muted natural colours, detailed pixel art",
+  "w": 48,
+  "h": 48,
+  "view": "low top-down"
+ },
+ "overalls": {
+  "description": "blue cleaner's overalls, single item icon, realistic, muted natural colours, detailed pixel art",
+  "w": 48,
+  "h": 48,
+  "view": "low top-down"
+ },
+ "balaclava": {
+  "description": "a black balaclava, single item icon, realistic, muted natural colours, detailed pixel art",
+  "w": 48,
+  "h": 48,
+  "view": "low top-down"
+ },
+ "hammer": {
+  "description": "a claw hammer, single item icon, realistic, muted natural colours, detailed pixel art",
+  "w": 48,
+  "h": 48,
+  "view": "low top-down"
+ },
+ "flare": {
+  "description": "a red smoke flare, single item icon, realistic, muted natural colours, detailed pixel art",
+  "w": 48,
+  "h": 48,
+  "view": "low top-down"
+ },
+ "betslip": {
+  "description": "a betting slip, single item icon, realistic, muted natural colours, detailed pixel art",
+  "w": 48,
+  "h": 48,
+  "view": "low top-down"
+ },
+ "face": {
+  "description": "a gruesome human face mask made of skin, single item icon, realistic, muted natural colours, detailed pixel art",
+  "w": 48,
+  "h": 48,
+  "view": "low top-down"
+ },
+ "hands": {
+  "description": "a pair of severed hands, single item icon, realistic, muted natural colours, detailed pixel art",
+  "w": 48,
+  "h": 48,
+  "view": "low top-down"
+ }
+}

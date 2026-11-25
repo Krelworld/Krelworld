@@ -240,7 +240,8 @@ export function stepGame(g: Game): void {
     f.stamina ??= 1;
     const wantRun = Math.hypot(pc.moveX, pc.moveY) > 0.9;
     const run = wantRun && f.stamina > 0.02 && !f.winded;
-    f.stamina = Math.max(0, Math.min(1, f.stamina + (run ? -0.11 : 0.08) / 60 * (wired ? 0.5 : 1)));
+    f.stamina = 1; // running out of breath was no fun
+    void wired;
     if (f.stamina <= 0.02 && !f.winded) { f.winded = 1; g.w.bus.emit({ type: "winded", t: s.tick, who: pc.id }); }
     if (f.winded && f.stamina > 0.35) f.winded = 0;
     pc.speed = (run ? 6.4 : 4.4) * (wired ? 1.15 : 1) * (drunk ? 0.92 : 1) * (f.winded ? 0.75 : 1);

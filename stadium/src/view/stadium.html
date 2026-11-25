@@ -155,6 +155,35 @@
   #debug .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
   #debug button { font-size: 13px; min-height: 36px; text-align: left; text-transform: none; }
 
+  /* Shop shelves, bag, purchase feedback. */
+  .ico { width: 40px; height: 40px; image-rendering: pixelated; flex: none; display: block; }
+  .ico.none { background: var(--night); }
+  .sheet .purse b { color: var(--bug); font: 800 18px/1 var(--display); }
+  .wares { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
+  .sheet .wares button.ware { display: grid; grid-template-columns: 40px 1fr; grid-template-rows: auto auto; column-gap: 8px; align-items: center; text-align: left; text-transform: none;
+    padding: 8px; min-height: 64px; background: var(--night2); border-bottom: 2px solid var(--rule); font: 600 16px/1.05 var(--display); }
+  .ware .ico { grid-row: 1 / 3; }
+  .ware .pr { font: 800 18px/1 var(--display); color: var(--bug); }
+  .ware.poor { opacity: 0.55; }
+  .ware.poor .pr { color: var(--warn); }
+  .ware:active { background: #1d2d4b; }
+  .item.bagged { display: grid; grid-template-columns: 40px 1fr; column-gap: 10px; align-items: center; }
+  .item.bagged .col { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .item.bagged .row { grid-column: 1 / 3; }
+  .shake { animation: shake .3s; }
+  @keyframes shake { 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+  #money.spent { animation: spent .6s; }
+  @keyframes spent { 30% { background: var(--red); color: var(--ink); transform: scale(1.08); } }
+  .minus { position: absolute; z-index: 7; transform: translateX(-50%); font: 800 20px/1 var(--display); color: var(--red); text-shadow: 0 2px 0 #000; pointer-events: none; animation: minus 1.1s ease-out forwards; }
+  @keyframes minus { to { transform: translate(-50%, 26px); opacity: 0; } }
+  .fly { position: absolute; z-index: 7; pointer-events: none; transition: transform .5s cubic-bezier(.5, -0.3, .7, 1), opacity .5s; }
+  .fly .ico { width: 48px; height: 48px; }
+  #bagBtn.bump { animation: bump .35s; }
+  @keyframes bump { 40% { transform: scale(1.18); background: var(--bug); color: var(--bugink); } }
+  #toast { left: max(8px, env(safe-area-inset-left, 0px)); bottom: calc(80px + env(safe-area-inset-bottom, 0px)); display: flex; align-items: center; gap: 10px; padding: 6px 14px 6px 8px; background: var(--night); border-left: 4px solid var(--bug); z-index: 5; pointer-events: none; }
+  #toast small { display: block; font: 800 11px/1 var(--display); letter-spacing: .12em; text-transform: uppercase; color: var(--bug); }
+  #toast span { font: 700 18px/1.1 var(--display); }
+  #toast.in { animation: strap .22s ease-out; }
   .touch .keys { display: none; }
   @media (max-width: 560px) {
     #ticker { right: max(8px, env(safe-area-inset-right, 0px)); bottom: 150px; }
@@ -190,6 +219,7 @@
 
   <div id="ticker" class="float"></div>
   <div id="hint" class="float panel" hidden></div>
+  <div id="toast" class="float" hidden></div>
 
   <div id="speed" class="float panel" hidden>
     <button id="sp1" aria-pressed="true">1×</button>

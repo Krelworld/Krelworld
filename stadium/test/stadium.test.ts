@@ -488,6 +488,8 @@ test("drive the bus at people and their team are docked a goal; caught, and it r
   victim.npc!.plan = [{ k: "wait", s: 30 }];
   const events: any[] = [];
   g.w.bus.on((e) => events.push(e));
+  // Honk first, or he might dive out of the way.
+  assert.equal(dispatch(g.w, { verb: "horn", actor: pc.id }).ok, true);
   run(g, 3, () => { pc.moveX = Math.cos(v.facing); pc.moveY = Math.sin(v.facing); });
   pc.moveX = pc.moveY = 0;
   assert.ok(events.some((e) => e.type === "bus_hit" && e.who === victim.id), "ran him down");

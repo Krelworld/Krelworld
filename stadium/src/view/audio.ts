@@ -10,6 +10,7 @@ export const CLIPS = [
   "tannoy_alarm", "tannoy_breach", "tannoy_forfeit",
   "gunshot", "dog_maul", "scream", "tannoy_incident", "armed_police", "stw_knife",
   "pit_growl", "pit_bark", "pit_gnash",
+  "kaching", "bag", "wear", "munch", "gulp", "nope", "tap", "pickup",
 ] as const;
 export type Clip = (typeof CLIPS)[number];
 

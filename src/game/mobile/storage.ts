@@ -69,8 +69,8 @@ export function holdBootLoad(game: Phaser.Game): () => void {
       const boot = game.scene?.getScene?.("Boot") as unknown as Bag | null;
       const l = boot?.load as Bag | undefined;
       if (!l) return false;
-      // (already past the boot: nothing to hold)
-      if (!game.scene.isActive("Boot") && (game as unknown as Bag).isRunning) return true;
+      // (already past the boot: nothing to hold. While loading, Boot is not "active" yet: look for any other scene)
+      if ((game.scene.getScenes(true) as Phaser.Scene[]).some((sc) => sc.sys.settings.key !== "Boot")) return true;
       loader = l;
       was = l.maxParallelDownloads || 32;
       l.maxParallelDownloads = 0;

@@ -2,7 +2,7 @@
 // PHONE MODE smoke test (Playwright, real touch events). Needs a running dev server.
 //
 //   npx vite --port 5202 --strictPort &
-//   node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,together,review1,polish,android,desktop]
+//   node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,together,review1,polish,platform,android,desktop]
 //
 // phone    iPhone 14 landscape (844x390, DPR 3, touch, mobile Safari UA). Boots by taps, starts a new game by taps,
 //          clears the welcome at home by taps, then checks: the idle stick and pause are up; a drag moves the player
@@ -73,6 +73,14 @@
 //          another; the controls on screen counted (only what can be used now: no SPECIAL without its Krezz, no
 //          juice chip at full health, no READY / HEAL with nothing to do); JUMP plain to see over the first pit; a
 //          long room name clear of the name, coins and meters; the Leave card above the bottom 21 px.
+// platform (stage 3) iPhone 14: the first tap routes the sound through Web Audio; the Music setting reaches the song
+//          (gain 0 at 0, the element itself at full volume); hidden → suspended, shown → running again with the song,
+//          once; a rhythm song starts with no tap; a stray second song is stopped; ?mobilediag's sound / memory /
+//          storage lines; the texture peak over home, town, a TV show, the Hoard and the concept boss under 500 MB
+//          (boot under 400), the TV's faces come back, a parked picture keeps its size; the concept boss at zoom 1
+//          with the player's ring and off-screen pictures skipped; a minigame's II opens the pause menu and coming back
+//          opens it too; the finale's II and coming back show the PAUSED card with the song held; in Instagram's
+//          browser the art waits for PLAY HERE ANYWAY.
 // android  Android Chrome 740x360: a press held past the Enter gate's fade still gets fullscreen and the back guard;
 //          the guide's written steps leave fullscreen (and closing it goes back in); the crash guard's notices show
 //          in fullscreen; an in-app browser shows "open it in Chrome first" during the load.
@@ -92,7 +100,7 @@ const arg = (k, d) => {
 };
 const URL0 = arg("--url", "http://localhost:5202/");
 const SHOTS = arg("--shots", "");
-const ONLY = (arg("--only", "phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,together,review1,polish,android,desktop") || "").split(",").filter(Boolean);
+const ONLY = (arg("--only", "phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,together,review1,polish,platform,android,desktop") || "").split(",").filter(Boolean);
 const IOS_UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1";
 const IPHONE = { viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, userAgent: IOS_UA };
 const DESKTOP = { viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1, hasTouch: false, isMobile: false };
@@ -4013,6 +4021,206 @@ async function polish(browser) {
   }
 }
 
+// ------------------------------------------------------------------ stage 3: the phone platform (sound, memory, pause)
+
+/** The phone's texture memory now (parked pictures count nothing), in MB. */
+const texMB = (ph) => ph.ev(() => Math.round(window.__krelMobile.art.resident().bytes / 1048576));
+
+/** Tap the layer's visible II. */
+async function tapPause(ph) {
+  const r = await ph.ev(() => {
+    const e = [...document.querySelectorAll(".kt-pause")].find((x) => x.getBoundingClientRect().width > 0 && getComputedStyle(x).display !== "none" && getComputedStyle(x).visibility !== "hidden");
+    if (!e) return null;
+    const b = e.getBoundingClientRect();
+    return { x: b.x + b.width / 2, y: b.y + b.height / 2 };
+  });
+  if (!r) return false;
+  await sleep(250);
+  await ph.tapCss(r.x, r.y);
+  return true;
+}
+
+async function platform(browser) {
+  // 1. sound: the first tap unlocks the pool; songs go through gain nodes that follow the settings
+  const { ctx, page, ph, errors } = await phoneAtTitle(browser, IPHONE, URL0 + (URL0.includes("?") ? "&" : "?") + "mobilediag");
+  try {
+    await sleep(2500);
+    let a = await ph.ev(() => ({ d: window.__krelMobile.audio.diag(), g: window.__krelMobile.audio.musicGain(), cur: window.__krel.synth.currentMusic() }));
+    check("platform: after the first tap the sound runs through Web Audio (context running, songs routed)", a.d.ctx === "running" && a.d.route === "web audio", a.d);
+    check("platform: the title's song plays from a routed element (its own volume full, the gain sets the level)", !!a.g && a.g.routed && a.g.elementVolume === 1 && a.g.gain > 0, a);
+    await ph.ev(() => {
+      const G = window.__krel.G;
+      G.meta.settings.music = 0;
+      window.__krel.synth.setVolumes(G.meta.settings);
+    });
+    await sleep(300);
+    const g0 = await ph.ev(() => window.__krelMobile.audio.musicGain());
+    await ph.ev(() => {
+      const G = window.__krel.G;
+      G.meta.settings.music = 0.5;
+      window.__krel.synth.setVolumes(G.meta.settings);
+    });
+    await sleep(300);
+    const g5 = await ph.ev(() => ({ g: window.__krelMobile.audio.musicGain(), m: window.__krel.G.meta.settings.master }));
+    check("platform: the Music setting reaches the song (0 → gain 0, 0.5 → master x 0.5; the element stays at full volume)", !!g0 && g0.gain < 0.001 && !!g5.g && Math.abs(g5.g.gain - g5.m * 0.5) < 0.02 && g5.g.elementVolume === 1, { g0, g5 });
+    // hidden, then shown: the context is suspended and comes back running, the song with it, never twice
+    await setVisibility(ph, "hidden");
+    await sleep(1200);
+    const hid = await ph.ev(() => window.__krelMobile.audio.diag());
+    await setVisibility(ph, "visible");
+    await sleep(2500);
+    const back = await ph.ev(() => ({ d: window.__krelMobile.audio.diag(), paused: window.__krel.synth.musicEl()?.paused }));
+    check("platform: page hidden → the sound context is suspended and no song plays", hid.ctx === "suspended" && hid.music === 0, hid);
+    check("platform: page shown again → the context runs again (resume reason kept), the song plays, once", back.d.ctx === "running" && /page shown/.test(back.d.lastResume) && back.paused === false && back.d.music === 1, back);
+    // a new song starts at once from the pool (no extra tap), and a stray second song is stopped
+    await ph.ev(() => window.__krel.synth.music("crocodile", true));
+    await sleep(2000);
+    const croc = await ph.ev(() => {
+      const el = window.__krel.synth.musicEl();
+      return { paused: el?.paused, t: el?.currentTime ?? 0 };
+    });
+    check("platform: a rhythm song starts straight away, with no tap (pooled element unlocked by the first tap)", croc.paused === false && croc.t > 0.5, croc);
+    await ph.ev(() => {
+      const a = new Audio(window.__krel.synth.musicEl().src);
+      void a.play();
+      window.__stray = a;
+    });
+    await sleep(1200);
+    const stray = await ph.ev(() => ({ paused: window.__stray.paused, d: window.__krelMobile.audio.diag() }));
+    check("platform: never two songs at once (a stray second song is stopped)", stray.paused === true && stray.d.music === 1 && stray.d.doubles >= 1, stray);
+    const lines = await ph.ev(() => window.__krelMobile.diag.lines().join("\n"));
+    check("platform: ?mobilediag shows the sound route, the last resume, the parked pictures and the saves' storage", /sound route web audio/.test(lines) && /last resume: page shown/.test(lines) && /parked \d+/.test(lines) && /saves kept by the browser/.test(lines), lines.split("\n").filter((l) => /sound|resume|parked|saves/.test(l)));
+
+    // 2. memory: the walk through home, town, a TV show, the Hoard and the concept boss stays under the ceiling
+    const peak = { mb: await texMB(ph), where: "title" };
+    const note = async (where) => {
+      const m = await texMB(ph);
+      if (m > peak.mb) Object.assign(peak, { mb: m, where });
+      return m;
+    };
+    check("platform: texture memory after the boot is under 400 MB (the laptop holds about 920)", peak.mb < 400, peak);
+    await toWalk(ph, "Home");
+    await note("home");
+    await ph.ev(() => window.__krel.go("Hub"));
+    await ph.scene("Hub");
+    await sleep(3000);
+    await note("hub");
+    await ph.ev(() => window.__krel.game.scene.start("TV", { fromTitle: true, episode: "tcc_ep7" }));
+    await ph.scene("TV");
+    await sleep(6000);
+    await note("tv");
+    const tv = await ph.ev(() => {
+      const r = window.__krelMobile.art.report();
+      const live = Object.keys(window.__krel.game.textures.list).filter((k) => k.startsWith("tvface_") && !window.__krelMobile.art.isParked(k));
+      const k = live[0];
+      const t = k && window.__krel.game.textures.get(k);
+      return { streamed: r.streamed, failed: r.failed, slowest: r.slowestMs, live, real: t ? t.getSourceImage() instanceof HTMLImageElement : false };
+    });
+    check("platform: the TV show's faces come back when drawn (real pictures, none failed)", tv.live.length > 0 && tv.real && tv.failed === 0, tv);
+    await ph.ev(() => window.__krel.game.scene.stop("TV"));
+    // a parked picture keeps its size for the game's code (getSourceImage().width), with no pixels held
+    const stand = await ph.ev(() => {
+      const k = Object.keys(window.__krel.game.textures.list).find((x) => x.startsWith("bossdie_") && window.__krelMobile.art.isParked(x));
+      const t = window.__krel.game.textures.get(k);
+      const src = t.getSourceImage();
+      return { k, w: src.width, h: src.height, sw: t.source[0].width, sh: t.source[0].height, frames: t.frameTotal };
+    });
+    check("platform: a parked picture still reports its real size and frames", !!stand.k && stand.w === stand.sw && stand.h === stand.sh && stand.w > 1 && stand.frames > 1, stand);
+    for (const [label, dungeon, room, ch] of [["the Hoard", "polson_towers", 0, 2], ["the concept boss", "krelford_finale", 0, 7]]) {
+      const ok = await toFight(ph, dungeon, room, ch);
+      await sleep(2500);
+      const m = await note(label);
+      if (label === "the concept boss") {
+        const cb = await ph.ev(() => {
+          const sc = window.__krel.game.scene.getScene("Dungeon");
+          return { zoom: sc.cameras.main.zoom, ring: !!(sc.__krelRing && sc.__krelRing.visible), culled: window.__krelMobile.perf.lastCulled, drawn: window.__krelMobile.perf.lastDrawn };
+        });
+        check("platform: the concept boss on a phone: camera not zoomed out below 1, the player's ring shows, off-screen pictures skipped", ok && cb.zoom >= 0.999 && cb.ring && cb.culled > 0, cb);
+      } else check(`platform: ${label} reached (${m} MB of textures)`, ok, m);
+    }
+    check("platform: the texture peak over home, town, a TV show, the Hoard and the concept boss stays under 500 MB", peak.mb < 500, peak);
+
+    // 3. pause in a minigame: the II opens the pause menu; coming back to the phone opens it too
+    await ph.ev(() => {
+      const k = window.__krel;
+      k.newRun("FLENKY");
+      k.go("Minigame", { mode: "crocodile" });
+    });
+    await ph.scene("Minigame");
+    await sleep(2500);
+    let s = await ph.snap();
+    check("platform: a minigame has the II (pause menu route)", s.decision.mode === "tap" && s.decision.pause === "menu" && s.buttons.pause, s.decision);
+    await tapPause(ph);
+    await ph.until(() => window.__krel.game.scene.isActive("Menu"), null, 15000, "the pause menu").catch(() => {});
+    let st = await ph.ev(() => ({ menu: window.__krel.game.scene.isActive("Menu"), paused: window.__krel.game.scene.isPaused("Minigame"), song: window.__krel.synth.musicEl()?.paused }));
+    check("platform: the II in a minigame opens the pause menu, the minigame and its song hold", st.menu && st.paused && st.song !== false, st);
+    await ph.ev(() => window.__krel.game.scene.getScene("Menu").close());
+    await sleep(800);
+    await setVisibility(ph, "hidden");
+    await sleep(800);
+    await setVisibility(ph, "visible");
+    await sleep(1500);
+    st = await ph.ev(() => ({ menu: window.__krel.game.scene.isActive("Menu"), paused: window.__krel.game.scene.isPaused("Minigame"), wake: window.__krelMobile.shell.snapshot() }));
+    check("platform: coming back to a minigame opens its pause menu (not the carry-on card)", st.menu && st.paused && st.wake.lastWake === "pause" && !st.wake.card, st);
+    await ph.ev(() => window.__krel.game.scene.getScene("Menu").close());
+    await sleep(500);
+
+    // 4. the finale: the II and coming back open the PAUSED card, and the song holds under it
+    await ph.ev(() => {
+      const k = window.__krel;
+      k.newRun("FLENKY");
+      k.setChapter(7, { ch1_home: true, home_seen: true, flyover_seen: true });
+      k.go("Finale", { beat: "emerge" });
+    });
+    await ph.scene("Finale");
+    await sleep(3000);
+    s = await ph.snap();
+    check("platform: the finale between brawl rounds has the II (the PAUSED card route)", s.decision.pause === "card" && s.buttons.pause, s.decision);
+    await tapPause(ph);
+    await sleep(600);
+    st = await ph.ev(() => ({ shell: window.__krelMobile.shell.snapshot(), song: window.__krel.synth.musicEl()?.paused ?? null, held: window.__krel.synth.musicPaused }));
+    check("platform: the finale's II shows the PAUSED card, the game sleeps and the song holds", st.shell.card && st.shell.slept && st.held === true, st);
+    await ph.tapCss(422, 200);
+    await sleep(800);
+    st = await ph.ev(() => ({ shell: window.__krelMobile.shell.snapshot(), held: window.__krel.synth.musicPaused }));
+    check("platform: a tap on the card carries on (the song picks up again)", !st.shell.card && !st.shell.slept && st.held === false, st);
+    await setVisibility(ph, "hidden");
+    await sleep(800);
+    await setVisibility(ph, "visible");
+    await sleep(1500);
+    st = await ph.ev(() => ({ shell: window.__krelMobile.shell.snapshot() }));
+    check("platform: coming back to the finale opens its pause (the PAUSED card)", st.shell.card && st.shell.lastWake === "pause", st.shell);
+    await ph.tapCss(422, 200);
+    await sleep(500);
+    check("platform: no page errors", errors.length === 0, errors.slice(0, 3));
+  } finally {
+    await ctx.close();
+  }
+
+  // 5. an app's own browser: the art waits for PLAY HERE ANYWAY
+  const ctx2 = await browser.newContext({ ...IPHONE, userAgent: UA.iosInstagram });
+  try {
+    const page2 = await ctx2.newPage();
+    page2.setDefaultTimeout(120000);
+    const errs = [];
+    page2.on("pageerror", (e) => errs.push(String(e.message).slice(0, 200)));
+    const cdp2 = await ctx2.newCDPSession(page2);
+    await page2.goto(URL0, { waitUntil: "domcontentloaded" });
+    const ph2 = new Phone(page2, cdp2);
+    await ph2.until(() => !!window.__krelMobile && !!document.querySelector(".kah.show, .kah"), null, 240000, "the in-app card");
+    await sleep(3000);
+    const held = await ph2.ev(() => ({ held: window.__krelMobile.storage.held(), active: window.__krel ? window.__krel.active() : [] }));
+    check("platform: in an app's browser the art download waits behind the open-in-Safari card", held.held === true, held);
+    await ph2.tapSel(".kah-later");
+    await ph2.until(() => !!window.__krel && window.__krel.active().includes("Enter"), null, 240000, "the Enter gate after PLAY HERE ANYWAY");
+    const after = await ph2.ev(() => ({ held: window.__krelMobile.storage.held() }));
+    check("platform: PLAY HERE ANYWAY lets the download go and the game loads", after.held === false, after);
+    check("platform: no page errors in the app's browser", errs.length === 0, errs.slice(0, 3));
+  } finally {
+    await ctx2.close();
+  }
+}
+
 async function android(browser) {
   console.log("ANDROID (Chrome 740x360)");
   const AND = { ...ANDROID, userAgent: UA.androidChrome };
@@ -4201,6 +4409,7 @@ async function desktop(browser) {
       ["together", together],
       ["review1", review1],
       ["polish", polish],
+      ["platform", platform],
       ["android", android],
       ["desktop", desktop],
     ]) {

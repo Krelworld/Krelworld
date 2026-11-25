@@ -210,6 +210,7 @@ export class CombatControls {
   private pulseUntil: Partial<Record<CtlId, number>> = {};
   private mashPresses = 0;
   private wasMash = false;
+  private fsWas = false;
   private dodgeSeen = 0;
   private chipsKey = "";
   private canvasKey = "";
@@ -387,6 +388,9 @@ export class CombatControls {
     if (!base || !sp || !pause) return base ?? null;
     const st = phoneSettings();
     let top = pause.cy + pause.size / 2;
+    // (Android: the offer to go back into fullscreen sits under pause in a fight; READY starts below it: F8)
+    const fs = l.control("fullscreen");
+    if (fs?.shown && l.slots?.fullscreenFight && !st.leftHanded) top = Math.max(top, l.slots.fullscreenFight.cy + l.slots.fullscreenFight.size / 2);
     if (st.leftHanded) {
       const cb = this.game.scale.canvasBounds;
       const k = cb.width / 960;
@@ -606,8 +610,6 @@ export class CombatControls {
       objects.push(t);
       if (b.kind === "barrel") barrels.push(t);
     });
-    const prev = this.target?.id ?? null;
-    this.target = pickTarget({ me, stick: { x: sx, y: sy }, enemies, objects, prev, tune: this.tune, view: vr, reach: ACQUIRE });
     // the weapon's reach and shot speed
     const s = G.s;
     const golden = dun.now() < p.superUntil;
@@ -627,6 +629,9 @@ export class CombatControls {
       range = f.range;
       speed = f.speed;
     }
+    // the target: an enemy inside the gun's reach first, so auto-fire never waits on one it can't hit (F3)
+    const prev = this.target?.id ?? null;
+    this.target = pickTarget({ me, stick: { x: sx, y: sy }, enemies, objects, prev, tune: this.tune, view: vr, reach: ACQUIRE, fireRange: range });
     // aim: a slide by hand (snapped), else the target, else straight ahead
     const d = this.layer.decision;
     const fighting = (d.mode === "combat" || d.mode === "side") && !d.mash && !d.picker;
@@ -798,6 +803,12 @@ export class CombatControls {
     // (a tap in its last moment must not reach the fight as a WONK press: "WONK 0%")
     else if (this.wasMash) TOUCH.edges.delete("burst");
     this.wasMash = mash;
+    // (the fullscreen offer came or went: READY is placed again round it)
+    const fsOn = !!this.layer.control("fullscreen")?.shown;
+    if (fsOn !== this.fsWas) {
+      this.fsWas = fsOn;
+      this.c.ready?.place();
+    }
     // the room counts toward the first-fights captions once it's really a fight
     if (fight && dun && p && this.teachRoomCounted !== p && (dun.enemies?.length ?? 0) > 0) {
       this.teachRoomCounted = p;

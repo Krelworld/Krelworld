@@ -293,6 +293,21 @@ export function cornerNudge(body: Box, vy: number, dtMs: number, block: Box): nu
   return 0;
 }
 
+/** The game's camera follow lerp (DungeonScene's startFollow: 0.12 a frame, tuned at 60 Hz). */
+export const CAM_LERP = 0.12;
+
+/** The same follow, per frame at any frame rate: 0.12 at 60 Hz, more per frame at 30 Hz, less at 120 Hz (F4). */
+export function camLerp(dtMs: number, base = CAM_LERP): number {
+  return 1 - Math.pow(1 - base, Math.max(1, dtMs) / (1000 / 60));
+}
+
+/** How far (px) a camera following at camLerp(dt) trails something moving steadily at vx px/s: added to the
+ *  look-ahead so the player sits at 35% / 65% while running, whatever the frame rate (F4). */
+export function camLagPx(vx: number, dtMs: number): number {
+  const l = camLerp(dtMs);
+  return (vx * (Math.max(1, dtMs) / 1000) * (1 - l)) / l;
+}
+
 /** The camera's horizontal look-ahead (research: player at 35% / 65% of the width), eased over time. */
 export class LookAhead {
   /** The current follow offset (game px; Phaser: negative puts the view's centre right of the player). */

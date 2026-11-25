@@ -11,7 +11,7 @@ import type Phaser from "phaser";
 import { synth } from "../audio/Synth";
 import { sanmikYee } from "../gfx/sanmikForm";
 import { phoneSettings } from "./settings";
-import { JumpBrain, DropRule, LookAhead, JUMP_TUNE, easeMs, ledgePop, cornerNudge, type Box } from "./jump";
+import { JumpBrain, DropRule, LookAhead, JUMP_TUNE, easeMs, ledgePop, cornerNudge, camLerp, camLagPx, type Box } from "./jump";
 
 type Body = Phaser.Physics.Arcade.Body;
 type StaticBody = Phaser.Physics.Arcade.StaticBody;
@@ -251,9 +251,15 @@ export class SideMove {
       cam.setDeadzone(0, 200);
       this.look.snap(1, w);
     }
+    // the follow itself: the game's 0.12 a frame made frame-rate independent, and the trail it leaves while running
+    // added to the look-ahead, so the player sits at 35% / 65% at 30, 60 or 120 Hz (F4). (DungeonScene skips its own
+    // small velocity lead in phone side rooms: this is the whole camera there.)
+    const l = camLerp(dt);
+    if (Math.abs(cam.lerp.x - l) > 1e-4 || Math.abs(cam.lerp.y - l) > 1e-4) cam.setLerp(l, l);
+    const tx = fx - camLagPx(body?.velocity.x ?? 0, dt);
     const ox = cam.followOffset.x;
     const oy = cam.followOffset.y + (fy - cam.followOffset.y) * Math.min(1, dt / 200);
-    if (Math.abs(ox - fx) > 0.05 || Math.abs(oy - cam.followOffset.y) > 0.05) cam.setFollowOffset(fx, oy);
+    if (Math.abs(ox - tx) > 0.05 || Math.abs(oy - cam.followOffset.y) > 0.05) cam.setFollowOffset(tx, oy);
   }
 
   snapshot() {

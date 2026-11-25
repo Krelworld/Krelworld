@@ -39,8 +39,16 @@ export const MIN_CONTROL = 52;
 export const HIT_SLOP = 10;
 /** The home-indicator strip at the bottom: nothing touchable in it. */
 export const BOTTOM_CLEAR = 21;
-/** The Dynamic Island band: nothing drawn this close to a short edge... */
+/** The Dynamic Island band: nothing drawn this close to a short edge (an iPhone's 47 px inset + 13)... */
 export const ISLAND_GAP = 60;
+/** ...or, on a screen reporting a smaller side inset (an Android camera cutout: 16-40 px), this far past the inset
+ *  (the 60 px band is sized for the Dynamic Island; a fixed 60 pushed SPECIAL into DODGE on Android: F5). */
+export const ISLAND_MARGIN = 13;
+
+/** How close to a short edge a control may be drawn in the island band, for this screen's side insets. */
+export function islandGap(vp: Viewport): number {
+  return Math.min(ISLAND_GAP, Math.max(vp.insets.left, vp.insets.right, 0) + ISLAND_MARGIN);
+}
 /** ...between these fractions of the height. */
 export const ISLAND_BAND: readonly [number, number] = [0.3, 0.7];
 /** A drawing that only reaches this far into the band counts as clear of it. */
@@ -133,8 +141,9 @@ export function placeControl(vp: Viewport, spec: SlotSpec, settings: Pick<PhoneS
   // is what side insets mean; a control merely grazing the band's edge stays where it is)
   const [b0, b1] = ISLAND_BAND;
   if (islandSides(vp) && cy + r > vp.h * b0 + ISLAND_GRAZE && cy - r < vp.h * b1 - ISLAND_GRAZE) {
-    if (vp.w - (cx + r) < ISLAND_GAP) cx = vp.w - ISLAND_GAP - r;
-    if (cx - r < ISLAND_GAP) cx = ISLAND_GAP + r;
+    const gap = islandGap(vp);
+    if (vp.w - (cx + r) < gap) cx = vp.w - gap - r;
+    if (cx - r < gap) cx = gap + r;
   }
   if (settings.leftHanded && spec.mirror !== false) cx = vp.w - cx;
   return { cx, cy, size, hit: hitRect(vp, cx, cy, size) };
@@ -154,6 +163,12 @@ export function hitRect(vp: Viewport, cx: number, cy: number, size: number): Rec
 export function layoutSlots(vp: Viewport, settings: Pick<PhoneSettings, "leftHanded" | "buttonSize">): Record<SlotId, Placed> {
   const out = {} as Record<SlotId, Placed>;
   for (const id of Object.keys(SLOTS) as SlotId[]) out[id] = placeControl(vp, SLOTS[id], settings);
+  // the fight's fullscreen offer: 12 px under pause whatever the screen (52 px minimum sizes pushed it into pause on
+  // screens under about 400 px tall: F8)
+  const pz = out.pause;
+  const fs = out.fullscreenFight;
+  const minCy = pz.cy + pz.size / 2 + 12 + fs.size / 2;
+  if (fs.cy < minCy) out.fullscreenFight = { ...fs, cy: minCy, hit: hitRect(vp, fs.cx, minCy, fs.size) };
   return out;
 }
 

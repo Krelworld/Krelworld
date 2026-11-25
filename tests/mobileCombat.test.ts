@@ -61,6 +61,24 @@ describe("phone combat: aim selection (research M2)", () => {
     expect(pickTarget({ me: ME, stick: STILL, enemies: [E(2, 620, 400)], prev: 1, tune: N })?.id).toBe(2);
   });
 
+  it("an enemy inside the gun's range wins over a sticky one outside it, so auto-fire never goes quiet (F3)", () => {
+    // pistol (420): the far one (470 right) was the target; another comes in from the left
+    const far = E(1, 970, 400);
+    for (const d of [400, 350, 300]) {
+      const t = pickTarget({ me: ME, stick: STILL, enemies: [far, E(2, 500 - d, 400)], prev: 1, tune: N, fireRange: 420 });
+      expect(t?.id).toBe(2);
+      expect(autoFireOk({ me: ME, target: t, range: 420 })).toBe(true);
+    }
+    // fleeing the chaser (stick pointing away) does not hold the aim on the far one either
+    expect(pickTarget({ me: ME, stick: { x: 1, y: 0 }, enemies: [far, E(2, 100, 400)], prev: 1, tune: N, fireRange: 420 })?.id).toBe(2);
+    // shotgun (230): 210 px away is shot, the 350 px one waits
+    expect(pickTarget({ me: ME, stick: STILL, enemies: [E(1, 850, 400), E(2, 290, 400)], prev: 1, tune: N, fireRange: 230 })?.id).toBe(2);
+    // nobody inside the gun's range: the usual sticky pick (the ring still shows who's next)
+    expect(pickTarget({ me: ME, stick: STILL, enemies: [E(1, 970, 400), E(2, 0, 400)], prev: 1, tune: N, fireRange: 420 })?.id).toBe(1);
+    // two inside the range: stickiness as before
+    expect(pickTarget({ me: ME, stick: STILL, enemies: [E(1, 650, 400), E(2, 620, 400)], prev: 1, tune: N, fireRange: 420 })?.id).toBe(1);
+  });
+
   it("only considers enemies in reach and on screen", () => {
     const view = { x: 0, y: 0, w: 960, h: 540 };
     expect(pickTarget({ me: ME, stick: STILL, enemies: [E(1, 500 + ACQUIRE + 40, 400)], prev: null, tune: N })).toBeNull();

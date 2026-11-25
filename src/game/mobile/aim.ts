@@ -94,12 +94,19 @@ export interface PickInput {
   /** The camera's view in world coordinates (targets must be on screen), or null for "anywhere". */
   view?: { x: number; y: number; w: number; h: number } | null;
   reach?: number;
+  /** The gun's reach (world px). When some enemy is inside it, only those count: a target the gun can't reach never
+   *  holds the aim (and auto-fire) while another one walks up inside it (F3). */
+  fireRange?: number;
 }
 
 /** The target to aim at: an enemy (sticky, stick-biased), else a barrel or crate, else null. */
 export function pickTarget(i: PickInput): AimTarget | null {
   const reach = i.reach ?? ACQUIRE;
-  const ok = (t: AimTarget) => Math.hypot(t.x - i.me.x, t.y - i.me.y) <= reach + t.r && onScreen(t, i.view ?? null);
+  const seen = (t: AimTarget) => Math.hypot(t.x - i.me.x, t.y - i.me.y) <= reach + t.r && onScreen(t, i.view ?? null);
+  const fr = i.fireRange;
+  const inGun = (t: AimTarget) => fr === undefined || Math.hypot(t.x - i.me.x, t.y - i.me.y) <= fr + t.r;
+  const gunHasOne = fr !== undefined && i.enemies.some((e) => seen(e) && inGun(e));
+  const ok = (t: AimTarget) => seen(t) && (t.kind !== "enemy" || !gunHasOne || inGun(t));
   let best: AimTarget | null = null;
   let bs = Infinity;
   let prev: AimTarget | null = null;

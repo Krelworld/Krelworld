@@ -4373,7 +4373,8 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     else (this.player.spr.body as Phaser.Physics.Arcade.Body).setVelocity(0, 0);
     {
       const pb = this.player.spr.body as Phaser.Physics.Arcade.Body;
-      leadCamera(this.cameras.main, pb.velocity.x, this.side ? 0 : pb.velocity.y, dt, 0.12, 36);
+      // (phones, side rooms: the phone's look-ahead is the whole camera, src/game/mobile/side.ts)
+      if (!(isMobile() && this.side && !this.busy)) leadCamera(this.cameras.main, pb.velocity.x, this.side ? 0 : pb.velocity.y, dt, 0.12, 36);
       if (this.sideBg) this.sideBg.tilePositionX = (this.cameras.main.scrollX * (this.room.ledges ? 1 : 0.35)) / this.sideBgScale;
       if (this.towerBg) this.towerBg.tilePositionY = (this.cameras.main.scrollY * 0.5) / this.towerBg.tileScaleY;
     }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { JumpBrain, DropRule, JUMP_TUNE, jumpHeight, ledgePop, cornerNudge, oneWayLands, easeMs, LookAhead } from "../src/game/mobile/jump";
+import { JumpBrain, DropRule, JUMP_TUNE, jumpHeight, ledgePop, cornerNudge, oneWayLands, easeMs, LookAhead, camLerp, camLagPx } from "../src/game/mobile/jump";
 
 // A tiny side-room physics model: the game's update runs at the display rate (30, 60 or 120 Hz), the Arcade physics at
 // its fixed 60 Hz step (Phaser's fixedStep: 0, 1 or 2 steps a frame); gravity 1500, a floor at y = 0 (up is negative).
@@ -260,6 +260,32 @@ describe("phone ledge forgiveness and air control", () => {
     for (; t < 1500; t += 16) l.step(t, 16, -1, 960);
     expect(l.facing()).toBe(-1);
     expect(l.x).toBeGreaterThan(130);
+  });
+});
+
+describe("phone side-room camera at any frame rate (F4)", () => {
+  // Phaser's follow: each frame scroll += (player - offset - scroll) * lerp; the view is 960 wide
+  for (const hz of [30, 60, 90, 120, 144]) {
+    it(`${hz} Hz: running right the player sits at 35% of the width, running left at 65%`, () => {
+      const dt = 1000 / hz;
+      for (const dir of [1, -1]) {
+        const l = new LookAhead();
+        l.snap(dir, 960);
+        let x = 2000;
+        let centre = x;
+        let t = 0;
+        for (; t < 1300; t += dt) {
+          x += dir * 260 * (dt / 1000);
+          const off = l.step(t, dt, dir, 960) - camLagPx(dir * 260, dt);
+          centre += (x - off - centre) * camLerp(dt);
+        }
+        const share = (x - (centre - 480)) / 960;
+        expect(Math.abs(share - (dir > 0 ? 0.35 : 0.65))).toBeLessThan(0.01);
+      }
+    });
+  }
+  it("is the game's 0.12 a frame at 60 Hz", () => {
+    expect(camLerp(1000 / 60)).toBeCloseTo(0.12, 6);
   });
 });
 

@@ -119,6 +119,38 @@ describe("phone layout: controls", () => {
     }
   });
 
+  it("Android cutouts (small side insets) push a control only past the inset, never into its neighbour (F5)", () => {
+    const gap = (a: { cx: number; cy: number; size: number }, b: { cx: number; cy: number; size: number }) => Math.hypot(a.cx - b.cx, a.cy - b.cy) - a.size / 2 - b.size / 2;
+    const ids = ["prime", "left", "upLeft", "up", "heal", "combatAction"] as const;
+    for (const [w, h, inset] of [
+      [740, 360, 16],
+      [740, 360, 24],
+      [740, 360, 32],
+      [740, 360, 40],
+      [844, 390, 30],
+      [915, 412, 28],
+    ]) {
+      const vp: Viewport = { w, h, insets: { top: 0, left: inset, right: inset, bottom: 0 } };
+      for (const size of ["M", "L"] as const) {
+        const s = layoutSlots(vp, { leftHanded: false, buttonSize: size });
+        for (let a = 0; a < ids.length; a++) for (let b = a + 1; b < ids.length; b++) expect(gap(s[ids[a]], s[ids[b]])).toBeGreaterThanOrEqual(12);
+        // READY's own slot (placed again in a fight round pause and SPECIAL) and HEAL
+        if (size === "M") expect(gap(s.ready, s.heal)).toBeGreaterThanOrEqual(12);
+        // still clear of the cutout: past the inset, with a margin
+        for (const p of Object.values(s)) expect(vp.w - (p.cx + p.size / 2)).toBeGreaterThanOrEqual(inset);
+      }
+    }
+  });
+
+  it("the fight's fullscreen offer sits 12 px under pause on every phone height (F8)", () => {
+    for (const vp of [ANDROID, SAFARI_BARS, { ...SAFARI_BARS, w: 844 }, IPHONE, BIG]) {
+      for (const size of ["S", "M", "L"] as const) {
+        const s = layoutSlots(vp, { leftHanded: false, buttonSize: size });
+        expect(s.fullscreenFight.cy - s.fullscreenFight.size / 2 - (s.pause.cy + s.pause.size / 2)).toBeGreaterThanOrEqual(12 - 1e-9);
+      }
+    }
+  });
+
   it("without a notch the band is not needed: ACTION keeps the corner on a short Safari screen", () => {
     const p = placeControl(SAFARI_BARS, SLOTS.prime, M);
     const s = controlScale(340, "M");

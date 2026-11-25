@@ -55,7 +55,7 @@
 //          FIRE; coming back (hidden → visible, upright → sideways, the guide from the rotate screen) opens the pause
 //          menu instead of dropping into the fight; a fight with no pause menu waits behind "tap to carry on".
 // combat   stage 2's top-down fight controls, iPhone 14 with its safe areas: a room and a boss reached through
-//          DebugSkip; the old pad gone and the new controls up (captions the first fights); the stick from the
+//          DebugSkip; the old pad gone and the new controls up (their names inside them the first fights); the stick from the
 //          gutter; auto-fire kills a test enemy with no thumb on FIRE; FIRE hold, slide-to-aim, the 200 ms grace with
 //          auto-fire off; DODGE; SPECIAL; SWAP tap and hold (slide onto a gun in the picker); the weapon chip tap and
 //          hold, CLOSE; READY pops in (ignores a press at once), WONK!'s mash overlay takes taps anywhere; HEAL pops
@@ -3306,7 +3306,7 @@ async function brawl(browser) {
     const s = await ph.snap();
     const shown = (id) => !!s.controls.find((c) => c.id === id && c.shown);
     const pc = s.controls.find((c) => c.id === "b-punch");
-    check("PUNCH is the big one in the prime corner (84 px); BLOCK, VANISH, KICK and KI around it, each labelled", ["b-punch", "b-block", "b-vanish", "b-kick", "b-ki"].every(shown) && pc && Math.abs(pc.face.w - 84) <= 1 && s.decision.stick === "2d", s.controls.filter((c) => c.shown).map((c) => `${c.id}:${c.caption ?? ""}`));
+    check("PUNCH is the big one in the prime corner (84 px); BLOCK, VANISH, KICK and KI around it, each labelled", ["b-punch", "b-block", "b-vanish", "b-kick", "b-ki"].every(shown) && pc && Math.abs(pc.face.w - 84) <= 1 && s.decision.stick === "2d", s.controls.filter((c) => c.shown).map((c) => `${c.id}:${c.label}`));
     await ph.shot("brawl");
     // the brawl's own how-to legend (bigger text on) sits clear of the buttons and the stick, on the screen
     const leg = await ph.ev(() => {

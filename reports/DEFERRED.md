@@ -119,3 +119,7 @@ Stage 4 (judge on real phones; the coordinator may pull the first into a stage 2
 - **Button size S on short screens (seen while fixing F5).** With size S below about 360 px tall, the 52 px minimum
   makes some cluster gaps 2-10 px (left/upLeft, upLeft/heal, up/ready). Pre-existing, unrelated to insets; check on a
   real small phone whether S should keep the M offsets once the minimum kicks in.
+
+## USER FEEDBACK (live, from the user's iPhone, for track B / TV): long TV lines cover the whole picture
+The user, verbatim: "Sometimes the text on tv shows obscures the whole screen - maybe it can be split into chunks for longer pieces?" Screenshots: /tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/mobile/work/s3-scenes/user-tv-1.png (a Krunche News reporter line, 8 lines tall, covering the face) and user-tv-2.png (a 7-line speech).
+Do on phones only: split a long TV caption into chunks of at most 3 lines (break at sentence or clause ends, never mid-word), shown one after another in the lower part of the screen, each for its share of the line's time (by characters) when the show auto-advances, with NEXT LINE stepping to the next chunk first. The words stay identical and in order (re-paginating is allowed; rewording is not). Keep the speaker name on the first chunk. The caption box must never cover more than the lower ~40% of the picture. Laptop unchanged. Smoke: the longest TV line at 844x390 never exceeds 3 lines per chunk and the concatenated chunks equal the original text.

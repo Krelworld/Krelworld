@@ -1,5 +1,6 @@
 ## LATEST (2026-11-25, stage 2 gate PASSED)
 - USER: on medium effort for the rest of stage 2. BEFORE STARTING STAGE 3, tell the user it is ready to start so they can switch to high (do not start stage 3 until they say so).
+- 14:48 UTC: STAGE 2 PUBLISHED (live = 37a710d4, verify PASS, alt build triggered). Remaining for stage 2: feel workflow wf_4757708e-f84 in mobile-feel-wt; when its recheck passes, merge mobile-feel into mobile, quick checks, push, trigger alt.
 - Stage 2 workflow wf_574a5950-314 finished: merge, 4 reviews (31 findings), fix round 1, gate PASS at 06d2ac08 (reports s2-05..s2-07). Gate left non-blocking N1-N7.
 - Coordinator merged live (455b3131) into "mobile": 5bb649ec.
 - Running now: polish + independent verify workflow, script work/s2-polish.js, run id wf_0c237194-e84 (task wwl19uk4h). Fixes N1 caption overlap, the user's dungeon "bubbles" clutter, N2, N4, N5; then the verify agent runs the full CHECK and touch checks (TV guide scroll, Peep Show, dungeon clutter).

@@ -44,6 +44,8 @@ export interface Footballer {
   bribed: boolean;
   /** Tick until which he is reckless (drugged). */
   wiredUntil: number;
+  /** Moved by a person at the controls, not by the match: an impostor in the kit. */
+  controlled?: boolean;
 }
 
 export interface Official {

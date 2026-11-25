@@ -58,7 +58,7 @@ function processSubs(w: World, m: MatchState): void {
 }
 
 function pickTaker(w: World, m: MatchState, type: RestartType, team: TeamIdx, x: number, y: number): Actor | null {
-  const s = w.state, all = playing(s, m, team), out = all.filter((a) => a.fb!.role !== "GK");
+  const s = w.state, all = playing(s, m, team).filter((a) => !a.fb!.controlled), out = all.filter((a) => a.fb!.role !== "GK");
   if (!all.length) return null;
   const best = (f: (a: Actor) => number, pool = out) => pool.slice().sort((p, q) => f(q) - f(p))[0] ?? all[0];
   const nearest = () => best((a) => -Math.hypot(a.x - x, a.y - y));
@@ -124,9 +124,10 @@ function setTargets(w: World, m: MatchState, r: Restart): void {
   for (const t of [0, 1] as TeamIdx[]) {
     const mates = lists[t], opps = lists[other(t)], dir = dirOf(m, t), taking = t === r.team;
     const offLine = offsideLine(m, opps, dir);
-    const order = mates.filter((a) => a.fb!.role !== "GK" && a.id !== r.taker).sort((p, q) => rolePri[p.fb!.role] - rolePri[q.fb!.role] || p.fb!.slot - q.fb!.slot);
+    const order = mates.filter((a) => a.fb!.role !== "GK" && a.id !== r.taker && !a.fb!.controlled).sort((p, q) => rolePri[p.fb!.role] - rolePri[q.fb!.role] || p.fb!.slot - q.fb!.slot);
     for (const a of mates) {
       const fb = a.fb!;
+      if (fb.controlled) continue;
       let x: number, y: number;
       if (a.id === r.taker) {
         const back = r.type === "throw_in" ? 0 : 0.5;

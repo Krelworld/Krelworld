@@ -374,6 +374,7 @@ export function installReactions(w: World): void {
     }
     if (e.type === "action" && e.action.verb === "show") turnstileCheck(w, e.action);
     if (e.type === "fb_goal" && e.team === 1) st.flags.lastOppGoal = s.tick;
+    if (e.type === "fb_goal" && e.by === st.pc) { st.flags.pcGoalAt = s.tick; st.flags.pcGoals = (st.flags.pcGoals ?? 0) + 1; if (e.og) st.flags.pcOwnGoals = (st.flags.pcOwnGoals ?? 0) + 1; }
     // Keep a tally for the evening news.
     const f = st.flags, pc = st.pc;
     const bump = (k: string) => { f[k] = (f[k] ?? 0) + 1; };

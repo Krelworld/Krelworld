@@ -59,6 +59,7 @@ export function slotTarget(m: MatchState, a: Actor, attacking: boolean, offLine:
 /** Move towards the player's target with limited acceleration. */
 export function steer(a: Actor, tick: number, speedScale = 1, arrive = 1.2): void {
   const fb = a.fb!;
+  if (fb.controlled) return; // whoever is at the controls moves him
   if (isDown(a, tick)) { a.vx *= 0.8; a.vy *= 0.8; a.x += a.vx * DT; a.y += a.vy * DT; return; }
   const dx = fb.tx - a.x, dy = fb.ty - a.y, d = Math.hypot(dx, dy);
   const max = topSpeed(a, tick) * (fb.sprint ? 1 : TUNE.jog) * speedScale;
@@ -319,6 +320,7 @@ export function stepPlayers(w: World, m: MatchState): void {
 
     for (const a of mates) {
       const fb = a.fb!;
+      if (fb.controlled) continue;
       if (fb.role === "GK") { keeperLogic(w, m, a, mates, opps, chaser === a, offLine); continue; }
       if (isDown(a, tick)) { steer(a, tick); continue; }
 

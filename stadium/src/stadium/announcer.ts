@@ -110,6 +110,12 @@ export class Announcer {
         if (a?.fb) this.out({ t: e.t, text: `${a.name} has been arrested for ${e.charge} by an officer who does not appear to be an officer.`, src: "commentary", big: true });
         break;
       }
+      case "joined_match":
+        this.once(`join${Math.floor(e.t / 600)}`, e.team === 0 ? "England appear to have brought on another player. We have not received confirmation of a substitution." : `${s.match!.teams[1].name} appear to have brought on a rather heavier player.`, "commentary", true);
+        break;
+      case "twelfth_man":
+        this.out({ t: e.t, text: `The referee has stopped play. He appears to be counting.${e.disallowed ? " The goal has been disallowed." : ""}`, src: "commentary", big: true });
+        break;
       case "dog_bite": {
         const a = s.actors[e.who];
         if (e.referee) this.out({ t: e.t, text: "The referee has been bitten by a dog. He has not given anything.", src: "commentary", big: true });

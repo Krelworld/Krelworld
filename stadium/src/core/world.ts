@@ -50,7 +50,7 @@ export function stepWorld(w: World): void {
   // and officials are moved by the match.
   for (const id in s.actors) {
     const a = s.actors[id];
-    if (a.fb || a.off) continue;
+    if ((a.fb && !a.fb.controlled) || a.off) continue;
     if (a.downUntil > s.tick) { a.vx = a.vy = 0; continue; }
     const l = Math.hypot(a.moveX, a.moveY);
     const k = l > 1 ? 1 / l : 1;

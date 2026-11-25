@@ -43,7 +43,8 @@ export class Commentator {
         this.out(e, e.period === 1 ? "We're under way." : e.period === 2 ? "The second half is under way." : e.period === 3 ? "Extra time, then." : "Fifteen more minutes.", true);
         break;
       case "fb_goal":
-        if (!e.legit) this.out(e, `The goal has been given. It does not appear to have been scored by a player. ${this.scoreline()}`, true);
+        if (e.legit && e.by === "pc") this.out(e, `${e.og ? "An own goal" : "A goal"} for ${this.team(e.team)}. The scorer is not on the team sheet. ${this.scoreline()}`, true);
+        else if (!e.legit) this.out(e, `The goal has been given. It does not appear to have been scored by a player. ${this.scoreline()}`, true);
         else if (e.og) this.out(e, `${this.name(e.by)} has put that into his own net. ${this.scoreline()}`, true);
         else this.out(e, `${this.name(e.by)} scores. ${this.scoreline()}`, true);
         break;
@@ -125,7 +126,7 @@ export class Commentator {
         this.out(e, "The ball is in the net. Play had already been stopped.", true);
         break;
       case "fb_intruder_kick":
-        this.out(e, "A spectator has kicked the ball. We have not received confirmation of a substitution.", true);
+        if (!this.w.state.actors[e.actor]?.fb) this.out(e, "A spectator has kicked the ball. We have not received confirmation of a substitution.", true);
         break;
     }
   }

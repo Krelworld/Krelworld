@@ -145,6 +145,8 @@ export function lorryHits(w: World, v: Vehicle): Actor[] {
   for (const id in s.actors) {
     const a = s.actors[id];
     if (a.hiddenIn || a.fb || a.off) continue;
+    // Its own crew and the guard checking the back know to keep clear.
+    if (a.npc && (a.npc.job === "worker" || a.npc.job === "driver" || a.npc.job === "gateguard")) continue;
     const dx = a.x - v.x, dy = a.y - v.y;
     const along = dx * c + dy * sn, across = -dx * sn + dy * c;
     if (Math.abs(along) < LORRY_LEN / 2 + 0.3 && Math.abs(across) < LORRY_WID / 2 + 0.3 && a.downUntil < s.tick) {

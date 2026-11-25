@@ -67,7 +67,7 @@ function updateManagers(w: World, m: MatchState): void {
       const allowed = frac > 0.66 ? 3 : frac > 0.33 ? 2 : 0;
       let made = 5 - team.subsLeft + team.pendingSubs.length;
       const queued = new Set(team.pendingSubs.map((p) => p.off));
-      const tired = playing(s, m, t).filter((a) => a.fb!.role !== "GK" && a.fb!.fatigue > 0.45 && !queued.has(a.id) && !a.fb!.star)
+      const tired = playing(s, m, t).filter((a) => !a.fb!.controlled && a.fb!.role !== "GK" && a.fb!.fatigue > 0.45 && !queued.has(a.id) && !a.fb!.star)
         .sort((p, q) => q.fb!.fatigue - p.fb!.fatigue);
       while (made < allowed && tired.length) { queueSub(w, m, tired.shift()!, "tactical"); made++; }
     }
@@ -98,6 +98,7 @@ function placeForKickoff(w: World, m: MatchState): void {
   for (const t of [0, 1] as TeamIdx[]) {
     const dir = dirOf(m, t);
     for (const a of playing(s, m, t)) {
+      if (a.fb!.controlled) continue;
       const fb = a.fb!, slot = FORMATIONS[m.teams[t].formation][fb.slot] ?? { x: 0, y: 0 };
       const px = fb.role === "GK" ? -HL + 1.5 : Math.min(-1.5, slot.x * HL * 0.5 - 8);
       a.x = px * dir; a.y = slot.y * HW * 0.8 * dir; a.vx = a.vy = 0;

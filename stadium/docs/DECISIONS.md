@@ -116,3 +116,22 @@ the account were avoided). Wired in with Web Audio: a crowd bed that changes wit
 where you are, match and hit sounds, tannoy lines with a chime, steward shouts.
 
 Assets live in `assets/art` and `assets/audio`; raw API responses in `assets/raw`.
+
+## Tournament and new systems
+
+- Venues: the semi-final ground is the quarter-final one mirrored, with a fan zone,
+  a catering van, metal detectors, face cameras, staff passes and a loose fence
+  panel. Opponents: Portugal, then Brazil.
+- Carry-over: money, kept items (not tickets, slips or food) and notoriety, which
+  rises with ejection, being unmasked, serious incidents seen, and detention.
+  Notoriety 1: barred and described to stewards; 2: posters and an extra officer.
+- Planting and tip-offs; a police uniform in the van for fake arrests; containers
+  can be emptied, including the confiscation locker.
+- The opposition team bus runs from a hotel across the service road. Tampering
+  causes a crash (injuries, a delayed kick-off). Driving it into people blames
+  their team (a forfeited goal) until the driver is identified, which reverses it.
+- The dog: untie, lead, release; it bites, scatters people and stops play.
+- Kits in the dressing-room hampers: wearing one on the pitch adds you to that
+  team as a player-controlled footballer; the referee eventually counts twelve.
+- Movement: walk 3 m/s, run 5.4 m/s for about seven seconds before you are winded.
+  Zoom is 23 screen pixels per metre at 1x, matching 48px character art.

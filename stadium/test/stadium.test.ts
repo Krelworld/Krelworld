@@ -528,3 +528,45 @@ test("a dog on the pitch stops play", () => {
   run(g, 10, () => { if (!events.includes("fb_halted") && m.phase === "live") { dog.x = m.ball.x + 3; dog.y = m.ball.y; } });
   assert.ok(events.includes("fb_halted"));
 });
+
+// ---------- Playing in the kit ----------
+import { HL } from "../src/football/config";
+import { dirOf } from "../src/football/util";
+
+test("in an England kit on the pitch you join the team, and a goal you score counts", () => {
+  const g = createGame("kit");
+  const s = g.w.state, pc = pcOf(g), m = s.match!;
+  run(g, 400);
+  spawnItem(s, "kit_eng", { k: "worn", a: pc.id, slot: "outer" });
+  // Keep the referee looking the other way for the test.
+  const ref = s.actors[m.officials.referee];
+  const events: any[] = [];
+  g.w.bus.on((e) => events.push(e));
+  let scored = false;
+  run(g, 60, () => {
+    ref.off!.distractedUntil = s.tick + 60;
+    if (m.phase !== "live" || scored) return;
+    const dir = dirOf(m, 0);
+    // Stand by the opposition's goal with the ball at his feet, and shoot.
+    pc.x = dir * (HL - 6); pc.y = 0; pc.facing = dir > 0 ? 0 : Math.PI;
+    if (pc.fb && !m.ball.owner) {
+      m.ball.x = pc.x + dir * 0.6; m.ball.y = 0; m.ball.z = 0; m.ball.vx = m.ball.vy = 0;
+      for (const a of m.teams[1].squad.map((id) => s.actors[id])) if (a.fb!.role === "GK") { a.x = dir * (HL - 0.5); a.y = 12; }
+      scored = dispatch(g.w, { verb: "kick", actor: pc.id, dirX: dir, dirY: 0 }).ok;
+    }
+  });
+  assert.ok(events.some((e) => e.type === "joined_match"), "joined the team");
+  assert.ok(events.some((e) => e.type === "fb_goal" && e.by === pc.id && e.legit), "and his goal stands");
+});
+
+test("the referee eventually counts twelve", () => {
+  const g = createGame("twelve");
+  const s = g.w.state, pc = pcOf(g), m = s.match!;
+  run(g, 400);
+  spawnItem(s, "kit_eng", { k: "worn", a: pc.id, slot: "outer" });
+  const events: string[] = [];
+  g.w.bus.on((e) => events.push(e.type));
+  const ref = s.actors[m.officials.referee];
+  run(g, 120, () => { if (!events.includes("twelfth_man")) { pc.x = ref.x + 4; pc.y = ref.y; } });
+  assert.ok(events.includes("twelfth_man"));
+});

@@ -35,9 +35,9 @@ export function options(w: World, pc: Actor): Option[] {
 
   const hand = pc.hand ? s.items[pc.hand] : undefined;
 
-  // The ball.
+  // The ball. In a kit, it's a shot; otherwise, a kick from someone who shouldn't.
   const m = s.match;
-  if (m && !pc.seated) push("Kick the ball", 85, { verb: "kick", ...base });
+  if (m && !pc.seated) push(pc.fb ? (m.ball.owner === pc.id ? "Shoot" : "Kick it") : "Kick the ball", 85, { verb: "kick", ...base });
 
   // Things on the ground and fixtures.
   for (const id in s.items) {

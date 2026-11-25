@@ -10,6 +10,7 @@ import { mayPass, newNpc, resetPathBudget, secs, spawnFan, spawnStaff, stepNpc }
 import { installBetting, installSettlement } from "./betting";
 import { installPolice, stepTipoffs } from "./police";
 import { createDog, installDog, stepDog } from "./dog";
+import { stepKit } from "./kit";
 import { createBus, driveBus, installBus, stepBus, stepBusSanctions, stepLateTeam } from "./bus";
 import { installReactions, installRules, SHOPS, stepRules } from "./rules";
 import { isSecurity, stepDetention, stepSecurity } from "./security";
@@ -40,6 +41,7 @@ export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: 
   const oppShirt = `shirt_${oppKey.toLowerCase()}`;
   // The stall outside sells this opponent's shirt.
   SHOPS.merch.stock = { [oppShirt]: 45, shirt_eng: 45, mask: 8 };
+  Object.assign(ITEM_DEFS.kit_opp, { name: `${opp.name} playing kit`, team: opp.short, colour: opp.colour, colour2: opp.colour2 });
 
   const w = createWorld(seed);
   const s = w.state, r = s.rng.world;
@@ -130,7 +132,8 @@ export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: 
   createBus(w, oppKey);
   st.vehicles.lorry = { id: "lorry", kind: "lorry", x: lx, y: ly, facing: S, route: [lx, ly], ri: 0, speed: 0, state: "loading", until: 60 * 45, cargo: cargo.id, driver: driver.id, cycle: 0, inspected: false };
 
-  // Things lying about, for whoever finds them.
+  // Things lying about, for whoever finds them. (Positions are for the quarter-final; the semi-final is mirrored.)
+  const vx = (x: number) => (VENUE.id === "sf" ? -x : x);
   spawnItem(s, "hivis", { k: "ground", x: SPOTS.cabinHook.x, y: SPOTS.cabinHook.y });
   // The police van, with a spare uniform in the back.
   const box = spawnItem(s, "police_box", { k: "ground", x: SPOTS.policeVan.x, y: SPOTS.policeVan.y });
@@ -141,14 +144,19 @@ export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: 
     // Every steward carries one, which makes them worth robbing.
     for (const id in s.actors) { const a = s.actors[id]; if (a.npc && a.npc.role === "steward") spawnItem(s, "staff_pass", { k: "pocket", a: a.id }); }
   }
-  spawnItem(s, "laxative", { k: "ground", x: -56.5, y: 63.4 });
-  spawnItem(s, "powder", { k: "ground", x: -60.6, y: 63.2 });
-  spawnItem(s, "knife", { k: "ground", x: -38.5, y: -57 });
-  spawnItem(s, "ref_kit", { k: "ground", x: -3.5, y: -59 });
-  spawnItem(s, "whistle", { k: "ground", x: 3.5, y: -59 });
-  spawnItem(s, "cooler_home", { k: "ground", x: -24.5, y: -58.5 });
-  spawnItem(s, "cooler_away", { k: "ground", x: 24.5, y: -58.5 });
-  spawnItem(s, "tea_urn", { k: "ground", x: 1, y: -59 });
+  spawnItem(s, "laxative", { k: "ground", x: vx(-56.5), y: 63.4 });
+  spawnItem(s, "powder", { k: "ground", x: vx(-60.6), y: 63.2 });
+  spawnItem(s, "knife", { k: "ground", x: vx(-38.5), y: -57 });
+  spawnItem(s, "ref_kit", { k: "ground", x: vx(-3.5), y: -59 });
+  spawnItem(s, "whistle", { k: "ground", x: vx(3.5), y: -59 });
+  // Kit hampers in the dressing rooms, with a spare strip in each.
+  const homeHamper = spawnItem(s, "kit_hamper", { k: "ground", x: SPOTS.homeRoom.x + 5 * Math.sign(SPOTS.homeRoom.x), y: SPOTS.homeRoom.y + 4 });
+  spawnItem(s, "kit_eng", { k: "in", c: homeHamper.id });
+  const awayHamper = spawnItem(s, "kit_hamper", { k: "ground", x: SPOTS.awayRoom.x + 5 * Math.sign(SPOTS.awayRoom.x), y: SPOTS.awayRoom.y + 4 });
+  spawnItem(s, "kit_opp", { k: "in", c: awayHamper.id });
+  spawnItem(s, "cooler_home", { k: "ground", x: vx(-24.5), y: -58.5 });
+  spawnItem(s, "cooler_away", { k: "ground", x: vx(24.5), y: -58.5 });
+  spawnItem(s, "tea_urn", { k: "ground", x: vx(1), y: -59 });
 
   // Supporters already in their seats; more arrive over the next few minutes.
   for (let i = 0; i < 24; i++) giveFanThings(w, spawnFan(w, i % 6 === 5, true));
@@ -235,7 +243,7 @@ export function stepGame(g: Game): void {
 
   for (const id in s.actors) {
     const a = s.actors[id];
-    if (a.fb || a.off || a.hiddenIn || a.heldBy) continue;
+    if ((a.fb && !a.fb.controlled) || a.off || a.hiddenIn || a.heldBy) continue;
     collide(w, a);
   }
   for (const id in st.vehicles) {
@@ -246,6 +254,7 @@ export function stepGame(g: Game): void {
   }
   stepBusSanctions(w);
   stepDog(w);
+  stepKit(w);
   stepLateTeam(w);
   stepRules(w);
   stepTipoffs(w);

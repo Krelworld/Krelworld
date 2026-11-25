@@ -385,6 +385,11 @@ class StadiumScene extends Phaser.Scene {
     const s = this.s, tick = s.tick, m = s.match!;
     const skin = SKIN[Math.abs(hash(a.id)) % SKIN.length];
     const down = a.downUntil > tick || (a.fb ? a.fb.stunUntil > tick + 20 : false);
+    if (a.fb && a.fb.controlled) {
+      // Him, in the kit: same belly, new colours.
+      const team = m.teams[a.fb.team];
+      return { shirt: team.colour, trim: team.colour2, shorts: a.fb.team === 0 ? 0x1b2a6b : team.colour2, skin, down, girth: 1.75, height: 1.75, ring: 0xffffff };
+    }
     if (a.fb) {
       const team = m.teams[a.fb.team], gk = a.fb.role === "GK";
       return { shirt: gk ? (a.fb.team === 0 ? 0x2fbf71 : 0xf08a24) : team.colour, trim: gk ? 0x10202a : team.colour2, shorts: a.fb.team === 0 ? 0x1b2a6b : team.colour2, skin, down, ring: a.fb.star ? 0xf2c94c : null };
@@ -944,6 +949,10 @@ class StadiumScene extends Phaser.Scene {
       ["Skip to kick-off", () => { const m = this.s.match!; if (m.phase === "pre") { const n = Math.max(0, m.phaseUntil - this.s.tick - 600); for (let i = 0; i < n; i++) stepGame(this.game2); } }],
       ["Skip 60 seconds", () => { for (let i = 0; i < 3600; i++) stepGame(this.game2); }],
       ["Play to the end", () => { let n = 0; while (!this.s.stadium!.ending && n++ < 60 * 60 * 45) stepGame(this.game2); }],
+      ["Wear England kit", () => { spawnItem(this.s, "kit_eng", { k: "worn", a: this.pc.id, slot: "outer" }); }],
+      ["Wear police uniform", () => { spawnItem(this.s, "police_uniform", { k: "worn", a: this.pc.id, slot: "outer" }); }],
+      ["Go to the hotel", tp(SPOTS.busPark.x - 3, SPOTS.busPark.y + 4)],
+      ["Go to the dog", tp(SPOTS.dogPost.x + 1.5, SPOTS.dogPost.y)],
       ["Wear referee's kit", () => { spawnItem(this.s, "ref_kit", { k: "worn", a: this.pc.id, slot: "outer" }); spawnItem(this.s, "whistle", { k: "pocket", a: this.pc.id }); }],
       ["Go to concourse", tp(0, 41)],
       ["Go to the stands", tp(-10, 32)],

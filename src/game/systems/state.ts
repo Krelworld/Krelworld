@@ -281,6 +281,12 @@ export function unlockArchive(s: GameState, meta: MetaState | null, id: string):
   return fresh;
 }
 
+/** Peep Show has been watched: in this run, or ever (from the title, or an earlier run). Chapter 4 only sits you
+ *  down in front of it if you haven't seen it. */
+export function seenBeepShow(s: GameState, meta: MetaState | null) {
+  return !!s.flags.tv_beep_show || s.tvWatched.includes("beep_show") || !!meta?.tvWatched.includes("beep_show");
+}
+
 export function markWatched(s: GameState, meta: MetaState | null, id: string) {
   if (!s.tvWatched.includes(id)) s.tvWatched.push(id);
   if (meta && !meta.tvWatched.includes(id)) meta.tvWatched.push(id);

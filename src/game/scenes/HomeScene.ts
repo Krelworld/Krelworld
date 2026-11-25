@@ -1,3 +1,4 @@
+import { seenBeepShow } from "../systems/state";
 import { keysFor, prettyKey } from "../systems/keybinds";
 import { isTouchDevice } from "../ui/TouchControls";
 import { JUKEBOX } from "../../content/jukebox";
@@ -554,7 +555,7 @@ export class HomeScene extends Phaser.Scene {
   }
 
   private mustWatchBeep() {
-    return G.s.chapter === 4 && !G.s.flags.tv_beep_show;
+    return G.s.chapter === 4 && !seenBeepShow(G.s, G.meta);
   }
 
   private watchTV() {

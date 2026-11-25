@@ -61,8 +61,8 @@
     {"t":"Text","x":30,"y":14,"w":222,"h":28,"o":[0,0],"text":"THE KREZZ ARMS","font":"Krel Bold 21px","asked":"ui 26px bold","color":"#e0a35a","stroke":"#000000 4"},
     {"t":"Text","x":31,"y":46,"w":245,"h":12,"o":[0,0],"text":"Fizzy Bongos on tap. Pussy juice on the other tap.","font":"Krel Regular 10px","asked":"ui 11px","color":"#d6c49a"},
     {"t":"Graphics","x":0,"y":0,"gfx":{"n":132,"h":"51a3d8c1"}},
-    {"t":"Text","x":712,"y":14,"w":108,"h":12,"o":[0,0],"text":"📺 Krezz Sketch Show","font":"Krel Regular 10px","asked":"ui 10px bold","color":"#7dd3fc"},
-    {"t":"Text","x":822,"y":44,"w":94,"h":12,"text":"KREZZ SKETCH SHOW","font":"Krel Regular 10px","asked":"ui 10px","color":"#ffffff","align":"center","wrap":222},
+    {"t":"Text","x":712,"y":14,"w":83,"h":12,"o":[0,0],"text":"📺 Krunche News","font":"Krel Regular 10px","asked":"ui 10px bold","color":"#7dd3fc"},
+    {"t":"Text","x":822,"y":44,"w":67,"h":12,"text":"KRUNCHE NEWS","font":"Krel Regular 10px","asked":"ui 10px","color":"#ffffff","align":"center","wrap":222},
     {"t":"Container","x":0,"y":0,"w":0,"h":0,"d":10,"n":19,"kids":[
      {"t":"Rectangle","x":0,"y":0,"w":960,"h":540,"o":[0,0],"fill":"#05030a 0.5"},
      {"t":"NineSlice","x":480,"y":225,"w":900,"h":306,"tex":"ui_chalkboard:__BASE"},

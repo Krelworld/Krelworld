@@ -16,39 +16,31 @@
   {
    "key": "TV",
    "status": "RUNNING",
-   "count": {"top":16,"all":52,"hidden":2,"interactive":5},
+   "count": {"top":16,"all":44,"hidden":2,"interactive":5},
    "cam": {"x":0,"y":0,"w":960,"h":540,"scrollX":0,"scrollY":0,"zoom":[1,1],"bg":"0,0,0,0","roundPixels":true},
    "input": {"enabled":true,"topOnly":true,"listeners":{"wheel":1},"keyboard":{"enabled":true,"keys":[],"listeners":{}}},
-   "timers": 5,
-   "tweens": 10,
+   "timers": 3,
+   "tweens": 2,
    "physics": {"bodies":0,"statics":0,"gravity":[0,0],"fps":60,"timeScale":1,"paused":false,"bounds":[0,0,960,540]},
    "objs": [
     {"t":"Rectangle","x":0,"y":0,"w":960,"h":540,"o":[0,0],"fill":"#000000 1"},
-    {"t":"Container","x":0,"y":0,"w":0,"h":0,"mask":true,"n":0},
+    {"t":"Container","x":0,"y":0,"w":0,"h":0,"mask":true,"n":1,"kids":[{"t":"Image","x":480,"y":260,"w":560,"h":424,"s":[2,2],"tex":"tv_livingroom:__BASE"}]},
     {"t":"Container","x":0,"y":0,"w":0,"h":0,"n":0},
-    {"t":"Container","x":0,"y":0,"w":0,"h":0,"d":4,"mask":true,"n":2,"kids":[
-     {"t":"Container","x":0,"y":0,"w":0,"h":0,"n":1,"kids":[{"t":"Rectangle","x":200,"y":50,"w":560,"h":420,"o":[0,0],"fill":"#000000 1"}]},
-     {"t":"Container","x":0,"y":0,"w":0,"h":0,"n":0}
+    {"t":"Container","x":0,"y":0,"w":0,"h":0,"d":4,"mask":true,"n":3,"kids":[
+     {"t":"Image","x":498.57,"y":272.29,"w":663.2,"h":497.4,"s":[2.072,2.072],"tex":"tv_mt_bedroom:__BASE"},
+     {"t":"Image","x":379.2,"y":398,"w":256,"h":153.6,"o":[0.5,1],"s":[1.6,1.6],"tex":"tv_mt_bed:__BASE"},
+     {"t":"Image","x":636.8,"y":428,"w":153.6,"h":201.41,"o":[0.5,1],"s":[1.6,1.574],"tex":"tv_mt_ruth_body:__BASE"}
     ]},
     {"t":"Zone","x":200,"y":50,"w":560,"h":420,"o":[0,0],"d":5,"hit":{"shape":"rect","x":0,"y":0,"w":560,"h":420}},
-    {"t":"Container","x":0,"y":0,"w":0,"h":0,"d":6,"mask":true,"n":1,"kids":[
-     {"t":"Container","x":0,"y":0,"w":0,"h":0,"n":16,"kids":[
-      {"t":"Graphics","x":0,"y":0,"gfx":{"n":21,"h":"a327caa3"}},
-      {"t":"Triangle","x":480,"y":260,"w":52,"h":420,"o":[0,0],"rot":0.49,"blend":1,"fill":"#ffffff 0.05"},
-      {"t":"Triangle","x":480,"y":260,"w":52,"h":420,"o":[0,0],"rot":1.118,"blend":1,"fill":"#ffffff 0.05"},
-      {"t":"Triangle","x":480,"y":260,"w":52,"h":420,"o":[0,0],"rot":1.747,"blend":1,"fill":"#ffffff 0.05"},
-      {"t":"Triangle","x":480,"y":260,"w":52,"h":420,"o":[0,0],"rot":2.375,"blend":1,"fill":"#ffffff 0.05"},
-      {"t":"Triangle","x":480,"y":260,"w":52,"h":420,"o":[0,0],"rot":3.003,"blend":1,"fill":"#ffffff 0.05"},
-      {"t":"Triangle","x":480,"y":260,"w":52,"h":420,"o":[0,0],"rot":-2.652,"blend":1,"fill":"#ffffff 0.05"},
-      {"t":"Triangle","x":480,"y":260,"w":52,"h":420,"o":[0,0],"rot":-2.023,"blend":1,"fill":"#ffffff 0.05"},
-      {"t":"Triangle","x":480,"y":260,"w":52,"h":420,"o":[0,0],"rot":-1.395,"blend":1,"fill":"#ffffff 0.05"},
-      {"t":"Triangle","x":480,"y":260,"w":52,"h":420,"o":[0,0],"rot":-0.767,"blend":1,"fill":"#ffffff 0.05"},
-      {"t":"Triangle","x":480,"y":260,"w":52,"h":420,"o":[0,0],"rot":-0.138,"blend":1,"fill":"#ffffff 0.05"},
-      {"t":"Graphics","x":480,"y":230,"gfx":{"n":1138,"h":"cfc6e1d8"}},
-      {"t":"Rectangle","x":480,"y":306,"w":784,"h":30,"rot":-0.105,"fill":"#c8102e 1"},
-      {"t":"Text","x":480,"y":304,"w":308,"h":40,"text":"KRUNCHE NEWS","font":"Krel Bold 33px","asked":"ui 40px bold","color":"#ffffff","stroke":"#000000 4"},
-      {"t":"Rectangle","x":820,"y":304,"w":40,"h":120,"rot":0.349,"blend":1,"fill":"#ffffff 0.55"},
-      {"t":"Text","x":480,"y":352,"w":169,"h":15,"text":"LIVE · KRELWORLD · ALWAYS","font":"Krel Regular 13px","asked":"ui 14px bold","color":"#fde68a"}
+    {"t":"Container","x":0,"y":0,"w":0,"h":0,"d":5,"mask":true,"n":5,"kids":[
+     {"t":"Rectangle","x":200,"y":50,"w":560,"h":420,"o":[0,0],"blend":2,"fill":"#3a2810 0.12"},
+     {"t":"Graphics","x":0,"y":0,"gfx":{"n":259,"h":"09eea405"}},
+     {"t":"Rectangle","x":200,"y":50,"w":560,"h":36,"o":[0,0],"fill":"#000000 1"},
+     {"t":"Rectangle","x":200,"y":434,"w":560,"h":36,"o":[0,0],"fill":"#000000 1"},
+     {"t":"Container","x":480,"y":384,"w":0,"h":0,"n":3,"kids":[
+      {"t":"Rectangle","x":0,"y":8,"w":360,"h":52,"fill":"#000000 0.45"},
+      {"t":"Text","x":0,"y":0,"w":220,"h":19,"text":"T H E   B E D C H A M B E R","font":"Georgia, 'Times New Roman', serif 17px bold","color":"#e8cf8a"},
+      {"t":"Text","x":0,"y":21,"w":148,"h":13,"text":"Krelford, the Free City of Jenkins","font":"Georgia, serif 11px italic","color":"#d8d0c0"}
      ]}
     ]},
     {"t":"Image","x":0,"y":0,"w":960,"h":544,"o":[0,0],"s":[2,2],"d":40,"tex":"tv_set_frame:__BASE"},
@@ -78,7 +70,7 @@
      {"t":"Text","x":0,"y":14,"w":71,"h":15,"text":"SWITCH OFF","font":"Krel Regular 13px","asked":"ui 14px bold","color":"#ffffff"},
      {"t":"Text","x":0,"y":33,"w":17,"h":12,"text":"Esc","font":"Krel Regular 10px","asked":"ui 10px","color":"#a8a29e"}
     ]},
-    {"t":"Graphics","x":0,"y":0,"d":101,"gfx":{"n":203,"h":"fb8eb339"}}
+    {"t":"Graphics","x":0,"y":0,"d":101,"gfx":{"n":203,"h":"9570c61c"}}
    ]
   }
  ],
@@ -312,7 +304,7 @@
    "krelworld.meta": {
     "archiveUnlocked": [],
     "completedWith": [],
-    "heardMusic": ["title","news"],
+    "heardMusic": ["title"],
     "ngPlusUnlocked": false,
     "settings": {
      "autoAim": true,
@@ -333,7 +325,7 @@
    "krelworld.slots.v1": 1
   }
  },
- "audio": {"contexts":2,"elements":[" paused vol 0 rate 1"],"music":"news"},
+ "audio": {"contexts":2,"elements":[" paused vol 0 rate 1"],"music":""},
  "media": {
   "coarse": true,
   "fine": false,

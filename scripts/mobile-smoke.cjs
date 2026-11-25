@@ -66,7 +66,8 @@
 //          fit); a conversation in a fight shows SKIP / LOG / AUTO and no fight button, its narrated CONTROLS line in
 //          touch words; pause -> PHONE SETTINGS changes auto-fire and button size live in the fight; pause -> CONTROLS
 //          opens the picture on FIGHTS; the Krezz Arms brawl says Tap and taps anywhere swing.
-// polish   (stage 2 polish) at 844x390 with the iPhone insets and at 740x360: a fresh top-down room (chapter 1 kit),
+// polish   (stage 2 polish) at 844x390 with the iPhone insets and at 740x360 (750x340 and 932x430: the busiest
+//          screens only, measured): a fresh top-down room (chapter 1 kit),
 //          the same room mid-game (everything charged), a boss, a side room's start, the finale brawl and the Krezz
 //          Arms, each measured: no caption or button word over another caption, a button or the HUD, no button on
 //          another; the controls on screen counted (only what can be used now: no SPECIAL without its Krezz, no
@@ -3830,10 +3831,15 @@ async function polish(browser) {
   const profiles = [
     { tag: "iphone", profile: IPHONE, insets: { top: 0, right: 47, bottom: 21, left: 47 } },
     { tag: "android", profile: { ...ANDROID, userAgent: UA.androidChrome }, insets: null },
+    // (the other two sizes: only the busiest screens, for the no-overlap measure)
+    { tag: "safari-bars", profile: { ...IPHONE, viewport: { width: 750, height: 340 } }, insets: null, light: true },
+    { tag: "bigphone", profile: { ...IPHONE, viewport: { width: 932, height: 430 } }, insets: { top: 0, right: 59, bottom: 21, left: 59 }, light: true },
   ];
   for (const pr of profiles) {
     const { ctx, page, ph, errors } = await phoneAtTitle(browser, pr.profile);
     const where = `${pr.tag} ${pr.profile.viewport.width}x${pr.profile.viewport.height}`;
+    // (the light sizes: no screenshots, only the measure)
+    const shot = (n) => (pr.light ? null : ph.shot(n));
     const counts = {};
     const look = async (name, opts = {}) => {
       await sleep(opts.wait ?? 900);
@@ -3843,7 +3849,7 @@ async function polish(browser) {
       counts[name] = { n: ids.length + (m.stick ? 1 : 0), ids: [...ids, ...(m.stick ? ["stick"] : [])], caps: m.caps.map((c) => `${c.id}:${c.text}`), words: m.words.map((w) => `${w.id}:${w.text}`) };
       const col = collisions(m);
       check(`polish ${where} ${name}: no caption or word over another caption, a button or the HUD, no button on another`, col.length === 0, col.length ? col.slice(0, 8) : counts[name]);
-      await ph.shot(`${pr.tag}-${name}`);
+      await shot(`${pr.tag}-${name}`);
       return { m, snap, ids };
     };
     try {
@@ -3852,43 +3858,45 @@ async function polish(browser) {
       await ph.ev(() => window.__krelMobile.combat.resetTeaching());
       // (room 2 of the first dungeon: room 1 opens with the how-to card the first time through)
       const ok1 = await toFight(ph, "wildern", 1, 1, "FLENKY");
-      // (a new game's own kit: 40 Krezz, 2 juice, 1 bongo, no gun yet but the Fart Blaster; full health; the room's
-      // enemies held off for the look, so nothing hurts the player before it's measured)
-      const calmRoom = (kit) =>
-        ph.ev(async (kit) => {
-          const st = await import("/src/game/systems/stats.ts");
-          const k = window.__krel;
-          const s = k.G.s;
-          const d = k.game.scene.getScene("Dungeon");
-          for (const e of d.enemies) if (!e.dead && !e.isBoss) e.setPosition(-5000, -5000);
-          Object.assign(s, kit);
-          s.guns = {};
-          s.gun = null;
-          k.G.rt.fart = 0;
-          if (d.player) {
-            d.player.wonk = 0;
-            // (nothing lands on the player while it's looked at: a stray shot would bring the juice chip up)
-            d.player.iframesUntil = d.now() + 6000;
-          }
-          s.hp = st.maxHp(s);
-        }, kit);
-      await calmRoom({ krezz: 40, bottles: 2, bongos: 1 });
-      const fresh = await look("room-fresh");
-      const sp = fresh.snap && fresh.snap.specialReady;
-      check(`polish ${where}: a fresh room reached (chapter 1 kit)`, ok1, await ph.mode());
-      check(
-        `polish ${where} fresh room: only what a thumb can use now (no READY, HEAL, juice at full health, SPECIAL only when it can go)`,
-        !fresh.ids.includes("c-ready") && !fresh.ids.includes("c-heal") && !fresh.ids.includes("c-juice") && fresh.ids.includes("c-fire") && fresh.ids.includes("c-dodge") && fresh.ids.includes("pause") && fresh.ids.includes("c-special") === !!sp,
-        counts["room-fresh"],
-      );
-      // ---- 1b. the same room with nothing left to use (Krezz spent, no bongo): the calmest a fight gets
-      await calmRoom({ krezz: 0, bottles: 2, bongos: 0 });
-      const calm = await look("room-calm");
-      const hpNow = await ph.ev(async () => {
-        const s = window.__krel.G.s;
-        return [s.hp, (await import("/src/game/systems/stats.ts")).maxHp(s), s.bottles];
-      });
-      check(`polish ${where} calm room: just the stick, FIRE, DODGE, the gun and pause`, ["pause", "c-fire", "c-dodge", "c-chip"].every((id) => calm.ids.includes(id)) && calm.ids.length === 4, { ...counts["room-calm"], hpNow });
+      if (!pr.light) {
+        // (a new game's own kit: 40 Krezz, 2 juice, 1 bongo, no gun yet but the Fart Blaster; full health; the room's
+        // enemies held off for the look, so nothing hurts the player before it's measured)
+        const calmRoom = (kit) =>
+          ph.ev(async (kit) => {
+            const st = await import("/src/game/systems/stats.ts");
+            const k = window.__krel;
+            const s = k.G.s;
+            const d = k.game.scene.getScene("Dungeon");
+            for (const e of d.enemies) if (!e.dead && !e.isBoss) e.setPosition(-5000, -5000);
+            Object.assign(s, kit);
+            s.guns = {};
+            s.gun = null;
+            k.G.rt.fart = 0;
+            if (d.player) {
+              d.player.wonk = 0;
+              // (nothing lands on the player while it's looked at: a stray shot would bring the juice chip up)
+              d.player.iframesUntil = d.now() + 6000;
+            }
+            s.hp = st.maxHp(s);
+          }, kit);
+        await calmRoom({ krezz: 40, bottles: 2, bongos: 1 });
+        const fresh = await look("room-fresh");
+        const sp = fresh.snap && fresh.snap.specialReady;
+        check(`polish ${where}: a fresh room reached (chapter 1 kit)`, ok1, await ph.mode());
+        check(
+          `polish ${where} fresh room: only what a thumb can use now (no READY, HEAL, juice at full health, SPECIAL only when it can go)`,
+          !fresh.ids.includes("c-ready") && !fresh.ids.includes("c-heal") && !fresh.ids.includes("c-juice") && fresh.ids.includes("c-fire") && fresh.ids.includes("c-dodge") && fresh.ids.includes("pause") && fresh.ids.includes("c-special") === !!sp,
+          counts["room-fresh"],
+        );
+        // ---- 1b. the same room with nothing left to use (Krezz spent, no bongo): the calmest a fight gets
+        await calmRoom({ krezz: 0, bottles: 2, bongos: 0 });
+        const calm = await look("room-calm");
+        const hpNow = await ph.ev(async () => {
+          const s = window.__krel.G.s;
+          return [s.hp, (await import("/src/game/systems/stats.ts")).maxHp(s), s.bottles];
+        });
+        check(`polish ${where} calm room: just the stick, FIRE, DODGE, the gun and pause`, ["pause", "c-fire", "c-dodge", "c-chip"].every((id) => calm.ids.includes(id)) && calm.ids.length === 4, { ...counts["room-calm"], hpNow });
+      }
       // ---- 2. mid-game: a second gun, Krezz full, WONK full, beans, bongos, hurt with juice to drink
       await ph.ev(async () => {
         const k = window.__krel;
@@ -3908,10 +3916,12 @@ async function polish(browser) {
       });
       await look("room-mid", { wait: 1500 });
       // ---- 3. a boss (Krandall)
-      const ok3 = await toFight(ph, "wildern", 3, 2);
-      check(`polish ${where}: a boss fight reached`, ok3, await ph.mode());
-      const boss = await look("boss");
-      check(`polish ${where} boss: nothing for an ability that can't go (no READY with nothing ready, no SPECIAL without its Krezz)`, !boss.ids.includes("c-ready") === !(boss.snap && boss.snap.ready) && boss.ids.includes("c-special") === !!(boss.snap && boss.snap.specialReady), counts.boss);
+      if (!pr.light) {
+        const ok3 = await toFight(ph, "wildern", 3, 2);
+        check(`polish ${where}: a boss fight reached`, ok3, await ph.mode());
+        const boss = await look("boss");
+        check(`polish ${where} boss: nothing for an ability that can't go (no READY with nothing ready, no SPECIAL without its Krezz)`, !boss.ids.includes("c-ready") === !(boss.snap && boss.snap.ready) && boss.ids.includes("c-special") === !!(boss.snap && boss.snap.specialReady), counts.boss);
+      }
       // ---- 4. a side room's start (Catford High Street: the first pit sits under the cluster)
       await ph.ev(() => window.__krelMobile.combat.resetTeaching());
       const ok4 = await toFight(ph, "arena_sanmik", 1, 5, "FLENKY", "side:Dungeon");
@@ -3932,17 +3942,19 @@ async function polish(browser) {
         return { see: b.classList.contains("see"), opacity: +cs.opacity, border: bc.length > 3 ? bc[3] : 1, borderW: parseFloat(cs.borderTopWidth), bg: bg.length > 3 ? bg[3] : 1, icon: !!svg && svg.getBoundingClientRect().width > 10 };
       });
       check(`polish ${where} side start: JUMP is plain to see (a solid outline and its icon) even see-through over the pit, the pit still shows through`, jump && jump.icon && jump.opacity >= 0.9 && jump.border >= 0.6 && jump.borderW >= 2.5 && (!jump.see || jump.bg <= 0.1), jump);
-      // the room name (N2): run right into a room with a long name (the Job Centre), and also with the longest name made up
-      const rn = await ph.ev(() => {
-        const ui = window.__krel.game.scene.getScene("UI");
-        ui.roomT.setText("THE SANMIKVERSE (CATFORD, ALLEGEDLY) · Job Centre Plus (Catford Branch)");
-        return true;
-      });
-      await sleep(600);
-      const mr = await measureScreen(ph);
-      const clash = roomNameClash(mr);
-      check(`polish ${where} side room: a long room name never runs over the name, coins, meters or the chips (N2)`, rn && clash.length === 0, clash.length ? clash : mr.hud.find((h) => h.id === "roomT") || "hidden");
-      await ph.shot(`${pr.tag}-side-roomname`);
+      if (!pr.light) {
+        // the room name (N2): the Job Centre's line, the longest a side room has (the gate saw it run over the name)
+        const rn = await ph.ev(() => {
+          const ui = window.__krel.game.scene.getScene("UI");
+          ui.roomT.setText("THE SANMIKVERSE (CATFORD, ALLEGEDLY) · Job Centre Plus (Catford Branch)");
+          return true;
+        });
+        await sleep(600);
+        const mr = await measureScreen(ph);
+        const clash = roomNameClash(mr);
+        check(`polish ${where} side room: a long room name never runs over the name, coins, meters or the chips (N2)`, rn && clash.length === 0, clash.length ? clash : mr.hud.find((h) => h.id === "roomT") || "hidden");
+        await shot(`${pr.tag}-side-roomname`);
+      }
       // ---- 5. the finale brawl
       await ph.ev(() => {
         const k = window.__krel;
@@ -3963,34 +3975,36 @@ async function polish(browser) {
       check(`polish ${where}: the finale brawl reached`, on, await ph.mode());
       await look("brawl");
       // ---- 6. the Krezz Arms: its Leave card clear of the bottom 21 px (N4)
-      await runInto(ph, "Pub", "s.coins = 900;");
-      await ph.scene("Pub", 90000);
-      await sleep(2500);
-      const leave = await ph.ev(() => {
-        const p = window.__krel.game.scene.getScene("Pub");
-        const cv = document.querySelector("canvas").getBoundingClientRect();
-        const k = cv.width / 960;
-        let found = null;
-        const walk = (o, ox, oy) => {
-          if (found) return;
-          if (o.type === "Container") {
-            if (o.list.some((c) => c.type === "Text" && c.text === "Leave")) {
-              const hit = o.list.find((c) => c.input && c.input.enabled);
-              if (hit) {
-                const ha = hit.input.hitArea;
-                found = { top: cv.y + (oy + o.y + hit.y + ha.y) * k, bottom: cv.y + (oy + o.y + hit.y + ha.y + ha.height) * k, drawBottom: cv.y + (oy + o.y + hit.y + hit.height) * k };
+      if (!pr.light) {
+        await runInto(ph, "Pub", "s.coins = 900;");
+        await ph.scene("Pub", 90000);
+        await sleep(2500);
+        const leave = await ph.ev(() => {
+          const p = window.__krel.game.scene.getScene("Pub");
+          const cv = document.querySelector("canvas").getBoundingClientRect();
+          const k = cv.width / 960;
+          let found = null;
+          const walk = (o, ox, oy) => {
+            if (found) return;
+            if (o.type === "Container") {
+              if (o.list.some((c) => c.type === "Text" && c.text === "Leave")) {
+                const hit = o.list.find((c) => c.input && c.input.enabled);
+                if (hit) {
+                  const ha = hit.input.hitArea;
+                  found = { top: cv.y + (oy + o.y + hit.y + ha.y) * k, bottom: cv.y + (oy + o.y + hit.y + ha.y + ha.height) * k, drawBottom: cv.y + (oy + o.y + hit.y + hit.height) * k };
+                }
+                return;
               }
-              return;
+              for (const c of o.list) walk(c, ox + o.x, oy + o.y);
             }
-            for (const c of o.list) walk(c, ox + o.x, oy + o.y);
-          }
-        };
-        for (const o of p.children.list) walk(o, 0, 0);
-        return found;
-      });
-      await ph.shot(`${pr.tag}-pub`);
-      const strip = pr.profile.viewport.height - 21;
-      check(`polish ${where} Krezz Arms: the Leave card (drawing and touch area) ends above the bottom 21 px (N4)`, leave && leave.bottom <= strip + 0.5 && leave.drawBottom <= strip + 0.5, { leave, strip });
+          };
+          for (const o of p.children.list) walk(o, 0, 0);
+          return found;
+        });
+        await shot(`${pr.tag}-pub`);
+        const strip = pr.profile.viewport.height - 21;
+        check(`polish ${where} Krezz Arms: the Leave card (drawing and touch area) ends above the bottom 21 px (N4)`, leave && leave.bottom <= strip + 0.5 && leave.drawBottom <= strip + 0.5, { leave, strip });
+      }
       console.log(`  counts ${where}: ${JSON.stringify(Object.fromEntries(Object.entries(counts).map(([k, v]) => [k, `${v.n}: ${v.ids.join(" ")}`])))}`);
       check(`polish ${where}: no page errors`, errors.length === 0, errors.slice(0, 3));
     } finally {

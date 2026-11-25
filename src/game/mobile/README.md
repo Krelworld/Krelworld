@@ -275,12 +275,12 @@ included, P9). The right thumb has research "layout v2" (offsets from the bottom
 | prime (84) | **FIRE** (crosshair) | always | hold = fire (J / left mouse), on touch-down; slide 24 px+ = aim by hand along the slide, snapping onto an enemy within 15° (25° strong), with an aim line; with auto-fire off the stream carries on 200 ms after the thumb lifts. Its touch area runs to the screen's corner |
 | upLeft (60) | **DODGE** | always | dodge where the stick points (Space) |
 | left (60) | **SWAP** | when there is more than one weapon with ammo | tap = next gun (X), hold 300 ms = the slow-motion weapon picker: slide onto a gun and let go; let go elsewhere and it stays up for a tap, with CLOSE where FIRE was. A thumb that moves 12 px before 300 ms cancels |
-| up (60) | **SPECIAL** (the lad's word: DASH, LOAN, NEWS, OMEN, TURRET, KRUNCH, LURK, SLAM, NUKE; HEADBUTT in the troll fight) | always | the character special (F / right mouse); its Krezz cost is a fill, dim when it can't go |
+| up (60) | **SPECIAL** (the lad's word: DASH, LOAN, NEWS, OMEN, TURRET, KRUNCH, LURK, SLAM, NUKE; HEADBUTT in the troll fight) | only while it would go (enough Krezz, no decree against it); pops in, pulsing the first 2 times | the character special (F / right mouse) |
 | ready (60) | **READY** (gold, pops in) | a meter ability is ready | WONK! (R) when the WONK meter is full, then GOLD (T, golden juice drunk), IBS! (G at level 4); while golden, CUME (C). Never relabelled under a thumb; ignores presses for 300 ms after a new word |
 | heal (56) | **HEAL** (pops in, with the count) | health under 40% and juice to drink | pussy juice (Q) |
 | combatAction (56) | **ACTION** (the verb) | a prompt is up | interact (E); tapping the prompt over your head works too |
 | top, 24 px left of pause (140x44) | **weapon chip** (icon, name, ammo) | always | tap = next gun, hold = the picker (same as SWAP; its touch area reaches the top edge) |
-| under the health bars (32 tall) | **🍼 juice**, **🍺 bongo**, **💨 fart** (its level), **SANMIK** (as Mikey) | juice always (dim at full health or none); the others when they can do something | drink (Q, ignored at full health), bongo (B), let one rip at any level (G), Mikey ⇄ SanMik (V) |
+| under the health bars (32 tall) | **🍼 juice**, **🍺 bongo**, **💨 fart** (its level), **SANMIK** (as Mikey) | juice only while a drink would heal and HEAL isn't up; the others when they can do something | drink (Q, ignored at full health), bongo (B), let one rip at any level (G), Mikey ⇄ SanMik (V) |
 | the whole screen | the **mash overlay** | the WONK YOUR THANG gauge or the roof's group wonk is up (`mash`) | every finger anywhere is a press (R / Space / click); the buttons hide meanwhile |
 
 The cluster shares its touches (research M3): every control's element reaches `GAP_REACH` (20) px past its drawing; a
@@ -313,8 +313,10 @@ bongos; never quest items) come to you from 140 world px instead of 90 and faste
 dodge's safe window lasts 60 ms longer (touch and frame delay; about the audit's x1.25 timing lever); enemy bullets
 are drawn 1.25x bigger (their hit size is unchanged). It never slows the game.
 
-**First fights** (S10): each combat button has a one-word caption for the first 3 rooms fought on this phone; READY
-pulses the first 3 times it pops in, HEAL the first 2, SWAP the first 2 times a gun runs dry. Remembered under
+**First fights** (S10): each icon button (FIRE, DODGE, SWAP, JUMP, HEAL) carries its name inside it, under the icon,
+for the first 3 rooms fought on this phone (the `taught` class; never a caption outside the button: see "Stage 2
+polish"); READY pulses the first 3 times it pops in, HEAL and SPECIAL the first 2, SWAP the first 2 times a gun runs
+dry. Remembered under
 `storageKey("krelworld.phone.combatTaught")`. The layer's pressed ring, a flash on the button whose action just happened
 (FIRE's shots, a dodge, the special) and the stage 1 buzz (Android) are the feedback.
 
@@ -361,14 +363,14 @@ speed are the game's):
 | Moving platforms | carried while standing | their speed kept 100 ms after stepping / jumping off |
 | Crushers / steam | art-sized | reach x0.88 (phone assist, `ASSIST.hazard`) |
 | Camera | lerp 0.12, 80 x 60 dead zone | dead zone 0 x 200, player at 35% / 65% of the width (follow offset -/+144), turning after 0.4 s the other way, eased; the view leads 60 px down while falling. The follow is the game's 0.12 a frame made frame-rate independent (`camLerp`) plus the trail it leaves (`camLagPx`), so 35% / 65% holds at 30, 60 and 120 Hz; the laptop's small velocity lead is skipped in phone side rooms |
-| Hazards under the buttons | n/a | pits (and their names), moving platforms and crushers are occluders: JUMP / FIRE go see-through over them |
+| Hazards under the buttons | n/a | pits (and their names), moving platforms and crushers are occluders: JUMP / FIRE go see-through over them (JUMP keeps a solid green outline and its icon, so it still reads as JUMP) |
 
 `window.__krelMobile.combat.side.snapshot()`: held, jumps, the waiting press, coyote, the stick's raw direction, the
 look-ahead, and the last jumps (`log`: kind, take-off and apex, ms waited in the buffer, ms since the ground).
 
 **The finale brawl** (`brawl.ts`): `SsjBrawl` asks `phoneHooks().brawl(this)` instead of drawing its canvas pad. The
-layer shows PUNCH (prime, 84), BLOCK (left, hold), VANISH (upLeft), KICK (up), KI (ready slot, hold), always captioned,
-and the town's stick; they feed the brawl's own `pad.edges` / `pad.held`, so its hits, freezes and shakes are the game's.
+layer shows PUNCH (prime, 84), BLOCK (left, hold), VANISH (upLeft), KICK (up), KI (ready slot, hold), each with its word on
+it (no caption under it), and the town's stick; they feed the brawl's own `pad.edges` / `pad.held`, so its hits, freezes and shakes are the game's.
 During the finishing rush the buttons hide and a full-screen overlay makes every finger a punch. Wording (UI only,
 `BRAWL_WORDING`): the boss card's `HOLD R TO BLAST KI` line, `MASH PUNCH!` → `TAP TAP TAP!`, the corner's
 `Esc: skip fight` hides; instead the brawl has its own **II** (`b-pause`): the shell's carry-on card with a **SKIP FIGHT**
@@ -760,6 +762,32 @@ the corners. The device checklist (outside the repo) tells a player what to read
   picture only where they fit at 11 px; ACTION's line promises only what works.
 - **Phone settings**: Vibration only where `navigator.vibrate` exists (never on an iPhone).
 
+## Stage 2 polish: a calm fight screen
+
+The user, on the live build: "in dungeons on right hand side of the screen you can see a bunch of bubbles for every
+potential special even when they're not active". The rule now (`combatLogic.ts`, "a calm fight screen"):
+
+- **Always** (what a thumb needs): the stick (it appears where the thumb lands; its idle drawing fades once you've
+  walked), FIRE (or JUMP and FIRE in a side room), DODGE, the weapon chip (gun and ammo; tap = next gun), pause.
+- **Only while it can be used right now**, popping in (never drawn dim "for later"): SWAP (a second weapon with ammo),
+  SPECIAL (enough Krezz for it, no decree against it: `specialWanted`, with the game's own discounts in `specialCost`),
+  READY (a meter ability is ready), HEAL (under 40% with juice), ACTION (a prompt), the juice chip (a drink would heal
+  and HEAL isn't up: `juiceChipWanted`), the bongo chip (a bongo to drink), the 💨 chip (level 1 to 3; IBS is READY's),
+  SANMIK (as Mikey, when the game lets you change).
+- **Names, not captions** (N1): the first-fights words live inside the icon buttons; the brawl's buttons carry their
+  word; no fight control has a caption under it, so nothing can print on a neighbour, the HUD or the home-indicator
+  strip at any size, side or setting.
+
+Measured by the smoke's `polish` section (controls on screen, the stick included, both at 844x390 with the iPhone
+insets and at 740x360): a fresh room with a new game's kit 8 → 7, the same room with nothing left to use 7 → 5,
+mid-game with everything charged 12 → 11, a boss 9 → 8, a side room's start 9 → 8, the finale brawl 7 → 7 (its
+captions gone).
+
+Also: the **room name** up top (`roomName.ts`, N2) is fitted between the top-left block and the weapon chip each frame
+(`game.events` "poststep"): where it doesn't fit it shows the room's own name (after the last " · "), ellipsised if
+needed, or nothing; out of a fight it goes back as the game made it. The **Krezz Arms Leave card** is drawn 30 px
+higher on a phone (PubScene's guarded hook, N4), clear of the bottom 21 px.
+
 ## Testing
 
 ```sh
@@ -767,8 +795,10 @@ npx vitest run tests/mobile tests/desktopNotPhone.test.ts   # flag, modes, layou
 
 npx vite --port 5202 --strictPort &                       # normal build
 VITE_KREL_ALT=1 npx vite --port 5212 --strictPort &       # ALT build
-node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,together,review1,android,desktop]
+node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,together,review1,polish,android,desktop]
 node scripts/mobile-smoke.cjs --url http://localhost:5212/
+# (polish: the fight screen measured at four phone sizes: no caption or word over anything, only usable controls shown,
+#  JUMP plain over the first pit, the room name clear of the HUD, the Leave card above the home-indicator strip)
 # (review1: FIRE held through a death leaves no held attack; a pad resting off-centre never takes over; the archive's
 #  LEAVE; the finale brawl's II and SKIP FIGHT; a pit with the stick held toward it)
 # tests/mobileWordingScan.test.ts: no touch-wording rule may match any character line in the game

@@ -6,7 +6,7 @@
 //   FIRE (prime corner)  hold = fire, slide = aim by hand (snaps onto an enemy). Auto-fire (on by default) shoots by
 //                        itself at an enemy in range with a clear line: the right thumb is free to dodge.
 //   DODGE (up-left)      SWAP (left: tap = next gun, hold = the weapon picker)      SPECIAL (up: the lad's special,
-//   its Krezz cost as a fill)      READY (pops in when WONK, the golden transformation, the Cumehameha or IBS is ready)
+//   only while it would go)      READY (pops in when WONK, the golden transformation, the Cumehameha or IBS is ready)
 //   HEAL (pops in under 40% health)      ACTION (pops in with a prompt, like walking)
 //   up top: the weapon chip (tap = next, hold = picker) beside pause; under the health bars the drink / fart / SanMik
 //   chips (what the HUD always showed, now tappable).

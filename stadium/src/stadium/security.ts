@@ -4,8 +4,8 @@ import { defOf, hasProp, moveItem } from "../core/items";
 import { chance } from "../core/rng";
 import { DT, type Actor, type Id } from "../core/types";
 import type { World } from "../core/world";
-import { areaAt, SPOTS, type Area } from "./layout";
-import { lineOfSight } from "./nav";
+import { areaAt, BOUNDS, SPOTS, type Area } from "./layout";
+import { findPath, GH, GW, lineOfSight, navGrid } from "./nav";
 import { follow, goTo, say } from "./npc";
 import type { Npc } from "./state";
 
@@ -139,13 +139,22 @@ function decideIntent(w: World, g: Actor, t: Actor): Npc["intent"] {
   return "warn";
 }
 
-/** Where a warned trespasser is walked to: the nearest place he is allowed. */
-function warnDestination(t: Actor): { x: number; y: number } {
-  const area = areaAt(t.x, t.y);
-  if (area.outside) return { x: SPOTS.cabinDoor.x - 8, y: 60 };
-  if (area.pitch) return { x: t.x, y: t.y > 0 ? 33 : -33 };
-  if (t.y < -38 || t.x > 56) return { x: 53, y: -30 };
-  return { x: 0, y: 41 };
+/** Where a warned trespasser is walked to: the nearest open spot where he is allowed to be. */
+function warnDestination(w: World, t: Actor): { x: number; y: number } {
+  const g = navGrid();
+  for (let r = 2; r <= 40; r += 1.5) {
+    for (let k = 0; k < 24; k++) {
+      const a = (k / 24) * Math.PI * 2, x = t.x + Math.cos(a) * r, y = t.y + Math.sin(a) * r;
+      const cx = Math.floor(x - BOUNDS.x), cy = Math.floor(y - BOUNDS.y);
+      if (cx < 0 || cy < 0 || cx >= GW || cy >= GH || g[cy * GW + cx]) continue;
+      const ar = areaAt(x, y);
+      if (ar.private || ar.pitch) continue;
+      if (ar.access === "public" || (ar.access === "ticket" && !areaAt(t.x, t.y).outside) || looksPermitted(w.state, t, ar as any)) {
+        if (findPath(t.x, t.y, x, y).length) return { x, y };
+      }
+    }
+  }
+  return { x: SPOTS.ejectPoint.x, y: SPOTS.ejectPoint.y };
 }
 
 // ---------- Per-tick behaviour ----------
@@ -247,8 +256,9 @@ function apprehend(w: World, g: Actor, t: Actor): void {
   if (n.intent === "arrest") { finishArrest(w, t, "Arrested at the ground."); return; }
   if (n.intent === "warn") st.warnings++;
   setMode(w, g, "escort");
-  const dest = n.intent === "warn" ? warnDestination(t) : n.intent === "detain" ? SPOTS.holding : SPOTS.ejectPoint;
+  const dest = n.intent === "warn" ? warnDestination(w, t) : n.intent === "detain" ? SPOTS.holding : SPOTS.ejectPoint;
   n.escortTo = { x: dest.x, y: dest.y };
+  n.escortAt = w.state.tick; n.grip = 0;
   goTo(g, dest.x, dest.y);
   // Pull off an outer layer and see what is underneath, if it was a shirt that did the talking.
   if (n.intent !== "warn" && t.worn.outer && n.crime >= 1) revealShirt(w, g, t);
@@ -272,14 +282,19 @@ function escort(w: World, g: Actor): void {
   const t = n.target ? s.actors[n.target] : undefined;
   if (!t || t.heldBy !== g.id) { setMode(w, g, "routine"); return; }
   n.goal && (n.goal.run = false);
-  g.speed = 1.6;
   const to = n.escortTo ?? { x: g.x, y: g.y };
+  // Nobody wants to watch a long walk: after a few seconds, cut to the destination.
+  if (n.intent !== "warn" && s.tick - (n.escortAt ?? s.tick) > 60 * 5) {
+    g.x = to.x; g.y = to.y + 0.9; t.x = to.x; t.y = to.y; n.goal = null; n.path = [];
+    w.bus.emit({ type: "escort_cut", t: s.tick, who: t.id, intent: n.intent });
+  }
   if (!n.goal && Math.hypot(g.x - to.x, g.y - to.y) > 1.5) goTo(g, to.x, to.y);
   follow(w, g);
+  g.speed = 2.6;
   if (!n.goal && Math.hypot(g.x - to.x, g.y - to.y) > 1.5) {
     // No way through on foot: walk him straight there (stewards have keys).
     const dx = to.x - g.x, dy = to.y - g.y, d = Math.hypot(dx, dy);
-    g.moveX = dx / d; g.moveY = dy / d; g.speed = 1.6;
+    g.moveX = dx / d; g.moveY = dy / d;
     if (w.state.tick % 120 === 0) { g.x += (dx / d) * 1.5; g.y += (dy / d) * 1.5; }
   }
   const arrived = Math.hypot(g.x - to.x, g.y - to.y) < 1.5;
@@ -331,8 +346,20 @@ export function finishArrest(w: World, t: Actor, text: string): void {
 export function struggle(w: World, t: Actor): boolean {
   const g = t.heldBy ? w.state.actors[t.heldBy] : undefined;
   if (!g) return false;
-  const p = 0.16 + (t.effects.wired > w.state.tick ? 0.12 : 0) + (t.effects.drunk > w.state.tick ? -0.05 : 0);
-  if (!chance(w.state.rng.world, p)) { say(w, g, "Stop wriggling!", 1.2); return false; }
+  const s = w.state, st = s.stadium!, n0 = g.npc!;
+  // One proper heave a second; frantic tapping does nothing extra.
+  if (s.tick - (st.flags.lastStruggle ?? -999) < 50) return false;
+  st.flags.lastStruggle = s.tick;
+  let p = 0.1 + (t.effects.wired > s.tick ? 0.1 : 0) - (t.effects.drunk > s.tick ? 0.04 : 0);
+  p *= Math.pow(0.55, n0.grip ?? 0);
+  // A second steward close by makes it harder still.
+  for (const id in s.actors) { const o = s.actors[id]; if (o !== g && isSecurity(o) && Math.hypot(o.x - t.x, o.y - t.y) < 4) { p *= 0.4; break; } }
+  if (!chance(s.rng.world, p)) {
+    n0.grip = (n0.grip ?? 0) + 1;
+    say(w, g, ["Stop wriggling!", "Don't you dare.", "Keep still!", "I've got you, sunshine."][Math.min(3, n0.grip - 1)], 1.2);
+    w.bus.emit({ type: "struggle_failed", t: s.tick, who: t.id });
+    return false;
+  }
   t.heldBy = undefined;
   g.downUntil = w.state.tick + 50;
   const n = g.npc!;

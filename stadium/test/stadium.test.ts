@@ -123,7 +123,7 @@ test("running on to the pitch stops play and gets you caught", () => {
   pc.moveX = pc.moveY = 0;
   run(g, 15);
   assert.ok(events.includes("caught"), "a steward should catch him");
-  assert.ok(s.stadium!.detainedUntil > 0 || s.stadium!.ending?.kind === "arrested" || pc.heldBy, "and take him away");
+  assert.ok(events.includes("detained") || events.includes("ejected") || s.stadium!.ending?.kind === "arrested" || pc.heldBy, "and take him away");
 });
 
 test("a pie thrown from the stand distracts the referee and is noticed", () => {
@@ -189,4 +189,17 @@ test("stewards cannot see through walls", () => {
   pc.x = 0; pc.y = -40;
   assert.equal(canSee(g.w, corridor, pc), true);
   assert.ok(s);
+});
+
+test("struggling free is rare, and hammering the button does not help", () => {
+  let freed = 0;
+  for (const seed of ["s1", "s2", "s3", "s4", "s5", "s6", "s7", "s8"]) {
+    const g = createGame(seed);
+    const s = g.w.state, pc = pcOf(g);
+    pc.x = 0; pc.y = -43; // in the players' corridor, where he should not be
+    run(g, 20, () => { if (pc.heldBy) dispatch(g.w, { verb: "struggle", actor: pc.id }); });
+    if (g.w.bus.recent.some((e) => e.type === "broke_free")) freed++;
+    assert.ok(s);
+  }
+  assert.ok(freed <= 4, `broke free in ${freed} of 8`);
 });

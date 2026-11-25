@@ -43,6 +43,10 @@ class MatchScene extends Phaser.Scene {
     this.nameTag = this.add.text(0, 0, "", { fontFamily: "system-ui, sans-serif", fontSize: "11px", color: "#ffffff", stroke: "#000000", strokeThickness: 3 })
       .setOrigin(0.5, 1).setDepth(5).setResolution(2);
     this.scale.on("resize", () => this.layout());
+    const refit = () => { this.scale.refresh(); this.layout(); };
+    new ResizeObserver(refit).observe($("game"));
+    window.visualViewport?.addEventListener("resize", refit);
+    setTimeout(refit, 500); setTimeout(refit, 1500);
     this.wireHud();
     this.newMatch("POR");
     this.layout();

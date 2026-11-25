@@ -77,7 +77,7 @@ export function options(w: World, pc: Actor): Option[] {
     if (n && (n.job === "fan" || n.job === "local")) push(`Pickpocket ${name}`, 6, { verb: "pickpocket", ...base, target: { k: "actor", id: a.id } });
     if (hand && d < 1.7) push(`Give ${lc(itemName(hand))} to ${name}`, 3, { verb: "give", ...base, item: hand.id, target: { k: "actor", id: a.id } });
     const weapon = hand && hasProp(hand, "weapon");
-    push(weapon ? `Attack ${name} with the ${lc(itemName(hand!)).replace(/^kitchen /, "")}` : `Shove ${name}`, -1, { verb: "strike", ...base, target: { k: "actor", id: a.id } });
+    push(weapon ? `Stab ${name}` : `Punch ${name}`, -1, { verb: "strike", ...base, target: { k: "actor", id: a.id } });
   }
 
   // Places.

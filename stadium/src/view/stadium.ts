@@ -75,6 +75,12 @@ class StadiumScene extends Phaser.Scene {
     this.newGame();
     this.keys = this.input.keyboard!.addKeys("W,A,S,D,UP,DOWN,LEFT,RIGHT,SHIFT") as Record<string, Phaser.Input.Keyboard.Key>;
     this.scale.on("resize", () => this.setZoom());
+    // The host frame can change size after load (phones especially): keep the canvas filling it.
+    const refit = () => { this.scale.refresh(); this.setZoom(); };
+    new ResizeObserver(refit).observe($("game"));
+    window.visualViewport?.addEventListener("resize", refit);
+    window.addEventListener("orientationchange", () => setTimeout(refit, 300));
+    setTimeout(refit, 500); setTimeout(refit, 1500);
     this.wireInput();
     this.wireHud();
     this.setZoom();
@@ -96,7 +102,9 @@ class StadiumScene extends Phaser.Scene {
       if (e.type === "fb_goal" || e.type === "caught" || e.type === "fb_foul" && e.penalty) this.setSpeed(1);
       if (e.type === "fb_goal") { this.crowdJump = 120 * (e.team === 0 ? 1 : -1); }
       if (e.type === "stole") this.hint(e.what === "ticket" ? "You lifted a ticket." : `You lifted £${e.amount}.`);
-      if (e.type === "ejected" && e.who === this.s.stadium!.pc) this.hint(e.taken.length ? `They took your ${e.taken.join(", ")}.` : "Thrown out.");
+      if (e.type === "ejected" && e.who === this.s.stadium!.pc) this.hint(e.taken.length ? `Thrown out. They took your ${e.taken.join(", ")}.` : "Thrown out. They'll know your face now.");
+      if (e.type === "escort_cut" && e.who === this.s.stadium!.pc) { const f = $("fade"); f.classList.add("on"); setTimeout(() => f.classList.remove("on"), 450); }
+      if (e.type === "broke_free" && e.who === this.s.stadium!.pc) this.hint("You broke free. Run!");
     });
     const m = this.s.match!;
     $("sc0").textContent = m.teams[0].short; $("sc1").textContent = m.teams[1].short;
@@ -415,6 +423,9 @@ class StadiumScene extends Phaser.Scene {
       const canThrow = !!pc.hand && !pc.heldBy && !pc.hiddenIn;
       thr.hidden = !canThrow;
       if (canThrow) thr.textContent = ta ? `Throw at ${personName(ta).replace(/ \(.*\)$/, "")}` : `Throw ${itemName(s.items[pc.hand!]).toLowerCase()}`;
+      const hit = $("hit"), hitOpt = this.opts.find((o) => o.action?.verb === "strike");
+      hit.hidden = !hitOpt || !!pc.heldBy || !!pc.hiddenIn;
+      if (hitOpt) { hit.textContent = hitOpt.label.replace(/ \(.*\)$/, "").replace(/^(Punch|Stab) the /, "$1 the ").split(" ").slice(0, 3).join(" "); (this as any).hitOpt = hitOpt; }
       const canFast = pc.seated || area.id === "pub";
       $("speed").hidden = !canFast;
       if (!canFast && this.speed !== 1) this.setSpeed(1);
@@ -553,6 +564,7 @@ class StadiumScene extends Phaser.Scene {
     $("start").addEventListener("click", () => { $("intro").hidden = true; this.started = true; });
     $("act").addEventListener("click", () => this.run(primary(this.opts)));
     $("throw").addEventListener("click", () => this.throwNow());
+    $("hit").addEventListener("click", () => this.run((this as any).hitOpt ?? null));
     $("moreBtn").addEventListener("click", () => (this.sheetKind === "more" ? this.closeSheet() : this.openMore()));
     $("bagBtn").addEventListener("click", () => (this.sheetKind === "bag" ? this.closeSheet() : this.openBag()));
     $("menuBtn").addEventListener("click", () => (this.sheetKind === "menu" ? (this.closeSheet(), this.setSpeed(1)) : this.openMenu()));
@@ -577,6 +589,7 @@ class StadiumScene extends Phaser.Scene {
       const k = e.key.toLowerCase();
       if (k === "e" || k === " ") { e.preventDefault(); this.run(primary(this.opts)); }
       else if (k === "q") this.throwNow();
+      else if (k === "f") this.run(this.opts.find((o) => o.action?.verb === "strike") ?? null);
       else if (k === "r") (this.sheetKind === "more" ? this.closeSheet() : this.openMore());
       else if (k === "tab" || k === "i") { e.preventDefault(); this.sheetKind === "bag" ? this.closeSheet() : this.openBag(); }
       else if (k === "escape") { this.sheetKind ? (this.sheetKind === "menu" && this.setSpeed(1), this.closeSheet()) : this.openMenu(); }

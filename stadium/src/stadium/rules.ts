@@ -383,7 +383,7 @@ export function stepRules(w: World): void {
       w.bus.emit({ type: "pitch_invasion", t: tick, who: pc.id });
       for (const id in s.actors) {
         const g = s.actors[id];
-        if (g.npc && (g.npc.job === "pitchsteward" || (g.npc.job === "police" && areaAt(g.x, g.y).pitch))) alert(w, g, pc, 1, 2);
+        if (g.npc && (g.npc.job === "pitchsteward" || (g.npc.job === "police" && areaAt(g.x, g.y).pitch))) alert(w, g, pc, 2, 2);
       }
     }
     const refOk = ref.downUntil <= tick && !ref.off!.incapacitated && ref.off!.distractedUntil <= tick;

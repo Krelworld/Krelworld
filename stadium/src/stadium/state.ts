@@ -47,6 +47,10 @@ export interface Npc {
   hasTicket: boolean;
   /** Which way they face when standing at their post. */
   face?: number;
+  /** How tight a grip they have: each failed wriggle makes the next harder. */
+  grip?: number;
+  /** When the current escort started. */
+  escortAt?: number;
   /** Where an escort is heading. */
   escortTo?: { x: number; y: number };
   /** Which shop this person serves at, if any. */

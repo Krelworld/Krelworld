@@ -64,6 +64,8 @@ export interface Item {
   cash?: number;
   /** A ticket that has already been through a turnstile. */
   used?: boolean;
+  /** Who slipped this into someone else's pocket. */
+  plantedBy?: Id;
   /** A betting slip's terms and, once settled, its result. */
   bet?: { market: "winner" | "next" | "pen" | "red"; pick: string; stake: number; odds: number; at: number; result?: "won" | "lost" };
 }

@@ -388,3 +388,61 @@ test("after a win, money, kept items and notoriety carry over", () => {
   assert.equal(loadoutProblem(["shirt_eng", "hammer", "knife", "flare", "staff_pass", "laxative"]), "That won't all fit in your pockets.");
   assert.equal(loadoutProblem(["shirt_eng", "chef_whites", "hivis"]) !== null, true);
 });
+
+// ---------- Planting, tip-offs and fake police ----------
+test("plant powder on their star, tip off the police, and he is arrested at the next stoppage", () => {
+  const g = createGame("plant");
+  const s = g.w.state, pc = pcOf(g), m = s.match!;
+  const star = m.teams[1].squad.map((id) => s.actors[id]).find((a) => a.fb!.star)!;
+  // In the away dressing room before kick-off.
+  pc.x = star.x - Math.cos(star.facing) * 1; pc.y = star.y - Math.sin(star.facing) * 1;
+  const powder = spawnItem(s, "powder", { k: "pocket", a: pc.id });
+  let planted = false;
+  for (let i = 0; i < 10 && !planted; i++) {
+    if (powder.loc.k !== "pocket" || powder.loc.a !== pc.id) { pc.pockets.push(powder.id); powder.loc = { k: "pocket", a: pc.id }; }
+    pc.x = star.x - Math.cos(star.facing); pc.y = star.y - Math.sin(star.facing);
+    dispatch(g.w, { verb: "plant", actor: pc.id, item: powder.id, target: { k: "actor", id: star.id } });
+    planted = star.pockets.includes(powder.id);
+  }
+  assert.ok(planted, "planted");
+  // Find a police officer and tell him.
+  const cop = find(g, (a) => a.npc?.job === "police");
+  pc.x = cop.x + 1; pc.y = cop.y;
+  for (const id in s.actors) { const n = s.actors[id].npc; if (n) { n.sus = {}; n.mode = n.mode === "player" as any ? n.mode : n.mode; } }
+  assert.equal(dispatch(g.w, { verb: "report", actor: pc.id, target: { k: "actor", id: star.id } }).ok, true);
+  const events: string[] = [];
+  g.w.bus.on((e) => events.push(e.type));
+  run(g, 420);
+  assert.ok(events.includes("tipoff_arrest"), "found and arrested");
+  assert.equal(star.fb!.status, "gone");
+  assert.equal(star.fb!.goneReason, "arrested");
+});
+
+test("a fake police officer can arrest a steward if no real officer is watching", () => {
+  let worked = 0;
+  for (const seed of ["fc1", "fc2", "fc3", "fc4", "fc5", "fc6"]) {
+    const g = createGame(seed);
+    const s = g.w.state, pc = pcOf(g);
+    spawnItem(s, "police_uniform", { k: "worn", a: pc.id, slot: "outer" });
+    const corridor = find(g, (a) => a.npc?.job === "corridor");
+    pc.x = corridor.x + 1; pc.y = corridor.y;
+    const events: string[] = [];
+    g.w.bus.on((e) => events.push(e.type));
+    dispatch(g.w, { verb: "arrest", actor: pc.id, target: { k: "actor", id: corridor.id } });
+    if (events.includes("false_arrest")) worked++;
+  }
+  assert.ok(worked >= 2 && worked <= 6, `worked ${worked} of 6`);
+});
+
+test("the police uniform is in the van, and confiscated things can be taken back from the locker", () => {
+  const g = createGame("van");
+  const s = g.w.state, pc = pcOf(g);
+  const box = Object.values(s.items).find((i) => i.def === "police_box")!;
+  const uniform = Object.values(s.items).find((i) => i.def === "police_uniform")!;
+  pc.x = (box.loc as any).x + 1; pc.y = (box.loc as any).y;
+  assert.equal(dispatch(g.w, { verb: "takeout", actor: pc.id, item: uniform.id }).ok, true);
+  assert.equal(uniform.loc.k === "hand" || uniform.loc.k === "pocket", true);
+  const knife = spawnItem(s, "knife", { k: "in", c: s.stadium!.locker });
+  pc.x = SPOTS.locker.x - 1; pc.y = SPOTS.locker.y;
+  assert.equal(dispatch(g.w, { verb: "takeout", actor: pc.id, item: knife.id }).ok, true);
+});

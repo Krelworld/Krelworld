@@ -191,6 +191,7 @@ const QF_SPOTS = {
   kiosk: { x: 30, y: 43.2 },
   kioskCounter: { x: 30, y: 40.8 },
   cabinDoor: { x: 75, y: 53.5 },
+  policeVan: { x: 32, y: 54.5 },
 };
 
 /** Turnstile gate ids, west to east. */

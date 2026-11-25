@@ -99,6 +99,16 @@ export class Announcer {
       case "two_refs":
         this.out({ t: e.t, text: "There appear to be two referees. Both now consider the other to have been dismissed.", src: "commentary", big: true });
         break;
+      case "tipoff_arrest": {
+        const a = s.actors[e.who];
+        if (a?.fb) this.out({ t: e.t, text: `We're hearing that ${a.name} has been arrested. Police say they acted on information received.`, src: "commentary", big: true });
+        break;
+      }
+      case "false_arrest": {
+        const a = s.actors[e.who];
+        if (a?.fb) this.out({ t: e.t, text: `${a.name} has been arrested for ${e.charge} by an officer who does not appear to be an officer.`, src: "commentary", big: true });
+        break;
+      }
       case "camera_flag":
         this.once(`cam${Math.floor(e.t / 3600)}`, "Would a supervisor please attend turnstile two.", "tannoy", false);
         break;

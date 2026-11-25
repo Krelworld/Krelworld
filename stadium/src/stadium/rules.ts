@@ -378,6 +378,8 @@ export function installReactions(w: World): void {
     const bump = (k: string) => { f[k] = (f[k] ?? 0) + 1; };
     if (e.type === "ejected" && e.who === pc) bump("ejections");
     if (e.type === "detained" && e.who === pc) bump("detentions");
+    if (e.type === "tipoff_arrest" && s.actors[e.who]?.fb) { bump("tipArrests"); if (e.planted) bump("plantedArrests"); }
+    if (e.type === "false_arrest") { bump("falseArrests"); if (s.actors[e.who]?.fb) st.flags.fakeCopFootballer = 1; }
     if (e.type === "pitch_invasion") bump("pitchInvasions");
     if (e.type === "unmasked") { bump("unmasked"); if (!e.football) st.flags.unmaskedDisguise = 1; }
     if (e.type === "incident" && e.what === "stowaway") bump("stowaway");

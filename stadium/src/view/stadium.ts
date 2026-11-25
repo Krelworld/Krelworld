@@ -122,6 +122,7 @@ class StadiumScene extends Phaser.Scene {
       if (e.type === "escort_cut" && e.who === this.s.stadium!.pc) { const f = $("fade"); f.classList.add("on"); setTimeout(() => f.classList.remove("on"), 450); }
       if (e.type === "broke_free" && e.who === this.s.stadium!.pc) this.hint("You broke free. Run!");
       if (e.type === "winded") this.hint("You're out of breath.");
+      if (e.type === "planted" && e.by === this.s.stadium!.pc) this.hint("Planted. Nobody noticed.");
       if (e.type === "bet_settled" && e.who === this.s.stadium!.pc) this.hint(e.won ? `Your bet came in: £${e.payout}.` : `You lost £${e.stake}.`);
     });
     const m = this.s.match!;
@@ -647,7 +648,7 @@ class StadiumScene extends Phaser.Scene {
   // ---------- Actions ----------
   run(opt: Option | null) {
     if (!opt || !this.started) return;
-    if (opt.sheet) { opt.sheet.kind === "shop" ? this.openShop(opt.sheet.who) : opt.sheet.kind === "bet" ? this.openBet() : this.openBribe(opt.sheet.who); return; }
+    if (opt.sheet) { const k = opt.sheet.kind; k === "shop" ? this.openShop(opt.sheet.who) : k === "bet" ? this.openBet() : k === "report" ? this.openReport() : this.openBribe(opt.sheet.who); return; }
     if (opt.action) {
       const before = this.pc.seated;
       const r = dispatch(this.w, opt.action);
@@ -703,6 +704,16 @@ class StadiumScene extends Phaser.Scene {
     const stakes = [10, 20, 50, 100].filter((x) => x <= pc.money);
     const rows = book.map((p) => `<div class="item"><b>${esc(p.label)} <span class="odds">${p.odds.toFixed(2)}</span></b><div class="row">${stakes.map((st) => `<button data-bet="${p.market}:${p.pick}" data-amt="${st}">£${st}</button>`).join("") || "<span class='slip'>No money.</span>"}</div></div>`).join("");
     this.sheet("bet", `<h2>${where === "phone" ? "Betting app" : "Bookmaker"}</h2><p>You have £${pc.money}. Settled on the official result only.</p><div class="list">${rows}</div>${slipHtml}`);
+  }
+
+  /** Who would you like the police to search? Their players by name, and anyone you can see. */
+  openReport() {
+    const s = this.s, m = s.match!, pc = this.pc;
+    const players = m.teams[1].squad.map((id) => s.actors[id]).filter((a) => a.fb!.status !== "gone");
+    const nearby = Object.values(s.actors).filter((a) => a.npc && !a.fb && !a.off && a.npc.job !== "police" && !a.hiddenIn && Math.hypot(a.x - pc.x, a.y - pc.y) < 20).slice(0, 6);
+    const btn = (a: Actor, label: string) => `<button data-report="${a.id}">${esc(label)}</button>`;
+    this.sheet("report", `<h2>Tip off the police</h2><p>Say someone is carrying something they shouldn't be. If they're clean, the police will remember you.</p>
+      <div class="list">${players.map((a) => btn(a, `${a.name}, ${m.teams[1].name} number ${a.fb!.number}${a.fb!.star ? " ★" : ""}`)).join("")}${nearby.map((a) => btn(a, a.name)).join("")}</div>`);
   }
 
   openBribe(who: string) {
@@ -787,6 +798,7 @@ class StadiumScene extends Phaser.Scene {
       if (d.opt) { this.run(((this as any).moreOpts as Option[])[+d.opt]); this.closeSheet(); return; }
       if (d.buy) { const r = dispatch(this.w, { verb: "buy", actor: this.pc.id, target: { k: "actor", id: d.who! }, arg: d.buy }); if (!r.ok) this.hint(r.reason ?? ""); this.openShop(d.who!); return; }
       if (d.bet) { const r = dispatch(this.w, { verb: "bet", actor: this.pc.id, arg: d.bet, amount: +d.amt! }); if (!r.ok) this.hint(r.reason ?? ""); this.openBet(); return; }
+      if (d.report) { const r = dispatch(this.w, { verb: "report", actor: this.pc.id, target: { k: "actor", id: d.report } }); if (!r.ok) this.hint(r.reason ?? ""); this.closeSheet(); return; }
       if (d.bribe) { const r = dispatch(this.w, { verb: "bribe", actor: this.pc.id, target: { k: "actor", id: d.who! }, amount: +d.bribe }); if (!r.ok) this.hint(r.reason ?? ""); this.closeSheet(); return; }
       if (d.bag) { const o = ((this as any)[`bag_${d.bag}`] as Option[])[+d.i!]; if (o?.action) { const r = dispatch(this.w, o.action); if (!r.ok) this.hint(r.reason ?? ""); } this.openBag(); return; }
       if (d.cp) { loadCheckpoint(this.game2, d.cp as any); this.closeSheet(); $("ending").hidden = true; this.setSpeed(1); this.hint("Back to the checkpoint."); this.setZoom(); return; }

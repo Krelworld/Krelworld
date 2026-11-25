@@ -127,6 +127,8 @@ export interface StadiumState {
   policeCalled: boolean;
   /** Item id of the locker where confiscated things go. */
   locker: Id;
+  /** Tip-offs the police are following up. */
+  tipoffs: { target: Id; by: Id; officer: Id; at: number; stage: "going" | "waiting" | "done" }[];
   /** Clouds of smoke from flares. */
   smoke: Smoke[];
   /** Who drank from which spiked supply at half-time. */

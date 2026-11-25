@@ -15,7 +15,7 @@ export interface Option {
   priority: number;
   action?: Action;
   /** Opens a sheet instead of acting straight away. */
-  sheet?: { kind: "shop" | "bribe" | "bet"; who: string };
+  sheet?: { kind: "shop" | "bribe" | "bet" | "report"; who: string };
 }
 
 const lc = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
@@ -50,6 +50,13 @@ export function options(w: World, pc: Actor): Option[] {
       const v = Object.values(s.stadium!.vehicles).find((vv) => vv.cargo === it.id);
       if (!v || cargoOpen(v)) push("Hide in the back of the lorry", 72 - d, { verb: "hide", ...base, target: { k: "item", id: it.id } });
     }
+    // Containers with things inside: the police van, the confiscation locker.
+    if (hasProp(it, "container") && d < 2.6) {
+      for (const id2 in s.items) {
+        const inner = s.items[id2];
+        if (inner.loc.k === "in" && inner.loc.c === it.id) push(`Take ${lc(defOf(inner).name)} from the ${it.def === "locker" ? "locker" : it.def === "police_box" ? "police van" : "box"}`, 55 - d, { verb: "takeout", ...base, item: inner.id });
+      }
+    }
     if (hasProp(it, "spikable")) {
       for (const sub of [pc.hand, ...pc.pockets]) {
         if (!sub || !hasProp(s.items[sub], "substance")) continue;
@@ -77,6 +84,12 @@ export function options(w: World, pc: Actor): Option[] {
     if (pc.money > 0 && d < 2.2) out.push({ label: `Offer ${name} money`, priority: 5, sheet: { kind: "bribe", who: a.id } });
     if (n && n.job !== "player" && n.job !== "official" && !n.shop) push(`Pickpocket ${name}`, 6, { verb: "pickpocket", ...base, target: { k: "actor", id: a.id } });
     if (hand && d < 1.7) push(`Give ${lc(itemName(hand))} to ${name}`, 3, { verb: "give", ...base, item: hand.id, target: { k: "actor", id: a.id } });
+    for (const sid of [pc.hand, ...pc.pockets]) {
+      const it = sid ? s.items[sid] : undefined;
+      if (it && defOf(it).size === "small" && it.def !== "betslip" && d < 1.5) push(`Slip the ${lc(itemName(it))} into ${name}'s pocket`, 4, { verb: "plant", ...base, item: it.id, target: { k: "actor", id: a.id } });
+    }
+    if (n?.job === "police") out.push({ label: `Tip off ${name} about someone`, priority: 15, sheet: { kind: "report", who: a.id } });
+    if (appearance(s, pc).role === "police" && n?.job !== "police") push(`Arrest ${name}`, 22 - d, { verb: "arrest", ...base, target: { k: "actor", id: a.id } });
     const weapon = hand && hasProp(hand, "weapon");
     push(weapon ? `Stab ${name}` : `Punch ${name}`, -1, { verb: "strike", ...base, target: { k: "actor", id: a.id } });
   }

@@ -34,7 +34,8 @@ export function newsReport(w: World): Bulletin {
   const toilet = Object.values(s.actors).filter((a) => a.fb?.goneReason === "toilet");
   if (toilet.length) lines.push(`${toilet.length === 1 ? `${toilet[0].name} left the field` : `${toilet.length} players left the field`} unexpectedly. Team doctors are examining the water.`);
   const arrested = Object.values(s.actors).filter((a) => a.fb?.goneReason === "arrested");
-  if (arrested.length) lines.push(`${arrested.map((a) => a.name).join(" and ")} ${arrested.length === 1 ? "was" : "were"} led from the pitch by police. No charges have been explained.`);
+  if (arrested.length) lines.push(`${arrested.map((a) => a.name).join(" and ")} ${arrested.length === 1 ? "was" : "were"} arrested during the match.${f.plantedArrests ? " The player insists he has \"never seen it before in his life\"." : ""}${f.fakeCopFootballer ? " Police say the arresting officer was not one of theirs." : ""}`);
+  if (f.falseArrests && !f.fakeCopFootballer) lines.push(`A man in a police uniform arrested ${f.falseArrests === 1 ? "a member of staff" : `${f.falseArrests} people`} at the ground. Police have appealed for the uniform back.`);
   if (f.flares) lines.push(`${f.flares === 1 ? "A smoke flare was" : `${f.flares} smoke flares were`} let off. The army surplus store next to the ground says it "only sells them for boats".`);
   if (f.pitchInvasions) lines.push(`A spectator ran onto the pitch${f.pitchInvasions > 1 ? ` ${f.pitchInvasions} times` : ""}. He was described as "large" and "not quick".`);
 

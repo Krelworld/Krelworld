@@ -8,6 +8,7 @@ import { BOUNDS, KICKOFF_AT, setVenue, SPOTS, VENUE, WALLS, type Venue } from ".
 import { newCampaign, type Campaign } from "./campaign";
 import { mayPass, newNpc, resetPathBudget, secs, spawnFan, spawnStaff, stepNpc } from "./npc";
 import { installBetting, installSettlement } from "./betting";
+import { installPolice, stepTipoffs } from "./police";
 import { installReactions, installRules, SHOPS, stepRules } from "./rules";
 import { isSecurity, stepDetention, stepSecurity } from "./security";
 import type { StadiumState } from "./state";
@@ -30,7 +31,7 @@ export const HALF_SECONDS = 450;
 export const HALFTIME_SECONDS = 150;
 
 export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: Campaign = newCampaign()): Game {
-  if (!rulesInstalled) { installRules(); installBetting(); rulesInstalled = true; }
+  if (!rulesInstalled) { installRules(); installBetting(); installPolice(); rulesInstalled = true; }
   setVenue(venueId);
   const oppKey = VENUE.opp;
   const opp = TEAMS[oppKey];
@@ -43,7 +44,7 @@ export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: 
   const locker = spawnItem(s, "locker", { k: "ground", x: SPOTS.locker.x, y: SPOTS.locker.y });
   const st: StadiumState = {
     pc: "pc", arrivedAt: 0, gates: {}, vehicles: {}, banned: [], wanted: [], incidents: [], admitted: false, warnings: 0,
-    ending: null, flags: {}, doorPass: null, detainedUntil: 0, policeCalled: false, locker: locker.id, dosed: {}, smoke: [],
+    ending: null, flags: {}, doorPass: null, detainedUntil: 0, policeCalled: false, locker: locker.id, dosed: {}, smoke: [], tipoffs: [],
   };
   s.stadium = st;
 
@@ -128,6 +129,10 @@ export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: 
 
   // Things lying about, for whoever finds them.
   spawnItem(s, "hivis", { k: "ground", x: SPOTS.cabinHook.x, y: SPOTS.cabinHook.y });
+  // The police van, with a spare uniform in the back.
+  const box = spawnItem(s, "police_box", { k: "ground", x: SPOTS.policeVan.x, y: SPOTS.policeVan.y });
+  spawnItem(s, "police_uniform", { k: "in", c: box.id });
+  spawnItem(s, "police_hat", { k: "in", c: box.id });
   if (VENUE.features.staffPass) {
     spawnItem(s, "staff_pass", { k: "ground", x: SPOTS.cabinHook.x - 1.2 * Math.sign(SPOTS.cabinHook.x), y: SPOTS.cabinHook.y + 1.5 });
     // Every steward carries one, which makes them worth robbing.
@@ -232,6 +237,7 @@ export function stepGame(g: Game): void {
     for (const hit of lorryHits(w, st.vehicles[id])) w.bus.emit({ type: "run_over", t: s.tick, who: hit.id });
   }
   stepRules(w);
+  stepTipoffs(w);
   stepDetention(w);
   checkpoints(g);
   endings(g);

@@ -277,7 +277,6 @@ function theAscent(): RoomDef {
     exitLabel: "THE TOP ↑",
     goal: "The top of the tower",
     triggers,
-    miniBoss: { id: "elon", at: 0.46, pa: CD.ELON_PA, music: "c7_elon", hp: 0.75 },
     enterLines: CD.ASCENT_ENTER,
     pa: CD.ASCENT_PA,
   };

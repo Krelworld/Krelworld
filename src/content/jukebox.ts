@@ -79,7 +79,6 @@ export const JUKEBOX: JukeboxTrack[] = [
   { ids: ["fight_reinhardt"], title: "Mental Problems", where: "Boss: Reinhardt Crobley" },
   { ids: ["fight_lantern"], title: "Chinese Crobley", where: "Boss: Chinese Crobley" },
   { ids: ["c7_krex"], title: "Metal Gear Krex", where: "Boss: Metal Gear Krex" },
-  { ids: ["c7_elon"], title: "Elon Musk (AI-Generated)", where: "Boss: Elon Musk (AI-Generated)" },
   { ids: ["c7_drongus1"], title: "Drongus B. Drippin'", where: "Boss: Drongus B. Drippin'" },
   { ids: ["c7_deranged"], title: "Deranged Drongus", where: "Boss: Deranged Drongus" },
   { ids: ["final"], title: "The Final Wonking", where: "The last boss" },

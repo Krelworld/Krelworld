@@ -29,3 +29,29 @@ automated matches. Real-phone frame rates are still to be confirmed by hand.
 
 Metres and seconds. The pitch centre is the world origin. The pitch is about
 68% of real size (72 x 46) so the stadium stays walkable.
+
+## Football simulation (stage 2)
+
+Every player is an individual agent; outcomes come from positions and attributes.
+Things that physically happen (ball over the line, a foul, an offside position)
+become candidates. Only an official's ruling changes the score, cards or restart.
+
+Measured over batches of 60 full matches, England v Portugal, 7.5-minute halves:
+
+| | England wins | Opponent wins | Draws | England goals | Opponent goals |
+|---|---|---|---|---|---|
+| No interference | 21 | 24 | 15 | 1.37 | 1.32 |
+| Their star striker arrested before kick-off | 36 | 9 | 15 | 1.40 | 0.58 |
+| Their goalkeeper bribed | 40 | 8 | 12 | 2.47 | 1.03 |
+| Referee bribed towards England | 40 | 11 | 9 | 2.27 | 0.83 |
+| Against Brazil, no interference | 11 | 30 | 19 | 1.00 | 1.53 |
+
+Known gaps: few offsides (about 0.2 a match) and throw-ins, no advantage rule,
+no dropped balls, half-time is a short pause rather than a playable phase.
+
+## Running it
+
+- `npm test` runs the automated tests.
+- `npm run stats -- 40 ENG POR` plays 40 matches without graphics and prints totals.
+  Add `--sabotage=star`, `keeper` or `ref`, and `--league` to allow draws.
+- `npm run build` builds the viewer into `dist/viewer` (open `local.html` through a local web server).

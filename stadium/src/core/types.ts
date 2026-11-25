@@ -1,0 +1,130 @@
+import type { RngState } from "./rng";
+import type { Footballer, Official, MatchState } from "../football/types";
+
+export type Id = string;
+export const TICK_HZ = 60;
+export const DT = 1 / TICK_HZ;
+
+// ---------- Items ----------
+/** Properties drive interactions. Targets respond to properties, never to item names. */
+export type Prop =
+  | "sharp" | "throwable" | "liquid" | "consumable" | "food" | "alcohol" | "spikable"
+  | "substance" | "wearable" | "weapon" | "metal" | "illicit" | "credential" | "container"
+  | "valuable" | "noisy";
+export type WearSlot = "head" | "face" | "outer" | "inner" | "body";
+export type Role =
+  | "fan" | "steward" | "police" | "cleaner" | "catering" | "medic" | "broadcaster"
+  | "footballer" | "referee" | "vip" | "none";
+
+export interface ItemDef {
+  id: string;
+  name: string;
+  props: Prop[];
+  /** small fits a pocket; large must be held or worn; huge cannot pass a gate. */
+  size: "small" | "large" | "huge";
+  slot?: WearSlot;
+  /** Team this item makes the wearer appear to support or play for. */
+  team?: string;
+  /** Role this item makes the wearer appear to hold. */
+  role?: Role;
+  /** How much apparent authority it lends (0 none, 1 staff, 2 security, 3 official). */
+  authority?: number;
+  /** For substances: what it does when consumed. */
+  effect?: string;
+}
+
+export type ItemLoc =
+  | { k: "ground"; x: number; y: number }
+  | { k: "air"; x: number; y: number; z: number; vx: number; vy: number; vz: number; by: Id }
+  | { k: "hand"; a: Id }
+  | { k: "pocket"; a: Id }
+  | { k: "worn"; a: Id; slot: WearSlot }
+  | { k: "in"; c: Id }
+  | { k: "gone" };
+
+export interface Item {
+  id: Id;
+  def: string;
+  loc: ItemLoc;
+  /** Substance def id this food or drink has been spiked with. */
+  spiked?: string;
+}
+
+// ---------- Actors ----------
+export type ActorKind = "protagonist" | "echo" | "npc" | "footballer" | "official";
+
+export interface Actor {
+  id: Id;
+  kind: ActorKind;
+  name: string;
+  /** Faces are separate from clothing: a disguise never changes this. */
+  faceId: Id;
+  x: number; y: number; vx: number; vy: number;
+  facing: number;
+  radius: number;
+  /** Top walking speed in m/s. */
+  speed: number;
+  /** Desired movement, each axis -1..1. Set by the player's input or by a brain. */
+  moveX: number; moveY: number;
+  hand: Id | null;
+  pockets: Id[];
+  worn: Partial<Record<WearSlot, Id>>;
+  money: number;
+  /** Tick until which the actor is on the floor or otherwise out of action. */
+  downUntil: number;
+  /** Active effects with the tick they wear off, e.g. { drunk: 5400 }. */
+  effects: Record<string, number>;
+  /** Present on footballers. */
+  fb?: Footballer;
+  /** Present on match officials. */
+  off?: Official;
+}
+
+// ---------- Actions ----------
+export type VerbId = "take" | "drop" | "wear" | "remove" | "consume" | "throw" | "give" | "show" | "use" | "strike";
+export type Target =
+  | { k: "actor"; id: Id }
+  | { k: "item"; id: Id }
+  | { k: "point"; x: number; y: number };
+
+/** Every deliberate thing an actor does goes through one of these. Recordable. */
+export interface Action {
+  verb: VerbId;
+  actor: Id;
+  item?: Id;
+  target?: Target;
+  /** Unit direction for throws and strikes. */
+  dirX?: number; dirY?: number;
+  power?: number;
+}
+
+export interface RecordedStep {
+  t: number;
+  x: number; y: number;
+  /** Absent for plain movement waypoints. */
+  action?: Action;
+}
+
+// ---------- Level (static) ----------
+export type Access = "public" | "ticket" | "staff" | "restricted" | "pitch";
+export interface Zone {
+  id: string;
+  name: string;
+  x: number; y: number; w: number; h: number;
+  access: Access;
+  /** Roles that may be here. Empty means the access level alone decides. */
+  roles?: Role[];
+}
+export interface Level { zones: Zone[] }
+
+// ---------- World ----------
+export interface WorldState {
+  tick: number;
+  nextId: number;
+  rng: { world: RngState; match: RngState };
+  actors: Record<Id, Actor>;
+  items: Record<Id, Item>;
+  match: MatchState | null;
+  /** Actors currently being recorded, and what they have done so far. */
+  recordings: Record<Id, RecordedStep[]>;
+}

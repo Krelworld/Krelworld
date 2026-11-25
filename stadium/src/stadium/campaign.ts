@@ -36,6 +36,7 @@ export function afterMatch(c: Campaign, w: World, headline: string): Campaign {
   if (f.ejections || st.banned.includes(pc.faceId)) fame++;
   if (f.unmasked || seenSerious) fame++;
   if (f.detentions) fame++;
+  if (st.incidents.some((i) => i.by === pc.id && i.severity >= 4 && i.seenBy > 0)) fame += 2;
   const stash = [...c.stash, ...kept];
   return {
     fixture: c.fixture + 1,

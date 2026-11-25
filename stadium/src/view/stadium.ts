@@ -28,6 +28,7 @@ import { drawFigure, headTop, type FigureStyle } from "./figures";
 import { drawBall, drawGoalFrame, drawPitch } from "./pitchArt";
 import { Projection } from "./projection";
 import { Audio, type Clip } from "./audio";
+import { Drive3D, type DriveView } from "./drive3d";
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 /** Screen pixels per metre at zoom 1: matches 48px character art drawn at 1:1. */
@@ -56,6 +57,9 @@ class StadiumScene extends Phaser.Scene {
   keys!: Record<string, Phaser.Input.Keyboard.Key>;
   joyId = -1; joyOx = 0; joyOy = 0; jx = 0; jy = 0;
   picked: string | null = null;
+  flash: { x: number; y: number; until: number } | null = null;
+  d3!: Drive3D;
+  driveView: DriveView = (() => { try { return (localStorage.getItem("kd-drive") as DriveView) || "chase"; } catch { return "chase" as DriveView; } })();
   opts: Option[] = [];
   lines: TickerLine[] = [];
   sheetKind: string | null = null;
@@ -76,6 +80,7 @@ class StadiumScene extends Phaser.Scene {
     this.crowdG = this.add.graphics();
     this.g = this.add.graphics();
     this.ui = this.add.graphics().setDepth(10);
+    this.d3 = new Drive3D(this);
     for (let i = 0; i < 10; i++) {
       this.bubbles.push(this.add.text(0, 0, "", {
         fontFamily: "system-ui, sans-serif", fontSize: "12px", color: "#10140f", backgroundColor: "#f4f1ea",
@@ -99,11 +104,12 @@ class StadiumScene extends Phaser.Scene {
   newGame(campaign: Campaign = newCampaign()) {
     this.game2 = createGame(`day${Date.now() % 100000}`, FIXTURES[campaign.fixture] ?? "qf", campaign);
     this.introFor(campaign);
+    this.d3?.buildCrowd(this.s.match!.teams[1]);
     const w = this.w;
     new Commentator(w, w.bus, (l) => this.matchLine(l.text, l.big));
     const TANNOY: Record<string, Clip> = { welcome: VENUE.id === "qf" ? "tannoy_welcome" : "tannoy_welcome_sf", lorry: "tannoy_lorry", pitch: "tannoy_pitch", "2min": "tannoy_2min", teams: "tannoy_teams", cleaner: "tannoy_cleaner", flares: "tannoy_flares", cameras: "tannoy_cameras",
       delay_late: "tannoy_delay_late", delay_ref: "tannoy_delay_ref", delay_pitch: "tannoy_delay_pitch", delay_safety: "tannoy_delay_safety", delay_again: "tannoy_delay_again",
-      alarm: "tannoy_alarm", breach: "tannoy_breach", forfeit: "tannoy_forfeit" };
+      alarm: "tannoy_alarm", breach: "tannoy_breach", forfeit: "tannoy_forfeit", incident: "tannoy_incident" };
     const ann = new Announcer(w, (a) => {
       this.say(a.text, a.src === "tannoy" ? "Tannoy" : "Commentary", a.big);
       const clip = a.key ? (TANNOY[a.key] ?? (a.key.startsWith("cam") ? "tannoy_supervisor" : undefined)) : undefined;
@@ -125,6 +131,12 @@ class StadiumScene extends Phaser.Scene {
       if (e.type === "escort_cut" && e.who === this.s.stadium!.pc) { const f = $("fade"); f.classList.add("on"); setTimeout(() => f.classList.remove("on"), 450); }
       if (e.type === "broke_free" && e.who === this.s.stadium!.pc) this.hint("You broke free. Run!");
       if (e.type === "winded") this.hint("You're out of breath.");
+      if (e.type === "bus_stolen" && e.by === this.s.stadium!.pc) this.hint(this.driveView === "map" ? "Steer with the stick. The view button (top right) switches to Chase or Cab." : "Up to go, down to brake, left and right to steer. The view button switches Chase, Cab and Map.");
+      if (e.type === "killed" && e.by === this.s.stadium!.pc) this.hint("He's dead. You're covered in his blood: change your top or everyone will see it.");
+      if (e.type === "armed_called") this.hint("Someone's called the armed police. You've got about forty seconds.");
+      if (e.type === "armed_challenge") this.hint("Drop the knife and stand still, or run for it.");
+      if (e.type === "flayed") this.hint(e.part === "face" ? "In your pocket. Wear it and you'll pass for him, from a distance." : "In your pocket. Some doors have palm readers.");
+      if (e.type === "service_dog") this.hint(e.ok ? "He bought it. The dog's coming in with you." : "He didn't buy it. Try another turnstile, or another approach.");
       if (e.type === "breach") this.hint("Through the wall. Your ears are ringing. Get moving before the police get here.");
       if (e.type === "kickoff_delayed" && (e.n === 1 || e.n === 4)) this.hint(e.n === 1 ? "Kick-off delayed. The stewards will be keener now." : "The referee won't wait much longer.");
       if (e.type === "planted" && e.by === this.s.stadium!.pc) this.hint("Planted. Nobody noticed.");
@@ -229,12 +241,18 @@ class StadiumScene extends Phaser.Scene {
         if (e.action.verb === "strike") { const by = s.actors[e.action.actor]; if (by) a.play("punch", 0.3 + near(by.x, by.y) * 0.7); }
         break;
       case "smoke": a.play("flare", 0.4 + near(e.x, e.y, 40) * 0.6); break;
-      case "dog_bite": a.play("bark", 0.4 + near(s.actors[e.who]?.x ?? 0, s.actors[e.who]?.y ?? 0, 30) * 0.6, { minGap: 0.6 }); a.play("punch", 0.5); break;
+      case "dog_bite": { const v = s.actors[e.who]; const k = near(v?.x ?? 0, v?.y ?? 0, 30); if (e.maul) a.play("dog_maul", 0.3 + k * 0.7, { minGap: 1.2 }); else { a.play("bark", 0.4 + k * 0.6, { minGap: 0.6 }); a.play("punch", 0.5); } break; }
       case "dog_loose": a.play("bark", 1, { minGap: 0.3 }); break;
-      case "bus_hit": a.play("punch", 0.9); a.play("horn", 0.6, { minGap: 1 }); break;
-      case "bus_wall": a.play("punch", 1, { rate: 0.6 }); break;
-      case "breach": a.play("wall_crash", 0.5 + near(e.x, e.y, 80) * 0.5); break;
+      case "bus_hit": { a.play("punch", 0.9); a.play("horn", 0.6, { minGap: 1 }); const v = s.stadium!.vehicles.bus; if (v) this.d3.hit(s, e.who, e.hard, v.facing, v.speed); break; }
+      case "bus_wall": a.play("punch", 1, { rate: 0.6 }); this.d3.wall(s, false); break;
+      case "breach": a.play("wall_crash", 0.5 + near(e.x, e.y, 80) * 0.5); this.d3.wall(s, true); break;
       case "fire_alarm": a.play("fire_alarm", 0.4 + near(e.x, e.y, 50) * 0.6); break;
+      case "gunshot": a.play("gunshot", 0.5 + near(e.x, e.y, 60) * 0.5, { minGap: 0.15 }); this.flash = { x: e.x, y: e.y, until: s.tick + 5 }; break;
+      case "killed": a.play("scream", 0.3 + near(e.x, e.y, 30) * 0.7, { minGap: 1 }); a.play("punch", 0.7); break;
+      case "body_found": a.play("scream", 0.3 + near(e.x, e.y, 40) * 0.7, { minGap: 2 }); break;
+      case "armed_challenge": { const o = s.actors[e.by]; if (o) a.play("armed_police", 0.4 + near(o.x, o.y, 35) * 0.6, { minGap: 3 }); break; }
+      case "disarmed": a.play("stw_knife", 1); break;
+      case "dog_sicced": a.play("bark", 1, { minGap: 0.3 }); break;
       case "bus_crash": a.play("punch", 1, { rate: 0.5 }); a.play("horn", 0.7, { rate: 0.8 }); break;
       case "bus_sanction": a.play(e.reversed ? "boo" : "goal_roar", 0.8, { minGap: 2 }); break;
       case "say": {
@@ -322,7 +340,8 @@ class StadiumScene extends Phaser.Scene {
       for (let y = a.y + 0.6; y < a.y + a.h - 0.3; y += 1.1) {
         for (let x = a.x + 0.6; x < a.x + a.w - 0.3; x += 0.9) {
           if (rnd() < 0.42) continue;
-          const shirt = away ? (rnd() < 0.7 ? 0xb3122a : 0x0b6b3a) : rnd() < 0.55 ? 0xf4f4f4 : rnd() < 0.5 ? 0xc8102e : 0x1b2a6b;
+          const opp = this.s.match!.teams[1];
+          const shirt = away ? (rnd() < 0.7 ? opp.colour : opp.colour2) : rnd() < 0.55 ? 0xf4f4f4 : rnd() < 0.5 ? 0xc8102e : 0x1b2a6b;
           const sx = P.sx(x, y), sy = P.sy(x, y);
           const h = (P.standing ? 0.9 * P.KZ : 0.3) * P.S;
           g.fillStyle(shirt, 1).fillRect(sx - P.S * 0.28, sy - h, P.S * 0.56, h);
@@ -360,14 +379,38 @@ class StadiumScene extends Phaser.Scene {
     if (st.ending && $("ending").hidden && !this.endingShown) { this.endingShown = true; this.showEnding(); }
     if (!st.ending) this.endingShown = false;
     this.draw(dms);
+    const driving = st.vehicles.bus?.drivenBy === this.pc?.id;
+    ($("viewBtn") as HTMLElement).hidden = !driving;
+    if (this.inCab()) this.d3.draw(this.s, this.driveView, this.scale.width, this.scale.height, (a) => this.styleOf(a), this.pc.drive?.steer ?? 0, this.cameras.main.zoom);
+    else { this.d3.hide(); this.d3.hideSpeed(); }
     this.drawHud();
     if ((this.s.tick & 15) === 0) this.updateCrowd();
+  }
+
+  /** Behind the wheel, in one of the 3D views? */
+  inCab(): boolean { return this.s.stadium!.vehicles.bus?.drivenBy === this.pc?.id && this.driveView !== "map"; }
+
+  cycleDriveView() {
+    const order: DriveView[] = ["chase", "cab", "map"];
+    this.driveView = order[(order.indexOf(this.driveView) + 1) % order.length];
+    try { localStorage.setItem("kd-drive", this.driveView); } catch { /* ignore */ }
+    $("viewBtn").textContent = this.driveView === "chase" ? "Chase" : this.driveView === "cab" ? "Cab" : "Map";
   }
 
   applyInput() {
     const pc = this.pc;
     if (!pc) return;
     const k = this.keys;
+    if (this.inCab()) {
+      // Wheel and pedals: up to go, down to brake and reverse, left and right to steer.
+      let steer = (k.D.isDown || k.RIGHT.isDown ? 1 : 0) - (k.A.isDown || k.LEFT.isDown ? 1 : 0);
+      let throttle = (k.W.isDown || k.UP.isDown ? 1 : 0) - (k.S.isDown || k.DOWN.isDown ? 1 : 0);
+      if (this.joyId !== -1) { steer = clamp(this.jx, -1, 1); throttle = clamp(-this.jy, -1, 1); if (Math.abs(throttle) < 0.2) throttle = 0; }
+      pc.drive = { steer, throttle };
+      pc.moveX = pc.moveY = 0;
+      return;
+    }
+    if (pc.drive) pc.drive = undefined;
     let x = (k.D.isDown || k.RIGHT.isDown ? 1 : 0) - (k.A.isDown || k.LEFT.isDown ? 1 : 0);
     let y = (k.S.isDown || k.DOWN.isDown ? 1 : 0) - (k.W.isDown || k.UP.isDown ? 1 : 0);
     let run = k.SHIFT.isDown;
@@ -390,7 +433,7 @@ class StadiumScene extends Phaser.Scene {
   styleOf(a: Actor): FigureStyle {
     const s = this.s, tick = s.tick, m = s.match!;
     const skin = SKIN[Math.abs(hash(a.id)) % SKIN.length];
-    const down = a.downUntil > tick || (a.fb ? a.fb.stunUntil > tick + 20 : false);
+    const down = !!a.dead || a.downUntil > tick || (a.fb ? a.fb.stunUntil > tick + 20 : false);
     if (a.fb && a.fb.controlled) {
       // Him, in the kit: same belly, new colours.
       const team = m.teams[a.fb.team];
@@ -420,8 +463,14 @@ class StadiumScene extends Phaser.Scene {
     const hat = headDef ? headDef.colour ?? 0x101830 : null;
     const face = faceDef ? { colour: faceDef.colour ?? 0xf0a0c0, kind: (faceDef.faceCover ?? 0) >= 1 ? "full" as const : faceDef.id === "moustache" ? "tache" as const : "glasses" as const } : null;
     const isPc = a.id === s.stadium!.pc;
+    if (job === "armed") { shirt = 0x1a1d22; trim = 0x0a0a0a; }
+    // A borrowed face: their skin, not his, and nothing drawn over it.
+    const borrowed = a.worn.face && s.items[a.worn.face].def === "face" ? s.items[a.worn.face].of : undefined;
+    let skin2 = borrowed ? SKIN[Math.abs(hash(borrowed)) % SKIN.length] : skin;
+    if (s.stadium!.flags[`face_${a.id}`]) skin2 = 0x8a1a1a;
+    if ((a.effects.bloody ?? 0) > tick) trim = 0x9a0a0a;
     return {
-      shirt, trim, shorts: 0x2b3b55, skin, down, vest, hat, face,
+      shirt, trim, shorts: 0x2b3b55, skin: skin2, down: down || !!a.dead, vest: job === "armed" ? 0x2a2d33 : vest, hat: job === "armed" ? 0x15171a : hat, face: borrowed ? null : face,
       girth: isPc ? 1.75 : a.npc?.job === "fan" || a.npc?.job === "local" ? 1.1 + (Math.abs(hash(a.id)) % 5) * 0.08 : 1,
       height: a.seated ? 1.2 : isPc ? 1.75 : 1.8,
       ring: isPc ? 0xffffff : null,
@@ -553,8 +602,9 @@ class StadiumScene extends Phaser.Scene {
     // People.
     for (const id in s.actors) {
       const a = s.actors[id];
-      if (a.hiddenIn || (a.fb && a.fb.status === "gone")) continue;
+      if (a.hiddenIn || (a.fb && a.fb.status === "gone" && !a.dead)) continue;
       if (!onScreen(a.x, a.y)) continue;
+      if (a.dead) things.push({ d: a.y - 0.4, draw: () => g.fillStyle(0x6a0a0a, 0.85).fillEllipse(P.sx(a.x, a.y), P.sy(a.x, a.y), P.S * 2.4, P.S * (P.standing ? 1.1 : 1.8)) });
       if (a.npc?.job === "dog") { things.push({ d: a.y, draw: () => this.drawDog(a) }); continue; }
       const st2 = this.styleOf(a), moving = Math.hypot(a.vx, a.vy) > 0.4;
       things.push({ d: a.y, draw: () => drawFigure(g, P, a.x, a.y, a.facing, st2, tick + hash(a.id), moving) });
@@ -575,6 +625,13 @@ class StadiumScene extends Phaser.Scene {
         g.fillStyle(i % 2 ? 0xd9d9d4 : 0xbfc0bb, 0.55 * Math.min(1, left * 3)).fillEllipse(P.sx(x, y), P.sy(x, y, 1.2), c.r * P.S * 0.9, c.r * P.S * 0.6 * (P.standing ? P.K : 1));
       }
       g.fillStyle(0xff5a36, 0.8).fillCircle(P.sx(c.x, c.y), P.sy(c.x, c.y), 3);
+    }
+
+    // Muzzle flash.
+    if (this.flash && this.flash.until > tick) {
+      const fx = P.sx(this.flash.x, this.flash.y), fy = P.sy(this.flash.x, this.flash.y, P.standing ? 1.3 : 0);
+      g.fillStyle(0xfff2a0, 0.95).fillCircle(fx, fy, P.S * 0.35);
+      if (pc) g.lineStyle(1.5, 0xfff2a0, 0.6).lineBetween(fx, fy, P.sx(pc.x, pc.y), P.sy(pc.x, pc.y, P.standing ? 1.1 : 0));
     }
 
     // Crowd bounce after a goal.
@@ -673,7 +730,7 @@ class StadiumScene extends Phaser.Scene {
 
     // Buttons.
     if (s.tick % 6 === 0 || !this.opts.length) {
-      this.opts = options(this.w, pc);
+      this.opts = options(this.w, pc, this.picked);
       const p = primary(this.opts);
       const act = $<HTMLButtonElement>("act");
       act.disabled = !p;
@@ -874,6 +931,8 @@ class StadiumScene extends Phaser.Scene {
     try { const z = +(localStorage.getItem("kd-zoom") ?? 1); if ([1, 1.5, 2].includes(z)) this.zoomLevel = z; } catch { /* ignore */ }
     $("zoomBtn").textContent = `${this.zoomLevel}×`;
     $("zoomBtn").addEventListener("click", () => this.cycleZoom());
+    $("viewBtn").textContent = this.driveView === "chase" ? "Chase" : this.driveView === "cab" ? "Cab" : "Map";
+    $("viewBtn").addEventListener("click", () => this.cycleDriveView());
     $("menuBtn").addEventListener("click", () => (this.sheetKind === "menu" ? (this.closeSheet(), this.setSpeed(1)) : this.openMenu()));
     for (const n of [1, 2, 4]) $("sp" + n).addEventListener("click", () => this.setSpeed(n));
     const onSheetClick = (ev: Event) => {

@@ -4,7 +4,7 @@ import { chance, pick, rnd, rndRange } from "../core/rng";
 import { DT, type Actor, type Role } from "../core/types";
 import { spawnActor, type World } from "../core/world";
 import { HL } from "../football/config";
-import { AREAS, areaById, SPOTS, TURNSTILES, VENUE } from "./layout";
+import { AREAS, areaById, KICKOFF_AT, SPOTS, TURNSTILES, VENUE } from "./layout";
 import { findPath } from "./nav";
 import type { Job, Npc, Task } from "./state";
 
@@ -117,8 +117,11 @@ function routine(w: World, a: Actor): void {
         return;
       }
       if (n.stage === 0) {
-        n.stage = 1;
-        if (chance(r, 0.35) && t < 200) later({ k: "go", ...randIn(w, "pub", 3) }, { k: "wait", s: rndRange(r, 20, 70) });
+        // Most hang about outside first: the pub, the approach, the car park. Then they go in, in a rush near the end.
+        n.goInAt ??= KICKOFF_AT - (chance(r, 0.25) ? rndRange(r, 140, 240) : rndRange(r, 20, 140));
+        if (t >= n.goInAt) { n.stage = 1; return; }
+        const where = n.team === 1 ? pick(r, ["plaza", "carpark", "plaza"]) : pick(r, ["pub", "pub", "pub_yard", "plaza", "plaza"]);
+        later({ k: "go", ...randIn(w, where, 2) }, { k: "wait", s: Math.min(rndRange(r, 10, 35), Math.max(1, n.goInAt - t)) });
         return;
       }
       if (n.stage === 1) {
@@ -252,6 +255,8 @@ function teamWalk(w: World, a: Actor): void {
 export function stepNpc(w: World, a: Actor): void {
   const n = a.npc!, tick = w.state.tick;
   if (n.bubble && tick > n.bubble.until) n.bubble = null;
+  if (a.dead) { a.moveX = a.moveY = 0; return; }
+  if (n.job === "armed") return; // armed officers are moved by knife.ts
   if (n.job === "player" || n.job === "official") { teamWalk(w, a); return; }
   if (n.job === "dog") return; // the dog has a mind of its own (see dog.ts)
   if (a.downUntil > tick || a.heldBy) { a.moveX = a.moveY = 0; return; }

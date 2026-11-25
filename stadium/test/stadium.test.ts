@@ -7,6 +7,7 @@ import { dispatch } from "../src/core/verbs";
 import { createGame, loadCheckpoint, stepGame, type Game } from "../src/stadium/game";
 import { areaAt, SPOTS } from "../src/stadium/layout";
 import { canSee, witnessesOf } from "../src/stadium/security";
+import { callArmed } from "../src/stadium/knife";
 import { aimThrow } from "../src/stadium/context";
 
 const pcOf = (g: Game) => g.w.state.actors[g.w.state.stadium!.pc];
@@ -669,4 +670,140 @@ test("driven gently into a wall, the bus just bumps it", () => {
   run(g, 4, () => { pc.moveX = 0; pc.moveY = -0.35; });
   assert.equal(st.breaches.length, 0);
   assert.ok(!v.crashed);
+});
+
+// ---------- The dog, on command ----------
+function leadDog(g: Game) {
+  const s = g.w.state, pc = pcOf(g), d = s.stadium!.dog!;
+  const dog = s.actors[d.id];
+  d.state = "led"; dog.x = pc.x - 1; dog.y = pc.y;
+  return { d, dog };
+}
+
+test("with the dog at the turnstile, 'it's a service dog' sometimes works and lets you both in", () => {
+  let ok = 0, no = 0;
+  for (let k = 0; k < 8; k++) {
+    const g = createGame(`svc${k}`);
+    const s = g.w.state, pc = pcOf(g);
+    const t = find(g, (a) => a.npc?.job === "turnstile");
+    pc.x = t.x; pc.y = t.y + 1.6;
+    leadDog(g);
+    const res = dispatch(g.w, { verb: "servicedog", actor: pc.id, target: { k: "actor", id: t.id } });
+    assert.equal(res.ok, true);
+    if (s.stadium!.flags.serviceDog) {
+      ok++;
+      const ticket = spawnItem(s, "ticket", { k: "hand", a: pc.id });
+      dispatch(g.w, { verb: "show", actor: pc.id, item: ticket.id, target: { k: "actor", id: t.id } });
+      assert.ok(Object.values(s.stadium!.gates).some((gt) => gt.for === pc.id && gt.until > s.tick), "gate opens with the dog");
+    } else {
+      no++;
+      assert.equal(dispatch(g.w, { verb: "servicedog", actor: pc.id, target: { k: "actor", id: t.id } }).ok, false, "not twice to the same steward");
+    }
+  }
+  assert.ok(ok > 0 && no > 0, `${ok} believed, ${no} not`);
+});
+
+test("held by a steward, set the dog on him: he lets go, gets mauled, and the dog comes back", () => {
+  const g = createGame("sic");
+  const s = g.w.state, pc = pcOf(g), st = s.stadium!;
+  run(g, 30);
+  const stw = find(g, (a) => a.npc?.job === "patrol");
+  pc.x = stw.x + 1; pc.y = stw.y;
+  pc.heldBy = stw.id; stw.npc!.target = pc.id; stw.npc!.mode = "escort"; stw.npc!.intent = "eject";
+  stw.npc!.escortTo = { x: SPOTS.ejectPoint.x, y: SPOTS.ejectPoint.y }; stw.npc!.escortAt = s.tick;
+  const { d } = leadDog(g);
+  const events: any[] = [];
+  g.w.bus.on((e) => events.push(e));
+  assert.equal(dispatch(g.w, { verb: "sic", actor: pc.id, target: { k: "actor", id: stw.id } }).ok, true);
+  run(g, 4);
+  assert.ok(events.some((e) => e.type === "broke_free" && e.from === stw.id), "he let go");
+  assert.ok(events.some((e) => e.type === "mauled" && e.who === stw.id));
+  assert.ok(stw.downUntil > s.tick, "he's down");
+  assert.ok(events.some((e) => e.type === "mauled") && d.state !== "sicced", `dog is ${d.state}`);
+  assert.ok(st.incidents.some((i) => i.what.includes("dog")));
+});
+
+test("set on a footballer, the dog leaves him with an injury", () => {
+  const g = createGame("sicfb");
+  const s = g.w.state, pc = pcOf(g), m = s.match!;
+  run(g, 400);
+  const star = s.actors[m.teams[1].squad[9]];
+  pc.x = star.x; pc.y = star.y + 6;
+  leadDog(g);
+  const events: any[] = [];
+  g.w.bus.on((e) => events.push(e));
+  dispatch(g.w, { verb: "sic", actor: pc.id, target: { k: "actor", id: star.id } });
+  run(g, 15);
+  const mauled = events.find((e) => e.type === "mauled" && e.who === star.id);
+  assert.ok(mauled, "mauled");
+  assert.ok(typeof mauled.injury === "string" && mauled.injury.length > 3);
+});
+
+// ---------- Knives ----------
+test("a knife kills; the face comes off and passes you off as him", () => {
+  const g = createGame("knife");
+  const s = g.w.state, pc = pcOf(g), st = s.stadium!;
+  run(g, 20);
+  const knife = spawnItem(s, "knife", { k: "hand", a: pc.id });
+  const victim = find(g, (a) => a.npc?.job === "local");
+  pc.x = victim.x + 0.8; pc.y = victim.y;
+  assert.equal(dispatch(g.w, { verb: "strike", actor: pc.id, item: knife.id, target: { k: "actor", id: victim.id } }).ok, true);
+  assert.ok(victim.dead);
+  assert.ok(appearance(s, pc).alarming, "covered in blood");
+  run(g, 1);
+  assert.equal(dispatch(g.w, { verb: "flay", actor: pc.id, arg: "face", target: { k: "actor", id: victim.id } }).ok, true);
+  assert.equal(dispatch(g.w, { verb: "flay", actor: pc.id, arg: "face", target: { k: "actor", id: victim.id } }).ok, false, "only one face");
+  const face = Object.values(s.items).find((i) => i.def === "face")!;
+  assert.ok(face && face.label?.includes(victim.name));
+  run(g, 3);
+  dispatch(g.w, { verb: "wear", actor: pc.id, item: face.id });
+  assert.equal(appearance(s, pc).faceId, victim.faceId);
+  assert.ok(appearance(s, pc).grisly);
+  assert.ok((st.flags.killings ?? 0) >= 1);
+});
+
+test("armed police, once called, shoot a man who keeps hold of his knife and keeps moving", () => {
+  let shot = 0;
+  for (let k = 0; k < 3 && !shot; k++) {
+    const g = createGame(`armed${k}`);
+    const s = g.w.state, pc = pcOf(g), st = s.stadium!;
+    run(g, 20);
+    const knife = spawnItem(s, "knife", { k: "hand", a: pc.id });
+    callArmed(g.w, pc.x, pc.y);
+    run(g, 42);
+    assert.ok(st.flags.armedDeployed, "they come");
+    // Stand by the van, knife out, and jog on the spot.
+    const o = find(g, (a) => a.npc?.job === "armed");
+    run(g, 20, () => { pc.x = o.x + 6; pc.y = o.y; pc.moveX = Math.sin(s.tick * 0.1); pc.moveY = 0; pc.downUntil = 0; pc.hand = knife.id; });
+    if (st.ending?.kind === "shot") shot++;
+  }
+  assert.ok(shot > 0, "shot");
+});
+
+test("drop the knife and stand still for armed police and you're arrested instead", () => {
+  const g = createGame("comply");
+  const s = g.w.state, pc = pcOf(g), st = s.stadium!;
+  run(g, 20);
+  callArmed(g.w, pc.x, pc.y);
+  run(g, 42);
+  pc.effects.bloody = s.tick + 6000;
+  const o = find(g, (a) => a.npc?.job === "armed");
+  run(g, 10, () => { pc.x = o.x + 5; pc.y = o.y; pc.moveX = pc.moveY = 0; });
+  assert.equal(st.ending?.kind, "arrested");
+});
+
+test("at the semi-final, a steward's hands get you through the staff door", () => {
+  const g = createGame("palm", "sf");
+  const s = g.w.state, pc = pcOf(g), st = s.stadium!;
+  run(g, 20);
+  const stw = find(g, (a) => a.npc?.role === "steward" && a.npc.job === "patrol");
+  stw.dead = true;
+  const hands = spawnItem(s, "hands", { k: "pocket", a: pc.id });
+  hands.of = stw.id;
+  const vest = spawnItem(s, "hivis", { k: "hand", a: pc.id });
+  dispatch(g.w, { verb: "wear", actor: pc.id, item: vest.id });
+  run(g, 2);
+  pc.x = SPOTS.staffDoor.x; pc.y = SPOTS.staffDoor.y + 1.5;
+  run(g, 2);
+  assert.equal(st.doorPass, pc.id, "waved through");
 });

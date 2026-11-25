@@ -1,6 +1,7 @@
 // Stadium-specific actions and how the world reacts to them. Nothing here knows
 // about "tricks": a pie that hits the referee distracts him because thrown things
 // that hit people distract them.
+import { sharpInHand, stab, staffHands } from "./knife";
 import { appearance } from "../core/identity";
 import { canPocket, defOf, hasProp, ITEM_DEFS, moveItem, spawnItem } from "../core/items";
 import { chance, pick, rndRange } from "../core/rng";
@@ -254,6 +255,7 @@ export function installRules(): void {
     check: strike.check,
     perform: (w, act, actor, item) => {
       const t = targetActor(w, act)!;
+      if (sharpInHand(w, actor) && !t.dead) return stab(w, actor, t);
       const weapon = !!item && hasProp(item, "weapon") && actor.hand === item.id;
       strike.perform(w, act, actor, item);
       const official = !!t.off, player = !!t.fb && t.fb.status === "playing";
@@ -406,17 +408,17 @@ function turnstileCheck(w: World, act: Action): void {
   const g = turnstileNear(t) ?? turnstileNear(by);
   if (!g?.gate) return;
   if (it.def !== "ticket") return void say(w, t, "That's not a ticket, is it?");
-  if (st.dog?.state === "led") return void say(w, t, "No dogs. Not even that one. Especially not that one.");
+  if (st.dog?.state === "led" && !st.flags.serviceDog) return void say(w, t, "No dogs. Not even that one. Especially not that one.");
   if (it.void) { n.sus[by.id] = Math.max(n.sus[by.id] ?? 0, 0.6); return void say(w, t, "This ticket's been cancelled. Hop it."); }
   if (it.used) return void say(w, t, "This one's already been scanned.");
   if (ap.faceHidden) return void say(w, t, ap.sinister ? "You're not coming in dressed like that." : "Mask off, please.");
   // The cameras: a barred face is flagged unless at least half of it is covered.
-  if (VENUE.features.faceCameras && st.banned.includes(by.faceId) && ap.faceCover < 0.5) {
+  if (VENUE.features.faceCameras && st.banned.includes(ap.faceId) && ap.faceCover < 0.5) {
     n.sus[by.id] = Math.max(n.sus[by.id] ?? 0, 0.8);
     w.bus.emit({ type: "camera_flag", t: s.tick, who: by.id });
     return void say(w, t, "Camera's flagged you, sunshine. You're on the list.", 4);
   }
-  if (st.banned.includes(by.faceId) && chance(r, 1 - ap.faceCover)) { n.sus[by.id] = 0.7; return void say(w, t, "Hang on. You're the one we threw out. Go on, hop it."); }
+  if (st.banned.includes(ap.faceId) && chance(r, 1 - ap.faceCover)) { n.sus[by.id] = 0.7; return void say(w, t, "Hang on. You're the one we threw out. Go on, hop it."); }
   if (by.hand && s.items[by.hand].def === "pint") { moveItem(s, by.hand, { k: "gone" }); say(w, t, "No drinks inside. I'll have that."); }
   if (ap.alarming) { crime(w, by, "carrying a weapon at the gate", 2); return; }
   // A pat-down misses some of what is in pockets; a metal detector misses nothing metal.
@@ -521,8 +523,8 @@ export function stepRules(w: World): void {
   const dg = Object.values(s.actors).find((a) => a.npc?.job === "doorguard");
   if (dg && dg.npc!.mode === "routine" && near(dg, SPOTS.doorPost, 2) && near(pc, SPOTS.staffDoor, 3.2) && tick % 20 === 0) {
     const ap = appearance(s, pc);
-    const wanted = (dg.npc!.sus[pc.id] ?? 0) > 0.4 || (st.banned.includes(pc.faceId) && ap.faceCover < 0.5) || ap.sinister;
-    const pass = [pc.hand, ...pc.pockets].some((id) => id && s.items[id].def === "staff_pass");
+    const wanted = (dg.npc!.sus[pc.id] ?? 0) > 0.4 || (st.banned.includes(ap.faceId) && ap.faceCover < 0.5) || ap.sinister || ap.grisly;
+    const pass = [pc.hand, ...pc.pockets].some((id) => id && (s.items[id].def === "staff_pass" || (s.items[id].def === "hands" && staffHands(w, s.items[id]))));
     if (VENUE.features.staffPass && !pass && ["steward", "police", "catering", "cleaner"].includes(ap.role) && !wanted) {
       if (!dg.npc!.bubble) say(w, dg, "Pass, please. ...No pass, no entry. Rules.");
     } else if (["steward", "police", "catering", "cleaner"].includes(ap.role) && !wanted) {

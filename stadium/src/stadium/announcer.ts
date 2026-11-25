@@ -9,6 +9,8 @@ export interface Announcement { t: number; text: string; src: "tannoy" | "commen
 
 const TEAMNAME: Record<string, string> = { ENG: "England", POR: "Portugal", ARG: "Argentina", BRA: "Brazil" };
 
+const isOfficialish = (a: { npc?: { job: string } }) => !!a.npc && ["turnstile", "doorguard", "gateguard", "pitchsteward", "patrol", "corridor", "chief", "police"].includes(a.npc.job);
+
 export class Announcer {
   private said = new Set<string>();
   private lastDelay = "";
@@ -172,6 +174,27 @@ export class Announcer {
           ? `We're getting reports that a team coach has come through the wall of the ${String(e.into).replace(/^The /, "")}. It was not expected.`
           : `A team coach has been driven through the wall of ${e.into}.`, src: "commentary", big: true });
         if (e.ground) this.once("breach", "Would supporters please keep away from the damaged section of the outer wall.", "tannoy", false);
+        break;
+      case "killed": {
+        const v = s.actors[e.who];
+        if (e.referee) this.out({ t: e.t, text: "We're hearing the referee has been... I'm being told we can't say what's happened to the referee.", src: "commentary", big: true });
+        else if (e.footballer && v) this.out({ t: e.t, text: `${v.name} is down, and he is not getting up. The medical staff have stopped running.`, src: "commentary", big: true });
+        break;
+      }
+      case "body_found":
+        if (!this.said.has("incident")) { this.said.add("incident"); this.out({ t: e.t, text: "Ladies and gentlemen, please remain calm and stay in your seats. Police are dealing with an incident inside the ground.", src: "tannoy", big: true, key: "incident" }); }
+        break;
+      case "armed_deployed":
+        this.out({ t: e.t, text: "Armed officers have arrived at the ground. The atmosphere is described as \"tense\", and \"still quite good\".", src: "commentary", big: true });
+        break;
+      case "mauled": {
+        const v = s.actors[e.who];
+        if (v && e.footballer) this.out({ t: e.t, text: `${v.name} has been savaged by a dog. The physio is treating ${e.injury}.`, src: "commentary", big: true });
+        else if (v && isOfficialish(v)) this.out({ t: e.t, text: `A steward has been mauled by a dog. Nobody is entirely sure whose side the dog is on.`, src: "commentary", big: false });
+        break;
+      }
+      case "service_dog":
+        if (e.ok) this.once("svcdog", "Would supporters please note that only registered assistance dogs are permitted in the ground.", "tannoy", false);
         break;
       case "security_level":
         if (e.level === 3) this.once("sec3", "Security has been visibly stepped up around the ground.", "commentary", false);

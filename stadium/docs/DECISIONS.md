@@ -160,3 +160,27 @@ Assets live in `assets/art` and `assets/audio`; raw API responses in `assets/raw
   there is a 15% chance of a hospital ending. Slower, the bus just bounces off.
   Holes are saved in the state; walls, paths and sight lines all use the walls
   with the holes cut out.
+
+## Dog commands, knives, driving views, crowds
+
+- The dog on a lead can be set on one person ("sic"): it paths round walls, bites three
+  times (a steward holding you lets go at the first), leaves an injury and comes back to
+  heel. Footballers get one of eight injuries, some of which they play on with. Setting
+  it on an official or steward is severity 3. Stewards can still catch it.
+- At a turnstile with the dog: "He's a service dog. For my autism." Works 75% at the
+  quarter-final, 50% at the semi-final, less as security rises; one try per steward.
+- A sharp weapon kills. Security staff facing you who are already after you may disarm
+  you (40%). Killing leaves you bloody (alarming) until you change your outer top.
+- Bodies: take the face (wearable; onlookers see that person's face, so bans, cameras
+  and wanted descriptions follow the face you wear; close up it's noticed) or the hands
+  (a staff member's hands work the palm reader on the semi-final staff door).
+- A seen killing, or a body found by anyone, calls armed police: 40 s later 4–6 officers
+  from the police van hunt the last known position. If they identify you, they challenge
+  once; empty hands and standing still = arrested; otherwise they fire every half second
+  (hit chance falls with distance and running). Misses can kill bystanders.
+- Driving views: Chase (default) and Cab are a pseudo-3D renderer in the manner of the
+  Krelworld Pseudo3D projector; Map is the old view. In 3D views the stick is wheel and
+  pedals (Actor.drive), not a compass direction. Juice from Krelworld's DriveScene: shake,
+  flash, streak callouts, flung bodies, blood and cracks on the windscreen.
+- Crowd: up to 240 walking supporters plus 70 already seated and 26 pub regulars. Most
+  mill about the pub, approach and car park until a personal time, then surge in.

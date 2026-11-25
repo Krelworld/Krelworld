@@ -216,7 +216,14 @@ export function driveBus(w: World, v: Vehicle, pc: Actor): void {
   // Steer towards the stick; push further for more throttle; pull back to brake and reverse.
   const ix = pc.moveX, iy = pc.moveY, mag = Math.min(1, Math.hypot(ix, iy));
   const f = fwd(v);
-  if (mag > 0.15) {
+  if (pc.drive) {
+    // From the cab: wheel and pedals, relative to the bus.
+    const { steer, throttle } = pc.drive;
+    v.facing += steer * Math.min(1.3, 0.2 + Math.abs(v.speed) * 0.12) * DT * Math.sign(v.speed || 1);
+    if (throttle > 0.05) v.speed = Math.min(13, v.speed + (v.speed < 0 ? 9 : 5) * throttle * DT);
+    else if (throttle < -0.05) v.speed = v.speed > 0.3 ? Math.max(0, v.speed - 10 * -throttle * DT) : Math.max(-4, v.speed - 4 * -throttle * DT);
+    else v.speed *= 1 - 0.7 * DT;
+  } else if (mag > 0.15) {
     const want = Math.atan2(iy, ix);
     let diff = want - v.facing;
     while (diff > Math.PI) diff -= 2 * Math.PI;

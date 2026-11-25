@@ -19,6 +19,8 @@ export function newsReport(w: World): Bulletin {
   let headline: string;
   if (f.forfeit === 1) headline = `England through after ${opp} "fail to turn up"`;
   else if (f.forfeit === 2) headline = `England go out without kicking a ball`;
+  else if (st.ending?.kind === "shot") headline = `Man shot dead by police at ${VENUE.round}`;
+  else if (f.killings) headline = `${f.killings === 1 ? "Death" : `${f.killings} deaths`} at England ${VENUE.round}`;
   else if (st.ending?.kind === "arrested") headline = `England supporter arrested at ${VENUE.round}`;
   else if (m.winner === 0) headline = f.refLax || f.impostorRulings || mine.some((i) => i.severity >= 2) ? `England through amid "unprecedented" scenes` : `England beat ${opp} to reach the ${VENUE.id === "qf" ? "semi-final" : "final"}`;
   else if (m.winner === 1) headline = `England knocked out by ${opp}`;
@@ -48,6 +50,10 @@ export function newsReport(w: World): Bulletin {
   if (f.kickoffDelays) lines.push(`Kick-off was delayed ${f.kickoffDelays === 1 ? "once" : `${f.kickoffDelays} times`}${f.kickoffDelays >= 4 ? `, by a total of ${Math.round(f.kickoffDelays * 0.75)} minutes. Broadcasters filled the time with a documentary about drainage` : ""}.`);
   if (f.alarms) lines.push(`The fire alarm went off ${f.alarms === 1 ? "once" : `${f.alarms} times`}. There was no fire. ${f.alarms > 1 ? "There was, the club says, \"a pattern\"." : ""}`);
   if (f.breachAt) lines.push(`A team coach was driven through ${st.breaches.length > 1 ? "several walls" : "a wall"} at the ground. A structural engineer said the stadium was "fine, other than the hole".`);
+  if (f.killings) lines.push(`${f.killings === 1 ? "One person was" : `${f.killings} people were`} stabbed to death at the ground. ${f.armedDeployed ? "Armed officers were deployed. " : ""}The match ${s.match!.phase === "pre" ? "did not go ahead" : "was not stopped"}.`);
+  if (f.trophies) lines.push(`Police say parts of ${f.trophies === 1 ? "one victim" : "the victims"} have not been recovered. They have asked supporters to "check their pockets".`);
+  if (f.maulings) lines.push(`A dog mauled ${f.maulings === 1 ? "one person" : `${f.maulings} people`}. Witnesses say it was "following instructions" from a heavy-set man in an England shirt.`);
+  if (f.serviceDog) lines.push(`Stadium staff have been reminded that a Staffordshire bull terrier in a Stone Island collar is not an assistance animal.`);
   if (f.flares) lines.push(`${f.flares === 1 ? "A smoke flare was" : `${f.flares} smoke flares were`} let off. The army surplus store next to the ground says it "only sells them for boats".`);
   if (f.pitchInvasions) lines.push(`A spectator ran onto the pitch${f.pitchInvasions > 1 ? ` ${f.pitchInvasions} times` : ""}. He was described as "large" and "not quick".`);
 

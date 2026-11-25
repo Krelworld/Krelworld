@@ -13,6 +13,7 @@ import { createDog, installDog, stepDog } from "./dog";
 import { stepKit } from "./kit";
 import { createBus, driveBus, installBus, stepBus, stepBusSanctions } from "./bus";
 import { installKickoff, stepKickoff } from "./kickoff";
+import { installKnife, stepArmed } from "./knife";
 import { installReactions, installRules, SHOPS, stepRules } from "./rules";
 import { isSecurity, stepDetention, stepSecurity } from "./security";
 import type { StadiumState } from "./state";
@@ -35,7 +36,7 @@ export const HALF_SECONDS = 450;
 export const HALFTIME_SECONDS = 150;
 
 export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: Campaign = newCampaign()): Game {
-  if (!rulesInstalled) { installRules(); installBetting(); installPolice(); installBus(); installDog(); installKickoff(); rulesInstalled = true; }
+  if (!rulesInstalled) { installRules(); installBetting(); installPolice(); installBus(); installDog(); installKickoff(); installKnife(); rulesInstalled = true; }
   setVenue(venueId);
   const oppKey = VENUE.opp;
   const opp = TEAMS[oppKey];
@@ -118,8 +119,8 @@ export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: 
   staff("cook", "catering", "Cook", SPOTS.kitchenSpot, S);
 
   // Locals: no ticket, plenty of opinions.
-  for (let i = 0; i < 8; i++) {
-    const p = i < 5 ? { x: rndRange(r, -58, -38), y: rndRange(r, 69, 78) } : { x: rndRange(r, -40, 40), y: rndRange(r, 50, 58) };
+  for (let i = 0; i < 26; i++) {
+    const p = i % 3 !== 2 ? { x: rndRange(r, -58, -38), y: rndRange(r, 69, 78) } : { x: rndRange(r, -40, 40), y: rndRange(r, 50, 58) };
     const a = spawnStaff(w, "local", "fan", pick(r, ["Big Kev", "Tel", "Mad Dog", "Sue", "Grandad", "Spencer", "Lisa", "Wolfie"]), p.x, p.y);
     a.money = Math.round(rndRange(r, 15, 90));
     a.npc!.post = undefined;
@@ -160,7 +161,7 @@ export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: 
   spawnItem(s, "tea_urn", { k: "ground", x: vx(1), y: -59 });
 
   // Supporters already in their seats; more arrive over the next few minutes.
-  for (let i = 0; i < 24; i++) giveFanThings(w, spawnFan(w, i % 6 === 5, true));
+  for (let i = 0; i < 70; i++) giveFanThings(w, spawnFan(w, i % 6 === 5, true));
 
   createDog(w);
   installReactions(w);
@@ -203,6 +204,10 @@ function collide(w: World, a: Actor): void {
   a.y = Math.max(BOUNDS.y + 1, Math.min(BOUNDS.y + BOUNDS.h - 1, a.y));
 }
 
+/** Walking supporters at once (on top of the painted crowd in the stands). */
+export const MAX_FANS = 240;
+const fanCount = (s: World["state"]) => { let n = 0; for (const id in s.actors) if (s.actors[id].npc?.job === "fan" && !s.actors[id].dead) n++; return n; };
+
 /** One fixed step of everything. */
 export function stepGame(g: Game): void {
   const w = g.w, s = w.state, st = s.stadium!;
@@ -212,7 +217,7 @@ export function stepGame(g: Game): void {
   const t = secs(w);
 
   // Supporters keep arriving until just after kick-off.
-  if (s.tick % (t < 150 ? 40 : 90) === 0 && t < KICKOFF_AT + 60 && Object.values(s.actors).filter((a) => a.npc?.job === "fan").length < 78) {
+  if (s.tick % (t < 150 ? 10 : t < KICKOFF_AT ? 20 : 60) === 0 && t < KICKOFF_AT + 60 && fanCount(s) < MAX_FANS) {
     const away = s.rng.world.a % 5 === 0;
     giveFanThings(w, spawnFan(w, away, false));
   }
@@ -258,6 +263,7 @@ export function stepGame(g: Game): void {
   stepDog(w);
   stepKit(w);
   stepKickoff(w);
+  stepArmed(w);
   stepRules(w);
   stepTipoffs(w);
   stepDetention(w);

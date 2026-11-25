@@ -3,7 +3,7 @@ import type { Id, Role } from "../core/types";
 
 export type Job =
   | "dog" | "fan" | "local" | "turnstile" | "doorguard" | "gateguard" | "pitchsteward" | "patrol" | "corridor" | "chief"
-  | "police" | "barman" | "seller" | "cleaner" | "driver" | "worker" | "cook" | "player" | "official";
+  | "police" | "barman" | "seller" | "cleaner" | "driver" | "worker" | "cook" | "player" | "official" | "armed";
 
 export type Task =
   | { k: "go"; x: number; y: number; run?: boolean }
@@ -55,6 +55,8 @@ export interface Npc {
   escortTo?: { x: number; y: number };
   /** Which shop this person serves at, if any. */
   shop?: string;
+  /** When a supporter stops milling about outside and heads for the turnstiles (seconds). */
+  goInAt?: number;
   /** Things this person might say when someone is near. */
   lines?: string[];
 }
@@ -114,7 +116,7 @@ export interface Incident {
   seenBy: number;
 }
 
-export interface Ending { kind: "arrested" | "eliminated" | "through" | "hospital"; title: string; text: string }
+export interface Ending { kind: "arrested" | "eliminated" | "through" | "hospital" | "shot"; title: string; text: string }
 
 export interface StadiumState {
   pc: Id;
@@ -141,7 +143,11 @@ export interface StadiumState {
   /** Item id of the locker where confiscated things go. */
   locker: Id;
   /** The dog: tied up, on a lead, loose or caught. */
-  dog: { id: Id; state: "tied" | "led" | "loose" | "caught"; target: Id | null; owner: Id; bitten: number; nextBite: number } | null;
+  dog: {
+    id: Id; state: "tied" | "led" | "loose" | "caught" | "sicced" | "returning"; target: Id | null; owner: Id; bitten: number; nextBite: number;
+    /** Bites into the current mauling. */
+    maul?: number;
+  } | null;
   /** Tip-offs the police are following up. */
   tipoffs: { target: Id; by: Id; officer: Id; at: number; stage: "going" | "waiting" | "done" }[];
   /** Clouds of smoke from flares. */

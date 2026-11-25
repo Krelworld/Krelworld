@@ -62,12 +62,14 @@ function wantedMatch(w: World, v: Actor, t: Actor): number {
   const seenFace = 1 - ap.faceCover;
   for (const wd of st.wanted) {
     if (wd.until < w.state.tick) continue;
-    if (wd.face === t.faceId && d < 5) m = Math.max(m, 0.9 * wd.severity * seenFace);
+    if (wd.face === ap.faceId && d < 5) m = Math.max(m, 0.9 * wd.severity * seenFace);
     // The same outfit is a strong match; the same shirt with a new hat or glasses, a weak one.
     if (wd.look === ap.look) m = Math.max(m, 0.45 * wd.severity);
     else if (wd.team === ap.team && wd.outer === outer && wd.role === ap.role) m = Math.max(m, 0.18 * wd.severity);
   }
-  if (st.banned.includes(t.faceId) && d < 4 && areaAt(t.x, t.y).access !== "public") m = Math.max(m, 0.8 * seenFace);
+  if (st.banned.includes(ap.faceId) && d < 4 && areaAt(t.x, t.y).access !== "public") m = Math.max(m, 0.8 * seenFace);
+  // Up close, a borrowed face or a pair of hands is noticed.
+  if (ap.grisly && d < 3) m = Math.max(m, 1.2);
   if (ap.sinister) m = Math.max(m, 0.5);
   return m;
 }
@@ -103,7 +105,7 @@ export function crime(w: World, by: Actor, what: string, severity: number, victi
   w.bus.emit({ type: "incident", t: s.tick, what, by: by.id, blamed: ap.team, severity, seen: seen.length, victim: victim?.id });
   if (!seen.length) return 0;
   st.wanted.push({
-    face: by.faceId, team: ap.team, role: ap.role, outer: by.worn.outer ? s.items[by.worn.outer].def : null, look: ap.look,
+    face: ap.faceId, team: ap.team, role: ap.role, outer: by.worn.outer ? s.items[by.worn.outer].def : null, look: ap.look,
     severity: Math.min(1, 0.35 + severity * 0.25), until: s.tick + 60 * 300, what,
   });
   let shouted = false;
@@ -150,7 +152,7 @@ function decideIntent(w: World, g: Actor, t: Actor): Npc["intent"] {
   if (n.crime >= 2) return "detain";
   if (area.pitch && !looksPermitted(w.state, t, area as any)) return "detain";
   if (n.crime >= 1) return "eject";
-  if (st.banned.includes(t.faceId) && area.access !== "public") return "eject";
+  if (st.banned.includes(appearance(w.state, t).faceId) && area.access !== "public") return "eject";
   if (st.warnings >= 2) return "eject";
   return "warn";
 }
@@ -353,7 +355,8 @@ export function eject(w: World, g: Actor | null, t: Actor): void {
     else if (hasProp(it, "weapon") || hasProp(it, "illicit") || hasProp(it, "substance")) { moveItem(s, id, { k: "in", c: st.locker }); taken.push(defOf(it).name.toLowerCase()); }
   }
   t.x = SPOTS.ejectPoint.x; t.y = SPOTS.ejectPoint.y + 1; t.heldBy = undefined; t.seated = false;
-  if (!st.banned.includes(t.faceId)) st.banned.push(t.faceId);
+  const seenFace = appearance(s, t).faceId;
+  if (!st.banned.includes(seenFace)) st.banned.push(seenFace);
   st.warnings = 0;
   st.detainedUntil = 0;
   if (g) say(w, g, "You're barred. Don't come back.");

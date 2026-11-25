@@ -1,6 +1,7 @@
 // What the player could do right now, given where he is and what he holds.
 // The view shows the best one on the action button and the rest in a list.
 import { alarmPointNear } from "./kickoff";
+import { sharpInHand } from "./knife";
 import { appearance } from "../core/identity";
 import { defOf, hasProp } from "../core/items";
 import type { Action, Actor, Item } from "../core/types";
@@ -19,16 +20,21 @@ export interface Option {
 }
 
 const lc = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
-export const itemName = (it: Item) => defOf(it).name;
+export const itemName = (it: Item) => it.label ?? defOf(it).name;
 export const personName = (a: Actor) => (a.fb ? `${a.name} (${a.fb.team === 0 ? "England" : "opposition"} ${a.fb.number})` : a.off ? (a.off.job === "referee" ? "the referee" : a.name.toLowerCase()) : a.name);
 
-export function options(w: World, pc: Actor): Option[] {
+export function options(w: World, pc: Actor, picked?: string | null): Option[] {
   const s = w.state, out: Option[] = [];
   const base = { actor: pc.id };
   const ok = (a: Action) => possibleVerbs(w, a as Omit<Action, "verb">).includes(a.verb);
   const push = (label: string, priority: number, action: Action) => { if (ok(action)) out.push({ label, priority, action }); };
 
-  if (pc.heldBy) return [{ label: "Struggle", priority: 100, action: { verb: "struggle", ...base } }];
+  if (pc.heldBy) {
+    const held: Option[] = [{ label: "Struggle", priority: 100, action: { verb: "struggle", ...base } }];
+    const holder = s.actors[pc.heldBy];
+    if (s.stadium!.dog?.state === "led" && holder) held.push({ label: `Set the dog on ${personName(holder)}`, priority: 101, action: { verb: "sic", ...base, target: { k: "actor", id: holder.id } } });
+    return held;
+  }
   const bus = s.stadium!.vehicles.bus;
   if (bus?.drivenBy === pc.id) return [{ label: "Get out of the bus", priority: 100, action: { verb: "getout", ...base } }];
   if (pc.hiddenIn) return [{ label: "Climb out", priority: 100, action: { verb: "unhide", ...base } }];
@@ -71,7 +77,7 @@ export function options(w: World, pc: Actor): Option[] {
 
   // People.
   const people = Object.values(s.actors)
-    .filter((a) => a.id !== pc.id && !a.hiddenIn && a.npc?.job !== "dog" && (a.npc || a.fb || a.off) && (!a.fb || a.fb.status !== "gone"))
+    .filter((a) => a.id !== pc.id && !a.hiddenIn && !a.dead && a.npc?.job !== "dog" && (a.npc || a.fb || a.off) && (!a.fb || a.fb.status !== "gone"))
     .map((a) => ({ a, d: Math.hypot(a.x - pc.x, a.y - pc.y) }))
     .filter((p) => p.d < 3.6)
     .sort((p, q) => p.d - q.d)
@@ -83,6 +89,7 @@ export function options(w: World, pc: Actor): Option[] {
     if (n?.job === "turnstile") {
       const ticket = [pc.hand, ...pc.pockets].find((id) => id && s.items[id].def === "ticket");
       if (ticket) push(`Show your ticket to ${name}`, 82 - d, { verb: "show", ...base, item: ticket, target: { k: "actor", id: a.id } });
+      push(`"He's a service dog. For my autism."`, 84 - d, { verb: "servicedog", ...base, target: { k: "actor", id: a.id } });
     }
     if (n && n.job !== "player" && n.job !== "official") push(`Talk to ${name}`, (n.job === "fan" ? 12 : n.job === "local" ? 25 : 40) - d, { verb: "talk", ...base, target: { k: "actor", id: a.id } });
     if (pc.money > 0 && d < 2.2) out.push({ label: `Offer ${name} money`, priority: 5, sheet: { kind: "bribe", who: a.id } });
@@ -109,13 +116,29 @@ export function options(w: World, pc: Actor): Option[] {
     push("Stop play", 15, { verb: "rule", ...base, arg: "stop" });
   }
 
+  // The dead, if you've a blade.
+  if (sharpInHand(w, pc)) {
+    for (const a of Object.values(s.actors)) {
+      if (!a.dead || Math.hypot(a.x - pc.x, a.y - pc.y) > 1.8) continue;
+      const name = personName(a);
+      push(`Cut off ${name}'s face`, 46, { verb: "flay", ...base, arg: "face", target: { k: "actor", id: a.id } });
+      push(`Cut off ${name}'s hands`, 44, { verb: "flay", ...base, arg: "hands", target: { k: "actor", id: a.id } });
+    }
+  }
+
   // The dog.
   const dg = s.stadium!.dog, dogA = dg ? s.actors[dg.id] : undefined;
   if (dg && dogA) {
     const dd = Math.hypot(dogA.x - pc.x, dogA.y - pc.y);
     if (dg.state === "tied" && dd < 1.8) push("Untie the dog", 50, { verb: "untie", ...base });
-    if (dg.state === "led") push("Let the dog go", 35, { verb: "release", ...base });
-    if (dg.state === "loose" && dd < 1.5) push("Grab the dog's lead", 60, { verb: "leash", ...base });
+    if (dg.state === "led" || dg.state === "returning") {
+      // Whoever's after you first; otherwise whoever you've picked or are facing.
+      const chaser = Object.values(s.actors).find((a) => a.npc && !a.dead && a.npc.target === pc.id && (a.npc.mode === "chase" || a.npc.mode === "approach") && Math.hypot(a.x - pc.x, a.y - pc.y) < 20);
+      const t = chaser ?? throwTarget(w, pc, picked ?? null);
+      if (t && t.id !== dg.id) push(`Set the dog on ${personName(t)}`, chaser ? 66 : 34, { verb: "sic", ...base, target: { k: "actor", id: t.id } });
+    }
+    if (dg.state === "led") push("Let the dog go", 33, { verb: "release", ...base });
+    if ((dg.state === "loose" || dg.state === "sicced") && dd < 1.5) push("Grab the dog's lead", 60, { verb: "leash", ...base });
   }
 
   // The team bus.

@@ -11,7 +11,7 @@ export const DT = 1 / TICK_HZ;
 export type Prop =
   | "sharp" | "throwable" | "liquid" | "consumable" | "food" | "alcohol" | "spikable"
   | "substance" | "wearable" | "weapon" | "metal" | "illicit" | "credential" | "container"
-  | "valuable" | "noisy" | "sinister" | "smoke";
+  | "valuable" | "noisy" | "sinister" | "smoke" | "grisly";
 export type WearSlot = "head" | "face" | "outer" | "inner" | "body";
 export type Role =
   | "fan" | "steward" | "police" | "cleaner" | "catering" | "medic" | "broadcaster"
@@ -66,6 +66,10 @@ export interface Item {
   used?: boolean;
   /** Who slipped this into someone else's pocket. */
   plantedBy?: Id;
+  /** Whose it was (a face, a pair of hands). */
+  of?: Id;
+  /** A name of its own, e.g. "Steward Alan's face". */
+  label?: string;
   /** A betting slip's terms and, once settled, its result. */
   bet?: { market: "winner" | "next" | "pen" | "red"; pick: string; stake: number; odds: number; at: number; result?: "won" | "lost" };
 }
@@ -106,6 +110,10 @@ export interface Actor {
   seated?: boolean;
   /** Being frogmarched by this person. */
   heldBy?: Id;
+  /** Driving from the cab: steer -1..1 (right is positive), throttle -1..1. When set, replaces moveX/moveY for vehicles. */
+  drive?: { steer: number; throttle: number };
+  /** Dead. Stays where it fell. */
+  dead?: boolean;
 }
 
 // ---------- Actions ----------

@@ -14,8 +14,10 @@ export interface Appearance {
   look: string;
   /** Dressed like trouble (a balaclava). */
   sinister: boolean;
-  /** Openly carrying a weapon. */
+  /** Openly carrying a weapon, or covered in blood. */
   alarming: boolean;
+  /** Something badly wrong close up: a face that isn't yours, a pair of hands. */
+  grisly: boolean;
 }
 
 export function appearance(s: WorldState, a: Actor): Appearance {
@@ -44,14 +46,19 @@ export function appearance(s: WorldState, a: Actor): Appearance {
     if (d.props.includes("sinister")) sinister = true;
   }
   if (!a.worn.outer && inner) worn.push(defOf(inner).id);
+  // Someone else's face: to anyone who doesn't look closely, you are them.
+  const face = item(a.worn.face);
+  const borrowed = face?.def === "face" && face.of ? face.of : null;
+  const bloody = (a.effects.bloody ?? 0) > s.tick;
   return {
     faceCover, sinister, look: worn.sort().join("+"),
     team: shirt ? defOf(shirt).team ?? null : null,
     role,
     authority,
-    faceId: a.faceId,
+    faceId: borrowed ?? a.faceId,
     faceHidden: faceCover >= 1,
-    alarming: !!held && hasProp(held, "weapon"),
+    alarming: (!!held && hasProp(held, "weapon")) || bloody,
+    grisly: !!borrowed || (!!held && held.def === "hands"),
   };
 }
 

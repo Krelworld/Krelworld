@@ -1,3 +1,4 @@
+import { bikeAvailable } from "../systems/bike";
 import { keysFor, prettyKey } from "../systems/keybinds";
 import { currentGun, ownedGuns, gunMax } from "../combat/Guns";
 import { superMs } from "../combat/Super";
@@ -478,6 +479,8 @@ export class UIScene extends Phaser.Scene {
   private faceImg: Phaser.GameObjects.Image | null = null;
 
   update(time: number) {
+    // tablets' pad: the bike button, while there's a bike to get on or off
+    this.touch?.show("bike", bikeAvailable());
     const s = G.s;
     const g = this.g;
     g.clear();

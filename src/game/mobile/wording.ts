@@ -31,6 +31,9 @@ export const TOUCH_WORDING: WordingRule[] = [
   // (stage 2, part 2: two rows that must run before stage 1's "Press E" and "(Esc)" rows)
   // the playground toast "...walk to each 📸 camera ... and press E to snap it", the sign's "...and press E to throw a sweetie"
   { id: "and-press-e-to", re: /\band press E to\b/g, to: "and tap to" },
+  // the bike's first-time tip: "Press Z to hop on your bike, anywhere in town. Z again to get off."
+  { id: "bike-on", re: /\bPress [A-Za-z0-9↑↓←→]{1,8} to hop on your bike\b/g, to: "Tap RIDE (the bike button) to hop on your bike" },
+  { id: "bike-off", re: /(?<=^|\s)[A-Za-z0-9↑↓←→]{1,8} again to get off\./g, to: "Tap WALK to get off." },
   // the loaner rack's "DONE (ESC)"
   { id: "done-esc", re: /^DONE \(ESC\)$/, to: "DONE" },
   // interact prompts: "E: Talk to X", "[E] Open", "E / ATTACK: hit X" (one per line)

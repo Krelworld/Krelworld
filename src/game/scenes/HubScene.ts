@@ -37,6 +37,8 @@ import { arcDue, arcStepAt, completeStep, currentArcSteps, maybeFinishArc, requi
 import { DUNGEONS } from "../../data/dungeons";
 import { MEETINGS } from "../../content/meetings";
 import { animateWalker, charMeta, feetBody, leadCamera, steer } from "../gfx/HD";
+import { BikeRider } from "../gfx/Bike";
+import { bikeTip, bikeVelocity, canRide, reportBike, rideSpeed } from "../systems/bike";
 import { Beatup } from "./hub/Beatup";
 import { POLSON_CHATS } from "../../content/polsonChats";
 import { POLSON_GONE } from "../../content/ch6";
@@ -284,6 +286,8 @@ export class HubScene extends Phaser.Scene {
   private pgSign: Phaser.GameObjects.Text | null = null;
   private spawnedSpots = new Set<string>();
   beatup: Beatup | null = null;
+  /** Your bike: parked outside Home, ridden anywhere in town. */
+  private bike: BikeRider | null = null;
   private photoMarks: { ring: Phaser.GameObjects.Arc; done: () => boolean }[] = [];
   private walkT = 0;
   private nextChatter = 0;
@@ -364,6 +368,7 @@ export class HubScene extends Phaser.Scene {
     this.avShadow = this.add.ellipse(start.x, start.y + 30, 36, 11, 0x0b0614, 0.38).setDepth(2);
     feetBody(this.av, 20, 16, this.hd ? 26 : 22).setCollideWorldBounds(true);
     this.physics.add.collider(this.av, this.colliders);
+    this.makeBike();
     // playing as Mikey: V (or the SANMIK button) and he's SanMik, there and then
     bindSanmikToggle(this, { sprites: () => [this.av as unknown as Phaser.GameObjects.Sprite], can: () => !this.busy && !this.cutscene });
     if (s.player === "MIKEY" && !s.flags.sanmik_hint && s.chapter !== 5) {
@@ -3353,23 +3358,29 @@ You are required by law to sign the Sex Offenders Register.`, {
       return;
     }
     const body = this.av.body as Phaser.Physics.Arcade.Body;
+    this.bikeControl();
+    const riding = !!this.bike?.riding;
     if (this.busy) {
       body.setVelocity(0, 0);
     } else {
       const mv = this.controls.move();
-      const sp = 210;
+      const sp = riding ? rideSpeed(210) : 210;
       const wob = s.intoxication > 40 ? Math.sin(time / 300) * (s.intoxication / 100) * 0.6 : 0;
       const tx = (mv.x + wob * mv.y) * sp;
       const ty = (mv.y - wob * mv.x) * sp;
       if (activeMods(s).slippery) {
         body.velocity.x += (tx - body.velocity.x) * Math.min(1, dt / 260);
         body.velocity.y += (ty - body.velocity.y) * Math.min(1, dt / 260);
+      } else if (riding) {
+        const v = bikeVelocity(body.velocity.x, body.velocity.y, tx, ty, dt);
+        body.setVelocity(v.x, v.y);
       } else steer(body, tx, ty, dt);
       const moving = Math.hypot(mv.x, mv.y) > 0.1;
       // near the top of the map the view lifts so Da Drongus Dungeon's spire isn't cut off
       const lift = this.towerUp() ? Phaser.Math.Clamp((620 - this.av.y) * 0.75, 0, 230) : 0;
       leadCamera(this.cameras.main, body.velocity.x, body.velocity.y, dt, 0.18, 48, lift);
-      animateWalker(this.av, mv.x, mv.y, moving, time);
+      // (on the bike his legs pedal with the road: BikeRider.update)
+      if (!riding) animateWalker(this.av, mv.x, mv.y, moving, time);
       if (moving) {
         this.idleMs = 0;
       } else {
@@ -3381,7 +3392,9 @@ You are required by law to sign the Sex Offenders Register.`, {
       }
     }
     this.av.setDepth(this.av.y + 1);
-    this.avShadow?.setPosition(this.av.x, this.av.y + 30).setVisible(this.av.visible);
+    this.bike?.update(this.av, body.velocity.x, body.velocity.y, dt, time, this.busy ? undefined : this.controls.move());
+    const bsh = this.bike?.shadow() ?? { dy: 0, sx: 1 };
+    this.avShadow?.setPosition(this.av.x, this.av.y + 30 + bsh.dy).setScale(bsh.sx, 1).setVisible(this.av.visible);
     this.updateNpcs(time, dt);
     this.updatePlayground(time, dt);
     this.updateRegister();
@@ -3431,6 +3444,64 @@ You are required by law to sign the Sex Offenders Register.`, {
         this.arrow.setVisible(true).setPosition(this.av.x + Math.cos(a) * 60, this.av.y + Math.sin(a) * 60).setRotation(a);
       } else this.arrow.setVisible(false);
     } else this.arrow.setVisible(false);
+  }
+
+  /** The bike outside Home (on the grass right of the front door), and the prompt to get on it there. */
+  private makeBike() {
+    this.bike?.destroy();
+    const home = { x: 606, y: 1392 };
+    this.bike = new BikeRider(this, home, Math.abs(this.av.scaleX) || 1);
+    const bike = this.bike;
+    const at = () => bike.parkedAt() ?? { x: -9999, y: -9999 };
+    this.interactables.push({
+      get x() {
+        return at().x;
+      },
+      get y() {
+        return at().y - 14;
+      },
+      r: 44,
+      label: () => "Ride your bike",
+      use: () => this.mountBike(),
+      enabled: () => !bike.riding && !!bike.parkedAt(),
+    });
+  }
+
+  /** Can you be on the bike this frame? (Talking, doors, shops, scripted moments, a scrap in the street: no.) */
+  private bikeOk(): boolean {
+    return canRide({ scene: "Hub", busy: this.busy || !!this.riseCut || !!this.curtain, cutscene: this.cutscene, fight: !!this.brawl?.running || this.beatup?.state === "fight", hidden: !this.av.visible });
+  }
+
+  private mountBike() {
+    if (!this.bike || !this.bikeOk()) return;
+    this.bike.mount(this.av);
+    const s = G.s;
+    if (!s.flags.bike_tip) {
+      s.flags.bike_tip = true;
+      G.emit("toast", bikeTip(prettyKey(keysFor("bike")[0] ?? "Z")));
+    }
+  }
+
+  /** Every frame: the bike key (or BIKE button) gets you on and off; anything that needs you on foot gets you off. */
+  private bikeControl() {
+    const bike = this.bike;
+    if (!bike) return;
+    const ok = this.bikeOk();
+    const press = this.controls.bike();
+    if (!ok) {
+      if (bike.riding) bike.dismount(this.av);
+    } else if (press) {
+      if (bike.riding) bike.dismount(this.av);
+      else this.mountBike();
+    }
+    // the first time you walk up to it outside Home: how to ride (a system hint)
+    const s = G.s;
+    const p = bike.parkedAt();
+    if (ok && !s.flags.bike_tip && p && bike.isHome() && Phaser.Math.Distance.Between(p.x, p.y, this.av.x, this.av.y) < 190) {
+      s.flags.bike_tip = true;
+      G.emit("toast", bikeTip(prettyKey(keysFor("bike")[0] ?? "Z")));
+    }
+    reportBike("Hub", ok && bike.ok, bike.riding);
   }
 
   /** Walk a sprite somewhere over `ms`, with its walk cycle. */

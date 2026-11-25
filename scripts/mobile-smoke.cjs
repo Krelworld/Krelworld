@@ -2,7 +2,7 @@
 // PHONE MODE smoke test (Playwright, real touch events). Needs a running dev server.
 //
 //   npx vite --port 5202 --strictPort &
-//   node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,together,review1,polish,android,desktop]
+//   node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,bike,dungeon,combat,side,brawl,together,review1,polish,android,desktop]
 //
 // phone    iPhone 14 landscape (844x390, DPR 3, touch, mobile Safari UA). Boots by taps, starts a new game by taps,
 //          clears the welcome at home by taps, then checks: the idle stick and pause are up; a drag moves the player
@@ -51,6 +51,10 @@
 // optout   the same phone with ?mobile=0: no layer, no "mobile" class, no phone CSS, no phone global.
 // town     the Hub on a phone: with Mikey following, a door's ACTION is ENTER (not SHOVE); SHOVE when he's all
 //          there is; the shoving match on the bridge shows SHOVE and it shoves; the first toasts speak touch.
+// bike     the bike in town (iPhone 14): the RIDE button is up out in town (and not at Home indoors), a tap gets you
+//          on (the face says WALK, lit), the stick steers it across town faster than walking (about 1.8x), WALK gets
+//          you off, and on again then ENTER at a door gets you off and through it; the first-time tip toast names the
+//          button, not a key.
 // dungeon  Wildern room 1: the phone controls, not the old pad; the page hidden mid-press lets go of the stick and
 //          FIRE; coming back (hidden → visible, upright → sideways, the guide from the rotate screen) opens the pause
 //          menu instead of dropping into the fight; a fight with no pause menu waits behind "tap to carry on".
@@ -92,7 +96,7 @@ const arg = (k, d) => {
 };
 const URL0 = arg("--url", "http://localhost:5202/");
 const SHOTS = arg("--shots", "");
-const ONLY = (arg("--only", "phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,together,review1,polish,android,desktop") || "").split(",").filter(Boolean);
+const ONLY = (arg("--only", "phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,bike,dungeon,combat,side,brawl,together,review1,polish,android,desktop") || "").split(",").filter(Boolean);
 const IOS_UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1";
 const IPHONE = { viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, userAgent: IOS_UA };
 const DESKTOP = { viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1, hasTouch: false, isMobile: false };
@@ -2350,6 +2354,106 @@ async function town(browser) {
   }
 }
 
+// ------------------------------------------------------------------ the bike (game additions)
+
+async function bike(browser) {
+  console.log("BIKE (riding round town on a phone)");
+  const { ctx, ph, errors } = await phoneAtTitle(browser);
+  const bikeBtn = () =>
+    ph.ev(() => {
+      const e = document.querySelector(".kt-btn.kt-bike");
+      if (!e || !e.classList.contains("show")) return null;
+      const b = e.getBoundingClientRect();
+      return { x: b.x + b.width / 2, y: b.y + b.height / 2, w: b.width, word: e.textContent.trim(), riding: e.classList.contains("riding") };
+    });
+  const hub = () =>
+    ph.ev(() => {
+      const h = window.__krel.game.scene.getScene("Hub");
+      return { riding: !!h.bike && h.bike.riding, x: Math.round(h.av.x), y: Math.round(h.av.y), v: Math.round(Math.hypot(h.av.body.velocity.x, h.av.body.velocity.y)), busy: h.busy };
+    });
+  /** Hold the stick pushed right (a real touch) for `ms`; returns the top speed seen and where it ended. */
+  const holdRight = async (ms) => {
+    await ph.touch("touchStart", [{ x: 150, y: 250, id: 3 }]);
+    for (let i = 1; i <= 6; i++) {
+      await ph.touch("touchMove", [{ x: 150 + i * 14, y: 250, id: 3 }]);
+      await sleep(16);
+    }
+    let top = 0;
+    const t0 = Date.now();
+    while (Date.now() - t0 < ms) {
+      await sleep(250);
+      top = Math.max(top, (await hub()).v);
+    }
+    const end = await hub();
+    await ph.touch("touchEnd", []);
+    await sleep(300);
+    return { top, end };
+  };
+  const tapBike = async () => {
+    const b = await bikeBtn();
+    if (!b) throw new Error("no bike button");
+    await ph.tapCss(b.x, b.y);
+    await sleep(600);
+  };
+  const place = (x, y) => ph.ev(([x, y]) => window.__krel.game.scene.getScene("Hub").av.body.reset(x, y), [x, y]);
+  try {
+    check("the Hub reaches walk mode", await toWalk(ph, "Hub"), await ph.mode());
+    await ph.ev(() => {
+      window.__krel.game.scene.getScene("Hub").tryChatter = () => {};
+    });
+    // the clear road east of the fountain
+    await place(1400, 800);
+    await ph.until(() => !!document.querySelector(".kt-btn.kt-bike.show"), null, 20000, "the bike button").catch(() => 0);
+    await sleep(400);
+    let b = await bikeBtn();
+    const snap = await ph.snap();
+    check("out in town the bike button is up, saying RIDE, on the right thumb's line left of ACTION's corner", !!b && /RIDE/.test(b.word) && b.w >= 44 && b.x > 844 / 2 && b.x < snap.slots.prime.cx, b);
+    const walk = await holdRight(2500);
+    await place(1400, 800);
+    await sleep(400);
+    await tapBike();
+    let st = await hub();
+    b = await bikeBtn();
+    check("a tap on it: you're on the bike, the button says WALK and is lit", st.riding && !!b && /WALK/.test(b.word) && b.riding, { st, b });
+    const toast = await ph.ev(() => {
+      const t = [];
+      const walk = (o) => (o.type === "Container" ? o.list.forEach(walk) : o.type === "Text" && t.push(o.text));
+      window.__krel.game.scene.getScene("UI").children.list.forEach(walk);
+      return t.filter((x) => /bike/i.test(x));
+    });
+    check("the first-time tip names the button, not a key", toast.some((x) => /Tap RIDE/.test(x)) && !toast.some((x) => /Press Z|Z again/.test(x)), toast);
+    const x0 = st.x;
+    const ride = await holdRight(2500);
+    check("the stick steers the bike across town, faster than walking (about 1.8x)", ride.end.x - x0 > 250 && ride.top > walk.top * 1.4, { walk: walk.top, ride: ride.top, moved: ride.end.x - x0 });
+    await ph.shot("bike-riding");
+    await tapBike();
+    st = await hub();
+    const parked = await ph.ev(() => window.__krel.game.scene.getScene("Hub").bike.parkedAt());
+    check("WALK gets you off (the bike is left standing beside you)", !st.riding && !!parked, { st, parked });
+    // on again, then ride up to the Krezz Arms door: ENTER gets you off and in
+    await tapBike();
+    for (let i = 0; i < 6; i++) {
+      await place(560, 952);
+      await sleep(150);
+    }
+    st = await hub();
+    const s2 = await ph.snap();
+    check("riding up to a door: ACTION says ENTER", st.riding && s2.buttons.action && s2.actionLabel === "ENTER", { st, action: s2.actionLabel });
+    await ph.tapCss(s2.slots.prime.cx, s2.slots.prime.cy);
+    await ph.until(() => window.__krel.active().includes("Pub"), null, 60000, "the Krezz Arms").catch(() => 0);
+    const after = await ph.ev(() => ({ riding: window.__krel.game.scene.getScene("Hub").bike?.riding, active: window.__krel.active() }));
+    check("ENTER at the door gets you off the bike and through it", after.riding === false && after.active.includes("Pub"), after);
+    // indoors (Home): no bike button
+    await ph.ev(() => window.__krel.go("Home"));
+    await ph.scene("Home");
+    await sleep(2500);
+    check("indoors (Home) there is no bike button", !(await bikeBtn()), await ph.mode());
+    check("bike: no page errors", errors.length === 0, errors.slice(0, 3));
+  } finally {
+    await ctx.close();
+  }
+}
+
 // ------------------------------------------------------------------ a fight (the dungeon, still on the old pad)
 
 async function dungeon(browser) {
@@ -4328,6 +4432,7 @@ async function desktop(browser) {
       ["guide", guide],
       ["optout", optout],
       ["town", town],
+      ["bike", bike],
       ["dungeon", dungeon],
       ["combat", combat],
       ["side", sideRooms],

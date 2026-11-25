@@ -368,7 +368,7 @@ export class MenuScene extends Phaser.Scene {
         add(this.add.text(375, 98, "KEYBOARD", hdr).setOrigin(0, 0.5));
         add(this.add.text(600, 98, "GAMEPAD", hdr).setOrigin(0, 0.5));
         ACTIONS.forEach((a, i) => {
-          const y = 116 + i * 22;
+          const y = 116 + i * 21;
           const listening = this.listening === a.id;
           const listeningPad = this.listeningPad === a.id;
           add(this.add.text(170, y, a.label, { fontFamily: FONT, fontSize: "12px", color: "#ffffff" }).setOrigin(0, 0.5));

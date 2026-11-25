@@ -2,6 +2,7 @@
 - Stage 2 workflow wf_574a5950-314 finished: merge, 4 reviews (31 findings), fix round 1, gate PASS at 06d2ac08 (reports s2-05..s2-07). Gate left non-blocking N1-N7.
 - Coordinator merged live (455b3131) into "mobile": 5bb649ec.
 - Running now: polish + independent verify workflow, script work/s2-polish.js, run id wf_0c237194-e84 (task wwl19uk4h). Fixes N1 caption overlap, the user's dungeon "bubbles" clutter, N2, N4, N5; then the verify agent runs the full CHECK and touch checks (TV guide scroll, Peep Show, dungeon clutter).
+- USER PHONE FEEDBACK (on live stage 1): jumping awkward; specials tiny to press when active; is there a pause button; the stick slides all over the screen. work/s2-polish.js now has a 'Feel' phase (feel agent + recheck) appended. When run wf_0c237194-e84 finishes, RESUME it with the same scriptPath so polish+verify replay from cache and the Feel phase runs. Publish only after the recheck passes.
 - If cut off: Workflow({scriptPath: "<SP>/mobile/work/s2-polish.js", resumeFromRunId: "wf_0c237194-e84"}).
 - When verify passes: fetch origin/claude/krelworld-game, merge if moved (re-check), push mobile HEAD to claude/krelworld-game, trigger the alt build, tell the user (key-mention lines and swapped narrator tips are in s2-01..s2-06 reports and the stage 2 workflow result at tasks/w3nnfv3m2.output).
 

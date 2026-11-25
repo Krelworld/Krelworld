@@ -123,6 +123,9 @@ To resume: `Workflow({scriptPath: "<script>", resumeFromRunId: "wf_574a5950-314"
 - No content limits beyond the standing rules: no slurs; nothing sexual with minors; no defamatory content about real private people (no Robbo pedo/nonce lines, no Children's Minister/KIDS pudding arc, no Flenky "falsely claimed"); no cloned real voices for new lines.
 - Recorded fresh. Reference capture technique: `scratchpad/tvtrailer/tvcap.cjs`. That file is NOT in the notes branch; rebuild it from scratch if the scratchpad is gone.
 
+
+**Trailer steer, 2026-11-25 (user, verbatim):** "The trailer should be less about how Drongus' message didn't get seen by anyone, and more about the gameplay and the absurd scenarios. ... Lots of action and absurdity and gameplay in the trailer". The spine is fast-cut action and absurd set pieces; plot is a light sprinkle only. The Elon fight is removed from the game, so don't show it.
+
 ## Standing rules (short)
 
 **Commits**

@@ -11,7 +11,12 @@
 import { storageKey } from "../variant";
 
 export type ButtonSize = "S" | "M" | "L";
-export type StickMode = "floating" | "fixed";
+/**
+ * "stays" (the default): the stick appears where the thumb lands and its base stays there for that touch (pulling past
+ * the rim is simply full speed that way); "follows": the base is dragged along behind the thumb past the rim (the old
+ * default, "floating" in stored settings before the thumb-feel round); "fixed": always the same spot.
+ */
+export type StickMode = "stays" | "follows" | "fixed";
 export type AimAssist = "off" | "normal" | "strong";
 export type TextSize = "normal" | "large";
 
@@ -22,7 +27,7 @@ export interface PhoneSettings {
   buttonSize: ButtonSize;
   /** How strong the controls' outlines are when not pressed (0.2 to 0.8). Pressed is always 0.7 or more. */
   opacity: number;
-  /** The stick appears where the thumb lands (floating) or stays in one place (fixed). */
+  /** Where the stick's base goes: where the thumb lands and stays there, follows the thumb, or one fixed spot. */
   stick: StickMode;
   /** Combat: fire by itself when auto-aim has an enemy in range (FIRE still works by hand). */
   autoFire: boolean;
@@ -50,7 +55,7 @@ export const DEFAULT_PHONE_SETTINGS: Readonly<PhoneSettings> = Object.freeze({
   leftHanded: false,
   buttonSize: "M",
   opacity: 0.3,
-  stick: "floating",
+  stick: "stays",
   autoFire: true,
   aimAssist: "normal",
   phoneAssist: true,
@@ -78,7 +83,8 @@ export function cleanSetting<K extends PhoneSettingKey>(k: K, v: unknown): Phone
       case "opacity":
         return num(v, 0.2, 0.8);
       case "stick":
-        return oneOf(v, ["floating", "fixed"] as const);
+        // ("floating" was the old default, a base that followed the thumb: it is read as the new default; F-STICK)
+        return v === "floating" ? "stays" : oneOf(v, ["stays", "follows", "fixed"] as const);
       case "aimAssist":
         return oneOf(v, ["off", "normal", "strong"] as const);
       case "textSize":
@@ -124,7 +130,7 @@ export function changedKeys(a: PhoneSettings, b: PhoneSettings): PhoneSettingKey
 export const PHONE_SETTINGS_VERSION = 2;
 
 /** The defaults version 1 was written with (a copy: DEFAULT_PHONE_SETTINGS may change later; this must not). */
-const V1_DEFAULTS: Readonly<PhoneSettings> = Object.freeze({
+const V1_DEFAULTS: Readonly<Record<PhoneSettingKey, unknown>> = Object.freeze({
   leftHanded: false,
   buttonSize: "M",
   opacity: 0.3,
@@ -151,6 +157,8 @@ export function chosenFromStored(raw: unknown): Partial<PhoneSettings> {
     if (v === undefined) continue;
     // (version 1 wrote every field: one still at version 1's default was never a choice)
     if (r.v === 1 && v === V1_DEFAULTS[k]) continue;
+    // (the old default stick, "floating", stored by a version that kept it as a choice: it follows the new default)
+    if (k === "stick" && r[k] === "floating") continue;
     out[k] = v;
   }
   return out as Partial<PhoneSettings>;
@@ -331,7 +339,7 @@ export const PHONE_SETTINGS: SettingSpec[] = [
   { key: "leftHanded", type: "toggle", group: "controls", live: true, label: "Left-handed", help: "Stick on the right, buttons on the left." },
   { key: "buttonSize", type: "choice", group: "controls", live: true, label: "Button size", help: "How big the touch buttons are.", options: [{ value: "S", label: "S" }, { value: "M", label: "M" }, { value: "L", label: "L" }] },
   { key: "opacity", type: "slider", group: "controls", live: true, label: "Button visibility", help: "How see-through the buttons are.", min: 0.2, max: 0.8, step: 0.1, unit: "%" },
-  { key: "stick", type: "choice", group: "controls", live: true, label: "Stick", help: "Follows your thumb, or stays in one place.", options: [{ value: "floating", label: "FOLLOWS" }, { value: "fixed", label: "STAYS" }] },
+  { key: "stick", type: "choice", group: "controls", live: true, label: "Stick", help: "Stays where your thumb lands, follows your thumb, or one fixed spot.", options: [{ value: "stays", label: "STAYS" }, { value: "follows", label: "FOLLOWS" }, { value: "fixed", label: "FIXED" }] },
   { key: "haptics", type: "toggle", group: "controls", live: true, label: "Vibration", help: "A little buzz on presses (Android only)." },
   { key: "autoFire", type: "toggle", group: "combat", live: true, label: "Auto-fire", help: "Shoots by itself when an enemy is in range." },
   { key: "aimAssist", type: "choice", group: "combat", live: true, label: "Aim assist", help: "How much the game aims for you.", options: [{ value: "off", label: "OFF" }, { value: "normal", label: "NORMAL" }, { value: "strong", label: "STRONG" }] },

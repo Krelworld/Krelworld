@@ -41,6 +41,9 @@ interface ControlsLike {
   down?(n: string): boolean;
 }
 
+/** How fast the side-room camera's follow offset may change (game px a ms; a turn's 288 px takes about 0.65 s). */
+export const CAM_OFFSET_RATE = 0.45;
+
 const box = (b: Body | StaticBody): Box => ({ left: b.left, right: b.right, top: b.top, bottom: b.bottom });
 
 /** Measurements of the last jumps (for the smoke test and the report). */
@@ -73,6 +76,8 @@ export class SideMove {
   readonly log: JumpLog[] = [];
   private cur: JumpLog | null = null;
   private camFor: unknown = null;
+  /** A new room: its first follow offset is set at once (no easing in from the last room's). */
+  private camFresh = true;
   /** After a pit (phone assist): the stick is ignored until it comes back to the middle (scene ms it ends anyway). */
   private pitLockUntil = 0;
   /** Which way the pit is from where you were put back (1 right, -1 left). */
@@ -267,7 +272,6 @@ export class SideMove {
     if (!cam || !sc.player?.spr?.active) return;
     const w = cam.width || 960;
     const now = sc.now();
-    const fx = this.look.step(now, dt, moveX, w);
     // vertical: a ±100 px band, and the view leads down a little while falling
     const body = sc.player.spr.body as Body;
     const falling = body && body.velocity.y > 200 && !(body.blocked.down || body.touching.down);
@@ -275,16 +279,23 @@ export class SideMove {
     // (once per room: the room sets its own 80 x 60 dead zone when it starts)
     if (this.camFor !== sc.player) {
       this.camFor = sc.player;
+      this.camFresh = true;
       cam.setDeadzone(0, 200);
       this.look.snap(1, w);
     }
+    const fx = this.look.step(now, dt, moveX, w);
     // the follow itself: the game's 0.12 a frame made frame-rate independent, and the trail it leaves while running
     // added to the look-ahead, so the player sits at 35% / 65% at 30, 60 or 120 Hz (F4). (DungeonScene skips its own
     // small velocity lead in phone side rooms: this is the whole camera there.)
     const l = camLerp(dt);
     if (Math.abs(cam.lerp.x - l) > 1e-4 || Math.abs(cam.lerp.y - l) > 1e-4) cam.setLerp(l, l);
-    const tx = fx - camLagPx(body?.velocity.x ?? 0, dt);
     const ox = cam.followOffset.x;
+    // (the follow offset changes at most CAM_OFFSET_RATE px a ms: turning round flipped the running trail's sign at
+    // once and the view whipped across, up to 135 game px in 60 ms; thumb-feel round)
+    const want = fx - camLagPx(body?.velocity.x ?? 0, dt);
+    const capPx = CAM_OFFSET_RATE * dt;
+    const tx = this.camFresh ? want : ox + Math.max(-capPx, Math.min(capPx, want - ox));
+    this.camFresh = false;
     const oy = cam.followOffset.y + (fy - cam.followOffset.y) * Math.min(1, dt / 200);
     if (Math.abs(ox - tx) > 0.05 || Math.abs(oy - cam.followOffset.y) > 0.05) cam.setFollowOffset(tx, oy);
   }

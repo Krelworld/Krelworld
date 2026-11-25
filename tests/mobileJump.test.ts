@@ -44,25 +44,31 @@ function sim(hz: number, script: (t: number) => { press?: boolean; held: boolean
 }
 
 describe("phone jump: variable height (tap = hop, hold = the game's full jump)", () => {
-  it("closed form: hop about 78 px, full about 145 px", () => {
-    expect(jumpHeight(660, null, 300)).toBeCloseTo(145.2, 1);
-    expect(jumpHeight(660, 80, 300)).toBeCloseTo(78, 0);
+  it("closed form: the quickest tap about 126 px (clears the side rooms' 135 px platforms with the 20 px landing tolerance), full about 145 px", () => {
+    expect(jumpHeight(660, null, JUMP_TUNE.cutVy)).toBeCloseTo(145.2, 1);
+    expect(jumpHeight(660, JUMP_TUNE.minRiseMs, JUMP_TUNE.cutVy)).toBeCloseTo(126, 0);
+    expect(jumpHeight(660, JUMP_TUNE.minRiseMs, JUMP_TUNE.cutVy)).toBeGreaterThanOrEqual(135 - JUMP_TUNE.ledgeTol);
+    // a longer press climbs higher, up to the full jump from 140 ms
+    expect(jumpHeight(660, 120, JUMP_TUNE.cutVy)).toBeGreaterThan(jumpHeight(660, 100, JUMP_TUNE.cutVy));
+    expect(jumpHeight(660, 140, JUMP_TUNE.cutVy)).toBeCloseTo(145.2, 0);
+    // the air jump: quickest tap about 101 px, held 112
+    expect(jumpHeight(580, JUMP_TUNE.minRiseMs, JUMP_TUNE.airCutVy)).toBeCloseTo(101, 0);
   });
   for (const hz of [10, 30, 60, 120]) {
-    it(`${hz} Hz: a tap hops about 78 px, a hold jumps about 145 px`, () => {
+    it(`${hz} Hz: a tap jumps about 126 px, a hold the full 145 px`, () => {
       const tap = sim(hz, (t) => ({ press: t === 0, held: t < 40 }));
       const hold = sim(hz, (t) => ({ press: t === 0, held: t < 600 }));
       expect(tap.takeoffs.length).toBe(1);
-      expect(tap.apex).toBeGreaterThan(66);
-      expect(tap.apex).toBeLessThan(92);
+      expect(tap.apex).toBeGreaterThan(117);
+      expect(tap.apex).toBeLessThan(136);
       expect(hold.apex).toBeGreaterThan(135);
       expect(hold.apex).toBeLessThan(152);
-      expect(hold.apex - tap.apex).toBeGreaterThan(45);
+      expect(hold.apex - tap.apex).toBeGreaterThan(9);
     });
   }
   it("a release half-way up gives a height between hop and full", () => {
-    const mid = sim(60, (t) => ({ press: t === 0, held: t < 200 }));
-    expect(mid.apex).toBeGreaterThan(95);
+    const mid = sim(60, (t) => ({ press: t === 0, held: t < 120 }));
+    expect(mid.apex).toBeGreaterThan(127);
     expect(mid.apex).toBeLessThan(145);
   });
 });
@@ -238,6 +244,13 @@ describe("phone ledge forgiveness and air control", () => {
     // a platform's top counts 4 px wider each side
     expect(ledgePop({ left: 77, right: 97, top: 270, bottom: 303 }, 50, 0, blk, true)).toBeCloseTo(3.5);
     expect(ledgePop({ left: 70, right: 90, top: 270, bottom: 303 }, 50, 0, blk, true)).toBe(0);
+    // under a platform's top at the top of a jump (from below, up to ledgeTol short): put on it; deeper, or still
+    // climbing hard, or a solid block: no
+    expect(ledgePop({ left: 140, right: 168, top: 285, bottom: 313 }, 0, 0, blk, true)).toBeCloseTo(13.5);
+    expect(ledgePop({ left: 140, right: 168, top: 291, bottom: 319 }, 10, 0, blk, true)).toBeCloseTo(19.5);
+    expect(ledgePop({ left: 140, right: 168, top: 293, bottom: 321 }, 10, 0, blk, true)).toBe(0);
+    expect(ledgePop({ left: 140, right: 168, top: 285, bottom: 313 }, -200, 0, blk, true)).toBe(0);
+    expect(ledgePop({ left: 140, right: 168, top: 285, bottom: 313 }, 0, 0, blk, false)).toBe(0);
   });
   it("corner correction nudges a head that clips a corner by under 40% of the body", () => {
     const blk = { left: 0, right: 105, top: 200, bottom: 250 };
@@ -260,6 +273,20 @@ describe("phone ledge forgiveness and air control", () => {
     for (; t < 1500; t += 16) l.step(t, 16, -1, 960);
     expect(l.facing()).toBe(-1);
     expect(l.x).toBeGreaterThan(130);
+  });
+
+  it("a turn moves the view smoothly: never more than 0.3 x the width in 700 ms (no jolt when you turn round)", () => {
+    const l = new LookAhead();
+    l.snap(1, 960);
+    let maxStep = 0;
+    let prev = l.x;
+    for (let t = 0; t < 2000; t += 16) {
+      l.step(t, 16, -1, 960);
+      maxStep = Math.max(maxStep, Math.abs(l.x - prev));
+      prev = l.x;
+    }
+    expect(maxStep).toBeLessThanOrEqual((0.3 * 960 * 16) / 700 + 1e-6);
+    expect(l.x).toBeCloseTo(144, 0);
   });
 });
 

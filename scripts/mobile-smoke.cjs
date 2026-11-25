@@ -71,7 +71,7 @@
 //          the same room mid-game (everything charged), a boss, a side room's start, the finale brawl and the Krezz
 //          Arms, each measured: no caption or button word over another caption, a button or the HUD, no button on
 //          another; the controls on screen counted (only what can be used now: no SPECIAL without its Krezz, no
-//          juice chip at full health, no READY / HEAL with nothing to do); JUMP plain to see over the first pit; a
+//          HEAL at full health, no READY with nothing to do); JUMP plain to see over the first pit; a
 //          long room name clear of the name, coins and meters; the Leave card above the bottom 21 px.
 // platform (stage 3) iPhone 14: the first tap routes the sound through Web Audio; the Music setting reaches the song
 //          (gain 0 at 0, the element itself at full volume); hidden → suspended, shown → running again with the song,
@@ -406,8 +406,35 @@ async function phone(browser) {
     await ph.touch("touchEnd", []);
     await sleep(200);
     b = await ph.me();
-    await ph.ev(() => window.__krelMobile.settings.set({ stick: "floating" }));
+    await ph.ev(() => window.__krelMobile.settings.set({ stick: "stays" }));
     check("fixed stick: the base stays put and a thumb to its left walks left at once", !!fixedSnap.stick && Math.abs(fixedSnap.stick.x - restAt[0]) < 1 && Math.abs(fixedSnap.stick.y - restAt[1]) < 1 && a[0] - b[0] >= 20, { restAt, base: fixedSnap.stick, from: a, to: b });
+
+    // the default stick (thumb-feel round, the user: "the joystick ... can slide all over the screen, if your thumb
+    // does"): its base stays where the thumb landed, however far the thumb goes; "FOLLOWS YOUR THUMB" drags it along,
+    // never out of the stick zone
+    const dragFar = async (id, x0, y0, dx) => {
+      await ph.touch("touchStart", [{ x: x0, y: y0, id }]);
+      for (let i = 1; i <= 8; i++) {
+        await ph.touch("touchMove", [{ x: x0 + (i * dx) / 8, y: y0, id }]);
+        await sleep(25);
+      }
+      await sleep(120);
+      const sn = await ph.snap();
+      const t = await ph.touchState();
+      await ph.touch("touchEnd", []);
+      await sleep(200);
+      return { base: sn.stick, zone: sn.zone, mx: t.mx };
+    };
+    await ph.ev(() => {
+      const me = window.__krel.game.scene.getScene("Home").me;
+      me.body && me.body.reset ? me.body.reset(300, me.y) : me.setPosition(300, me.y);
+    });
+    const stays = await dragFar(22, 120, 280, 240);
+    check("default stick (STAYS): the base stays where the thumb landed, 240 px of drag later; full speed that way", (await ph.ev(() => window.__krelMobile.settings.get().stick)) === "stays" && !!stays.base && Math.abs(stays.base.x - 120) < 1 && Math.abs(stays.base.y - 280) < 1 && stays.mx > 0.9, stays);
+    await ph.ev(() => window.__krelMobile.settings.set({ stick: "follows" }));
+    const follows = await dragFar(23, 120, 280, 400);
+    await ph.ev(() => window.__krelMobile.settings.set({ stick: "stays" }));
+    check("FOLLOWS: the base is dragged along, but stops at the stick zone's edge", !!follows.base && follows.base.x > 200 && follows.base.x <= follows.zone.x + follows.zone.w + 0.5 && follows.mx > 0.9, follows);
 
     // a quick tap in the stick zone reaches the game as a tap there; a drag does not
     await ph.ev(() => {
@@ -846,7 +873,7 @@ async function settings(browser) {
   try {
     const key = await ph.ev(async () => (await import("/src/game/variant.ts")).storageKey("krelworld.phone.settings"));
     let st = await ph.ev((k) => ({ s: window.__krelMobile.settings.get(), stored: localStorage.getItem(k), n: window.__krelMobile.settings.list().length }), key);
-    check("defaults: right-handed, M, 30%, auto-fire, normal aim assist, phone assist on, battery saver off, readability ON (stage 2), haptics on", JSON.stringify(st.s) === JSON.stringify({ leftHanded: false, buttonSize: "M", opacity: 0.3, stick: "floating", autoFire: true, aimAssist: "normal", phoneAssist: true, batterySaver: false, readability: true, textSize: "normal", haptics: true, syncOffsetMs: 0, playOverMyMusic: false }), st.s);
+    check("defaults: right-handed, M, 30%, auto-fire, normal aim assist, phone assist on, battery saver off, readability ON (stage 2), haptics on", JSON.stringify(st.s) === JSON.stringify({ leftHanded: false, buttonSize: "M", opacity: 0.3, stick: "stays", autoFire: true, aimAssist: "normal", phoneAssist: true, batterySaver: false, readability: true, textSize: "normal", haptics: true, syncOffsetMs: 0, playOverMyMusic: false }), st.s);
     check("nothing is written just by loading", st.stored === null);
     check("the typed list a settings screen renders has every setting", st.n === 13, st.n);
     const before = await ph.snap();
@@ -1589,7 +1616,7 @@ async function settings2(browser) {
       await sleep(150);
       if (mid === before || (await get())[key] !== before) fails.push(key);
     }
-    for (const [key, vals] of [["buttonSize", ["S", "L", "M"]], ["stick", ["fixed", "floating"]], ["aimAssist", ["strong", "off", "normal"]], ["textSize", ["large", "normal"]]]) {
+    for (const [key, vals] of [["buttonSize", ["S", "L", "M"]], ["stick", ["fixed", "follows", "stays"]], ["aimAssist", ["strong", "off", "normal"]], ["textSize", ["large", "normal"]]]) {
       for (const v of vals) {
         await tapIn(key, `[data-v="${v}"]`);
         await sleep(150);
@@ -2549,8 +2576,8 @@ async function combat(browser) {
       const s = window.__krel.G.s;
       return s.bottles > 0 && s.hp < (await import("/src/game/systems/stats.ts")).maxHp(s);
     });
-    check("the old canvas pad is gone; FIRE, DODGE, the weapon chip and pause are up; SPECIAL only when it can go, the juice chip only when a drink would heal (stage 2 polish)", pad === null && ["c-fire", "c-dodge", "c-chip", "pause"].every(shown) && shown("c-special") === cs0.specialReady && shown("c-juice") === hurt0, { shown: s.controls.filter((c) => c.shown).map((c) => c.id), specialReady: cs0.specialReady, hurt0 });
-    check("the stick is the town's (left 45%, gutter included) and there's no ACTION / READY / HEAL with nothing to do", s.decision.stick === "2d" && s.zone.x === 0 && !shown("c-action") && !shown("c-ready") && !shown("c-heal"), { stick: s.decision.stick, zone: s.zone });
+    check("the old canvas pad is gone; FIRE, DODGE, the weapon chip and pause are up; SPECIAL only when it can go, HEAL only when a drink would heal (stage 2 polish, thumb-feel round)", pad === null && ["c-fire", "c-dodge", "c-chip", "pause"].every(shown) && shown("c-special") === cs0.specialReady && shown("c-heal") === hurt0, { shown: s.controls.filter((c) => c.shown).map((c) => c.id), specialReady: cs0.specialReady, hurt0 });
+    check("the stick is the town's (left 45%, gutter included) and there's no ACTION / READY with nothing to do", s.decision.stick === "2d" && s.zone.x === 0 && !shown("c-action") && !shown("c-ready"), { stick: s.decision.stick, zone: s.zone });
     const names = await ph.ev(() =>
       [...document.querySelectorAll(".kt .kt-btn.show")].map((b) => {
         const w = b.querySelector(".kt-in");
@@ -2871,13 +2898,26 @@ async function combat(browser) {
     check("HUD: the toast column ends left of the weapon chip; the old gun readout is gone (P10, M16)", hud.toastRight <= hud.chipLeft && !hud.gunT, hud);
     check("fight: no page errors", errors.length === 0, errors.slice(0, 3));
     await ph.ev(() => window.__krelMobile.settings.set({ autoFire: true }));
-    // ---- the drink chips: 🍺 drinks a bongo
+    // ---- HEAL whenever a drink would heal (thumb-feel round: the small juice chip is folded into it), red only when low
+    await ph.ev(async () => {
+      const s = window.__krel.G.s;
+      s.hp = Math.round((await import("/src/game/systems/stats.ts")).maxHp(s) * 0.9);
+      s.bottles = 2;
+    });
+    await sleep(600);
+    const healHi = await ph.ev(() => {
+      const b = document.querySelector('.kt-btn[data-ctl="c-heal"]');
+      return { shown: !!b && b.classList.contains("show"), low: !!b && b.classList.contains("low") };
+    });
+    check("HEAL is up at 90% health with juice to drink (one button for the juice), not red", healHi.shown && !healHi.low, healHi);
+    await ph.ev(() => (window.__krel.G.s.hp = 99999));
+    // ---- the pocket: 🍺 drinks a bongo
     await ph.ev(() => (window.__krel.G.s.bongos = 2));
     await sleep(500);
     await press("c-bongo", 80, 42);
     await sleep(500);
     const bongos = await ph.ev(() => window.__krel.G.s.bongos);
-    check("the 🍺 chip drinks a fizzy bongo (B)", bongos === 1, { bongos });
+    check("the 🍺 button drinks a fizzy bongo (B)", bongos === 1, { bongos });
     // as Mikey: the SANMIK chip swaps the form (V); the drinks above came first, so nothing is busy
     await ph.until(() => window.__krelMobile.snapshot().controls.find((c) => c.id === "c-sanmik").shown, null, 5000, "SANMIK chip").catch(() => 0);
     const mk = await ph.ev(() => !!window.__krel.G.s.flags.sanmik_form);
@@ -2888,7 +2928,7 @@ async function combat(browser) {
       await sleep(700);
       mk2 = await ph.ev(() => !!window.__krel.G.s.flags.sanmik_form);
     }
-    check("as Mikey the SANMIK chip is up and swaps the form (V)", mk2 !== mk, { before: mk, after: mk2 });
+    check("as Mikey the SANMIK button is up and swaps the form (V)", mk2 !== mk, { before: mk, after: mk2 });
     await ph.ev(() => (window.__krel.G.s.flags.sanmik_form = false));
     // ---- READY: GOLD with golden juice in you, then CUME while golden
     await ph.ev(() => {
@@ -3083,7 +3123,8 @@ async function sideRooms(browser) {
     const full = await hop(650);
     await land();
     // (a tap's height depends on when the page sees the finger lift: under a loaded test machine it reads a little high)
-    check("a tap hops (about 78 px), a hold jumps the full height (about 145 px)", tap !== null && full !== null && tap >= 60 && tap <= 110 && full >= 130 && full <= 155 && full - tap >= 30, { tap, full });
+    // (thumb-feel round: a quick tap now climbs about 123 px of the full 135 here, enough for the standard platforms)
+    check("a quick tap jumps nearly as high as a hold (about 123 of 135 px here), a hold the full height", tap !== null && full !== null && tap >= 110 && tap <= 140 && full >= 128 && full <= 155 && full >= tap - 2, { tap, full });
     // ---- buffer: a press just before landing jumps on landing
     await calmSpot();
     await land();
@@ -3175,6 +3216,42 @@ async function sideRooms(browser) {
       const after2 = await land();
       check("drop-through: a drift down keeps you on the platform; the stick held well down drops you through", Math.abs(on.bottom - plat.top) <= 3 && Math.abs(after1.bottom - plat.top) <= 3 && after2.bottom > plat.top + 30, { plat, on: on.bottom, drift: after1.bottom, held: after2.bottom });
     }
+    // ---- a quick tap under a standard platform (one full jump up) lands on it (the jump's end is forgiven 20 px)
+    const platTap = await ph.ev(async () => {
+      const d = window.__krel.game.scene.getScene("Dungeon");
+      // (the nearest one: a room's later stretches are shut until its fights are won)
+      const px = d.player.x;
+      const pb = d.platforms
+        .getChildren()
+        .map((o) => o.body)
+        .filter((b) => d.groundY - b.top > 120 && d.groundY - b.top < 150 && b.width >= 150)
+        .sort((a, b) => Math.abs(a.center.x - px) - Math.abs(b.center.x - px))[0];
+      if (!pb) return { why: "no platform" };
+      const x = pb.left + pb.width / 2;
+      const b = d.player.spr.body;
+      const sm = window.__krelMobile.combat.side;
+      let r = { why: "never stood under it" };
+      // (the player put on the floor under it, standing; again if something moved them meanwhile)
+      for (let i = 0; i < 3; i++) {
+        sm.reset();
+        b.reset(x, d.groundY - 60);
+        await new Promise((res) => setTimeout(res, 900));
+        if (Math.abs(d.player.x - x) > 20 || b.bottom < d.groundY - 4) {
+          r = { why: "moved", x: Math.round(d.player.x), want: Math.round(x), bottom: Math.round(b.bottom) };
+          continue;
+        }
+        const y0 = Math.round(b.bottom);
+        sm.press(d);
+        sm.release(d);
+        await new Promise((res) => setTimeout(res, 1600));
+        r = { top: Math.round(pb.top), y0, rests: Math.round(b.bottom), x: Math.round(d.player.x), want: Math.round(x), tries: i + 1 };
+        break;
+      }
+      return r;
+    });
+    check("a quick JUMP tap under a standard platform lands on it", !!platTap && !platTap.why && Math.abs(platTap.x - platTap.want) < 30 && Math.abs(platTap.rests - platTap.top) <= 2, platTap);
+    await calmSpot();
+    await land();
     // ---- no stuck input: JUMP held while the room goes busy (a scripted moment), let go meanwhile
     await calmSpot();
     await land();
@@ -3216,6 +3293,41 @@ async function sideRooms(browser) {
       return { fx: Math.round(c.followOffset.x), dz: c.deadzone ? Math.round(c.deadzone.width) : null, share: (d.player.x - c.worldView.x) / c.worldView.width };
     });
     check("the camera looks ahead (follow offset about -144: the player left of centre)", cam.fx < -100 && cam.dz === 0, cam);
+    // ---- turning round moves the view smoothly (thumb-feel round: it whipped up to 135 game px in 60 ms)
+    {
+      const z = (await ph.snap()).zone;
+      const sx = z.x + 120;
+      const sy = z.y + z.h - 70;
+      await ph.touch("touchStart", [{ x: sx, y: sy, id: 70 }]);
+      await ph.touch("touchMove", [{ x: sx + 60, y: sy, id: 70 }]);
+      await sleep(1200);
+      const watch = ph.ev(
+        () =>
+          new Promise((res) => {
+            const d = window.__krel.game.scene.getScene("Dungeon");
+            const c = d.cameras.main;
+            let last = c.followOffset.x;
+            let lt = performance.now();
+            let max = 0;
+            const t0 = lt;
+            const tick = () => {
+              const t = performance.now();
+              const dt = t - lt;
+              if (dt > 0) max = Math.max(max, Math.abs(c.followOffset.x - last) / dt);
+              last = c.followOffset.x;
+              lt = t;
+              if (t - t0 > 1600) res({ maxRate: Math.round(max * 100) / 100, fx: Math.round(c.followOffset.x) });
+              else requestAnimationFrame(tick);
+            };
+            requestAnimationFrame(tick);
+          }),
+      );
+      await sleep(80);
+      await ph.touch("touchMove", [{ x: sx - 60, y: sy, id: 70 }]);
+      const turn = await watch;
+      await ph.touch("touchEnd", []);
+      check("turning round: the view's offset moves at most about 0.45 game px a ms (up to 1 allowed for frame-timing jitter under load; the old easing started at about 2.2) and ends on the other side", turn.maxRate <= 1 && turn.fx > 100, turn);
+    }
     // ---- the Kreltality prompt: one big target under the right thumb, no key names
     await ph.ev(async () => {
       const m = await import("/src/game/combat/Kreltality.ts");
@@ -3894,7 +4006,7 @@ async function polish(browser) {
         check(`polish ${where}: a fresh room reached (chapter 1 kit)`, ok1, await ph.mode());
         check(
           `polish ${where} fresh room: only what a thumb can use now (no READY, HEAL, juice at full health, SPECIAL only when it can go)`,
-          !fresh.ids.includes("c-ready") && !fresh.ids.includes("c-heal") && !fresh.ids.includes("c-juice") && fresh.ids.includes("c-fire") && fresh.ids.includes("c-dodge") && fresh.ids.includes("pause") && fresh.ids.includes("c-special") === !!sp,
+          !fresh.ids.includes("c-ready") && !fresh.ids.includes("c-heal") && fresh.ids.includes("c-fire") && fresh.ids.includes("c-dodge") && fresh.ids.includes("pause") && fresh.ids.includes("c-special") === !!sp,
           counts["room-fresh"],
         );
         // ---- 1b. the same room with nothing left to use (Krezz spent, no bongo): the calmest a fight gets
@@ -3923,7 +4035,29 @@ async function polish(browser) {
         // (a second gun with ammo besides whatever the kit has, so SWAP has something to swap)
         for (const id of Object.keys(g.GUNS).filter((id) => id !== "chem_flamer").slice(0, 2)) s.guns[id] = Math.max(5, s.guns[id] ?? 0);
       });
-      await look("room-mid", { wait: 1500 });
+      const midRoom = await look("room-mid", { wait: 1500 });
+      // the pocket (thumb-feel round, the user: "the specials, when they do activate, are tiny to press"): 💨 and 🍺 are
+      // full-size buttons on the right thumb's side (60 px drawn at 844x390, never under 52; 44 px+ to touch), and
+      // HEAL (30% health) is the red one; nothing in the top-left corner any more
+      const pk = await ph.ev(() => {
+        const vw = innerWidth;
+        return window.__krelMobile.snapshot().controls.filter((c) => c.shown && /^c-(bongo|fart|heal|sanmik)$/.test(c.id)).map((c) => ({ id: c.id, w: Math.round(c.face.w), h: Math.round(c.face.h), hw: Math.round(c.hit.w), hh: Math.round(c.hit.h), right: c.face.x + c.face.w / 2 > vw / 2 }));
+      });
+      const heal = await ph.ev(() => !!document.querySelector('.kt-btn.show.low[data-ctl="c-heal"]'));
+      const big = pr.profile.viewport.width === 844 ? 59.5 : 51.5;
+      check(`polish ${where} mid-game: 💨, 🍺 and HEAL are full-size buttons on the right (drawn ${big > 55 ? 60 : 52}+ px, 44+ px to touch), HEAL red when low`, ["c-bongo", "c-fart", "c-heal"].every((id) => pk.some((c) => c.id === id)) && pk.every((c) => c.right && Math.min(c.w, c.h) >= (c.id === "c-heal" ? 51.5 : big) && Math.min(c.hw, c.hh) >= 44) && heal, { pk, heal, ids: midRoom.ids });
+      // the longest pocket word (CABBAGE, fart level 3) stays inside its round button at every size (the recheck saw it
+      // clipped to "ABBAG" at 750x340; forced here so the check never depends on how far the meter got)
+      const cab = await ph.ev(async () => {
+        window.__krel.G.rt.fart = 80;
+        await new Promise((r) => setTimeout(r, 300));
+        const f = document.querySelector('.kt-btn.show[data-ctl="c-fart"] .kt-face');
+        const w = f && f.querySelector(".kt-in");
+        if (!w) return null;
+        const a = f.getBoundingClientRect(), b = w.getBoundingClientRect();
+        return { text: w.textContent, face: Math.round(a.width), word: Math.round(b.width), inside: b.left >= a.left + 2 && b.right <= a.right - 2 };
+      });
+      check(`polish ${where} mid-game: the longest 💨 word (CABBAGE) sits inside its button`, !!cab && cab.text === "CABBAGE" && cab.inside, cab);
       // ---- 3. a boss (Krandall)
       if (!pr.light) {
         const ok3 = await toFight(ph, "wildern", 3, 2);

@@ -53,7 +53,8 @@ describe("phone settings: defaults and cleaning", () => {
       leftHanded: false,
       buttonSize: "M",
       opacity: 0.3,
-      stick: "floating",
+      // (thumb-feel round: the base stays where the thumb lands; it no longer follows it about)
+      stick: "stays",
       autoFire: true,
       aimAssist: "normal",
       phoneAssist: true,
@@ -74,6 +75,19 @@ describe("phone settings: defaults and cleaning", () => {
     expect(n).toEqual({ ...DEFAULT_PHONE_SETTINGS, opacity: 0.8, syncOffsetMs: 300, stick: "fixed" });
     expect(normalizePhoneSettings({ leftHanded: true, buttonSize: "S", opacity: 0 })).toEqual({ ...DEFAULT_PHONE_SETTINGS, leftHanded: true, buttonSize: "S", opacity: 0.2 });
     expect(normalizePhoneSettings({ syncOffsetMs: -42.6 }).syncOffsetMs).toBe(-43);
+  });
+
+  it("the stick: three clear choices; the old default (\"floating\", a base that followed the thumb) reads as the new one", () => {
+    expect(DEFAULT_PHONE_SETTINGS.stick).toBe("stays");
+    expect(normalizePhoneSettings({ stick: "floating" }).stick).toBe("stays");
+    expect(normalizePhoneSettings({ stick: "follows" }).stick).toBe("follows");
+    expect(normalizePhoneSettings({ stick: "fixed" }).stick).toBe("fixed");
+    expect(normalizePhoneSettings({ stick: "wobbly" }).stick).toBe("stays");
+    // a stored "floating" is not kept as a choice: it follows the default from now on
+    expect(chosenFromStored({ v: 2, stick: "floating", buttonSize: "L" })).toEqual({ buttonSize: "L" });
+    expect(chosenFromStored({ v: 2, stick: "follows" })).toEqual({ stick: "follows" });
+    const spec = PHONE_SETTINGS.find((s) => s.key === "stick");
+    expect(spec && spec.type === "choice" ? spec.options.map((o) => o.value) : null).toEqual(["stays", "follows", "fixed"]);
   });
 
   it("knows which keys changed", () => {
@@ -202,7 +216,8 @@ describe("phone settings: storage", () => {
 
   it("a version 1 object (every field stored) counts only the values that differ from version 1's defaults (R5)", () => {
     // (version 1 was written while readability's default was still off)
-    const v1 = { v: 1, ...DEFAULT_PHONE_SETTINGS, readability: false, buttonSize: "L", haptics: false };
+    // (and its stick was the old default, "floating")
+    const v1 = { v: 1, ...DEFAULT_PHONE_SETTINGS, readability: false, stick: "floating", buttonSize: "L", haptics: false };
     expect(chosenFromStored(v1)).toEqual({ buttonSize: "L", haptics: false });
     const st = memStorage({ [KEY]: JSON.stringify(v1) });
     setPhoneDefaultsForTests({ readability: true });

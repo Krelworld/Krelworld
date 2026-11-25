@@ -31,6 +31,19 @@ export const COMBAT_CSS = `
 .kt-ready .kt-face{border-color:#ffd23f;background:rgba(255,190,40,.42);color:#fff;font-size:14px;
   box-shadow:0 0 0 2px rgba(0,0,0,.5),0 0 12px rgba(255,210,63,.55)}
 .kt-heal .kt-face{border-color:rgba(255,158,207,.85);background:rgba(120,20,70,.45)}
+/* HEAL under 40%: red, the urgent one */
+.kt-heal.low .kt-face{border-color:#ff5d7a;background:rgba(170,20,50,.6)}
+/* the pocket (thumb-feel round): 💨 / 🍺 / SANMIK, full-size round buttons at the cluster's upper left, each only
+   while it can be used; the icon over its word, always inside the button */
+.kt-pocket .kt-face{flex-direction:column;gap:1px;font-size:11px}
+.kt-pocket .kt-pi{font-size:24px;line-height:1;filter:drop-shadow(0 1px 1px #000)}
+.kt-pocket .kt-in{font-size:10px;letter-spacing:.3px}
+/* a long word (CABBAGE) is drawn narrower, never smaller, so it stays inside the round face at every phone size */
+.kt-pocket .kt-in.kt-long{letter-spacing:0;transform:scaleX(.74)}
+.kt-p-fart .kt-face{border-color:rgba(163,230,53,.9);background:rgba(60,110,20,.45)}
+.kt-p-bongo .kt-face{border-color:rgba(245,180,90,.9);background:rgba(120,70,15,.45)}
+.kt-p-bongo .kt-n{position:absolute;right:8%;top:6%;font-size:12px;line-height:1;color:#fff;text-shadow:0 1px 2px #000}
+.kt-p-sanmik .kt-face{border-color:rgba(255,120,200,.9);background:rgba(130,30,110,.5);font-size:11.5px}
 .kt-heal .kt-n,.kt-chip .kt-n{position:absolute;right:6%;bottom:6%;font-size:12px;line-height:1;color:#fff;text-shadow:0 1px 2px #000}
 .kt-caction .kt-face{border-color:rgba(255,210,63,calc(var(--kt-a) + .25))}
 .kt-close .kt-face{border-color:rgba(255,255,255,.8);background:rgba(10,6,20,.75);font-size:28px}
@@ -54,7 +67,6 @@ export const COMBAT_CSS = `
 .kt-chip .kt-am{font-size:13px;color:#ffe066}
 .kt-chip .kt-am.low{color:#facc15}.kt-chip .kt-am.out{color:#ff7b7b}
 .kt-wchip .kt-face{border-color:rgba(103,232,249,calc(var(--kt-a) + .25))}
-.kt-dchip .kt-face{justify-content:center;padding:0 6px;font-size:13px;gap:4px;border-radius:10px}
 /* the mash overlay (WONK YOUR THANG): every finger anywhere is a press */
 .kt-mash{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;touch-action:none;display:none}
 .kt-mash.show{display:block;pointer-events:auto}

@@ -23,11 +23,18 @@ export const JUMP_TUNE = Object.freeze({
   gravity: 1500,
   firstVy: 660,
   airVy: 580,
-  /** Variable height: the climb is cut at the later of the release and this long after take-off... */
-  minRiseMs: 80,
+  /**
+   * Variable height: the climb is cut at the later of the release and this long after take-off...
+   * (thumb-feel round, the user: "jumping feels a little awkward". It was 80 ms / 300 / 260: a quick thumb tap gave a
+   * 78 px hop, short of the side rooms' standard platforms 135 px up (115 with the landing tolerance), so the same tap
+   * landed or didn't depending on a few ms of thumb. Now the quickest tap reaches them with room to spare, about
+   * 126 px (measured in a side room: 123 of the 135, the platform's 20 px landing tolerance needs 115), and a hold of
+   * 140 ms or more is the game's full 145, as before.)
+   */
+  minRiseMs: 100,
   /** ...to this upward speed (first jump) / this (the air jump), when it is still climbing faster. */
-  cutVy: 300,
-  airCutVy: 260,
+  cutVy: 450,
+  airCutVy: 390,
   /** Air control: the time constant of the speed easing in the air (the game uses 140; on the ground 70). */
   airEaseMs: 100,
   groundEaseMs: 70,
@@ -254,12 +261,18 @@ export interface Box {
 
 /**
  * Ledge pop: feet just below a top (within popPx), beside it (within widen px, or touching) and moving toward it =
- * placed on top. Returns the y to move the body up by (px), or 0.
+ * placed on top; under a one-way platform's top by up to ledgeTol at the top of a jump = placed on it. Returns the y
+ * to move the body up by (px), or 0.
  */
 export function ledgePop(body: Box, vy: number, dirX: number, block: Box, oneWay: boolean): number {
   const T = JUMP_TUNE;
   if (vy < -60) return 0; // still climbing hard: not a missed landing
   const below = body.bottom - block.top;
+  // a one-way platform jumped up into from below, the feet just short of its top at the top of the jump: put on it
+  // (thumb-feel round: the collider's own ledgeTol never got the chance, Arcade only lands a body that enters the top
+  // within its 4 px bias in one step, so a jump ending 5 to 20 px short fell back through; the side rooms' standard
+  // platforms sit exactly one full jump up)
+  if (oneWay && below > 0 && below <= T.ledgeTol && body.right > block.left - T.popWiden && body.left < block.right + T.popWiden) return below + 0.5;
   if (below <= 0 || below > T.popPx) return 0;
   const gapL = block.left - body.right; // block to the right of the body
   const gapR = body.left - block.right; // block to the left
@@ -320,6 +333,12 @@ export class LookAhead {
     readonly share = 0.15,
     readonly switchMs = 400,
     readonly easeMs = 400,
+    /**
+     * A whole turn (35% to 65%, 0.3 of the width) takes at least this long (thumb-feel round: the easing alone moved
+     * the view up to 135 game px in 60 ms at the start of a turn, a jolt each time you turned round; now at most
+     * 0.3 x 960 / 700 ms = 0.41 px a ms, about 25 in 60 ms, on top of the follow).
+     */
+    readonly turnMs = 700,
   ) {}
 
   step(now: number, dt: number, moveX: number, width: number): number {
@@ -332,7 +351,8 @@ export class LookAhead {
     } else if (d === this.dir) this.wantDir = d;
     const target = -this.dir * this.share * width;
     const k = Math.min(1, dt / (this.easeMs / 3));
-    this.x += (target - this.x) * k;
+    const cap = (2 * this.share * width * dt) / this.turnMs;
+    this.x += Math.max(-cap, Math.min(cap, (target - this.x) * k));
     return this.x;
   }
 

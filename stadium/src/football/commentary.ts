@@ -115,6 +115,15 @@ export class Commentator {
         if (this.w.state.actors[e.actor]?.off) { if (this.maybe(0.5)) this.out(e, "That struck the referee. Play continues."); }
         else this.out(e, "The ball has hit somebody who should not be on the pitch.", true);
         break;
+      case "fb_halted":
+        this.out(e, e.reason === "intruder" ? "The referee has stopped play. There is somebody on the pitch." : "Play has been stopped.", true);
+        break;
+      case "fb_resumed":
+        this.out(e, "Play will restart with a dropped ball.");
+        break;
+      case "fb_dead_ball_net":
+        this.out(e, "The ball is in the net. Play had already been stopped.", true);
+        break;
       case "fb_intruder_kick":
         this.out(e, "A spectator has kicked the ball. We have not received confirmation of a substitution.", true);
         break;

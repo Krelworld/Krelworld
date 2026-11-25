@@ -64,6 +64,7 @@ function pickTaker(w: World, m: MatchState, type: RestartType, team: TeamIdx, x:
   const nearest = () => best((a) => -Math.hypot(a.x - x, a.y - y));
   switch (type) {
     case "kickoff": return out.find((a) => a.fb!.role === "FWD") ?? nearest();
+    case "drop_ball": return nearest();
     case "goal_kick": return keeperOf(s, m, team) ?? nearest();
     case "corner": return best((a) => a.fb!.passing, out.filter((a) => a.fb!.role !== "DEF" && !a.fb!.star));
     case "penalty": return best((a) => a.fb!.shooting * 0.6 + a.fb!.composure * 0.4);
@@ -93,6 +94,25 @@ export function beginRestart(w: World, m: MatchState, type: RestartType, team: T
   m.possession = team;
   if (type === "corner") m.stats[team].corners++;
   w.bus.emit({ type: "fb_restart", t: s.tick, restart: type, team });
+}
+
+/** A dead ball rolling around: it moves, but nothing it does counts. */
+function looseBall(w: World, m: MatchState): void {
+  const b = m.ball, dt = 1 / 60;
+  if (b.z > 0 || b.vz > 0) {
+    b.vz -= 9.8 * dt; b.z += b.vz * dt;
+    if (b.z <= 0) { b.z = 0; b.vz = -b.vz * 0.5; if (b.vz < 1.3) b.vz = 0; b.vx *= 0.82; b.vy *= 0.82; }
+  } else {
+    const sp = Math.hypot(b.vx, b.vy), ns = Math.max(0, sp - 3.4 * dt);
+    if (sp > 0) { b.vx *= ns / sp; b.vy *= ns / sp; }
+  }
+  const px = b.x;
+  b.x += b.vx * dt; b.y += b.vy * dt;
+  if (Math.abs(px) <= HL && Math.abs(b.x) > HL && Math.abs(b.y) < PITCH.goalW / 2 && b.z < PITCH.goalH) {
+    b.vx = 0; b.vy = 0; b.x = Math.sign(b.x) * (HL + 0.9);
+    w.bus.emit({ type: "fb_dead_ball_net", t: w.state.tick, by: b.lastTouch });
+  }
+  if (Math.abs(b.x) > HL + 6 || Math.abs(b.y) > HW + 6) { b.vx = b.vy = 0; }
 }
 
 const CORNER_SPOTS = [[4, 1.5], [6.5, -1.5], [8.5, 2.5], [5, -4], [10, -0.5]];
@@ -231,6 +251,11 @@ function execute(w: World, m: MatchState, r: Restart): void {
       takePenalty(w, m, taker, dir);
       m.offside = null;
       break;
+    case "drop_ball": {
+      const n = nearestMate();
+      if (n) { passTo(w, m, taker, n.x, n.y); m.passTo = n.id; }
+      break;
+    }
   }
 }
 
@@ -238,7 +263,15 @@ export function stepRestart(w: World, m: MatchState): void {
   const s = w.state, tick = s.tick, r = m.restart!;
   if ((tick & 7) === 0 || tick === r.readyAt) setTargets(w, m, r);
   for (const t of [0, 1] as TeamIdx[]) for (const a of playing(s, m, t)) steer(a, tick, 1, 0.6);
+  // Play is stopped: a dead ball can still be kicked about by whoever stopped it.
+  const b = m.ball;
+  if (!b.owner && (Math.hypot(b.vx, b.vy) > 0.05 || b.z > 0)) {
+    looseBall(w, m);
+  }
+  if (m.halted) { r.readyAt = Math.max(r.readyAt, tick + 150); return; }
   if (tick < r.readyAt) return;
+  // Put the ball back where it should be before anyone takes it.
+  b.x = r.x; b.y = r.y; b.z = 0; b.vx = b.vy = b.vz = 0;
   const taker = r.taker ? s.actors[r.taker] : null;
   if (taker && taker.fb!.status === "playing") {
     const d = Math.hypot(taker.fb!.tx - taker.x, taker.fb!.ty - taker.y);

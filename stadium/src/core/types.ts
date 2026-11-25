@@ -1,5 +1,6 @@
 import type { RngState } from "./rng";
 import type { Footballer, Official, MatchState } from "../football/types";
+import type { Npc, StadiumState } from "../stadium/state";
 
 export type Id = string;
 export const TICK_HZ = 60;
@@ -31,6 +32,11 @@ export interface ItemDef {
   authority?: number;
   /** For substances: what it does when consumed. */
   effect?: string;
+  /** Main colour when drawn or worn. */
+  colour?: number;
+  colour2?: number;
+  /** Price in pounds where it is sold. */
+  price?: number;
 }
 
 export type ItemLoc =
@@ -48,6 +54,14 @@ export interface Item {
   loc: ItemLoc;
   /** Substance def id this food or drink has been spiked with. */
   spiked?: string;
+  /** A ticket that has been cancelled. */
+  void?: boolean;
+  /** Who it belongs to, for credentials and stolen goods. */
+  owner?: Id;
+  /** Money held in a wallet. */
+  cash?: number;
+  /** A ticket that has already been through a turnstile. */
+  used?: boolean;
 }
 
 // ---------- Actors ----------
@@ -78,10 +92,18 @@ export interface Actor {
   fb?: Footballer;
   /** Present on match officials. */
   off?: Official;
+  /** Present on people with a routine of their own. */
+  npc?: Npc;
+  /** Inside a container (a lorry, a cubicle). Unseen and carried with it. */
+  hiddenIn?: Id;
+  /** Sitting in the stands. */
+  seated?: boolean;
+  /** Being frogmarched by this person. */
+  heldBy?: Id;
 }
 
 // ---------- Actions ----------
-export type VerbId = "take" | "drop" | "wear" | "remove" | "consume" | "throw" | "give" | "show" | "use" | "strike";
+export type VerbId = string;
 export type Target =
   | { k: "actor"; id: Id }
   | { k: "item"; id: Id }
@@ -96,6 +118,11 @@ export interface Action {
   /** Unit direction for throws and strikes. */
   dirX?: number; dirY?: number;
   power?: number;
+  /** For throws: how far away the target is, in metres. */
+  dist?: number;
+  /** Free-form extra (what to buy, how much money to offer). */
+  arg?: string;
+  amount?: number;
 }
 
 export interface RecordedStep {
@@ -127,4 +154,5 @@ export interface WorldState {
   match: MatchState | null;
   /** Actors currently being recorded, and what they have done so far. */
   recordings: Record<Id, RecordedStep[]>;
+  stadium?: StadiumState;
 }

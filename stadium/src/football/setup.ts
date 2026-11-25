@@ -119,13 +119,13 @@ export function createMatch(w: World, home: TeamDef, away: TeamDef, cfg: Partial
     cfg: { ...DEFAULT_CFG, ...cfg },
     teams,
     ball: { x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, owner: null, held: false, lastTouch: null, lastTouchTeam: -1, freeUntil: 0, shot: null, lastShot: null },
-    phase: "pre", phaseUntil: s.tick + 180,
+    phase: "pre", phaseUntil: s.tick + Math.round((cfg.preSeconds ?? 3) * 60),
     period: 1, clock: 0, stoppage: 0, addedAnnounced: 0,
     dir0: 1, restart: null, next: null, possession: -1,
     score: [0, 0], physicalGoals: [0, 0], pending: [],
     officials: { referee: referee.id, assistants: [a1.id, a2.id], fourth: fourth.id },
     stats: [emptyStats(), emptyStats()],
-    passTo: null, offside: null, shootout: null, winner: -1, firstKick: 0, mentalityAt: 0,
+    passTo: null, offside: null, shootout: null, winner: -1, firstKick: 0, mentalityAt: 0, halted: null,
   };
   s.match = m;
   // Stand everyone somewhere sensible before kick-off.

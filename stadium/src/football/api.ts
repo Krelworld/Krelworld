@@ -61,3 +61,16 @@ export function intruderKick(w: World, actorId: Id, dirX: number, dirY: number, 
   w.bus.emit({ type: "fb_intruder_kick", t: w.state.tick, actor: actorId });
   return true;
 }
+
+/** Stop play from outside the game (an intruder, a dog, an incident). */
+export function haltPlay(w: World, reason: string): void {
+  const m = w.state.match;
+  if (!m || m.halted || m.phase === "finished" || m.phase === "shootout") return;
+  m.halted = reason;
+}
+export function resumePlay(w: World): void {
+  const m = w.state.match;
+  if (!m || !m.halted) return;
+  m.halted = null;
+  w.bus.emit({ type: "fb_resumed", t: w.state.tick });
+}

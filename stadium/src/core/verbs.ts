@@ -6,7 +6,7 @@ import type { World } from "./world";
 
 export const REACH = 1.6;
 
-interface VerbDef {
+export interface VerbDef {
   /** Returns a reason the action is impossible, or null if it can go ahead. */
   check(w: World, a: Action, actor: Actor, item: Item | undefined): string | null;
   perform(w: World, a: Action, actor: Actor, item: Item | undefined): void;
@@ -95,9 +95,12 @@ export const VERBS: Record<VerbId, VerbDef> = {
       return hasProp(item!, "throwable") || defOf(item!).size === "small" ? null : "cannot be thrown";
     },
     perform: (w, a, actor, item) => {
-      const sp = 9 + 7 * (a.power ?? 0.7);
-      const dx = a.dirX ?? Math.cos(actor.facing), dy = a.dirY ?? Math.sin(actor.facing);
-      moveItem(w.state, item!.id, { k: "air", x: actor.x, y: actor.y, z: 1.5, vx: dx * sp, vy: dy * sp, vz: 2.6, by: actor.id });
+      // Aimed at a distance: enough speed to land there, given the arc.
+      const sp = a.dist !== undefined ? Math.min(Math.max(a.dist / 0.95, 4), 19) : 9 + 7 * (a.power ?? 0.7);
+      const l = Math.hypot(a.dirX ?? 0, a.dirY ?? 0);
+      const dx = l ? a.dirX! / l : Math.cos(actor.facing), dy = l ? a.dirY! / l : Math.sin(actor.facing);
+      actor.facing = Math.atan2(dy, dx);
+      moveItem(w.state, item!.id, { k: "air", x: actor.x, y: actor.y, z: 1.5, vx: dx * sp, vy: dy * sp, vz: 3.2, by: actor.id });
     },
   },
   give: {
@@ -165,6 +168,8 @@ function addEffect(s: WorldState, actor: Actor, effect: string, seconds: number)
   actor.effects[effect] = Math.max(actor.effects[effect] ?? 0, s.tick + seconds * 60);
 }
 
+export function registerVerb(id: VerbId, def: VerbDef): void { VERBS[id] = def; }
+
 export interface DispatchResult { ok: boolean; reason?: string }
 
 /** Try an action. On success it is announced on the bus and, if the actor is being recorded, stored. */
@@ -192,5 +197,5 @@ export function possibleVerbs(w: World, base: Omit<Action, "verb">): VerbId[] {
   const actor = w.state.actors[base.actor];
   if (!actor || actor.downUntil > w.state.tick) return [];
   const item = base.item ? w.state.items[base.item] : undefined;
-  return (Object.keys(VERBS) as VerbId[]).filter((v) => VERBS[v].check(w, { ...base, verb: v }, actor, item) === null);
+  return Object.keys(VERBS).filter((v) => VERBS[v].check(w, { ...base, verb: v }, actor, item) === null);
 }

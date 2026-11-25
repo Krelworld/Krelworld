@@ -55,3 +55,42 @@ no dropped balls, half-time is a short pause rather than a playable phase.
 - `npm run stats -- 40 ENG POR` plays 40 matches without graphics and prints totals.
   Add `--sabotage=star`, `keeper` or `ref`, and `--league` to allow draws.
 - `npm run build` builds the viewer into `dist/viewer` (open `local.html` through a local web server).
+
+## Stadium slice (stage 3)
+
+One stadium, one quarter-final against Portugal, about 25-30 minutes of real time:
+5.5 minutes before kick-off, two 7.5-minute halves, 2.5 minutes of half-time,
+extra time and penalties if level.
+
+What runs by itself: supporters arriving (some via the pub), turnstile queues,
+stewards at posts, a door guard who props the staff door open for a smoke every
+few minutes, a beer lorry looping pub yard -> ring road -> service gate -> loading
+bay, police patrols, teams and officials walking between dressing rooms and the
+pitch, half-time drinks.
+
+Ways in (all covered by tests): buy a ticket; buy one off a supporter; pickpocket
+one; bribe a turnstile steward; jump the turnstile; hide in the beer lorry; wear a
+hi-vis vest past the staff door; slip in while the door is propped open.
+
+Security: stewards and police see in a cone with line of sight. Suspicion builds
+from being somewhere you don't look allowed, carrying a weapon openly, or
+matching a description. Responses: watch, approach, warn and walk you out,
+eject (ticket cancelled, contraband confiscated to the security office, face
+barred), detain in the security office (police called for serious crimes),
+arrest. Minor offences only matter to staff; assaults and theft are noticed by
+anyone. Incidents are blamed on whichever team's shirt you were wearing until a
+steward pulls the outer shirt off.
+
+Effects on the match come only from the world: thrown objects distract or stun
+whoever they hit; spiked team water or the referee's tea takes effect in the next
+half; bribes change a player's or referee's behaviour; a pitch invasion halts play
+if the referee notices.
+
+Checkpoints: arrival, first time inside, kick-off, half-time. Loading one re-rolls
+the match.
+
+Not yet: betting shop, footballer and referee impersonation on the pitch, police
+impersonation, the team bus, the dog, vertical routes, sound, real art.
+
+Running: `npm run build` then open `dist/stadium/local.html` through a local web
+server. `npx tsx tools/stadium-sim.ts` runs a whole match day with nobody playing.

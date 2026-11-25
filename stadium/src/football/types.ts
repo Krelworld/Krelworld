@@ -89,7 +89,7 @@ export interface TeamState {
 }
 
 export type Phase = "pre" | "live" | "restart" | "goal_pause" | "break" | "shootout" | "finished";
-export type RestartType = "kickoff" | "throw_in" | "goal_kick" | "corner" | "free_kick" | "penalty";
+export type RestartType = "kickoff" | "throw_in" | "goal_kick" | "corner" | "free_kick" | "penalty" | "drop_ball";
 
 export interface Restart {
   type: RestartType;
@@ -142,6 +142,10 @@ export interface MatchConfig {
   halfTimeSeconds: number;
   /** Knockout ties go to extra time and penalties. */
   knockout: boolean;
+  /** Seconds before kick-off. */
+  preSeconds?: number;
+  /** Played inside a stadium: somebody else walks the teams on and off. */
+  venue?: boolean;
 }
 
 export interface MatchState {
@@ -180,4 +184,6 @@ export interface MatchState {
   /** Which kickoff team started the match, to alternate halves. */
   firstKick: TeamIdx;
   mentalityAt: number;
+  /** Why play has been stopped from outside (an intruder, a dog), or null. */
+  halted: string | null;
 }

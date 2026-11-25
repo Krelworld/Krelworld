@@ -147,7 +147,7 @@ export function stepOfficials(w: World, m: MatchState): void {
 
   // Positions.
   const ref = s.actors[m.officials.referee];
-  if (available(ref, tick)) {
+  if (available(ref, tick) && !(m.cfg.venue && (m.phase === "pre" || m.phase === "break"))) {
     if (m.phase === "live" || m.phase === "restart") {
       const tx = clamp(b.x - Math.sign(b.x || 1) * 4, -HL + 3, HL - 3), ty = clamp(b.y + (b.y > 0 ? -7 : 7), -HW + 2, HW - 2);
       if (Math.hypot(tx - ref.x, ty - ref.y) > 2.5) moveTo(ref, tx, ty, 5.6); else ref.vx = ref.vy = 0;
@@ -157,6 +157,7 @@ export function stepOfficials(w: World, m: MatchState): void {
   for (const id of m.officials.assistants) {
     const ar = s.actors[id], off = ar.off!;
     if (!available(ar, tick)) continue;
+    if (m.cfg.venue && (m.phase === "pre" || m.phase === "break")) continue;
     const defTeam = ([0, 1] as TeamIdx[]).find((t) => dirOf(m, t) === -off.half)!;
     const xs = playing(s, m, defTeam).map((p) => p.x * off.half).sort((p, q) => q - p);
     const line = Math.max(xs.length > 1 ? xs[1] : 0, b.x * off.half, 0);

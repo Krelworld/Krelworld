@@ -112,6 +112,7 @@ function startNextPeriod(w: World, m: MatchState): void {
   m.clock = 0; m.stoppage = 0; m.addedAnnounced = 0;
   if (m.period === 5) return startShootout(w, m);
   m.dir0 = m.dir0 === 1 ? -1 : 1;
+  if (m.cfg.venue) { w.bus.emit({ type: "fb_period_start", t: s.tick, period: m.period }); beginRestart(w, m, "kickoff", m.period % 2 === 1 ? m.firstKick : other(m.firstKick), 0, 0, 6); return; }
   if (m.period === 2) for (const t of [0, 1] as TeamIdx[]) for (const a of playing(s, m, t)) a.fb!.fatigue = Math.max(0, a.fb!.fatigue - 0.15);
   placeForKickoff(w, m);
   w.bus.emit({ type: "fb_period_start", t: s.tick, period: m.period });
@@ -200,10 +201,19 @@ export function stepMatch(w: World): void {
       break;
     case "restart":
       m.clock += DT;
+      if (m.halted) m.stoppage += DT * 0.8;
       stepRestart(w, m);
       break;
     case "live": {
       m.clock += DT;
+      if (m.halted) {
+        // Stopped from outside: drop ball to whoever had it when play resumes.
+        const team: TeamIdx = m.possession === -1 ? 0 : m.possession;
+        beginRestart(w, m, "drop_ball", team, m.ball.x, m.ball.y, 3);
+        w.bus.emit({ type: "fb_halted", t: tick, reason: m.halted });
+        m.stoppage += 1;
+        break;
+      }
       stepPlayers(w, m);
       const dead = stepBall(w, m);
       if (m.possession !== -1) m.stats[m.possession].possession++;
@@ -227,6 +237,7 @@ export function stepMatch(w: World): void {
       break;
     }
     case "break":
+      if (m.cfg.venue) { idle(w, m, () => {}); if (tick >= m.phaseUntil) startNextPeriod(w, m); break; }
       idle(w, m, (a, t, i) => {
         const dir = dirOf(m, t);
         if (m.period === 1) { a.fb!.tx = -dir * (1 + (i % 4)); a.fb!.ty = -HW - 6 - Math.floor(i / 4) * 1.2; }

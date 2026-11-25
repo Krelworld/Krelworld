@@ -3428,6 +3428,8 @@ You are required by law to sign the Sex Offenders Register.`, {
       }
       if (this.controls.interact()) {
         this.prompt.setVisible(false);
+        // using anything (a door, a chat, a shop, the telly) gets you off the bike first
+        if (this.bike?.riding) this.bike.dismount(this.av);
         best.use();
       }
     } else {
@@ -3447,8 +3449,15 @@ You are required by law to sign the Sex Offenders Register.`, {
   }
 
   /** The bike outside Home (on the grass right of the front door), and the prompt to get on it there. */
+  /** The town paused under a conversation or a scene (not the pause menu): off the bike. */
+  private onBikePause = () => {
+    if (this.bike?.riding && !this.scene.isActive("Menu")) this.bike.dismount(this.av);
+  };
+
   private makeBike() {
     this.bike?.destroy();
+    this.events.off("pause", this.onBikePause);
+    this.events.on("pause", this.onBikePause);
     const home = { x: 606, y: 1392 };
     this.bike = new BikeRider(this, home, Math.abs(this.av.scaleX) || 1);
     const bike = this.bike;

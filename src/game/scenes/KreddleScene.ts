@@ -143,6 +143,9 @@ export class KreddleScene extends Phaser.Scene {
     this.me.setData("facing", "east");
     this.bike = new BikeRider(this, null, Math.abs(this.me.scaleX) || 1);
     this.bikeV = { x: 0, y: 0 };
+    // paused under anything (the Krezzcoin counter, a conversation): off the bike
+    this.events.off("pause", this.onBikePause);
+    this.events.on("pause", this.onBikePause);
     this.cameras.main.startFollow(this.me, true, 0.1, 0.1);
     this.prompt = this.add.text(0, 0, "", { fontFamily: FONT, fontSize: "13px", color: "#ffffff", backgroundColor: "#1a0b24dd", padding: { x: 6, y: 3 } }).setOrigin(0.5).setDepth(3000).setVisible(false);
     this.coinText = this.add.text(950, 10, "", { fontFamily: FONT, fontSize: "15px", color: "#ffd23f", fontStyle: "bold", stroke: "#000", strokeThickness: 4 }).setOrigin(1, 0).setScrollFactor(0).setDepth(4000);
@@ -462,12 +465,20 @@ export class KreddleScene extends Phaser.Scene {
     }
     if (best) {
       this.prompt.setText(best.label).setPosition(this.me.x, this.me.y - 56).setVisible(true);
-      if (this.controls.interact()) best.use();
+      if (this.controls.interact()) {
+        // a machine, a counter or a chat: off the bike first
+        if (this.bike?.riding) this.bike.dismount(this.me);
+        best.use();
+      }
     } else {
       this.prompt.setVisible(false);
       this.controls.interact();
     }
   }
+
+  private onBikePause = () => {
+    if (this.bike?.riding) this.bike.dismount(this.me);
+  };
 
   /** Every frame: the bike key (or BIKE button) gets you on and off; a machine, a chat or a shove gets you off. */
   private bikeControl() {

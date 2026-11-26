@@ -1,5 +1,6 @@
-// The auto-fire audit (ga-02): Settings > Firing (AUTO / LIGHT / STILL / HOLD), LIGHT's slower pace and STILL's
-// standing-still gate. All pure; the fights themselves are in the smoke test's "combat" section.
+// Settings > Firing: HOLD (the default since the user found auto-fire too easy) and EASY (the old auto-fire), the
+// settings migration, and the auto-fire audit's (ga-02) LIGHT pace and STILL gate (no longer on the row, still working).
+// All pure; the fights themselves are in the smoke test's "combat" section.
 import { afterEach, describe, expect, it } from "vitest";
 import { AutoPace, LIGHT_PACE, STILL_MS, STILL_STICK, StillGate } from "../src/game/mobile/combatLogic";
 import { DEFAULT_PHONE_SETTINGS, FIRE_STYLES, chosenFromStored, fireStyle, normalizePhoneSettings, phoneSettings, phoneSettingsList, resetPhoneSettingsForTests, updatePhoneSettings } from "../src/game/mobile/settings";
@@ -8,10 +9,22 @@ import { FIRE_AUTO, FIRE_LIGHT, FIRE_MANUAL, FIRE_STILL, fireLine } from "../src
 describe("Settings > Firing", () => {
   afterEach(() => resetPhoneSettingsForTests());
 
-  it("defaults to AUTO, the stage 2 behaviour (the default is the user's call)", () => {
-    expect(DEFAULT_PHONE_SETTINGS.firing).toBe("auto");
-    expect(DEFAULT_PHONE_SETTINGS.autoFire).toBe(true);
-    expect(fireStyle(phoneSettings())).toBe("auto");
+  it("defaults to HOLD (the user: auto-fire with all-round aim was 'so easy')", () => {
+    expect(DEFAULT_PHONE_SETTINGS.autoFire).toBe(false);
+    expect(fireStyle(phoneSettings())).toBe("hold");
+    expect(fireStyle(normalizePhoneSettings(null))).toBe("hold");
+  });
+
+  it("migrates: before version 3 auto-fire on (the old default) and its flavours follow the new default, HOLD", () => {
+    // stage 2's toggle, turned off and on again (stored as a choice), and the audit's row's choices
+    for (const old of [{ v: 2, autoFire: true }, { v: 2, autoFire: true, firing: "auto" }, { v: 2, autoFire: true, firing: "light" }, { v: 2, firing: "still" }, { v: 1, autoFire: true, firing: "auto" }, { autoFire: true }]) {
+      expect(fireStyle(normalizePhoneSettings(chosenFromStored(old)))).toBe("hold");
+      expect(chosenFromStored(old)).toEqual({});
+    }
+    // a phone that turned auto-fire off was on HOLD and stays there; other choices are kept
+    expect(chosenFromStored({ v: 2, autoFire: false, buttonSize: "L" })).toEqual({ autoFire: false, buttonSize: "L" });
+    // from version 3 on, EASY is a real choice and is kept
+    expect(fireStyle(normalizePhoneSettings(chosenFromStored({ v: 3, autoFire: true, firing: "auto" })))).toBe("auto");
   });
 
   it("auto-fire off (the stage 2 toggle, still stored by some phones) reads as HOLD whatever firing says", () => {
@@ -23,7 +36,7 @@ describe("Settings > Firing", () => {
     expect(fireStyle(normalizePhoneSettings(chosenFromStored({ v: 2, autoFire: false })))).toBe("hold");
   });
 
-  it("cleans junk: only the four styles", () => {
+  it("cleans junk: only the known styles", () => {
     for (const f of FIRE_STYLES) expect(normalizePhoneSettings({ firing: f }).firing).toBe(f);
     expect(normalizePhoneSettings({ firing: "twin" }).firing).toBe("auto");
     expect(normalizePhoneSettings({ firing: 3 }).firing).toBe("auto");
@@ -34,7 +47,11 @@ describe("Settings > Firing", () => {
     expect(list.find((e) => e.key === "autoFire")).toBeUndefined();
     const row = list.find((e) => e.key === "firing")!;
     expect(row.type).toBe("choice");
-    expect(row.type === "choice" ? row.options.map((o) => o.value) : []).toEqual(["auto", "light", "still", "hold"]);
+    // (HOLD first, the default; EASY is the old auto-fire. LIGHT and STILL are no longer offered)
+    expect(row.type === "choice" ? row.options.map((o) => `${o.value}:${o.label}`) : []).toEqual(["hold:HOLD", "auto:EASY"]);
+    expect(row.get()).toBe("hold");
+    row.set("auto");
+    expect(phoneSettings()).toMatchObject({ autoFire: true, firing: "auto" });
     expect(row.get()).toBe("auto");
     row.set("hold");
     expect(phoneSettings().autoFire).toBe(false);

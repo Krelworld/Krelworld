@@ -3,8 +3,10 @@
 // The old twelve-button canvas pad is replaced, in the top-down rooms and boss fights, by the layer's floating stick
 // (the town's zone, gutter included) and a right-hand cluster laid out as research "layout v2":
 //
-//   FIRE (prime corner)  hold = fire, slide = aim by hand (snaps onto an enemy). Auto-fire (on by default) shoots by
-//                        itself at an enemy in range with a clear line: the right thumb is free to dodge.
+//   FIRE (prime corner)  hold = fire, slide = aim by hand (snaps onto an enemy). By default (HOLD) the game aims only at
+//                        an enemy in front of you (aim.ts CONE_DEG), on screen and not behind a wall: you aim by turning
+//                        with the stick. EASY (Settings > Firing) is the old auto-fire: it shoots by itself at any enemy
+//                        in range with a clear line, aiming all round you.
 //   DODGE (up-left)      SWAP (left: tap = next gun, hold = the weapon picker)      SPECIAL (up: the lad's special,
 //   only while it would go)      READY (pops in when WONK, the golden transformation, the Cumehameha or IBS is ready)
 //   HEAL (pops in when a drink would heal; red and pulsing under 40%)      ACTION (pops in with a prompt, like walking)
@@ -30,7 +32,8 @@ import { fireStyle, phoneSettings, type FireStyle } from "./settings";
 import { SCENE_RULES, addSceneRule, currentInputSource } from "./modes";
 import { rightStick } from "./pad";
 import { registerModeController, type ModeContext, type TouchControl, type TouchLayer } from "./touchLayer";
-import { ACQUIRE, AIM_TUNE, MELEE_REACH, SLIDE_PX, aimPointFor, autoFireOk, pickTarget, snapAim, type AimTarget, type Pt } from "./aim";
+import { ACQUIRE, AIM_TUNE, CONE_DEG, CONE_KEEP_DEG, MELEE_REACH, SLIDE_PX, aimPointFor, autoFireOk, inView, lineOfSight, pickTarget, snapAim, type AimTarget, type Pt, type WallRect } from "./aim";
+import { cueSeen, markCue } from "./cues";
 import { AutoPace, StillGate, DUNGEON_RULE, FIRE_GRACE_MS, HoldTracker, MashQueue, PICKER_RULE, READY, RELABEL_MS, TEACH_ROOMS, healShown, healWanted, readyAbility, spamGap, specialCost, specialWanted, specialWord, type ReadyId } from "./combatLogic";
 import { controlScale, MIN_CONTROL, safeRect, type Placed, type Rect } from "./layout";
 import { COMBAT_CSS, COMBAT_STYLE_ID } from "./combatCss";
@@ -39,7 +42,7 @@ import { SideMove } from "./side";
 import { fitRoomName } from "./roomName";
 import { JUMP_TUNE } from "./jump";
 import { NARRATOR_TIPS, STORY_UI_LINES, UI_TEXTS, addWording, wordText } from "./wording";
-import { COMBAT_NARRATOR_TIPS, COMBAT_WORDING, COMBAT_WORDING_FIRST, FIGHT_UI_LINES, TUTORIAL_TEXT } from "./combatWording";
+import { COMBAT_NARRATOR_TIPS, COMBAT_WORDING, COMBAT_WORDING_FIRST, FIGHT_UI_LINES, FIRE_TIP, TUTORIAL_TEXT } from "./combatWording";
 
 // ------------------------------------------------------------------ what we read off the Dungeon (from outside)
 
@@ -88,6 +91,9 @@ interface DungeonLike extends Phaser.Scene {
   player?: PlayerLike;
   enemies?: EnemyLike[];
   spice?: { breakables?: Breakable[] } | null;
+  /** The room's walls, pillars and furniture (a static physics group; private in the Dungeon, read from outside). */
+  obstacles?: { getChildren?(): unknown[] } | null;
+  room?: { w: number; h: number } | null;
   side?: boolean;
   busy?: boolean;
   picking?: boolean;
@@ -121,6 +127,24 @@ function dungeonOf(game: Phaser.Game): DungeonLike | null {
   }
 }
 
+/** The room's solid blocks (walls, pillars, furniture) as rectangles, from their static physics bodies. */
+function wallsOf(dun: DungeonLike): WallRect[] {
+  const out: WallRect[] = [];
+  let kids: unknown[] = [];
+  try {
+    kids = dun.obstacles?.getChildren?.() ?? [];
+  } catch {
+    return out;
+  }
+  for (const k of kids) {
+    const o = k as { active?: boolean; body?: { x: number; y: number; width: number; height: number; enable?: boolean } | null };
+    const b = o?.body;
+    if (!b || o.active === false || b.enable === false || !(b.width > 0) || !(b.height > 0)) continue;
+    out.push({ x: b.x, y: b.y, w: b.width, h: b.height });
+  }
+  return out;
+}
+
 // ------------------------------------------------------------------ icons (drawn, so no font or emoji differences)
 
 const svg = (body: string) => `<svg viewBox="0 0 24 24" aria-hidden="true">${body}</svg>`;
@@ -145,6 +169,8 @@ interface Taught {
   special: number;
 }
 const TAUGHT_KEY = () => storageKey("krelworld.phone.combatTaught");
+/** The one-time HOLD firing tip (cues.ts: once per phone, per build). */
+const FIRE_TIP_CUE = "fire-hold";
 
 function loadTaught(): Taught {
   try {
@@ -177,6 +203,8 @@ export interface CombatSnapshot {
   autoShooting: boolean;
   /** The firing style in force (Settings > Firing). */
   firing: FireStyle;
+  /** The way you face (radians): HOLD aims only within CONE_DEG of it. */
+  facing: number;
   fireHeld: boolean;
   ready: ReadyId | null;
   heal: boolean;
@@ -620,14 +648,23 @@ export class CombatControls {
       range = f.range;
       speed = f.speed;
     }
+    // HOLD (the default): only what is in front of you (the way you last moved), that you can see: its body on screen
+    // and no wall or pillar in between. EASY: the old aim, all round you.
+    const ahead = style !== "auto";
+    let visible: ((t: AimTarget) => boolean) | undefined;
+    if (ahead) {
+      const walls = wallsOf(dun);
+      const room = !sideView && dun.room ? { x: 24, y: 24, w: dun.room.w - 48, h: dun.room.h - 48 } : null;
+      visible = (t) => inView(t, vr) && lineOfSight(me, t, walls, room);
+    }
     // the target: an enemy inside the gun's reach first, so auto-fire never waits on one it can't hit (F3)
     const prev = this.target?.id ?? null;
-    this.target = pickTarget({ me, stick: { x: sx, y: sy }, enemies, objects, prev, tune: this.tune, view: vr, reach: ACQUIRE, fireRange: range });
+    this.target = pickTarget({ me, stick: { x: sx, y: sy }, enemies, objects, prev, tune: this.tune, view: vr, reach: ACQUIRE, fireRange: range, facing: ahead ? this.lastMove : null, coneDeg: CONE_DEG, keepDeg: CONE_KEEP_DEG, visible });
     // aim: a slide by hand (snapped), else the target, else straight ahead
     const d = this.layer.decision;
     const fighting = (d.mode === "combat" || d.mode === "side") && !d.mash && !d.picker;
     if (this.manual) {
-      const sn = snapAim(me, this.manual.raw, enemies, this.tune, ACQUIRE, vr);
+      const sn = snapAim(me, this.manual.raw, enemies, this.tune, ACQUIRE, vr, visible);
       this.manual.angle = sn.angle;
       this.manual.snapped = sn.snapped;
       this.aimAngle = sn.angle;
@@ -826,6 +863,13 @@ export class CombatControls {
       saveTaught(this.teach);
     }
     const teaching = this.teach.rooms <= TEACH_ROOMS;
+    // HOLD firing (the default since auto-fire was found too easy): the first fight on this phone says so, once, and
+    // FIRE pulses, so a player used to auto-fire isn't left wondering why nothing shoots
+    if (fight && dun && !cueSeen(FIRE_TIP_CUE) && fireStyle(phoneSettings()) !== "auto" && (dun.enemies ?? []).some((e) => e && !e.dead && e.active)) {
+      markCue(FIRE_TIP_CUE);
+      this.pulseUntil.fire = this.pulseUntil.sfire = realNow() + 4000;
+      G.emit("toast", { title: FIRE_TIP.title, text: FIRE_TIP.text });
+    }
     // ---- the cluster
     const side = d.mode === "side";
     show("fire", fight && !side);
@@ -898,7 +942,7 @@ export class CombatControls {
     // neighbour, the HUD or the home-indicator strip: N1); pulses the first time each matters
     for (const id of ["fire", "sfire", "jump", "dodge", "swap", "heal"] as const) if (this.c[id].el.classList.contains("taught") !== teaching) this.c[id].el.classList.toggle("taught", teaching);
     const t = realNow();
-    for (const id of ["ready", "heal", "swap", "special"] as const) this.c[id].el.classList.toggle("pulse", (this.pulseUntil[id] ?? 0) > t && this.c[id].shown);
+    for (const id of ["ready", "heal", "swap", "special", "fire", "sfire"] as const) this.c[id].el.classList.toggle("pulse", (this.pulseUntil[id] ?? 0) > t && this.c[id].shown);
     // ---- feedback: a flash on the button that just did something (FIRE flashes with auto-fire's shots too)
     if (p) this.flashes(p);
     this.c.fire.el.classList.toggle("auto", this.autoFiring);
@@ -1084,6 +1128,7 @@ export class CombatControls {
       autoFiring: this.autoFiring,
       autoShooting: this.autoShooting,
       firing: fireStyle(phoneSettings()),
+      facing: this.lastMove,
       fireHeld: this.fireHeld,
       ready: this.readyId,
       heal: this.c.heal.shown,

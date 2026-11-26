@@ -163,10 +163,15 @@ export interface RsState {
  * walk to the nearest tree and chop, or hit the closing ring); DROP ALL with logs in the bag; the re-up when the game
  * would take one (gear under 85, or the dealer already here). None once the session is over or a conversation is up.
  */
-export function rsButtons(s: RsState | null, talking: boolean): { chop: boolean; drop: boolean; reup: boolean; hot: boolean } {
-  if (!s || s.over || talking) return { chop: false, drop: false, reup: false, hot: false };
-  return { chop: true, drop: s.logs > 0, reup: s.gear < 85 || s.gary === "here", hot: s.ring };
+export function rsButtons(s: RsState | null, talking: boolean): { chop: boolean; drop: boolean; reup: boolean; hot: boolean; reupHot: boolean } {
+  if (!s || s.over || talking) return { chop: false, drop: false, reup: false, hot: false, reupHot: false };
+  // (stage 4, s4-01 m5: running dry slowed you to a crawl and nothing said why; the re-up button glows from the
+  // moment the game's own orb turns yellow)
+  return { chop: true, drop: s.logs > 0, reup: s.gear < 85 || s.gary === "here", hot: s.ring, reupHot: s.gear < RS_LOW };
 }
+
+/** The gear level the game's own re-up label turns yellow at (runescape.ts): the phone's button glows from here. */
+export const RS_LOW = 35;
 
 /** "Re-up (G)" → "RE-UP": the game's own word for the button, without its key. */
 export function rsWord(button: string | undefined): string {

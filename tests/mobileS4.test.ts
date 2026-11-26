@@ -50,8 +50,11 @@ describe("stage 4: UI text that named a key (s4-01 M1, s4-02 F2 F4 F6)", () => {
   it("ACTION's word: INJECT for the lads, OPEN for the staff toilet; the Cronster's hostages keep ACTION", () => {
     expect(verbFromPrompt("E: Inject Kreblis")).toBe("INJECT");
     expect(verbFromPrompt("E: Talk to STAFF TOILET (ENGAGED)")).toBe("OPEN");
+    expect(verbFromPrompt("E: Untie Mollor")).toBe("FREE");
+    expect(verbFromPrompt("E: Free Krezmar")).toBe("FREE");
+    expect(verbFromPrompt("E: Open the weapons crate")).toBe("OPEN");
     expect(verbFromPrompt("E: Talk to Gronny")).toBe("TALK");
-    expect(touchWording("TIP: Free the hostages (walk up, press E) before he gets to them.", RULES)).toBe("TIP: Free the hostages (walk up, tap ACTION) before he gets to them.");
+    expect(touchWording("TIP: Free the hostages (walk up, press E) before he gets to them.", RULES)).toBe("TIP: Free the hostages (walk up, tap FREE) before he gets to them.");
   });
   it("the crate's toast names the button it gets (OPEN); the flyover's skip is just SKIP ▸▸ (s4-01 m3)", () => {
     expect(touchWording("A weapons crate appeared. Press E to open it.", RULES)).toBe("A weapons crate appeared. Walk up and tap OPEN.");

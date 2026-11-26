@@ -46,6 +46,8 @@ export const GAMES_CSS = `
   animation:ktGHot .28s ease-in-out infinite alternate}
 .kt-g-drop .kt-face{border-color:rgba(251,146,60,calc(var(--kt-a) + .35))}
 .kt-g-reup .kt-face{border-color:rgba(134,239,172,calc(var(--kt-a) + .35))}
+.kt-g-reup.hot .kt-face{background:rgba(202,138,4,.55);border-color:#fde047;box-shadow:0 0 0 3px rgba(0,0,0,.45),0 0 18px rgba(253,224,71,.8);
+  animation:ktGHot .4s ease-in-out infinite alternate}
 @keyframes ktGHot{from{transform:scale(1)}to{transform:scale(1.07)}}
 .kt-gcue{position:absolute;left:50%;top:58%;transform:translate(-50%,-50%);pointer-events:none;z-index:4;padding:10px 18px;
   border-radius:999px;background:rgba(0,0,0,.72);border:2px solid rgba(255,224,102,.85);color:#fff;white-space:nowrap;
@@ -186,6 +188,7 @@ export class PhoneGames {
     this.c.drop.show(want.drop, true);
     this.c.reup.setLabel(rsWord(api?.word));
     this.c.reup.show(want.reup, true);
+    this.c.reup.el.classList.toggle("hot", want.reupHot && want.reup);
     this.state.buttons = Object.entries({ chop: want.chop, drop: want.drop, reup: want.reup })
       .filter(([, v]) => v)
       .map(([k]) => k);

@@ -65,21 +65,22 @@ export const BRAWL_TEXTS: RegExp[] = [/^MASH FOR A FLURRY\. HOLD R TO BLAST KI/,
  * hint(); this file never routes dialogue).
  */
 export const COMBAT_WORDING_FIRST: WordingRule[] = [
-  // (the Cronster's hostages; the finale's lads have their own row below, whichever order the rows run in)
-  { id: "walk-up-press-e", re: /(?<!each of the lads )\(walk up, press E\)/g, to: "(walk up, tap ACTION)" },
+  // (the Cronster's hostages: ACTION says FREE there, "Free <name>"; the finale's lads have their own row below,
+  // whichever order the rows run in. Stage 4: no control on screen is called ACTION, so the hints name the verb)
+  { id: "walk-up-press-e", re: /(?<!each of the lads )\(walk up, press E\)/g, to: "(walk up, tap FREE)" },
   { id: "mash-attack-dodge", re: /\bMash ATTACK \/ DODGE if he gets you\b/g, to: "Mash FIRE / DODGE if he gets you" },
   // the fights' own toasts (system hints, G "toast"; matched whole so no other "Press E" line is reached)
-  { id: "crate-walk-over", re: /^Something glowing dropped in\. Walk over and press E\.$/, to: "Something glowing dropped in. Walk over and tap ACTION." },
+  { id: "crate-walk-over", re: /^Something glowing dropped in\. Walk over and press E\.$/, to: "Something glowing dropped in. Walk over and tap OPEN." },
   { id: "crate-open", re: /^A weapons crate appeared\. Press E to open it\.$/, to: "A weapons crate appeared. Walk up and tap OPEN." },
   // (stage 4) the finale's inject toast: the button says INJECT there (modes.ts VERB_OVERRIDES)
   { id: "inject-hint", re: /\bInject each of the lads \(walk up, press E\)/g, to: "Inject each of the lads (walk up, tap INJECT)" },
   { id: "wonk-full", re: /^WONK FULL\. KREZZ FULL\. Press R\.$/, to: "WONK FULL. KREZZ FULL. Tap WONK!" },
   { id: "ibs-ready", re: /^Press G \(or the 💨 button\) to unleash it\.$/, to: "Tap IBS! (on the right) to unleash it." },
   { id: "krezz-shield", re: /\bhit him with a KREZZ BURST \(R\) to break the shield\./g, to: "hit him with a KREZZ BURST (WONK!) to break the shield." },
-  { id: "hostage-press-e", re: /^(Get to .{1,40} first) and press E, (or he'll cuddle them for health\.)$/, to: "$1 and tap ACTION, $2" },
+  { id: "hostage-press-e", re: /^(Get to .{1,40} first) and press E, (or he'll cuddle them for health\.)$/, to: "$1 and tap FREE, $2" },
   { id: "headbutt-staggered", re: /\bHEADBUTT him \(F \/ right click\)!/g, to: "HEADBUTT him (tap HEADBUTT)!" },
   // the Cronster's hostage tags over each hostage (combat/Bosses.ts), so they agree with the toast (R3)
-  { id: "hostage-tag", re: /\n\(tied up: E to free\)$/, to: "\n(tied up: tap ACTION to free)" },
+  { id: "hostage-tag", re: /\n\(tied up: E to free\)$/, to: "\n(tied up: tap FREE)" },
 ];
 
 /**

@@ -385,14 +385,14 @@ describe("phone combat: the fights' toasts and narrated control tips (merged wit
   it("fight toasts name the phone's buttons", () => {
     expect(touchWording("WONK FULL. KREZZ FULL. Press R.", rules)).toBe("WONK FULL. KREZZ FULL. Tap WONK!");
     expect(touchWording("A weapons crate appeared. Press E to open it.", rules)).toBe("A weapons crate appeared. Walk up and tap OPEN.");
-    expect(touchWording("Get to Bob first and press E, or he'll cuddle them for health.", rules)).toBe("Get to Bob first and tap ACTION, or he'll cuddle them for health.");
+    expect(touchWording("Get to Bob first and press E, or he'll cuddle them for health.", rules)).toBe("Get to Bob first and tap FREE, or he'll cuddle them for health.");
     expect(touchWording("Alistair is dazed. Get close and HEADBUTT him (F / right click)!", rules)).toBe("Alistair is dazed. Get close and HEADBUTT him (tap HEADBUTT)!");
   });
   it("the Cronster's hostage tags and the Citadel's exchange sign lose their key (R3), matched whole when made", async () => {
     const { FIGHT_UI_LINES } = await import("../src/game/mobile/combatWording");
     const tag = "MOLLOR\n(tied up: E to free)";
     expect(FIGHT_UI_LINES.some((r) => r.test(tag))).toBe(true);
-    expect(touchWording(tag, rules)).toBe("MOLLOR\n(tied up: tap ACTION to free)");
+    expect(touchWording(tag, rules)).toBe("MOLLOR\n(tied up: tap FREE)");
     const sign = "🎁 KREDDLE\nEXCHANGE (E)";
     expect(FIGHT_UI_LINES.some((r) => r.test(sign))).toBe(true);
     expect(touchWording(sign, rules)).not.toMatch(/\(E\)/);

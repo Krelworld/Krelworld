@@ -360,7 +360,9 @@ function layoutCards(sc: Phaser.Scene & Bag) {
     }
     return ny;
   };
-  if (place() > H - 4 && place(howTo) > H - 4) place(howTo, stats);
+  // (stage 4, s4-01 m3: the multipliers line re-wrapped whenever the pick changed, centred, and ran into itself and the
+  // note under it; the blurbs say it in words, so on a phone it goes)
+  if (place(stats) > H - 4) place(howTo, stats);
 }
 
 // ------------------------------------------------------------------ save slots
@@ -440,7 +442,8 @@ function layoutTitle(t: Phaser.Scene) {
   const tag = textIn(list, /^The craziest universe/);
   if (big) big.setY(56);
   if (sub) sub.setY(104);
-  if (tag) tag.setY(122);
+  // (stage 4, s4-01 m3: the tagline was low contrast over the art: an outline)
+  if (tag) tag.setY(122).setStroke("#000000", 4);
   const top = (tag ? tag.y + tag.height : 140) + g(4);
   const cont = menu[0] && /^CONTINUE/.test(menu[0].label.text) ? menu[0] : null;
   const rest = cont ? menu.slice(1) : menu;

@@ -111,14 +111,17 @@ describe("the crocodile's columns", () => {
 describe("RuneScape's thumb buttons", () => {
   const st = { over: false, logs: 0, gear: 100, ring: false, chopping: false, gary: "away" };
   it("CHOP always; DROP ALL only with logs; the re-up only when the game would take one", () => {
-    expect(rsButtons(st, false)).toEqual({ chop: true, drop: false, reup: false, hot: false });
+    expect(rsButtons(st, false)).toEqual({ chop: true, drop: false, reup: false, hot: false, reupHot: false });
     expect(rsButtons({ ...st, logs: 3 }, false).drop).toBe(true);
     expect(rsButtons({ ...st, gear: 84 }, false).reup).toBe(true);
     expect(rsButtons({ ...st, gary: "here" }, false).reup).toBe(true);
     expect(rsButtons({ ...st, ring: true }, false).hot).toBe(true);
+    // (stage 4, m5) running low: the re-up glows (from where the game's own orb turns yellow)
+    expect(rsButtons({ ...st, gear: 20 }, false)).toMatchObject({ reup: true, reupHot: true });
+    expect(rsButtons({ ...st, gear: 60 }, false)).toMatchObject({ reup: true, reupHot: false });
   });
   it("nothing in a conversation or once it's over", () => {
-    expect(rsButtons(st, true)).toEqual({ chop: false, drop: false, reup: false, hot: false });
+    expect(rsButtons(st, true)).toEqual({ chop: false, drop: false, reup: false, hot: false, reupHot: false });
     expect(rsButtons({ ...st, over: true }, false).chop).toBe(false);
     expect(rsButtons(null, false).chop).toBe(false);
   });

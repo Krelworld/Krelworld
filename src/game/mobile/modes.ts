@@ -244,6 +244,8 @@ export const VERB_OVERRIDES: readonly [RegExp, string][] = [
   // (stage 4) the finale's "Inject <lad>" (its toast says INJECT), the Job Centre's "Talk to STAFF TOILET (ENGAGED)"
   [/^Inject\b/i, "INJECT"],
   [/^Talk to STAFF TOILET\b/i, "OPEN"],
+  // ("Untie Mollor": the hints say FREE, as the Cronster's hostages' "Free <name>" does)
+  [/^Untie\b/i, "FREE"],
 ];
 
 export function verbFromPrompt(text: string | null | undefined): string | null {

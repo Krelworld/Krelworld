@@ -3021,9 +3021,24 @@ async function combat(browser) {
     await page.setViewportSize({ width: 844, height: 390 });
     await ph.ev(() => window.__krelMobile.setInsets({ top: 0, right: 47, bottom: 21, left: 47 }));
     await sleep(800);
+    check("boss: no page errors", errors.length === 0, errors.slice(0, 3));
+  } finally {
+    await ctx.close();
+  }
+  if (!ONLY.includes("firing")) await firingStyles(browser);
+}
+
+// the combat section's last part: Settings > Firing (the auto-fire audit, ga-02), on a page of its own so nothing in it
+// leaks into the checks above (or theirs into it)
+async function firingStyles(browser) {
+  const { ctx, ph, errors } = await phoneAtTitle(browser);
+  const ctlOf = async (id) => (await ph.snap()).controls.find((c) => c.id === id);
+  const mid = (c) => [c.face.x + c.face.w / 2, c.face.y + c.face.h / 2];
+  try {
+    await ph.ev(() => window.__krelMobile.setInsets({ top: 0, right: 47, bottom: 21, left: 47 }));
     // ---- Settings > Firing (the auto-fire audit, ga-02), in a fresh room so nothing here leaks into the checks above:
     // LIGHT fires at a slower pace, STILL only while you stand still, HOLD never by itself
-    check("Firing: a fresh room for the firing styles (Wildern, chapter 1, the Fart Blaster)", await toFight(ph, "wildern", 1, 1), await ph.mode());
+    check("Firing: a room for the firing styles (Wildern, chapter 1, the Fart Blaster)", await toFight(ph, "wildern", 1, 1), await ph.mode());
     const dummy = await ph.ev(() => {
       const d = window.__krel.game.scene.getScene("Dungeon");
       const p = d.player;
@@ -3034,6 +3049,7 @@ async function combat(browser) {
       for (const o of [...d.enemies]) if (o !== e && !o.dead) d.damageEnemy(o, 1e9, { noWonk: true, label: "" });
       e.hp = e.maxHp = 1e6;
       window.__afDummy = e;
+      window.__afKind = kind;
       return e.uid;
     });
     // shots and auto-fire frames over a stretch of game time, the dummy pinned in front of the player and in plain view
@@ -3106,8 +3122,23 @@ async function combat(browser) {
     const moving = await shotsFor(1500);
     await ph.touch("touchEnd", []);
     await sleep(300);
-    const resting = await shotsFor(2500);
-    check("Firing STILL: no auto-fire while you move, auto-fire once you stand still", moving.auto === 0 && moving.wish > 0.5 && resting.auto > 0.5 && resting.n > 0, { moving, resting });
+    let resting = await shotsFor(2500);
+    if (resting.wish < 0.5) {
+      // (the target was lost for a reason of its own, e.g. the dummy knocked out of view: a fresh one, and again)
+      await ph.ev(() => {
+        const d = window.__krel.game.scene.getScene("Dungeon");
+        const p = d.player;
+        const old = window.__afDummy;
+        if (old && !old.dead) d.damageEnemy(old, 1e9, { noWonk: true, label: "" });
+        const e = d.spawnEnemy(window.__afKind || "supply_teacher", p.x + 150, p.y - 20, { noDrops: true });
+        if (e) e.hp = e.maxHp = 1e6;
+        window.__afDummy = e;
+      });
+      await sleep(400);
+      resting = await shotsFor(2500);
+    }
+    // (standing still: auto-fire shoots whenever it has a target, i.e. on (nearly) every frame it wants to)
+    check("Firing STILL: no auto-fire while you move, auto-fire once you stand still", moving.auto === 0 && moving.wish > 0.5 && resting.wish >= 0.5 && resting.auto >= 0.8 * resting.wish, { moving, resting });
     await ph.ev(() => window.__krelMobile.settings.set({ firing: "hold" }));
     await sleep(300);
     const hold = await shotsFor(2000);
@@ -3116,7 +3147,7 @@ async function combat(browser) {
       window.__krelMobile.settings.set({ autoFire: true, firing: "auto" });
       window.__afDummy = null;
     });
-    check("boss and firing styles: no page errors", errors.length === 0, errors.slice(0, 3));
+    check("firing styles: no page errors", errors.length === 0, errors.slice(0, 3));
   } finally {
     await ctx.close();
   }
@@ -4428,6 +4459,8 @@ async function desktop(browser) {
       ["town", town],
       ["dungeon", dungeon],
       ["combat", combat],
+      // (also the last part of "combat"; on its own: --only firing)
+      ["firing", firingStyles],
       ["side", sideRooms],
       ["brawl", brawl],
       ["together", together],

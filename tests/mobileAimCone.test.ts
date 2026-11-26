@@ -119,3 +119,18 @@ describe("no lock through walls", () => {
     expect(snapAim(ME, 0, [hid], N, 520, VIEW).snapped?.id).toBe(1);
   });
 });
+
+describe("FIRE held: the lock stays while you strafe", () => {
+  it("keeps the one it is on wherever it goes round you, while you hold FIRE; a new one only in front", () => {
+    const side = at(100, 200, 7);
+    // not held: out of the cone, it goes
+    expect(pickTarget({ me: ME, stick: STILL, enemies: [side], prev: 7, tune: N, facing: RIGHT })).toBeNull();
+    // held: it stays
+    expect(pickTarget({ me: ME, stick: STILL, enemies: [side], prev: 7, tune: N, facing: RIGHT, lockPrev: true })?.id).toBe(7);
+    // held, but nothing was locked: still only in front
+    expect(pickTarget({ me: ME, stick: STILL, enemies: [side], prev: null, tune: N, facing: RIGHT, lockPrev: true })).toBeNull();
+    // held, but it went behind a wall: it goes
+    const hide = () => false;
+    expect(pickTarget({ me: ME, stick: STILL, enemies: [side], prev: 7, tune: N, facing: RIGHT, lockPrev: true, visible: hide })).toBeNull();
+  });
+});

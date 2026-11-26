@@ -9,7 +9,8 @@
 //    blow up in your face).
 //  - The phone's default firing (HOLD, the user's choice after playing: "both auto firing and auto aiming. It was so
 //    easy") aims only at what is IN FRONT of you: an enemy within CONE_DEG of the way you face (the way you last moved),
-//    that you can see (its body on screen) and that no wall or pillar hides. You aim by turning with the stick. EASY
+//    that you can see (its body on screen) and that no wall or pillar hides. You aim by turning with the stick; once
+//    FIRE is held on one it stays locked (you can strafe round it) until it dies, leaves reach or can't be seen. EASY
 //    firing keeps the old aim (anything about, all round you).
 import type { AimAssist } from "./settings";
 
@@ -186,6 +187,9 @@ export interface PickInput {
   facing?: number | null;
   coneDeg?: number;
   keepDeg?: number;
+  /** HOLD firing, FIRE held: the one already aimed at stays locked on wherever it goes (you can strafe round it), as
+   *  long as it stays in reach and visible. A new one is only ever picked inside the cone. */
+  lockPrev?: boolean;
   /** HOLD firing: can you really see it (body on screen, no wall in between)? Unset: on screen by its centre (EASY). */
   visible?: (t: AimTarget) => boolean;
 }
@@ -196,7 +200,7 @@ export function pickTarget(i: PickInput): AimTarget | null {
   const facing = typeof i.facing === "number" ? i.facing : null;
   const cone = i.coneDeg ?? CONE_DEG;
   const keep = Math.max(cone, i.keepDeg ?? CONE_KEEP_DEG);
-  const ahead = (t: AimTarget) => facing === null || inCone(i.me, t, facing, t.id === i.prev ? keep : cone);
+  const ahead = (t: AimTarget) => facing === null || (i.lockPrev && t.id === i.prev) || inCone(i.me, t, facing, t.id === i.prev ? keep : cone);
   const look = i.visible ?? ((t: AimTarget) => onScreen(t, i.view ?? null));
   const seen = (t: AimTarget) => Math.hypot(t.x - i.me.x, t.y - i.me.y) <= reach + t.r && ahead(t) && look(t);
   const fr = i.fireRange;

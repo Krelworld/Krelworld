@@ -659,7 +659,9 @@ export class CombatControls {
     }
     // the target: an enemy inside the gun's reach first, so auto-fire never waits on one it can't hit (F3)
     const prev = this.target?.id ?? null;
-    this.target = pickTarget({ me, stick: { x: sx, y: sy }, enemies, objects, prev, tune: this.tune, view: vr, reach: ACQUIRE, fireRange: range, facing: ahead ? this.lastMove : null, coneDeg: CONE_DEG, keepDeg: CONE_KEEP_DEG, visible });
+    // (HOLD: FIRE held keeps its target locked while you strafe; you pick a new one by facing it)
+    const locked = this.fireHeld || realNow() < this.graceUntil;
+    this.target = pickTarget({ me, stick: { x: sx, y: sy }, enemies, objects, prev, tune: this.tune, view: vr, reach: ACQUIRE, fireRange: range, facing: ahead ? this.lastMove : null, coneDeg: CONE_DEG, keepDeg: CONE_KEEP_DEG, visible, lockPrev: locked });
     // aim: a slide by hand (snapped), else the target, else straight ahead
     const d = this.layer.decision;
     const fighting = (d.mode === "combat" || d.mode === "side") && !d.mash && !d.picker;

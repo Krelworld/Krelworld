@@ -316,7 +316,11 @@ the stick (side rooms: the way you last ran); the target already aimed at stays 
 the cone's edge doesn't flicker; and (4) really visible: its body on screen (centre no more than half its radius
 outside the camera's view, `inView`), inside the room's walls (top-down), and no wall, pillar or furniture block (the
 Dungeon's `obstacles` group, read from outside) on the line from you to it (`lineOfSight`). Barrels and crates obey the
-same rules. You aim by turning with the stick; with nothing in front, FIRE shoots straight ahead. A slide on FIRE still
+same rules. You aim by turning with the stick; with nothing in front, FIRE shoots straight ahead. While FIRE is held
+(and its 200 ms grace) the target it is on stays locked wherever it goes round you (`lockPrev`), so you can strafe
+and back off while shooting it; it goes when it dies, leaves reach or can't be seen, and the next one is again picked
+only in front. (Without the lock, measured: a player who must keep facing a target walks into it, and the first
+Cafeteria room went from a clear in 32 s to a death; see `ga-08-aim-fix.md`.) A slide on FIRE still
 aims anywhere by hand, and snaps only onto an enemy you can see. EASY keeps the old aim exactly (all round you, centre
 within 16 px of the screen, through pillars, as shots really fly through them).
 

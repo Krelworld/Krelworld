@@ -942,8 +942,9 @@ export class CombatControls {
     // ---- the chips
     show("chip", fight);
     if (fight) this.weaponChip();
-    // (stage 4, M3: a fizzy bongo waits while HEAL is up: one drink button at a time, and the cluster stays smaller)
-    show("bongo", fight && s.bongos > 0 && !hs, true);
+    // (stage 4, M3: a fizzy bongo waits while HEAL is red (under 40%): one drink button at a time when it matters,
+    // and the cluster stays smaller at its busiest)
+    show("bongo", fight && s.bongos > 0 && !hw, true);
     const lv = fartLevel();
     // (at IBS READY says it, big, on the right: the 💨 chip steps aside so one ability has one button; P11)
     show("fart", fight && lv >= 1 && this.readyId !== "ibs", true);

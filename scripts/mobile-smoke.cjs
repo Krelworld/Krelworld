@@ -3157,7 +3157,15 @@ async function combat(browser) {
     });
     await ph.until(() => window.__krelMobile.snapshot().controls.find((c) => c.id === "c-heal").shown, null, 5000, "HEAL").catch(() => 0);
     await sleep(300);
-    const hp0 = (await P()).hp;
+    // (stage 4: the wonk just before can clear the room, and the room-clear top-up (+50%) then lands between setting
+    // 10 HP and the tap, so HEAL had hidden again: the flaky "HEAL tap under load". Low again, read in the same step)
+    const hp0 = await ph.ev(() => {
+      const s = window.__krel.G.s;
+      s.hp = 10;
+      s.bottles = 2;
+      return s.hp;
+    });
+    await ph.until(() => window.__krelMobile.snapshot().controls.find((c) => c.id === "c-heal").shown, null, 5000, "HEAL").catch(() => 0);
     await press("c-heal", 80, 12);
     await sleep(400);
     check("HEAL pops in under 40% health and drinks the juice (S3)", (await P()).hp > hp0 && (await P()).bottles === 1, { hp0, hp: (await P()).hp });
@@ -4385,9 +4393,23 @@ async function polish(browser) {
       });
       const heal = await ph.ev(() => !!document.querySelector('.kt-btn.show.low[data-ctl="c-heal"]'));
       const big = pr.profile.viewport.width === 844 ? 59.5 : 51.5;
-      check(`polish ${where} mid-game: 💨, 🍺 and HEAL are full-size buttons on the right (drawn ${big > 55 ? 60 : 52}+ px, 44+ px to touch), HEAL red when low`, ["c-bongo", "c-fart", "c-heal"].every((id) => pk.some((c) => c.id === id)) && pk.every((c) => c.right && Math.min(c.w, c.h) >= (c.id === "c-heal" ? 51.5 : big) && Math.min(c.hw, c.hh) >= 44) && heal, { pk, heal, ids: midRoom.ids });
-      // the longest pocket word (CABBAGE, fart level 3) stays inside its round button at every size (the recheck saw it
-      // clipped to "ABBAG" at 750x340; forced here so the check never depends on how far the meter got)
+      // (stage 4, s4-01 M3: one drink at a time when it matters, so 🍺 waits while HEAL is red; back over 40% health)
+      check(`polish ${where} mid-game: 💨 and HEAL are full-size buttons on the right (drawn ${big > 55 ? 60 : 52}+ px, 44+ px to touch), HEAL red when low, 🍺 waiting while HEAL is red`, ["c-fart", "c-heal"].every((id) => pk.some((c) => c.id === id)) && !pk.some((c) => c.id === "c-bongo") && pk.every((c) => c.right && Math.min(c.w, c.h) >= (c.id === "c-heal" ? 51.5 : big) && Math.min(c.hw, c.hh) >= 44) && heal, { pk, heal, ids: midRoom.ids });
+      await ph.ev(async () => {
+        const st = await import("/src/game/systems/stats.ts");
+        const s = window.__krel.G.s;
+        s.hp = Math.round(st.maxHp(s) * 0.8);
+        s.bongos = Math.max(2, s.bongos);
+      });
+      await ph.until(() => !!window.__krelMobile.snapshot().controls.find((c) => c.id === "c-bongo" && c.shown), null, 6000, "BONGO").catch(() => 0);
+      const bg = await ph.ev(() => {
+        const sn = window.__krelMobile.snapshot();
+        const c = sn.controls.find((c) => c.id === "c-bongo");
+        const s = window.__krel.G.s;
+        return c && c.shown ? { w: Math.round(c.face.w), h: Math.round(c.face.h), right: c.face.x + c.face.w / 2 > innerWidth / 2 } : { none: true, hp: s.hp, bongos: s.bongos, mode: sn.decision.mode, active: window.__krel.active() };
+      });
+      check(`polish ${where} mid-game: 🍺 comes back, full size on the right, once health is over 40% (HEAL no longer red)`, !!bg && !bg.none && bg.right && Math.min(bg.w, bg.h) >= big, bg);
+      // the pocket word at fart level 3 (was CABBAGE, clipped to "ABBAG" at 750x340 once) stays inside its round button
       const cab = await ph.ev(async () => {
         window.__krel.G.rt.fart = 80;
         await new Promise((r) => setTimeout(r, 300));
@@ -4397,7 +4419,8 @@ async function polish(browser) {
         const a = f.getBoundingClientRect(), b = w.getBoundingClientRect();
         return { text: w.textContent, face: Math.round(a.width), word: Math.round(b.width), inside: b.left >= a.left + 2 && b.right <= a.right - 2 };
       });
-      check(`polish ${where} mid-game: the longest 💨 word (CABBAGE) sits inside its button`, !!cab && cab.text === "CABBAGE" && cab.inside, cab);
+      // (stage 4, M3: the word is always FART now; the level shows on the HUD's meter)
+      check(`polish ${where} mid-game: the 💨 button says FART at every level, inside its button`, !!cab && cab.text === "FART" && cab.inside, cab);
       // ---- 3. a boss (Krandall)
       if (!pr.light) {
         const ok3 = await toFight(ph, "wildern", 3, 2);
@@ -6820,7 +6843,8 @@ async function wave2(browser) {
     });
     await sleep(1500);
     const pk = await ph.ev(() => window.__krelMobile.snapshot().controls.filter((c) => c.shown && /^c-(bongo|fart|heal)$/.test(c.id)).map((c) => ({ id: c.id, w: Math.round(c.face.w), h: Math.round(c.face.h), right: c.face.x + c.face.w / 2 > innerWidth / 2 })));
-    check("wave2: the fight's pocket buttons (💨 🍺 HEAL) are 60 px on the right", ["c-bongo", "c-fart", "c-heal"].every((id) => pk.some((c) => c.id === id)) && pk.every((c) => c.right && Math.min(c.w, c.h) >= (c.id === "c-heal" ? 51.5 : 59.5)), pk);
+    // (stage 4, M3: one drink at a time when it matters: 🍺 waits while HEAL is red, as here at 30% health)
+    check("wave2: the fight's pocket buttons (💨 HEAL) are 60 px on the right; 🍺 waits while HEAL is red", ["c-fart", "c-heal"].every((id) => pk.some((c) => c.id === id)) && !pk.some((c) => c.id === "c-bongo") && pk.every((c) => c.right && Math.min(c.w, c.h) >= (c.id === "c-heal" ? 51.5 : 59.5)), pk);
     await ph.touch("touchStart", [{ x: 150, y: 260, id: 31 }]);
     for (let i = 1; i <= 8; i++) { await ph.touch("touchMove", [{ x: 150 + i * 25, y: 260, id: 31 }]); await sleep(25); }
     await sleep(150);

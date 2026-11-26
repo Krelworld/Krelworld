@@ -1186,7 +1186,7 @@ gets you off first (any use does). The first-time tip ("Press Z to hop on your b
 - **Town camera**: on a phone the Hub camera's bounds run `TOWN_CAM_PAD` (240 x 130 game px) past the map's edge on the
   buttons' side and the bottom, so the player at the map's corner is never under ACTION / RIDE (the band past the
   edge is the camera's dark background).
-- **Fights**: the 💨 pocket button always says FART (the level shows on the HUD meter); BONGO waits while HEAL shows;
+- **Fights**: the 💨 pocket button always says FART (the level shows on the HUD meter); BONGO waits while HEAL is red (under 40% health);
   buttons go see-through over explosive barrels and pickups (`occluders`); in the finale brawl over the Super Saiyan
   (`brawl.ts meRect`), and the brawl's corner SKIP FIGHT hides (the II's card has it).
 - **Tap to use**: `GROUND_SPOT` (the Wildern bombs) never grows to the building behind it.

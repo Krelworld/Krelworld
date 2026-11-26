@@ -64,8 +64,7 @@ export const AUDIO_FILES: Record<string, string> = {
   drp_suction: "audio/sfx/drp_suction.mp3",
   /** RuneScape (the woodcutting minigame, ElevenLabs): axe chop, log in the pack, tree falling, bank chest, the level-up fanfare (an original one). */
   ...Object.fromEntries(["chop", "log", "fall", "bank", "levelup"].map((k) => [`rs_${k}`, `audio/sfx/rs_${k}.mp3`])),
-  /** KrelTV news bulletins (TVNews.ts, ElevenLabs Music): the opening ident fanfare, the BREAKING sting and the closing sting (rung out over the bed). */
-  news_ident: "audio/news_ident.mp3",
+  /** KrelTV news bulletins (TVNews.ts, ElevenLabs Music): the BREAKING sting and the closing sting (rung out over the end card). */
   news_breaking: "audio/news_breaking.mp3",
   news_outro: "audio/news_outro.mp3",
 };

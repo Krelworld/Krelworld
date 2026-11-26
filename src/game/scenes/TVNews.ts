@@ -661,8 +661,6 @@ export class NewsDirector {
     const brand = BRANDS[this.cfg.brand];
     if (t.toUpperCase() === brand.name) {
       this.started = true;
-      // the recorded ident, unless the show opens on its own jingle (that stays as it is)
-      if (!synth.currentMusic()) synth.play("news_ident", 1, 1);
       const ms = this.chrome.ident();
       this.later(ms - 300, () => {
         this.bed();

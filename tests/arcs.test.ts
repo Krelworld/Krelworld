@@ -4,7 +4,7 @@ import { DUNGEONS } from "../src/data/dungeons";
 import { BOSS_TEXT } from "../src/content/bosses";
 import { ENEMIES } from "../src/data/enemies";
 import { newGameState } from "../src/game/systems/state";
-import { arcDue, currentArcStep, currentArcSteps, completeStep, maybeFinishArc, arcStepAt, spotFlag } from "../src/game/systems/arcs";
+import { arcDue, currentArcStep, currentArcSteps, completeStep, maybeFinishArc, arcStepAt, spotFlag, requiredArcSteps } from "../src/game/systems/arcs";
 
 const HUB_SPOTS = ["UNIVERSITY", "GYM", "FIXER_UPPER", "BOOTH", "ABANDONED", "OLD_FLAT", "PUB", "BANK", "TOWN_HALL", "HOME", "ARCHIVE", "POLICE", "POLSON_ROAD", "FIELD", "BOGGOR", "PORTAL", "CROBLEY_FACTORY", "AIRPORT"];
 const VIGNETTES = ["kreltower_fall", "kreltower_saved", "pudding", "flatmate", "rival", "press_conference", "polson_gym", "polson_cctv", "polson_gym2", "polson_mouth", "wahooga", "pudding_spy", "pudding_raid", "sanmik_lampe", "sanmik_nation", "sanmik_finale", "crobley_news", "crobley_presser", "crobley_boom", "kruncher_mikey", "klerble_train", "revenge_meeting", "krunch_protocol", "townhall_party"];
@@ -135,8 +135,8 @@ describe("shared side quests", () => {
     const s = newGameState("MIKEY");
     s.flags.met_emergency = true;
     s.chapter = 5;
-    // any of Mikey's quests with a collect step part-way through
-    const a = arcsFor("MIKEY").find((x) => x.steps.findIndex((st) => st.step.kind === "collect") > 0)!;
+    // a side quest with a collect step part-way through (Boggor's photos; Mikey's own hunt was taken out)
+    const a = arcsFor("MIKEY").find((x) => x.id === "arc_boggor" && x.steps.findIndex((st) => st.step.kind === "collect") > 0)!;
     if (a.requires) s.flags[a.requires] = true;
     const ci = a.steps.findIndex((st) => st.step.kind === "collect");
     for (let i = 0; i < ci; i++) completeStep(s, a, a.steps[i]);
@@ -145,5 +145,38 @@ describe("shared side quests", () => {
     expect(cur()).toBe(st.id);
     if (st.step.kind === "collect") st.step.spots.forEach((_, i) => (s.flags[spotFlag(a, st, i)] = true));
     expect(cur()).toBe(a.steps[ci + 1]?.id);
+  });
+});
+
+describe("Mikey's Modulator story (no lost-property hunt)", () => {
+  const mikey = () => ARCS.find((a) => a.id === "arc_mikey")!;
+  it("goes straight from the laptop to the pub payphone", () => {
+    expect(mikey().steps.map((st) => st.id)).toEqual(["pizza_trial", "russian_hackers", "sugar_parcel", "election", "modulate", "nuclear"]);
+    expect(mikey().steps.some((st) => st.step.kind === "collect")).toBe(false);
+  });
+  it("a save sitting on the old hunt (some items found) moves on to the payphone", () => {
+    const s = newGameState("MIKEY");
+    s.flags.met_emergency = true;
+    s.chapter = 2;
+    const a = mikey();
+    completeStep(s, a, a.steps[0]);
+    // flags an old save could carry from the removed step: harmless leftovers
+    s.flags.arcspot_arc_mikey_lost_property_0 = true;
+    s.flags.arcspot_arc_mikey_lost_property_3 = true;
+    const cur = currentArcSteps(s).find((c) => c.arc.id === "arc_mikey");
+    expect(cur?.step.id).toBe("russian_hackers");
+    expect(arcStepAt(s, "PUB")?.step.id).toBe("russian_hackers");
+    expect(arcStepAt(s, "FIELD")?.arc.id).not.toBe("arc_mikey");
+  });
+  it("finishing the story clears it from the chapter's required list (the dungeon opens)", () => {
+    const s = newGameState("MIKEY");
+    s.flags.met_emergency = true;
+    s.chapter = 2;
+    const a = mikey();
+    const req = () => requiredArcSteps(s).filter((c) => c.arc.id === "arc_mikey");
+    expect(req().length).toBe(1);
+    for (const st of a.steps) completeStep(s, a, st);
+    expect(req().length).toBe(0);
+    expect(maybeFinishArc(s)).toContain("The Modulator complete");
   });
 });

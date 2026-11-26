@@ -14915,6 +14915,11 @@
    "file": "vs/kcv_heropax_major.png",
    "frameWidth": 128,
    "frameHeight": 128
+  },
+  "bike": {
+   "file": "props/bike.png",
+   "frameWidth": 64,
+   "frameHeight": 64
   }
  },
  "vfx": {

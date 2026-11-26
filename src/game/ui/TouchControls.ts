@@ -21,7 +21,7 @@ export class TouchControls {
   private knob!: Phaser.GameObjects.Arc;
   private stickId: number | null = null;
   private origin = { x: 110, y: 430 };
-  private btns: Record<string, { c: Phaser.GameObjects.Arc; color: number }> = {};
+  private btns: Record<string, { c: Phaser.GameObjects.Arc; color: number; t?: Phaser.GameObjects.Text }> = {};
 
   constructor(scene: Phaser.Scene, combat: boolean) {
     this.scene = scene;
@@ -54,7 +54,7 @@ export class TouchControls {
       const c = scene.add.circle(x, y, r, color, 0.18).setStrokeStyle(2, color, 0.5).setInteractive();
       const t = scene.add.text(x, y, label, { fontFamily: FONT, fontSize: r > 34 ? "15px" : "12px", color: "#ffffff", fontStyle: "bold", align: "center" }).setOrigin(0.5);
       this.root.add([c, t]);
-      this.btns[key] = { c, color };
+      this.btns[key] = { c, color, t };
       c.on("pointerdown", () => {
         if (hold) TOUCH.attack = true;
         else TOUCH.edges.add(key);
@@ -83,6 +83,9 @@ export class TouchControls {
       btn(640, 420, 24, "CUME", "cume", false, 0x93c5fd);
     } else {
       btn(860, 450, 44, "E", "interact");
+      // the bike (in town): shown only while you can get on or off it (UIScene)
+      btn(860, 352, 32, "🚲", "bike", false, 0xf87171);
+      this.show("bike", false);
     }
     // playing as Mikey: become SanMik (and back)
     if (G.s?.player === "MIKEY") {
@@ -90,6 +93,16 @@ export class TouchControls {
       else btn(760, 470, 30, "SAN\nMIK", "sanmik", false, 0xb0c4ff);
     }
     btn(930, 180, 22, "II", "pause");
+  }
+
+  /** Show or hide a button (the bike's, which only matters out in town). */
+  show(key: string, on: boolean) {
+    const b = this.btns[key];
+    if (!b || b.c.visible === on) return;
+    b.c.setVisible(on);
+    b.t?.setVisible(on);
+    if (on) b.c.setInteractive();
+    else b.c.disableInteractive();
   }
 
   /** Pulse a button when its special is ready. */

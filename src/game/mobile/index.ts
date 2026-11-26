@@ -26,6 +26,7 @@ import { hint } from "./wording";
 import { whenRunning } from "./shell";
 import { installCombat } from "./combat";
 import { installBrawl, showFinisher } from "./brawl";
+import { installBikeButton } from "./bike";
 import { PAD_CSS, PadHandover } from "./pad";
 import { ControlsPicture, tabFor } from "./controlsPicture";
 import { phoneHooks, setPhoneHooks } from "./boot";
@@ -125,6 +126,8 @@ export function installMobile(game: Phaser.Game) {
   WORDING_HOOKS.skipHint = skipHintPill;
   const brawl = installBrawl(game, layer);
   brawl.pauseCard = (extra) => shell.pauseCard(extra);
+  // the bike's RIDE / WALK button in the walking controls (town and the Kreddle Strip)
+  installBikeButton(layer);
   const picture = new ControlsPicture(layer);
   const pad = new PadHandover();
   pad.start((fn) => {

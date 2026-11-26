@@ -21,7 +21,13 @@ export const PAD_DEFAULTS: Record<string, number[]> = {
   sanmik: [8],
 };
 /** Movement lives on the left stick; these rows show that instead of a button. */
-export const PAD_FIXED: Record<string, string> = { up: "L-Stick ↑", down: "L-Stick ↓", left: "L-Stick ←", right: "L-Stick →" };
+export const PAD_FIXED: Record<string, string> = { up: "L-Stick ↑", down: "L-Stick ↓", left: "L-Stick ←", right: "L-Stick →", bike: "L3 (click the stick)" };
+/**
+ * The bike (town only): click the left stick, like a sprint. L3 is also the golden transformation's default, which
+ * only works in a fight, so they never meet; it stays off the bike if you give L3 to anything that works in town.
+ */
+export const PAD_BIKE = 10;
+export const PAD_BIKE_CLASH = ["interact", "attack", "sanmik", "dodge", "special"];
 
 const NAMES = ["A", "B", "X", "Y", "LB", "RB", "LT", "RT", "VIEW", "START", "L3", "R3", "D↑", "D↓", "D←", "D→", "HOME"];
 export const padLabel = (i: number) => NAMES[i] ?? `B${i}`;

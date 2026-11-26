@@ -112,6 +112,8 @@ export const SLOTS = {
   pocketSanmik: { corner: "br", in: 286, up: 226, size: 60 },
   /** Walk mode's one extra (SANMIK when playing as Mikey): straight above ACTION. */
   walkExtra: { corner: "br", in: 52, up: 150, size: 56 },
+  /** Walk mode's BIKE (town and the Kreddle Strip): left of ACTION, on the thumb's resting line. */
+  walkBike: { corner: "br", in: 148, up: 44, size: 60 },
   pause: { corner: "tr", in: 26, down: 32, size: 52, mirror: false },
   /** Android, after leaving fullscreen: the offer to go back in, left of pause. */
   fullscreen: { corner: "tr", in: 92, down: 32, size: 52, mirror: false },

@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { TOUCH } from "../ui/TouchControls";
 import { keysFor } from "../systems/keybinds";
-import { btnDown, padHeld, PAD_START } from "../systems/padbinds";
+import { btnDown, padFor, padHeld, PAD_BIKE, PAD_BIKE_CLASH, PAD_START } from "../systems/padbinds";
 import { G } from "../G";
 import { isMobile } from "../mobile/flag";
 import { phoneHooks } from "../mobile/boot";
@@ -148,7 +148,7 @@ export class Controls {
 
   /** After a dialogue closes, ignore keys that are still held until they are released. */
   swallow() {
-    for (const n of ["jump", "interact", "dodge", "special", "burst", "bottle", "bongo", "pause", "swap", "fart", "transform", "cume"]) this.pressedOnce.add(n);
+    for (const n of ["jump", "interact", "dodge", "special", "burst", "bottle", "bongo", "pause", "swap", "fart", "transform", "cume", "bike"]) this.pressedOnce.add(n);
     TOUCH.edges.clear();
   }
 
@@ -207,6 +207,12 @@ export class Controls {
     const p = this.pad();
     const stickUp = (TOUCH.enabled && TOUCH.my < -0.6) || !!(p && p.leftStick.y < -0.6);
     return this.edge("jump", this.down("up") || stickUp);
+  }
+  /** Get on / off the bike (town only): the key, the left stick's click, or the phone's BIKE button. */
+  bike(): boolean {
+    const p = this.pad();
+    const l3 = !!p && btnDown(p, PAD_BIKE) && !PAD_BIKE_CLASH.some((a) => padFor(a).includes(PAD_BIKE));
+    return this.edge("bike", this.down("bike") || l3);
   }
   interact(): boolean {
     const p = this.pad();

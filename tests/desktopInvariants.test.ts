@@ -443,6 +443,7 @@ describe("laptop invariants: controls", () => {
         "transform: T  (Golden transformation)",
         "cume: C  (Cumehameha (while golden))",
         "sanmik: V  (Mikey ⇄ SanMik (as Mikey))",
+        "bike: Z  (Bike: get on / off (in town))",
       ]
     `);
   });
@@ -496,6 +497,7 @@ describe("laptop invariants: controls", () => {
           ],
         },
         "PAD_FIXED": {
+          "bike": "L3 (click the stick)",
           "down": "L-Stick ↓",
           "left": "L-Stick ←",
           "right": "L-Stick →",

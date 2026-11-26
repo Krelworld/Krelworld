@@ -964,6 +964,18 @@ export class Synth {
       return;
     }
     switch (id) {
+      case "bikebell":
+        // a bicycle bell: two quick double strikes of a bright metal dome (two inharmonic partials each)
+        for (const at of [0, 0.05, 0.2, 0.25]) {
+          this.tone(2960, 0.22, "sine", 0.11, at);
+          this.tone(4410, 0.12, "sine", 0.05, at);
+          this.tone(1480, 0.08, "triangle", 0.03, at);
+        }
+        return;
+      case "bikeoff":
+        // off the saddle: the freewheel ticking down
+        for (let i = 0; i < 7; i++) this.tone(3400, 0.012, "square", 0.04, i * (0.045 + i * 0.012));
+        return;
       case "gunget":
         // a new gun: a quick rising chiptune arpeggio and a bright top note
         [523, 659, 784, 1047].forEach((f, i) => this.tone(f, 0.07, "square", 0.09, i * 0.055, 1));

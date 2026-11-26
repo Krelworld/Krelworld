@@ -333,7 +333,7 @@
    "input": {"gameout":3,"gameover":3,"process":3},
    "textures": {}
   },
-  "textures": 2599,
+  "textures": 2600,
   "anims": 50
  },
  "dom": {

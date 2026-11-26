@@ -37,7 +37,7 @@
   {
    "key": "Kreddle",
    "status": "RUNNING",
-   "count": {"top":175,"all":184,"hidden":11,"interactive":0},
+   "count": {"top":178,"all":187,"hidden":14,"interactive":0},
    "cam": {
     "x": 0,
     "y": 0,
@@ -55,7 +55,7 @@
     "enabled": true,
     "topOnly": true,
     "listeners": {"pointerdown":1,"pointermove":1},
-    "keyboard": {"enabled":true,"keys":[9,27],"listeners":{}}
+    "keyboard": {"enabled":true,"keys":[9,27,90],"listeners":{}}
    },
    "timers": 14,
    "tweens": 99,
@@ -302,7 +302,7 @@
    "input": {"gameout":2,"gameover":2,"process":2},
    "textures": {}
   },
-  "textures": 2550,
+  "textures": 2551,
   "anims": 51
  },
  "dom": {

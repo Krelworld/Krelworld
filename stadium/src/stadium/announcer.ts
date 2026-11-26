@@ -29,7 +29,10 @@ export class Announcer {
     const t = secs(this.w), m = this.w.state.match!;
     const opp = m.teams[1].name;
     if (t > 3) this.once("welcome", `Good afternoon and welcome to today's ${VENUE.round} between England and ${opp}.`);
-    if (t > 40 && VENUE.features.faceCameras) this.once("cameras", "Supporters are reminded that facial recognition is in operation at all turnstiles.");
+    const st = this.w.state.stadium!, known = st.banned.includes(this.w.state.actors[st.pc]?.faceId ?? "");
+    if (t > 22 && VENUE.features.faceCameras && known) this.once("facerec", "Supporters are advised that facial recognition cameras are in operation at every turnstile. Stewards are looking for a fat, bald man in his fifties. If you are a fat, bald man in his fifties, please make yourself known to a steward.");
+    else if (t > 40 && VENUE.features.faceCameras) this.once("cameras", "Supporters are reminded that facial recognition is in operation at all turnstiles.");
+    if (t > 60 && VENUE.features.penisDetector) this.once("detector", "Following recent incidents, a penis detector is now in operation at all turnstiles. Gentlemen, please have your penis ready for inspection. Thank you for your cooperation.");
     if (t > 90) this.once("lorry", "Supporters are reminded that the service road is for deliveries only.");
     if (t > 150) this.once("pitch", "Supporters are reminded that entering the field of play is a criminal offence.");
     if (t > KICKOFF_AT - 120) this.once("2min", "Kick-off is in two minutes. Please make your way to your seats.");

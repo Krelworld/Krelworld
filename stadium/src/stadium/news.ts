@@ -20,12 +20,14 @@ export function newsReport(w: World): Bulletin {
   if (f.forfeit === 1) headline = `England through after ${opp} "fail to turn up"`;
   else if (f.forfeit === 2) headline = `England go out without kicking a ball`;
   else if (st.ending?.kind === "shot") headline = `Man shot dead by police at ${VENUE.round}`;
+  else if (st.ending?.kind === "arrested" && st.flags.detectorCaught) headline = `Penis detector snares England fan at ${VENUE.round}`;
   else if (st.ending?.kind === "fell") headline = `Fan dies in fall from stand roof at ${VENUE.round}`;
   else if (f.killings) headline = `${f.killings === 1 ? "Death" : `${f.killings} deaths`} at England ${VENUE.round}`;
   else if (st.ending?.kind === "arrested") headline = `England supporter arrested at ${VENUE.round}`;
+  else if (m.winner === 0 && VENUE.id === "final") headline = f.refLax || f.impostorRulings || mine.some((i) => i.severity >= 2) ? `England win the World Cup amid "unprecedented" scenes` : `England are world champions`;
   else if (m.winner === 0) headline = f.refLax || f.impostorRulings || mine.some((i) => i.severity >= 2) ? `England through amid "unprecedented" scenes` : `England beat ${opp} to reach the ${VENUE.id === "qf" ? "semi-final" : "final"}`;
   else if (m.winner === 1) headline = `England knocked out by ${opp}`;
-  else headline = `England's quarter-final ends in confusion`;
+  else headline = `England's ${VENUE.round} ends in confusion`;
 
   if (f.forfeit) lines.push(f.forfeit === 1 ? `The match was awarded to England after ${opp} were unable to field a team. ${opp} say they "were there, more or less".` : `England were unable to field a team and the match was awarded to ${opp}.`);
   else if (m.phase === "finished") lines.push(`England ${m.winner === 0 ? "beat" : "lost to"} ${opp} ${m.winner === 0 ? score : `${m.score[1]}–${m.score[0]}`}${pens} this afternoon.`);

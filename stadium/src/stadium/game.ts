@@ -20,6 +20,7 @@ import { installCombat, stepCombat } from "./combat";
 import { installHorse, stepHorse, takeReins } from "./horse";
 import { installRoutes } from "./routes";
 import { installEntries, spawnEntries, stepEntries } from "./entries";
+import { installDetector } from "./detector";
 import { installReactions, installRules, SHOPS, stepRules } from "./rules";
 import { isSecurity, stepDetention, stepSecurity } from "./security";
 import type { StadiumState } from "./state";
@@ -42,7 +43,7 @@ export const HALF_SECONDS = 450;
 export const HALFTIME_SECONDS = 150;
 
 export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: Campaign = newCampaign()): Game {
-  if (!rulesInstalled) { installRules(); installBetting(); installPolice(); installBus(); installDog(); installKickoff(); installKnife(); installGloryHole(); installCombat(); installHorse(); installRoutes(); installEntries(); rulesInstalled = true; }
+  if (!rulesInstalled) { installRules(); installBetting(); installPolice(); installBus(); installDog(); installKickoff(); installKnife(); installGloryHole(); installCombat(); installHorse(); installRoutes(); installEntries(); installDetector(); rulesInstalled = true; }
   setVenue(venueId);
   const oppKey = VENUE.opp;
   const opp = TEAMS[oppKey];
@@ -158,8 +159,8 @@ export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: 
   // The beer lorry and its crew.
   const [lx, ly] = VENUE.delivery.route;
   const cargo = spawnItem(s, "lorry_cargo", { k: "ground", x: lx, y: ly - 4 });
-  const driver = spawnStaff(w, "driver", "catering", VENUE.id === "qf" ? "Lorry driver" : "Van driver", lx, ly);
-  spawnStaff(w, "worker", "catering", VENUE.id === "qf" ? "Drayman" : "Caterer", lx - 2 * Math.sign(lx || 1), ly - 4).npc!.post = undefined;
+  const driver = spawnStaff(w, "driver", "catering", VENUE.id !== "sf" ? "Lorry driver" : "Van driver", lx, ly);
+  spawnStaff(w, "worker", "catering", VENUE.id !== "sf" ? "Drayman" : "Caterer", lx - 2 * Math.sign(lx || 1), ly - 4).npc!.post = undefined;
   createBus(w, oppKey);
   st.vehicles.lorry = { id: "lorry", kind: "lorry", x: lx, y: ly, facing: S, route: [lx, ly], ri: 0, speed: 0, state: "loading", until: 60 * 45, cargo: cargo.id, driver: driver.id, cycle: 0, inspected: false };
 
@@ -330,7 +331,7 @@ function endings(g: Game): void {
     : forfeit === 2 ? "England couldn't field a team. The match is awarded to the other lot."
     : `England ${m.score[0]}, ${m.teams[1].name} ${m.score[1]}${pens}.`;
   st.ending = m.winner === 0
-    ? { kind: "through", title: "England are through", text: line }
+    ? { kind: "through", title: VENUE.id === "final" ? "England are world champions" : "England are through", text: line }
     : { kind: "eliminated", title: "England are out", text: line };
   g.w.bus.emit({ type: "ending", t: s.tick, kind: st.ending.kind });
 }

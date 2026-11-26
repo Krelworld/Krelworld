@@ -319,7 +319,7 @@ export type Spots = typeof QF_SPOTS;
 type P = { x: number; y: number };
 
 export interface Venue {
-  id: "qf" | "sf";
+  id: "qf" | "sf" | "final";
   round: string;
   /** Key into TEAMS for the opposition. */
   opp: string;
@@ -350,6 +350,8 @@ export interface Venue {
     staffPass: boolean;
     /** The pub is an open-air fan zone with a big screen. */
     fanZone: boolean;
+    /** After everything that's happened: a penis detector at the turnstiles. */
+    penisDetector?: boolean;
   };
   /** Is a point inside the ground (past the turnstiles)? */
   inside(x: number, y: number): boolean;
@@ -373,8 +375,7 @@ const QF_LABELS: Venue["labels"] = [
   ["BAR", -13, 40.6], ["GENTS", 10, 39.6], ["CAR PARK", 43, 72], ["TOILETS", -58, 67], ["TEAM HOTEL", 83, -30, 12],
 ];
 
-export const VENUES: Record<Venue["id"], Venue> = {
-  qf: {
+const VENUES_QF: Venue = {
     id: "qf", round: "quarter-final", opp: "POR", ground: "Wembley Park",
     areas: QF_AREAS, walls: [...QF_WALLS, ...QF_PROPS, ...furnitureWalls(QF_FURNITURE)], spots: QF_SPOTS, labels: QF_LABELS, furniture: QF_FURNITURE,
     delivery: { name: "beer lorry", route: [-28, 74, -28, 88, 67, 88, 67, -43, 56, -43, 50, -44], gateStop: { x: 67, y: -43 }, loadDoor: { x: -34.8, y: 68 }, unloadDoor: { x: 46, y: -48.6 }, gateInspect: 0.25 },
@@ -386,9 +387,24 @@ export const VENUES: Record<Venue["id"], Venue> = {
     climbPoints: [],
     features: { patDown: 0.5, metalDetectors: false, faceCameras: false, doorSmokes: true, staffPass: false, fanZone: false },
     inside: (x, y) => y < 44 && y > -61 && x > -56 && x < 63,
-  },
-  sf: buildSemiFinal(),
 };
+export const VENUES: Record<Venue["id"], Venue> = {
+  qf: VENUES_QF,
+  sf: buildSemiFinal(),
+  final: buildFinal(),
+};
+
+/** The final: the national stadium, built like the quarter-final ground, and every security
+ *  measure anyone could think of, including one nobody should have. */
+function buildFinal(): Venue {
+  const qf = VENUES_QF;
+  return {
+    ...qf, id: "final", round: "final", opp: "ARG", ground: "National Stadium",
+    // A detector on a pedestal beside each turnstile.
+    furniture: [...qf.furniture, ...[-6, 0, 6].map((x) => f("detector", x + 1.5, 45.4, 0.5, 0.4, false))],
+    features: { patDown: 0.9, metalDetectors: true, faceCameras: true, doorSmokes: false, staffPass: true, fanZone: false, penisDetector: true },
+  };
+}
 
 function buildSemiFinal(): Venue {
   // The same kind of bowl, the other way round: the fan zone, the car park, the

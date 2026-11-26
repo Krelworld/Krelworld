@@ -62,7 +62,7 @@ interface TickerLine { text: string; src: string; big: boolean }
 
 /** A PixelLab picture of an item, if there is one. */
 const ICONS = new Set(["pint", "pie", "knife", "whistle", "ticket", "wallet", "laxative", "powder", "shirt_eng", "shirt_por", "shirt_bra", "shirt_arg", "police_uniform", "kit_eng", "kit_opp",
-  "staff_pass", "hivis", "ref_kit", "police_hat", "mask", "flat_cap", "sunglasses", "moustache", "tracksuit", "chef_whites", "overalls", "balaclava", "hammer", "flare", "betslip", "face", "hands", "censored_bar", "wrench", "kit_card", "parachute", "mascot_suit", "press_pass", "bottle", "pint_glass", "chair", "corner_flag"]);
+  "staff_pass", "hivis", "ref_kit", "police_hat", "mask", "flat_cap", "sunglasses", "moustache", "tracksuit", "chef_whites", "overalls", "balaclava", "hammer", "flare", "betslip", "face", "hands", "censored_bar", "wrench", "kit_card", "parachute", "mascot_suit", "press_pass", "bottle", "pint_glass", "chair", "corner_flag", "wig", "long_wig", "dress"]);
 const icon = (def: string) => (ICONS.has(def) ? `<img class="ico" src="icons/${def}.png" alt="" onerror="this.remove()">` : `<span class="ico none"></span>`);
 
 /** The main button's words: short enough for a thumb. The full sentence is still in More. */
@@ -204,14 +204,14 @@ class StadiumScene extends Phaser.Scene {
     this.d3?.buildCrowd(this.s.match!.teams[1]);
     const w = this.w;
     new Commentator(w, w.bus, (l) => this.matchLine(l.text, l.big));
-    const TANNOY: Record<string, Clip> = { welcome: VENUE.id === "qf" ? "tannoy_welcome" : "tannoy_welcome_sf", lorry: "tannoy_lorry", pitch: "tannoy_pitch", "2min": "tannoy_2min", teams: "tannoy_teams", cleaner: "tannoy_cleaner", flares: "tannoy_flares", cameras: "tannoy_cameras",
+    const TANNOY: Record<string, Clip> = { welcome: VENUE.id === "qf" ? "tannoy_welcome" : VENUE.id === "final" ? "tannoy_welcome_final" : "tannoy_welcome_sf", facerec: "tannoy_facerec", detector: "tannoy_detector", lorry: "tannoy_lorry", pitch: "tannoy_pitch", "2min": "tannoy_2min", teams: "tannoy_teams", cleaner: "tannoy_cleaner", flares: "tannoy_flares", cameras: "tannoy_cameras",
       delay_late: "tannoy_delay_late", delay_ref: "tannoy_delay_ref", delay_pitch: "tannoy_delay_pitch", delay_safety: "tannoy_delay_safety", delay_again: "tannoy_delay_again",
       alarm: "tannoy_alarm", breach: "tannoy_breach", forfeit: "tannoy_forfeit", incident: "tannoy_incident",
       display_off: "tannoy_display_off", lenny: "tannoy_lenny", lenny_off: "tannoy_lenny_off", card: "tannoy_card", press: "tannoy_press" };
     const ann = new Announcer(w, (a) => {
       this.say(a.text, a.src === "tannoy" ? "Tannoy" : "Commentary", a.big);
       const clip = a.key ? (TANNOY[a.key] ?? (a.key.startsWith("cam") ? "tannoy_supervisor" : undefined)) : undefined;
-      if (clip && !(VENUE.id !== "qf" && a.key === "lorry")) this.audio.tannoy(clip, this.hearsMatch() ? 0.9 : 0.5, this.hearsMatch() ? 0 : 0.6);
+      if (clip && !(VENUE.id === "sf" && a.key === "lorry")) this.audio.tannoy(clip, this.hearsMatch() ? 0.9 : 0.5, this.hearsMatch() ? 0 : 0.6);
     });
     (this as any).announcer = ann;
     w.bus.on((e) => this.sounds(e));
@@ -262,7 +262,7 @@ class StadiumScene extends Phaser.Scene {
     $("introKo").textContent = `KO in ${Math.floor(KICKOFF_AT / 60)}:${String(KICKOFF_AT % 60).padStart(2, "0")}`;
     $("introText").textContent = c.fixture === 0
       ? `You are outside ${VENUE.ground} with £${c.money} and an England shirt. ${opp} are the opposition. Kick-off is in five and a half minutes. Help England win, any way you like.`
-      : `${VENUE.ground}, against ${opp}. You have £${c.money}${kit.length ? ` and you've brought: ${kit.join(", ").toLowerCase()}` : ""}. ${notorietyText(c.notoriety)} This ground has metal detectors and face-recognition cameras at the turnstiles, and staff need a pass.`;
+      : `${VENUE.ground}, against ${opp}. You have £${c.money}${kit.length ? ` and you've brought: ${kit.join(", ").toLowerCase()}` : ""}. ${notorietyText(c.notoriety)} This ground has metal detectors and face-recognition cameras at the turnstiles, and staff need a pass.${VENUE.features.penisDetector ? " And, following recent incidents, a penis detector." : ""}`;
     $("intro").hidden = false;
     this.started = false;
   }
@@ -402,6 +402,14 @@ class StadiumScene extends Phaser.Scene {
       case "mounted": a.play("whinny", 0.8); if (e.by === pcId) { this.startCine(1600, { zoomAdd: 0, caption: "Tally ho" }); setTimeout(() => this.bark("horse", 1, true), 500); } break;
       case "smashed": { a.play(e.what === "chair" ? "chair_smash" : "glass_smash", 1); this.popup(e.x, e.y, e.what === "chair" ? "CHAIRED!" : "GLASSED!", "#ff4d5e"); this.trauma = Math.min(1, this.trauma + 0.3); break; }
       case "countered": this.popup(e.x, e.y, "COUNTER!", "#f2c94c"); break;
+      case "detector_wait": if (e.by === pcId) this.startCine(2200, { zoomAdd: 1, caption: "The penis detector" }); break;
+      case "detector": {
+        const p = s.actors[e.by];
+        if (e.result === "caught") { a.play("detector_alarm", 1); if (p) this.popup(p.x, p.y, "MATCH FOUND", "#ff4d5e"); this.trauma = Math.min(1, this.trauma + 0.4); }
+        else { a.play("detector_ok", 1); if (p) this.popup(p.x, p.y, e.result === "dog" ? "CLEARED (CANINE)" : "CLEARED", "#4ade80"); }
+        if (p) setTimeout(() => this.popup(p.x, p.y + 0.4, "[CENSORED]", "#111111"), 250);
+        break;
+      }
       case "horse_jump": a.play("whinny", 0.4, { minGap: 2 }); break;
       case "roof": if (e.by === pcId && e.up) { a.play("ladder", 1); this.startCine(2400, { zoomAdd: 0, caption: "The roof of the South Stand" }); } else if (e.by === pcId) a.play("ladder", 0.7); break;
       case "chute_open": if (e.by === pcId) { a.play("chute", 1); this.bark("chute", 1, true); this.startCine(3000, { zoomAdd: 0, slow: 900, caption: "Geronimo" }); } break;
@@ -436,6 +444,8 @@ class StadiumScene extends Phaser.Scene {
         if (v <= 0) break;
         const VOICE: Record<string, Clip> = {
           "Oi! You!": "stw_oi", "Right. Out you go.": "stw_out", "You can't be in here, pal. Come on.": "stw_pal",
+          "Right. Penis detector, sir. Pop it in the slot, please.": "stw_slot", "That's him! That's the fat bald fella! It's a match!": "stw_knob",
+          "Bit small. Bit hairy. Go on, then.": "stw_odd", "Jesus Christ. Go on through, sir. Go on.": "stw_bar",
           "You're coming with me.": "stw_coming", "Stop wriggling!": "stw_wriggle", "Staff only, mate.": "stw_staff",
         };
         if (VOICE[e.text]) a.play(VOICE[e.text], 0.35 + v * 0.65, { minGap: 1.5 });
@@ -1614,7 +1624,7 @@ class StadiumScene extends Phaser.Scene {
     // The ground from outside: a roofed ring of stands behind a clad facade, the turnstiles let into it.
     const ins = !!pc && (VENUE.inside(pc.x, pc.y) || !!pc.seated) && !pc.hiddenIn;
     const H = 9;
-    const gx0 = VENUE.id === "qf" ? -57 : -56.5, gx1 = VENUE.id === "qf" ? 56.5 : 57;
+    const gx0 = VENUE.id !== "sf" ? -57 : -56.5, gx1 = VENUE.id !== "sf" ? 56.5 : 57;
     const blocks = [
       { x0: gx0, y0: 28, x1: gx1, y1: 45, front: true },
       { x0: gx0, y0: -61, x1: gx1, y1: -28, front: false },
@@ -1765,6 +1775,7 @@ class StadiumScene extends Phaser.Scene {
       rc.shirt = outer.id === "hivis" ? 0xd9e021 : outer.colour; rc.trim = outer.colour2;
       if (outer.role === "police" || outer.role === "referee" || outer.role === "footballer") rc.legs = outer.role === "footballer" ? (outer.colour2 ?? 0x1b2a6b) : 0x15171a;
       if (outer.id === "chef_whites") rc.legs = 0x3a3a3a;
+      if (outer.id === "dress") rc.legs = outer.colour;
     } else if (inner && inner.id !== "shirt_eng") { rc.shirt = inner.colour; rc.trim = inner.colour2; }
     // Shopkeepers who look the part.
     const shop = a.npc?.shop;
@@ -1938,6 +1949,12 @@ class StadiumScene extends Phaser.Scene {
       g.fillStyle(0xd9d9d9, 1).fillCircle(x, top + hw * 0.4, hw * 0.25);
     } else if (job === "armed") {
       g.fillStyle(0x15171a, 1).fillEllipse(x, top + hw * 0.5, hw * 2.2, hw * 1.4);
+    } else if (a.worn.head && (s.items[a.worn.head]?.def === "wig" || s.items[a.worn.head]?.def === "long_wig")) {
+      // A wig: a mop of hair over the bald head; the long one hangs to the shoulders.
+      const long = s.items[a.worn.head].def === "long_wig", c = st2.hat ?? 0x5a3a22;
+      g.fillStyle(c, 1).fillEllipse(x, top + hw * 0.55, hw * 2.3, hw * 1.5);
+      g.fillRect(x - hw * 1.15, top + hw * 0.5, hw * 0.45, hw * (long ? 3.6 : 1.4)).fillRect(x + hw * 0.7, top + hw * 0.5, hw * 0.45, hw * (long ? 3.6 : 1.4));
+      g.fillStyle(0xffffff, 0.18).fillRect(x - hw * 0.5, top + hw * 0.1, hw * 0.9, hw * 0.25);
     } else if (st2.hat) g.fillStyle(st2.hat, 1).fillEllipse(x, top + hw * 0.5, hw * 2.2, hw * 1.1).fillRect(x - hw * 1.4, top + hw * 0.8, hw * 2.8, hw * 0.3);
     if (st2.face) {
       const fy = top + hw * 1.6;
@@ -2311,9 +2328,9 @@ class StadiumScene extends Phaser.Scene {
     const cps = $("endCps");
     cps.textContent = "";
     if (e.kind === "through" && this.game2.campaign.fixture < FIXTURES.length - 1) {
-      const go = document.createElement("button"); go.textContent = "Continue to the semi-final"; go.className = "primary"; go.dataset.next = "1"; cps.appendChild(go);
+      const go = document.createElement("button"); go.textContent = this.game2.campaign.fixture === 0 ? "Continue to the semi-final" : "Continue to the final"; go.className = "primary"; go.dataset.next = "1"; cps.appendChild(go);
     } else if (e.kind === "through") {
-      const p = document.createElement("p"); p.textContent = "England are in the final. The final hasn't been built yet."; cps.appendChild(p);
+      const p = document.createElement("p"); p.textContent = "England have won the World Cup. You were there. In a manner of speaking."; cps.appendChild(p);
     }
     for (const c of this.game2.checkpoints) { const b = document.createElement("button"); b.textContent = `Back to: ${c.label}`; b.dataset.cp = c.id; cps.appendChild(b); }
     const nb = document.createElement("button"); nb.textContent = "Restart the tournament"; nb.dataset.new = "1"; cps.appendChild(nb);
@@ -2500,6 +2517,7 @@ class StadiumScene extends Phaser.Scene {
     const tp = (x: number, y: number) => () => { const pc = this.pc; pc.x = x; pc.y = y; pc.hiddenIn = undefined; pc.heldBy = undefined; pc.seated = false; };
     const acts: [string, () => void][] = [
       ["Give £500", () => { this.pc.money += 500; }],
+      ["Jump to the final", () => { const c = newCampaign(); c.fixture = 2; c.notoriety = 2; c.stash = ["shirt_eng", "wig", "moustache", "censored_bar"]; c.loadout = c.stash.slice(); c.money = 120; this.newGame(c); $("debug").hidden = true; }],
       ["Jump to the semi-final", () => { const c = newCampaign(); c.fixture = 1; c.notoriety = 1; c.stash = ["shirt_eng", "sunglasses", "flat_cap", "knife"]; c.loadout = c.stash.slice(); this.newGame(c); $("debug").hidden = true; }],
       ["Give a ticket", () => { spawnItem(this.s, "ticket", { k: "pocket", a: this.pc.id }); }],
       ["Skip to kick-off", () => { const m = this.s.match!; if (m.phase === "pre") { const n = Math.max(0, m.phaseUntil - this.s.tick - 600); for (let i = 0; i < n; i++) stepGame(this.game2); } }],

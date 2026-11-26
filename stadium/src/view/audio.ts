@@ -15,6 +15,7 @@ export const CLIPS = [
   "chant_eng", "chant_clap", "crowd_ooh", "crowd_jeer", "pub_bed", "siren",
   "hooves", "whinny", "trample", "zip_bin", "drain", "ladder", "swipe", "chute", "fall_scream",
   "tannoy_display_off", "tannoy_lenny", "tannoy_lenny_off", "tannoy_card", "tannoy_press", "glass_smash", "chair_smash", "haymaker",
+  "tannoy_welcome_final", "tannoy_facerec", "tannoy_detector", "stw_slot", "stw_knob", "stw_odd", "stw_bar", "detector_ok", "detector_alarm",
   "gh_offer", "gh_no", "gh_yes", "gh_rude", "gh_chop", "gh_after", "gh_knock",
 ] as const;
 /** Voiced lines (ElevenLabs stock British voices): what's said -> clip; a woman says the `_f` take. */

@@ -6,13 +6,14 @@ import { fromBehind, hidingPlaceNear, incapacitated, knockedOut } from "./combat
 import { horseNear, mountedOfficer, riding } from "./horse";
 import { atCellar, atGrate, atScaffold } from "./routes";
 import { atLadder, hasChute } from "./entries";
+import { detectorGate, dogWithYou, hasBar } from "./detector";
 const hasItem = (s: { items: Record<string, Item> }, a: Actor, def: string) => [a.hand, ...a.pockets].some((id) => id && s.items[id]?.def === def);
 import { appearance } from "../core/identity";
 import { defOf, hasProp } from "../core/items";
 import type { Action, Actor, Item } from "../core/types";
 import { possibleVerbs } from "../core/verbs";
 import type { World } from "../core/world";
-import { areaAt, VENUE } from "./layout";
+import { areaAt, SPOTS, VENUE } from "./layout";
 import { climbPointNear, turnstileNear, SHOPS } from "./rules";
 
 export interface Option {
@@ -44,6 +45,16 @@ export function options(w: World, pc: Actor, picked?: string | null): Option[] {
   if (bus?.drivenBy === pc.id) return [{ label: "Get out of the bus", priority: 100, action: { verb: "getout", ...base } }];
   if (pc.hiddenIn) return [{ label: "Climb out", priority: 100, action: { verb: "unhide", ...base } }];
   if (pc.chute) return [];
+  // At the penis detector.
+  {
+    const gi = detectorGate(w);
+    if (gi && Math.hypot(pc.x - SPOTS.turnstiles[gi - 1].x, pc.y - SPOTS.turnstiles[gi - 1].y) < 3.5) {
+      const det: Option[] = [{ label: "Insert your penis", priority: 40, action: { verb: "detector", ...base, arg: "own" } }];
+      if (hasBar(w, pc)) det.push({ label: "Insert the censored bar", priority: 90, action: { verb: "detector", ...base, arg: "bar" } });
+      if (dogWithYou(w, pc)) det.push({ label: "Hold the dog up to the slot", priority: 95, action: { verb: "detector", ...base, arg: "dog" } });
+      out.push(...det);
+    }
+  }
   if (pc.roof) {
     // On the roof of the South Stand, the wind in your face, the whole ground below you.
     const roof: Option[] = [{ label: "Climb back down", priority: 80, action: { verb: "ladder", ...base } }];

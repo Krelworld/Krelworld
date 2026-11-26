@@ -1100,3 +1100,33 @@ test("at the semi-final the new ways in still work: drain, ladder and chute, Len
   const hamper = Object.values(s.items).find((i) => i.def === "laundry")!;
   assert.equal(areaAt((hamper.loc as any).x, (hamper.loc as any).y).id, "alley");
 });
+
+test("disguises stack: a wig alone won't beat the cameras, a wig and a tache will, so will a dress and a wig", () => {
+  const g = createGame("wig");
+  const s = g.w.state, pc = pcOf(g);
+  const wear = (defs: string[]) => { pc.worn = {} as any; for (const d of defs) { const it = spawnItem(s, d, { k: "hand", a: pc.id }); dispatch(g.w, { verb: "wear", actor: pc.id, item: it.id }); } return appearance(s, pc).faceCover; };
+  assert.ok(wear(["wig"]) < 0.5);
+  assert.ok(wear(["wig", "moustache"]) >= 0.5);
+  assert.ok(wear(["dress", "long_wig"]) >= 0.5);
+  assert.equal(appearance(s, pc).faceHidden, false);
+});
+
+test("the final: the penis detector catches you; the censored bar or the dog gets you through", () => {
+  for (const how of ["own", "bar", "dog"] as const) {
+    const g = createGame(`detector-${how}`, "final");
+    const s = g.w.state, pc = pcOf(g), st = s.stadium!;
+    run(g, 2);
+    const ticket = spawnItem(s, "ticket", { k: "hand", a: pc.id });
+    ticket.owner = pc.id;
+    if (how === "bar") spawnItem(s, "censored_bar", { k: "pocket", a: pc.id });
+    walk(g, 0, 46.3, 20);
+    if (how === "dog") { const d = s.actors[st.dog!.id]; st.dog!.state = "led"; d.x = pc.x + 1; d.y = pc.y; }
+    const steward = find(g, (a) => a.npc?.job === "turnstile" && Math.abs(a.x) < 1);
+    assert.equal(dispatch(g.w, { verb: "show", actor: pc.id, item: ticket.id, target: { k: "actor", id: steward.id } }).ok, true);
+    assert.ok(st.flags.detectorGate, `${how}: the detector is waiting`);
+    assert.equal(dispatch(g.w, { verb: "detector", actor: pc.id, arg: how }).ok, true);
+    if (how === "own") { assert.equal(st.ending?.kind, "arrested"); continue; }
+    walk(g, 0, 40, 10);
+    assert.equal(areaAt(pc.x, pc.y).id, "concourse_s", `${how}: through`);
+  }
+});

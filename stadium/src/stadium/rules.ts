@@ -19,6 +19,7 @@ import { alert, crime, isSecurity, struggle, witnessesOf } from "./security";
 import { cargoOpen } from "./vehicles";
 import { holdOpen } from "./bus";
 import { hearLead } from "./entries";
+import { startDetector } from "./detector";
 
 export const SHOPS: Record<string, { name: string; stock: Record<string, number> }> = {
   ticket: { name: "Ticket office", stock: { ticket: 60 } },
@@ -26,7 +27,7 @@ export const SHOPS: Record<string, { name: string; stock: Record<string, number>
   pub: { name: "The Three Lions", stock: { pint: 5, pie: 4 } },
   bar: { name: "Concourse bar", stock: { pint: 7, pie: 5 } },
   bookies: { name: "Bookmaker", stock: {} },
-  charity: { name: "Second Hand Rose", stock: { flat_cap: 6, sunglasses: 5, moustache: 3, tracksuit: 12, chef_whites: 18, overalls: 15 } },
+  charity: { name: "Second Hand Rose", stock: { flat_cap: 6, sunglasses: 5, moustache: 3, wig: 9, long_wig: 12, dress: 15, tracksuit: 12, chef_whites: 18, overalls: 15 } },
   tout: { name: "Dodgy Del", stock: { ticket: 45 } },
   surplus: { name: "Army & Navy Surplus", stock: { balaclava: 10, hammer: 14, flare: 20, knife: 25 } },
 };
@@ -487,7 +488,7 @@ function turnstileCheck(w: World, act: Action): void {
     return void say(w, t, "Press? Go on through, mate.");
   }
   if (it.def !== "ticket") return void say(w, t, "That's not a ticket, is it?");
-  if (st.dog?.state === "led" && !st.flags.serviceDog) return void say(w, t, "No dogs. Not even that one. Especially not that one.");
+  if (st.dog?.state === "led" && !st.flags.serviceDog && !VENUE.features.penisDetector) return void say(w, t, "No dogs. Not even that one. Especially not that one.");
   if (it.void) { n.sus[by.id] = Math.max(n.sus[by.id] ?? 0, 0.6); return void say(w, t, "This ticket's been cancelled. Hop it."); }
   if (it.used) return void say(w, t, "This one's already been scanned.");
   if (ap.faceHidden) return void say(w, t, ap.sinister ? "You're not coming in dressed like that." : "Mask off, please.");
@@ -512,6 +513,7 @@ function turnstileCheck(w: World, act: Action): void {
     return;
   }
   it.used = true;
+  if (startDetector(w, by, g.gate, t)) return;
   st.gates[g.gate] = { until: s.tick + 60 * 4, for: by.id };
   say(w, t, "Enjoy the game.");
 }

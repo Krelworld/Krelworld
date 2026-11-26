@@ -17,7 +17,7 @@ export interface Campaign {
   history: { venue: Venue["id"]; result: string; headline: string }[];
 }
 
-export const FIXTURES: Venue["id"][] = ["qf", "sf"];
+export const FIXTURES: Venue["id"][] = ["qf", "sf", "final"];
 
 export function newCampaign(): Campaign {
   // Not enough for a ticket (£60): you'll have to find another way in, or the money.
@@ -45,7 +45,7 @@ export function afterMatch(c: Campaign, w: World, headline: string): Campaign {
     stash,
     loadout: kept.length ? kept : ["shirt_eng"],
     notoriety: Math.min(3, fame),
-    history: [...c.history, { venue: c.fixture === 0 ? "qf" : "sf", result: `${m(s).score[0]}–${m(s).score[1]}`, headline }],
+    history: [...c.history, { venue: FIXTURES[c.fixture] ?? "qf", result: `${m(s).score[0]}–${m(s).score[1]}`, headline }],
   };
 }
 const m = (s: World["state"]) => s.match!;

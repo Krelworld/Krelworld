@@ -33,6 +33,9 @@ export const ITEM_DEFS: Record<string, ItemDef> = Object.fromEntries(
     // From the charity shop.
     { id: "flat_cap", name: "Flat cap", props: ["wearable"], size: "small", slot: "head", price: 6, colour: 0x6b5a45, faceCover: 0.15 },
     { id: "sunglasses", name: "Sunglasses", props: ["wearable"], size: "small", slot: "face", price: 5, colour: 0x111111, faceCover: 0.5 },
+    { id: "wig", name: "Wig", props: ["wearable"], size: "small", slot: "head", price: 9, colour: 0x5a3a22, faceCover: 0.3 },
+    { id: "long_wig", name: "Long blonde wig", props: ["wearable"], size: "small", slot: "head", price: 12, colour: 0xe8c86a, faceCover: 0.35 },
+    { id: "dress", name: "Floral dress", props: ["wearable"], size: "large", slot: "outer", role: "fan", price: 15, colour: 0xe58fb8, colour2: 0xf6e3a1, faceCover: 0.2 },
     { id: "moustache", name: "Stick-on moustache", props: ["wearable"], size: "small", slot: "face", price: 3, colour: 0x3a2a1a, faceCover: 0.35 },
     { id: "tracksuit", name: "Grey tracksuit top", props: ["wearable"], size: "large", slot: "outer", price: 12, colour: 0x8a8f96, colour2: 0x5a5f66 },
     { id: "chef_whites", name: "Chef's whites", props: ["wearable"], size: "large", slot: "outer", role: "catering", authority: 1, price: 18, colour: 0xf3f1ea, colour2: 0xcfcac0 },

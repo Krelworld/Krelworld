@@ -543,3 +543,24 @@ expansion joints and a yellow line on the concrete; urinals and basins in the ge
 rooms get shirts on pegs, the physio's table, an ice bath, a tactics board, boots and the showers
 over the drain grate. Skylights and air-con units on the stand roofs, and the TV gantry along the
 front of the main stand. Hampers are drawn as hampers.
+
+## Facial recognition, disguises, and the final
+
+- **Match two, if they know your face** (identified at the quarter-final): the tannoy tells the
+  ground that facial recognition is on at every turnstile and stewards are looking for "a fat,
+  bald man in his fifties". The cameras flag your face unless at least half of it is hidden.
+- **Disguises stack.** Each extra piece adds a quarter to your best one, short of a full mask:
+  a wig alone (0.3) won't do, a wig and a stick-on tache will (0.6), so will a floral dress and
+  a long blonde wig (0.6). Second Hand Rose sells the wig (£9), the long blonde wig (£12) and the
+  dress (£15). A wig is drawn on your bald head; a dress colours you pink down to the shins. Or
+  cut someone's face off and wear it, which works, and looks insane.
+- **The final** (match three, against Argentina at the National Stadium, built like the
+  quarter-final ground) has everything: pat-downs, metal detectors, cameras, staff passes, and,
+  "following recent incidents", a penis detector on a pedestal beside each turnstile. Show your
+  ticket and the steward asks you to pop it in the slot:
+  - **your own:** it's on file. "That's him! That's the fat bald fella! It's a match!" Arrested.
+    ("Penis detector snares England fan at final")
+  - **the censored bar** from the pub toilet: "Jesus Christ. Go on through, sir." You keep it.
+  - **the dog**, held up to the slot: "Bit small. Bit hairy. Go on, then." The dog comes in too.
+  The steward doesn't object to the dog at this ground; there's nothing left to object to.
+- Win the final and England are world champions.

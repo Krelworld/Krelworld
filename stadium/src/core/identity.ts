@@ -35,7 +35,7 @@ export function appearance(s: WorldState, a: Actor): Appearance {
   }
   if (a.fb && !shirt) role = "footballer";
   const held = item(a.hand);
-  let faceCover = 0, sinister = false;
+  let faceCover = 0, sinister = false, pieces = 0;
   const worn: string[] = [];
   for (const slot of ["outer", "head", "face", "body"] as const) {
     const it = item(a.worn[slot]);
@@ -43,8 +43,12 @@ export function appearance(s: WorldState, a: Actor): Appearance {
     const d = defOf(it);
     worn.push(d.id);
     faceCover = Math.max(faceCover, d.faceCover ?? 0);
+    if ((d.faceCover ?? 0) > 0) pieces++;
     if (d.props.includes("sinister")) sinister = true;
   }
+  // A disguise is more than its best piece: a wig and a tache, a dress and a wig. Each extra piece
+  // adds a quarter, but nothing short of a mask hides your face completely.
+  if (faceCover < 1 && pieces > 1) faceCover = Math.min(0.95, faceCover + 0.25 * (pieces - 1));
   if (!a.worn.outer && inner) worn.push(defOf(inner).id);
   // Someone else's face: to anyone who doesn't look closely, you are them.
   const face = item(a.worn.face);

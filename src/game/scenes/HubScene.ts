@@ -3457,10 +3457,17 @@ You are required by law to sign the Sex Offenders Register.`, {
     if (this.bike?.riding && !this.scene.isActive("Menu")) this.bike.dismount(this.av);
   };
 
+  private bikeFollow = () => {
+    if (this.av) this.bike?.follow(this.av);
+  };
+
   private makeBike() {
     this.bike?.destroy();
     this.events.off("pause", this.onBikePause);
     this.events.on("pause", this.onBikePause);
+    // (the avatar is an Arcade sprite: physics moves it after update, so the bike follows it again once that's done)
+    this.events.off(Phaser.Scenes.Events.POST_UPDATE, this.bikeFollow);
+    this.events.on(Phaser.Scenes.Events.POST_UPDATE, this.bikeFollow);
     const home = { x: 606, y: 1392 };
     this.bike = new BikeRider(this, home, Math.abs(this.av.scaleX) || 1);
     const bike = this.bike;

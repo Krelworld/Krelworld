@@ -1,5 +1,6 @@
 // The bike: ride round the outdoor overworlds (Krelford and the Kreddle Strip) faster than walking.
 // Pure rules and numbers here (unit-tested); the sprites live in gfx/Bike.ts.
+import { isMobile } from "../mobile/flag";
 
 /** Riding speed as a multiple of walking speed. */
 export const BIKE_SPEED = 1.8;
@@ -7,6 +8,8 @@ export const BIKE_SPEED = 1.8;
 export const BIKE_ACCEL_MS = 220;
 export const BIKE_COAST_MS = 260;
 export const BIKE_BRAKE_MS = 110;
+/** Phones: how fast the sideways drift goes once the stick points somewhere new (ms, as above). */
+export const BIKE_SNAP_MS = 45;
 /** Under this speed (px/s) the rider stops pedalling (feet on the pedals, idle pose). */
 export const BIKE_PEDAL_MIN = 40;
 /** World px travelled per frame of the rider's pedalling cycle, and per spoke frame. */
@@ -46,9 +49,24 @@ export function rideSpeed(walk: number): number {
  * Ease a velocity toward a target, bike-style: a little pick-up, a gentle coast when you let go, and quick brakes when
  * you turn round. Returns the new velocity (pure; `dt` in ms).
  */
-export function bikeVelocity(vx: number, vy: number, tx: number, ty: number, dt: number): { x: number; y: number } {
+export function bikeVelocity(vx: number, vy: number, tx: number, ty: number, dt: number, snappy = isMobile()): { x: number; y: number } {
   const stopping = Math.abs(tx) < 1 && Math.abs(ty) < 1;
   const reversing = vx * tx + vy * ty < 0;
+  // phones (s4-01 m7): the bike goes where the thumb points. The drift across the stick's direction dies within a
+  // tenth of a second; along it the pick-up and braking are as before. (A thumb can't counter-steer a curve the way
+  // a keyboard's straight lines never need to.)
+  if (snappy && !stopping) {
+    const tl = Math.hypot(tx, ty);
+    const ux = tx / tl;
+    const uy = ty / tl;
+    const along = vx * ux + vy * uy;
+    const px = vx - along * ux;
+    const py = vy - along * uy;
+    const ka = 1 - Math.exp(-Math.max(0, dt) / (along < 0 ? BIKE_BRAKE_MS : BIKE_ACCEL_MS));
+    const ks = 1 - Math.exp(-Math.max(0, dt) / BIKE_SNAP_MS);
+    const a = along + (tl - along) * ka;
+    return { x: ux * a + px * (1 - ks), y: uy * a + py * (1 - ks) };
+  }
   const tau = reversing ? BIKE_BRAKE_MS : stopping ? BIKE_COAST_MS : BIKE_ACCEL_MS;
   const k = 1 - Math.exp(-Math.max(0, dt) / tau);
   let x = vx + (tx - vx) * k;

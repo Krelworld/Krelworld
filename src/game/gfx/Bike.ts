@@ -146,6 +146,18 @@ export class BikeRider {
     }
   }
 
+  /**
+   * Riding: the bike's layers back under the rider's feet. For a rider that physics moves after the scene's update (the
+   * town's avatar is an Arcade sprite): the scene calls this on POST_UPDATE, so the bike isn't drawn a frame behind.
+   */
+  follow(rider: Phaser.GameObjects.Sprite) {
+    if (!this.ok || !this.riding) return;
+    const feet = rider.getBottomCenter(this.tmp);
+    const sc = Math.abs(rider.scaleX) || 1;
+    const y = feet.y + BIKE_DROP * sc;
+    for (const spr of [this.back, this.front]) if (spr.visible) spr.setPosition(feet.x, y);
+  }
+
   /** How far below the avatar's feet its shadow should sit, and how wide (the bike is longer than the lad). */
   shadow(): { dy: number; sx: number } {
     return this.riding ? { dy: BIKE_DROP * (Math.abs(this.back.scaleX) || 1), sx: 1.7 } : { dy: 0, sx: 1 };

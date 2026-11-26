@@ -561,6 +561,8 @@ export class KreddleScene extends Phaser.Scene {
   }
 
   private shove(n: Npc) {
+    // (a shove knocks you off the bike, as bikeControl's note says)
+    if (this.bike?.riding) this.bike.dismount(this.me);
     n.charging = false;
     n.nextTurn = 0;
     const s = G.s;

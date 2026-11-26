@@ -1,0 +1,5 @@
+{
+ "headless_fan": {"description": "a fat man's headless corpse lying on his back on the ground, white England football shirt and blue jeans soaked in blood, a bloody neck stump where the head was, a big pool of blood with brain chunks and skull fragments splattered around, seen from above, gory, detailed pixel art, not cartoon", "w": 96, "h": 64, "view": "high top-down"},
+ "headless_steward": {"description": "a man's headless corpse lying on his back on the ground wearing a yellow hi-vis steward vest and black trousers, a bloody neck stump where the head was, a pool of blood with brain chunks and skull fragments splattered around, seen from above, gory, detailed pixel art, not cartoon", "w": 96, "h": 64, "view": "high top-down"},
+ "headless_woman": {"description": "a woman's headless corpse lying on the ground in a white football shirt and jeans, a bloody neck stump where the head was, a pool of blood with brain chunks and skull fragments splattered around, seen from above, gory, detailed pixel art, not cartoon", "w": 96, "h": 64, "view": "high top-down"}
+}

@@ -46,9 +46,20 @@ export function smokeBetween(w: World, ax: number, ay: number, bx: number, by: n
 }
 
 /** The worst thing this person looks like they are doing just by being here. */
+/** Rooms a hi-vis vest alone won't get you into: the dressing rooms, the officials', the tunnel, the
+ *  kit room, the security office. (Concourses, stands, staff corridors: a vest is enough.) */
+export const HIGH_SECURITY = new Set(["security", "dress_home", "dress_away", "ref_room", "tunnel", "kitroom"]);
+export const inVest = (w: World, t: Actor) => !!t.worn.outer && w.state.items[t.worn.outer]?.def === "hivis";
+/** Seen doing something in the vest: they know he's not one of theirs now. */
+export const vestBlown = (w: World, t: Actor) => inVest(w, t) && (w.state.stadium!.flags.vestBlown ?? 0) > w.state.tick;
+
 function trespass(w: World, t: Actor, area: Area): number {
   // Nobody can see whether you have a ticket in your pocket: only the turnstiles check.
   if (area.access === "ticket" || area.access === "public") return 0;
+  if (inVest(w, t) && appearance(w.state, t).role === "steward") {
+    if (vestBlown(w, t)) return area.pitch ? (area.id === "pitch" ? 3 : 1.2) : area.access === "restricted" ? 1 : 0.7;
+    if (HIGH_SECURITY.has(area.id)) return 1;
+  }
   if (looksPermitted(w.state, t, area as any)) return 0;
   if (area.pitch) return area.id === "pitch" ? 3 : 1.2;
   return area.access === "restricted" ? 1 : area.access === "staff" ? 0.7 : 0.4;
@@ -104,6 +115,7 @@ export function crime(w: World, by: Actor, what: string, severity: number, victi
   st.incidents.push({ t: s.tick, what, by: by.id, blamed: ap.team, severity, seenBy: seen.length });
   w.bus.emit({ type: "incident", t: s.tick, what, by: by.id, blamed: ap.team, severity, seen: seen.length, victim: victim?.id });
   if (!seen.length) return 0;
+  if (inVest(w, by)) st.flags.vestBlown = s.tick + 60 * 240;
   st.wanted.push({
     face: ap.faceId, team: ap.team, role: ap.role, outer: by.worn.outer ? s.items[by.worn.outer].def : null, look: ap.look,
     severity: Math.min(1, 0.35 + severity * 0.25), until: s.tick + 60 * 300, what,
@@ -137,6 +149,27 @@ export function crime(w: World, by: Actor, what: string, severity: number, victi
     n.nextBark = s.tick + 300;
   }
   return seen.length;
+}
+
+/** What stewards say at each step: a few ways of saying it, so it isn't the same line every time. */
+export const STW_LINES = {
+  detain: ["You're coming with me.", "Right, you. Office. Now.", "Got you, you little sod.", "That's enough of that. You're coming with me."],
+  eject: ["Right. Out you go.", "You're done, pal. Out.", "Come on. Out. Now."],
+  warn: ["You can't be in here, pal. Come on.", "Wrong way, mate. Back you go.", "Staff only, sunshine. Out."],
+  arrest: ["You're nicked, sunshine."],
+  struggle: ["Stop wriggling!", "Pack it in!", "Don't make this worse, son."],
+  seat: ["Sit there and don't move. The police are on their way.", "Sit down. Don't touch anything.", "Wait there. Old Bill'll be along."],
+  seatSoft: ["Sit there and have a think about what you've done.", "You can sit there till you've calmed down."],
+  barred: ["You're barred. Don't come back.", "And stay out.", "Go on. Hop it."],
+  spot: ["Oi! You!", "Oi! Stop right there!", "Hoy! Come here!"],
+};
+/** A line from the pool, not the one this steward said last. */
+function line(w: World, g: Actor, kind: keyof typeof STW_LINES): string {
+  const pool = STW_LINES[kind], n = g.npc!;
+  let i = Math.floor(w.state.rng.world.a % pool.length + (w.state.tick % 7)) % pool.length;
+  if (pool.length > 1 && pool[i] === n.lastLine) i = (i + 1) % pool.length;
+  n.lastLine = pool[i];
+  return pool[i];
 }
 
 /** How far a shout carries, and a radio call. */
@@ -239,7 +272,7 @@ export function stepSecurity(w: World, g: Actor): void {
       g.moveX = g.moveY = 0;
       if (!t) return setMode(w, g, "routine");
       g.facing = Math.atan2(t.y - g.y, t.x - g.x);
-      if (sus >= 0.9) { setMode(w, g, "approach"); say(w, g, n.crime >= 1 ? "Oi! You!" : "Excuse me, sir."); }
+      if (sus >= 0.9) { setMode(w, g, "approach"); say(w, g, n.crime >= 1 ? line(w, g, "spot") : "Excuse me, sir."); }
       else if (sus < 0.25) setMode(w, g, "routine");
       return;
     case "approach":
@@ -283,13 +316,7 @@ function apprehend(w: World, g: Actor, t: Actor): void {
   n.intent = decideIntent(w, g, t);
   t.heldBy = g.id; t.seated = false;
   t.moveX = t.moveY = 0;
-  const lines: Record<string, string> = {
-    warn: "You can't be in here, pal. Come on.",
-    eject: "Right. Out you go.",
-    detain: "You're coming with me.",
-    arrest: "You're nicked, sunshine.",
-  };
-  say(w, g, lines[n.intent!]);
+  say(w, g, line(w, g, n.intent as "warn" | "eject" | "detain" | "arrest"));
   w.bus.emit({ type: "caught", t: w.state.tick, by: g.id, who: t.id, intent: n.intent });
   if (n.intent === "arrest") { finishArrest(w, t, "Arrested at the ground."); return; }
   if (n.intent === "warn") st.warnings++;
@@ -327,8 +354,11 @@ function escort(w: World, g: Actor): void {
   if (!t || t.heldBy !== g.id) { setMode(w, g, "routine"); return; }
   n.goal && (n.goal.run = false);
   const to = n.escortTo ?? { x: g.x, y: g.y };
-  // Nobody wants to watch a long walk: a moment to struggle, then cut to the destination.
-  if (s.tick - (n.escortAt ?? s.tick) > 60 * 1.5) {
+  // Nobody wants to watch a long walk: a moment to struggle, a fade to black, and the cut happens
+  // while the screen is dark (the view snaps the camera there and fades back in).
+  const held = s.tick - (n.escortAt ?? s.tick);
+  if (held === Math.round(60 * 1.2)) w.bus.emit({ type: "escort_fade", t: s.tick, who: t.id, intent: n.intent });
+  if (held > 60 * 1.6 && Math.hypot(g.x - to.x, g.y - to.y - 0.9) > 0.5) {
     g.x = to.x; g.y = to.y + 0.9; t.x = to.x; t.y = to.y; n.goal = null; n.path = [];
     w.bus.emit({ type: "escort_cut", t: s.tick, who: t.id, intent: n.intent });
   }
@@ -347,8 +377,8 @@ function escort(w: World, g: Actor): void {
   else if (intent === "eject") eject(w, g, t);
   else if (intent === "detain") {
     st.detainedUntil = s.tick + 60 * 45;
-    say(w, g, "Sit there and don't move. The police are on their way.");
     if (n.crime >= 3 || st.incidents.some((i) => i.by === t.id && i.severity >= 3)) st.policeCalled = true;
+    say(w, g, line(w, g, st.policeCalled ? "seat" : "seatSoft"), 4);
     w.bus.emit({ type: "detained", t: s.tick, who: t.id });
   }
   setMode(w, g, "routine");
@@ -371,7 +401,7 @@ export function eject(w: World, g: Actor | null, t: Actor): void {
   if (!st.banned.includes(seenFace)) st.banned.push(seenFace);
   st.warnings = 0;
   st.detainedUntil = 0;
-  if (g) say(w, g, "You're barred. Don't come back.");
+  if (g) say(w, g, line(w, g, "barred"));
   calmDown(w, t, 25);
   w.bus.emit({ type: "ejected", t: s.tick, who: t.id, taken });
 }
@@ -409,7 +439,7 @@ export function struggle(w: World, t: Actor): boolean {
   for (const id in s.actors) { const o = s.actors[id]; if (o !== g && isSecurity(o) && Math.hypot(o.x - t.x, o.y - t.y) < 4) { p *= 0.4; break; } }
   if (!chance(s.rng.world, p)) {
     n0.grip = (n0.grip ?? 0) + 1;
-    say(w, g, ["Stop wriggling!", "Don't you dare.", "Keep still!", "I've got you, sunshine."][Math.min(3, n0.grip - 1)], 1.2);
+    say(w, g, line(w, g, "struggle"), 1.2);
     w.bus.emit({ type: "struggle_failed", t: s.tick, who: t.id });
     return false;
   }

@@ -34,6 +34,8 @@ export function stepTraffic(w: World): void {
     }
     for (const o of cars) { if (o !== c && o.dir === c.dir) { const ahead = (o.x - c.x) * c.dir; if (ahead > 0 && ahead < gap) gap = ahead - 2.5; } }
     for (const v of Object.values(st.vehicles)) { if (Math.abs(v.y - c.y) < 3) { const ahead = (v.x - c.x) * c.dir; if (ahead > 0 && ahead < gap) gap = ahead - 5; } }
+    const mc = st.myCar;
+    if (mc && Math.abs(mc.y - c.y) < 2.4) { const ahead = (mc.x - c.x) * c.dir; if (ahead > 0 && ahead < gap) gap = ahead - 3; }
     const want = gap < 4 ? 0 : gap < 12 ? CRUISE * (gap - 4) / 8 : CRUISE;
     c.speed += Math.max(-14 * dt, Math.min(5 * dt, want - c.speed));
     c.x += c.speed * c.dir * dt;

@@ -10,7 +10,7 @@ import { crime } from "./security";
 
 export interface Horse { x: number; y: number; facing: number; speed: number; rider: string | null; officer: string }
 
-const WALK = 4.5, GALLOP = 10, R = 0.85;
+const WALK = 7, GALLOP = 16, R = 0.85;
 
 export const mountedOfficer = (w: World): Actor | undefined => Object.values(w.state.actors).find((a) => a.npc?.mounted && !a.dead);
 export const horseNear = (w: World, a: Actor, r = 2.4): boolean => { const h = w.state.stadium!.horse; return !!h && !h.rider && Math.hypot(h.x - a.x, h.y - a.y) < r; };
@@ -71,8 +71,8 @@ export function stepHorse(w: World, reins: { mx: number; my: number } | null): v
   if (!h) return;
   if (h.rider && reins) {
     const m = Math.hypot(reins.mx, reins.my);
-    const want = m < 0.1 ? 0 : m > 0.9 ? GALLOP : WALK;
-    h.speed += Math.max(-12 * dt, Math.min((want > h.speed ? 6 : 12) * dt, want - h.speed));
+    const want = m < 0.1 ? 0 : m > 0.6 ? GALLOP : WALK;
+    h.speed += Math.max(-14 * dt, Math.min((want > h.speed ? 11 : 14) * dt, want - h.speed));
     if (m > 0.1) {
       const a = Math.atan2(reins.my, reins.mx);
       let d = a - h.facing; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI;

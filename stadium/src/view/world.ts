@@ -12,7 +12,8 @@ export const KIT_KEYS = ["barrier", "bench", "bigscreen", "bin", "bollard", "bur
   "pubtable", "fruitmachine", "pooltable", "pubtv", "pumps", "clothesrail", "shelves", "betscreens", "tree", "statue", "binbags", "aboard", "desk", "kitbench", "kitchen", "lockers", "dugout", "tvcamera", "stretcher", "cart",
   "shed", "skip", "parkedcar", "hamper", "medbed", "grate", "hatch", "scaffold", "piestand", "obtruck", "horsebox", "ladder", "kitbag", "canopy",
   "roofvent", "gantry", "skylight", "foodkiosk", "condiments", "tvpost", "urinal", "sinks", "massage", "tactics", "icebath", "boots", "showers", "kitpegs", "cornerflag", "pubchair", "detector",
-  "kegs", "busstop", "manhole", "chippaper", "pigeons", "gritbin", "flagpole", "newsboard", "scarf", "doormat", "smokerbin"] as const;
+  "kegs", "busstop", "manhole", "chippaper", "pigeons", "gritbin", "flagpole", "newsboard", "scarf", "doormat", "smokerbin",
+  "headless_fan", "headless_steward", "headless_woman"] as const;
 export type KitKey = (typeof KIT_KEYS)[number];
 /** Eight-way pictures (S, SE, E, NE, N, NW, W, SW in a row) for things that turn. */
 export const WORLD_8 = ["coach", "lorry"] as const;
@@ -52,6 +53,7 @@ export class WorldArt {
     for (const k of KIT_KEYS) scene.load.image(`k-${k}-src`, `kit/${k}.png`);
     for (const k of Object.keys(BLD_ART)) scene.load.image(`w-bld-${k}`, `world/bld-${k}.png`);
     for (const k of ["a", "b", "c"]) scene.load.image(`w-bay-${k}`, `world/bld-bay-${k}.png`);
+    scene.load.spritesheet("fx-headburst", "world/fx-headburst.png", { frameWidth: 64, frameHeight: 64 });
     for (const k of ["pub", "charity", "surplus", "bookies", "hotel"]) scene.load.image(`w-wall-${k}`, `world/bld-wall-${k}.png`);
     scene.load.spritesheet("w-coach8", "world/coach-8.png", { frameWidth: 160, frameHeight: 160 });
     scene.load.spritesheet("w-lorry8", "world/lorry-8.png", { frameWidth: 128, frameHeight: 128 });

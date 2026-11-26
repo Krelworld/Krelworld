@@ -5,6 +5,8 @@ import type { Action, Actor, Id, Item, VerbId, WorldState } from "./types";
 import type { World } from "./world";
 
 export const REACH = 1.6;
+/** How far you'll lunge to land a blow. */
+export const LUNGE = 3.2;
 
 export interface VerbDef {
   /** Returns a reason the action is impossible, or null if it can go ahead. */
@@ -151,7 +153,8 @@ export const VERBS: Record<VerbId, VerbDef> = {
     // Bare hands, or whatever is in hand. Kicking the ball is handled by the match.
     check: (w, a, actor) => {
       const to = targetActor(w.state, a);
-      return to && Math.hypot(actor.x - to.x, actor.y - to.y) <= REACH + 0.5 ? null : "nobody in reach";
+      // You lunge in for it: anyone within a couple of strides (the Arkham "magnet").
+      return to && Math.hypot(actor.x - to.x, actor.y - to.y) <= LUNGE ? null : "nobody in reach";
     },
     perform: (w, a, actor) => {
       const to = targetActor(w.state, a)!;

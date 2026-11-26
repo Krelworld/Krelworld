@@ -347,8 +347,11 @@ export function stepNpc(w: World, a: Actor): void {
 }
 
 // ---------- Spawning ----------
-const FAN_NAMES = ["Gaz", "Dean", "Lee", "Wayne", "Kev", "Darren", "Shaz", "Tracey", "Bev", "Steve", "Clive", "Nige", "Trev", "Baz"];
-const AWAY_NAMES = ["Rui", "João", "Tiago", "Bruno", "Ana", "Inês", "Paulo", "Nuno", "Sofia", "Miguel"];
+const FAN_NAMES = ["Gaz", "Dean", "Lee", "Wayne", "Kev", "Darren", "Steve", "Clive", "Nige", "Trev", "Baz", "Carl", "Del", "Ricky"];
+const FAN_NAMES_F = ["Shaz", "Tracey", "Bev", "Kerry", "Stacey", "Leanne", "Donna", "Jade", "Chantelle", "Debbie"];
+const AWAY_NAMES = ["Rui", "João", "Tiago", "Bruno", "Paulo", "Nuno", "Miguel", "Diogo"];
+const AWAY_NAMES_F = ["Ana", "Inês", "Sofia", "Beatriz", "Marta", "Rita"];
+export const FEMALE_LOCALS = new Set(["Sue", "Lisa", "Barmaid"]);
 
 export function spawnFan(w: World, away: boolean, seated: boolean): Actor {
   const s = w.state, r = s.rng.world;
@@ -356,9 +359,12 @@ export function spawnFan(w: World, away: boolean, seated: boolean): Actor {
   const seat = randIn(w, standId, 1.2);
   // Arrivals come off the far pavement and cross the ring road (the traffic waits for them).
   const start = seated ? seat : { x: VENUE.id === "sf" ? rndRange(r, -85, 66) : rndRange(r, -66, 85), y: rndRange(r, 93, 95) };
-  const a = spawnActor(s, "npc", away ? pick(r, AWAY_NAMES) : pick(r, FAN_NAMES), start.x, start.y, {
+  // About one in four: a woman.
+  const female = r.a % 4 === 1;
+  const a = spawnActor(s, "npc", female ? pick(r, away ? AWAY_NAMES_F : FAN_NAMES_F) : pick(r, away ? AWAY_NAMES : FAN_NAMES), start.x, start.y, {
     npc: newNpc("fan", "fan", { seat, hasTicket: true, team: away ? 1 : 0 }), speed: 1.5, radius: 0.4, money: Math.round(rndRange(r, 10, 80)),
   });
+  if (female) a.female = true;
   const n = a.npc!;
   n.lines = away ? ["Força!", "Your keeper's a joke.", "We will win this easy."] : FAN_POOL;
   if (seated) { n.stage = 3; n.sitting = true; a.seated = true; }

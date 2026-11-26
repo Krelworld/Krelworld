@@ -6,6 +6,8 @@ import { knockOut, land } from "./combat";
 import { appearance } from "../core/identity";
 import { canPocket, defOf, hasProp, ITEM_DEFS, moveItem, spawnItem } from "../core/items";
 import { chance, pick, rndRange } from "../core/rng";
+import { inVest, vestBlown } from "./security";
+import { lineOfSight } from "./nav";
 import type { Action, Actor, Id, Item } from "../core/types";
 import { registerVerb, VERBS } from "../core/verbs";
 import type { World } from "../core/world";
@@ -52,6 +54,14 @@ function give(w: World, a: Actor, def: string): Item {
 const isStaffCrowd = (a: Actor) => !!a.npc && a.npc.job !== "player" && a.npc.job !== "official";
 
 export function installRules(): void {
+  registerVerb("colleague", {
+    check: (w, act, actor) => {
+      const t = targetActor(w, act);
+      if (t?.npc?.job !== "turnstile" || !near(actor, t, 2.6)) return "nobody to show";
+      return inVest(w, actor) && !vestBlown(w, actor) ? null : "not in a vest";
+    },
+    perform: (w, act, actor) => colleague(w, actor, targetActor(w, act)!),
+  });
   registerVerb("buy", {
     check: (w, act, actor) => {
       const seller = targetActor(w, act), shop = seller?.npc?.shop;
@@ -276,6 +286,13 @@ export function installRules(): void {
       const t = targetActor(w, act)!;
       // Auto-target: you swing at who you meant, whichever way you were facing.
       actor.facing = Math.atan2(t.y - actor.y, t.x - actor.x);
+      // And if they're a stride or two off, you're on them in one lunge (unless there's a wall in the way).
+      const gap = Math.hypot(t.x - actor.x, t.y - actor.y);
+      if (gap > 1.15 && lineOfSight(actor.x, actor.y, t.x, t.y)) {
+        const k = (gap - 0.95) / gap;
+        actor.x += (t.x - actor.x) * k; actor.y += (t.y - actor.y) * k;
+        w.bus.emit({ type: "lunged", t: w.state.tick, who: actor.id, dist: gap - 0.95 });
+      }
       if (sharpInHand(w, actor) && !t.dead) return stab(w, actor, t);
       // Whatever's in your hand counts, if it's any use in a fight.
       const held = actor.hand ? w.state.items[actor.hand] : item;
@@ -472,6 +489,17 @@ export function installReactions(w: World): void {
       if (pc.effects.laxative > s.tick && !st.flags.pcLax) st.flags.pcLax = s.tick + 60 * 45;
     }
   });
+}
+
+/** In a hi-vis vest, the turnstile staff take you for one of theirs. */
+function colleague(w: World, by: Actor, t: Actor): void {
+  const s = w.state, st = s.stadium!, ap = appearance(s, by);
+  const g = turnstileNear(t) ?? turnstileNear(by);
+  if (!g?.gate) return;
+  if (ap.faceHidden || ap.alarming) return void say(w, t, "Whoa. Who are you with, mate?");
+  if (st.banned.includes(ap.faceId) && ap.faceCover < 0.5) return void say(w, t, "Nice try. You're on the list, vest or no vest.");
+  st.gates[g.gate] = { until: s.tick + 60 * 4, for: by.id };
+  say(w, t, pick(s.rng.world, ["Alright, mate. Busy one today.", "Go on through, pal. They've got you on the north side?", "Morning. Radio's playing up again."]));
 }
 
 function turnstileCheck(w: World, act: Action): void {

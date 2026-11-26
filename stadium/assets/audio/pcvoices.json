@@ -230,5 +230,31 @@
    "Yeah, security? I'm in 'ere with a fan who I've 'ad to... kill. Yeah. Kill. Over.",
    "pc_radio_kill"
   ]
+ ],
+ "lech": [
+  [
+   "Alright, darlin'? Get your tits out for the lads!",
+   "pc_lech1"
+  ],
+  [
+   "Phwoar! Wouldn't mind a bit of that, eh?",
+   "pc_lech2"
+  ],
+  [
+   "Oi oi, gorgeous! Fancy a ride on the Grozz express?",
+   "pc_lech3"
+  ],
+  [
+   "Cheer up, love! Might never happen!",
+   "pc_lech4"
+  ],
+  [
+   "Nice arse, sweetheart!",
+   "pc_lech5"
+  ],
+  [
+   "You can sit on my face and I'll guess your weight!",
+   "pc_lech6"
+  ]
  ]
 }

@@ -31,6 +31,8 @@ export interface Npc {
   sitting: boolean;
   bubble: { text: string; until: number } | null;
   nextBark: number;
+  /** The last thing this steward said from a pool of lines (so he doesn't repeat himself). */
+  lastLine?: string;
   /** About to hit back at someone. */
   retaliateAt?: number;
   retaliateOn?: Id;
@@ -154,6 +156,8 @@ export interface StadiumState {
   horse?: import("./horse").Horse;
   /** Cars going by on the ring road. */
   traffic?: import("./traffic").Car[];
+  /** The car you've nicked (driving it, or left where you got out). */
+  myCar?: import("./cars").MyCar;
   /** Detained in the security office until this tick (0 if not). */
   detainedUntil: number;
   /** The police have been sent for. */

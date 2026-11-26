@@ -4,6 +4,8 @@ import { alarmPointNear } from "./kickoff";
 import { sharpInHand } from "./knife";
 import { fromBehind, hidingPlaceNear, incapacitated, knockedOut } from "./combat";
 import { hasRadio, reportable } from "./coverup";
+import { isWoman } from "./lech";
+import { carsNear } from "./cars";
 import { horseNear, mountedOfficer, riding } from "./horse";
 import { atCellar, atGrate, atScaffold } from "./routes";
 import { atLadder, hasChute } from "./entries";
@@ -99,6 +101,16 @@ export function options(w: World, pc: Actor, picked?: string | null): Option[] {
     }
   }
 
+  // Cars: drive, get out, get in, drag a driver out of one that's stopped, or give one a kick.
+  if (pc.hiddenIn === "car") return [{ label: "Get out of the car", priority: 50, action: { verb: "getoutcar", ...base } }];
+  {
+    const cars = carsNear(w, pc.x, pc.y, 2.8);
+    const stopped = cars.find((c) => c.traffic && !c.moving);
+    if (stopped) push((s.stadium!.traffic ?? []).find((t) => t.id === stopped.id)?.kind === "policecar" ? "Drag the copper out and take his car" : "Drag the driver out and take the car", 62, { verb: "carjack", ...base, arg: stopped.id });
+    if (cars.some((c) => c.id === "mine")) push("Get in the car", 58, { verb: "getincar", ...base });
+    if (cars[0]) push(cars[0].traffic ? "Kick the car" : "Kick the car (it's alarmed)", 4, { verb: "kickcar", ...base, arg: cars[0].id });
+  }
+
   // Bikes: on one, or one to get on.
   if (pc.bike) push("Get off the bike", 3, { verb: "getoff", ...base });
   else for (const it of Object.values(s.items)) {
@@ -122,7 +134,9 @@ export function options(w: World, pc: Actor, picked?: string | null): Option[] {
       const ticket = [pc.hand, ...pc.pockets].find((id) => id && s.items[id].def === "ticket");
       if (ticket) push(`Show your ticket to ${name}`, 82 - d, { verb: "show", ...base, item: ticket, target: { k: "actor", id: a.id } });
       push(`"He's a service dog. For my autism."`, 84 - d, { verb: "servicedog", ...base, target: { k: "actor", id: a.id } });
+      push(`Flash the vest: "I'm working"`, 86 - d, { verb: "colleague", ...base, target: { k: "actor", id: a.id } });
     }
+    if (n && isWoman(a)) push(`Leer at ${name}`, 2, { verb: "lech", ...base, target: { k: "actor", id: a.id } });
     if (n && n.job !== "player" && n.job !== "official") push(`Talk to ${name}`, (n.job === "fan" ? 12 : n.job === "local" ? 25 : 40) - d, { verb: "talk", ...base, target: { k: "actor", id: a.id } });
     if (pc.money > 0 && d < 2.2) out.push({ label: `Offer ${name} money`, priority: 5, sheet: { kind: "bribe", who: a.id } });
     if (n && n.job !== "player" && n.job !== "official" && !n.shop) push(`Pickpocket ${name}`, 6, { verb: "pickpocket", ...base, target: { k: "actor", id: a.id } });

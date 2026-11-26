@@ -1,0 +1,9 @@
+{
+ "act_dog": {"description": "a snarling Staffordshire bull terrier head with bared teeth, single item icon, bold, detailed pixel art, game UI icon", "w": 48, "h": 48, "view": "low top-down"},
+ "act_give": {"description": "an open hand held out offering something, palm up, single item icon, detailed pixel art, game UI icon", "w": 48, "h": 48, "view": "low top-down"},
+ "act_lech": {"description": "a leering cartoon pair of eyes with raised eyebrows and a wolf-whistle, cheeky, single item icon, detailed pixel art, game UI icon", "w": 48, "h": 48, "view": "low top-down"},
+ "act_cuffs": {"description": "a pair of steel police handcuffs, single item icon, detailed pixel art, game UI icon", "w": 48, "h": 48, "view": "low top-down"},
+ "act_kick": {"description": "a trainer kicking forward with an impact star, single item icon, bold, detailed pixel art, game UI icon", "w": 48, "h": 48, "view": "low top-down"},
+ "act_carjack": {"description": "a hand yanking open a car door, single item icon, detailed pixel art, game UI icon", "w": 48, "h": 48, "view": "low top-down"},
+ "act_coin": {"description": "a stack of gold pound coins, single item icon, detailed pixel art, game UI icon", "w": 48, "h": 48, "view": "low top-down"}
+}

@@ -22,6 +22,9 @@ import { installRoutes } from "./routes";
 import { installEntries, spawnEntries, stepEntries } from "./entries";
 import { installDetector } from "./detector";
 import { installCoverup, stepCoverups } from "./coverup";
+import { FEMALE_LOCALS } from "./npc";
+import { installLech } from "./lech";
+import { driveCar, installCars } from "./cars";
 import { BIKE_SPEED, BIKE_SPRINT, installBike, stepBikes } from "./bike";
 import { installReactions, installRules, SHOPS, stepRules } from "./rules";
 import { isSecurity, stepDetention, stepHeat, stepSecurity } from "./security";
@@ -45,7 +48,7 @@ export const HALF_SECONDS = 450;
 export const HALFTIME_SECONDS = 150;
 
 export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: Campaign = newCampaign()): Game {
-  if (!rulesInstalled) { installRules(); installBetting(); installPolice(); installBus(); installDog(); installKickoff(); installKnife(); installGloryHole(); installCombat(); installHorse(); installRoutes(); installEntries(); installDetector(); installCoverup(); installBike(); rulesInstalled = true; }
+  if (!rulesInstalled) { installRules(); installBetting(); installPolice(); installBus(); installDog(); installKickoff(); installKnife(); installGloryHole(); installCombat(); installHorse(); installRoutes(); installEntries(); installDetector(); installCoverup(); installBike(); installLech(); installCars(); rulesInstalled = true; }
   setVenue(venueId);
   const oppKey = VENUE.opp;
   const opp = TEAMS[oppKey];
@@ -156,6 +159,7 @@ export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: 
     const a = spawnStaff(w, "local", "fan", pick(r, ["Big Kev", "Tel", "Mad Dog", "Sue", "Grandad", "Spencer", "Lisa", "Wolfie"]), p.x, p.y);
     a.money = Math.round(rndRange(r, 15, 90));
     a.npc!.post = undefined;
+    if (FEMALE_LOCALS.has(a.name)) a.female = true;
   }
 
   // The beer lorry and its crew.
@@ -257,6 +261,7 @@ export function stepGame(g: Game): void {
   const pc = s.actors[st.pc];
   const bus = st.vehicles.bus;
   if (bus && pc && bus.drivenBy === pc.id) driveBus(w, bus, pc);
+  if (pc && st.myCar?.driving) driveCar(w, pc);
   for (const id in s.actors) {
     const a = s.actors[id];
     if (!a.npc) continue;

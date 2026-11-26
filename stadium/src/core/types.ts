@@ -109,6 +109,8 @@ export interface Actor {
   roof?: boolean;
   /** Coming down under a parachute: from, to, and when. */
   chute?: { x0: number; y0: number; x1: number; y1: number; t0: number; t1: number };
+  /** A woman (her name, her body, her voice). */
+  female?: boolean;
   /** The bike he's riding (an item id). */
   bike?: string;
   /** When his head was stamped flat (a tick), if it was. */

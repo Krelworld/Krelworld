@@ -1268,3 +1268,32 @@ test("a bike: get on and you outrun a steward; grabbed, you come off it", () => 
   assert.equal(pc.bike, undefined);
   assert.equal(s.items[bike.id].loc.k, "ground");
 });
+
+test("cars: stand in the road till one stops, drag the driver out, drive it, run someone down, get out", () => {
+  const g = createGame("cars");
+  const s = g.w.state, pc = pcOf(g), st = s.stadium!;
+  run(g, 3);
+  // Wait for an eastbound car and stand in front of it.
+  let car = (st.traffic ?? []).find((c) => c.dir === 1 && c.x < -40);
+  for (let i = 0; i < 40 && !car; i++) { run(g, 1); car = (st.traffic ?? []).find((c) => c.dir === 1 && c.x < -40); }
+  assert.ok(car, "a car comes along");
+  pc.x = car!.x + 3.5; pc.y = car!.y;
+  run(g, 3, () => { pc.moveX = pc.moveY = 0; });
+  assert.ok(car!.speed < 1, "it stops for him");
+  assert.equal(dispatch(g.w, { verb: "carjack", actor: pc.id, arg: car!.id }).ok, true);
+  assert.equal(pc.hiddenIn, "car");
+  assert.ok(!(st.traffic ?? []).includes(car!));
+  // Floor it east along the road, into somebody.
+  const v = Object.values(s.actors).find((a) => a.npc?.job === "local" && !a.dead)!;
+  v.npc!.plan = [{ k: "wait", s: 60 }];
+  v.x = st.myCar!.x + 14; v.y = st.myCar!.y;
+  let hit = false;
+  g.w.bus.on((e) => { if (e.type === "car_hit") hit = true; });
+  run(g, 3, () => { pc.moveX = 1; pc.moveY = 0; });
+  assert.ok(st.myCar!.x > car!.x + 10, "it goes");
+  assert.ok(hit, "and he goes under it");
+  run(g, 2, () => { pc.moveX = pc.moveY = 0; });
+  assert.equal(dispatch(g.w, { verb: "getoutcar", actor: pc.id }).ok, true);
+  assert.equal(pc.hiddenIn, undefined);
+  assert.equal(st.myCar!.driving, false);
+});

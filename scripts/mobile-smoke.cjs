@@ -5662,7 +5662,15 @@ async function scenesSection(browser) {
     await ph.scene("Minigame");
     await sleep(1500);
     const tip = await ph.ev(() => window.__krel.scene("Minigame").children.list.filter((o) => o.type === "Text" && /ANGLE, then POWER/.test(o.text)).map((o) => o.text));
-    check("scenes: the cannon's how-to line says TAP (no SPACE)", tip.length === 1 && /^TAP: ANGLE/.test(tip[0]), tip);
+    // (worded by the minigames' rows ("Tap: ...") or the scenes' own ("TAP: ..."), whichever reaches it first; its dark
+    // pill fitted to the line either way)
+    const pillFit = await ph.ev(() => {
+      const sc = window.__krel.scene("Minigame");
+      const o = sc.children.list.find((t) => t.type === "Text" && /ANGLE, then POWER/.test(t.text));
+      const bg = o && sc.children.list.find((r) => r.type === "Rectangle" && Math.round(r.x) === Math.round(o.x) && Math.round(r.y) === Math.round(o.y));
+      return o && bg ? { text: Math.round(o.width), pill: Math.round(bg.width) } : null;
+    });
+    check("scenes: the cannon's how-to line says TAP (no SPACE), its pill fitted to it", tip.length === 1 && /^tap: ANGLE/i.test(tip[0]) && !/SPACE/.test(tip[0]) && (!pillFit || pillFit.pill === pillFit.text + 28), { tip, pillFit });
     await tapUntil(() => !window.__krel.scene("Minigame").box?.active, null, 30);
     await sleep(400);
     await ph.tapCss(500, 200);

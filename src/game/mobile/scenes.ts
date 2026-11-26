@@ -617,10 +617,11 @@ export function installScenes(game: Phaser.Game, layer: TouchLayer, shell: Shell
         stats.tutorialSkips++;
       }
       if (key === "Minigame") {
-        // the cannon's how-to line (a UI line) in touch words; its dark pill fitted to it again
+        // the cannon's how-to line (a UI line) in touch words; its dark pill fitted to it again (the minigames' own
+        // wording, games.ts, may have worded it "Tap: ..." first: the pill is fitted either way)
         const fix = () => {
           for (const o of sc.children.list as unknown as Bag[]) {
-            if (o.type !== "Text" || !/^SPACE \/ TAP: ANGLE/.test(o.text)) continue;
+            if (o.type !== "Text" || !/^(?:SPACE \/ TAP|TAP|Tap): ANGLE/.test(o.text)) continue;
             o.setText(touchWording(o.text, SCENE_UI_WORDING));
             const bg = (sc.children.list as unknown as Bag[]).find((r) => r.type === "Rectangle" && Math.round(r.x) === Math.round(o.x) && Math.round(r.y) === Math.round(o.y));
             bg?.setSize(o.width + 28, 26);

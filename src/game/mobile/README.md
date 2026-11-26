@@ -193,7 +193,7 @@ topmost running scene per rule):
 
 | Running scene | Mode | Pause | Live |
 |---|---|---|---|
-| Boot, Enter, Title, CharSelect, Difficulty, Banter, ChapterSelect, DebugSkip, Menu, Slots, WeaponPick, Dialogue, Meeting, Cutscene, Vignette, TV, Archive, KrazyFact, Exile, Ending, Tutorial, Lair, RoofCutscene, KrelCue, `__p3d*` | none | – | – |
+| Boot, Enter, Title, CharSelect, Difficulty, Banter, ChapterSelect, DebugSkip, Menu, Slots, WeaponPick, Dialogue, Meeting, Cutscene, Vignette, TV, Archive, KrazyFact, Exile, Ending, Tutorial, Lair, RoofCutscene, KrelCue, DonutToilet (the Job Centre toilet cutscene, scenes/side/donutToilet.ts), `__p3d*` | none | – | – |
 | Minigame, Whack, Drive, BeepBeep | tap | – (stage 3) | yes |
 | Pub, Pit, PitLoan, PolsonHome | none | – | – |
 | Finale with the Super Saiyan brawl running (stage 2 part 2, `brawl.ts`) | brawl: the phone stick (`"2d"`), PUNCH / BLOCK / VANISH / KICK / KI; the rush is a tap anywhere | – | yes |

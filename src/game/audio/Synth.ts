@@ -64,6 +64,10 @@ export const AUDIO_FILES: Record<string, string> = {
   drp_suction: "audio/sfx/drp_suction.mp3",
   /** RuneScape (the woodcutting minigame, ElevenLabs): axe chop, log in the pack, tree falling, bank chest, the level-up fanfare (an original one). */
   ...Object.fromEntries(["chop", "log", "fall", "bank", "levelup"].map((k) => [`rs_${k}`, `audio/sfx/rs_${k}.mp3`])),
+  /** KrelTV news bulletins (TVNews.ts, ElevenLabs Music): the opening ident fanfare, the BREAKING sting and the closing sting (rung out over the bed). */
+  news_ident: "audio/news_ident.mp3",
+  news_breaking: "audio/news_breaking.mp3",
+  news_outro: "audio/news_outro.mp3",
 };
 
 /** Where each separate shout sits in those files: [start, length] in seconds. */
@@ -209,6 +213,16 @@ export const MUSIC_FILES: Record<string, string> = {
   night_of_freedom: "audio/night_of_freedom.mp3",
   // Da Drongus Dungeon rising out of the ground (orchestral, ElevenLabs Music)
   dungeon_rise: "audio/dungeon_rise.mp3",
+  // KrelTV news bulletins: the quiet bed under the presenter (mixed about 6 dB under the other songs; ElevenLabs Music)
+  news_bed: "audio/news_bed.mp3",
+  // the chapter intro and outro cutscenes: the story so far (ElevenLabs Music)
+  cut_chapter: "audio/cut_chapter.mp3",
+  // the ending's final prompt and the reaction card, before the ending itself (ElevenLabs Music)
+  ending_prompt: "audio/ending_prompt.mp3",
+  // Chapter 7: the morning after, in the rubble outside the Town Hall (ElevenLabs Music)
+  ch7_morning: "audio/ch7_morning.mp3",
+  // the Robbo and Chad Deltoid vignettes, after their fights (ElevenLabs Music)
+  vig_awkward: "audio/vig_awkward.mp3",
   ...Object.fromEntries(Array.from({ length: 13 }, (_, i) => [`ggg${i + 1}`, `audio/ggg${i + 1}.mp3`])),
 };
 

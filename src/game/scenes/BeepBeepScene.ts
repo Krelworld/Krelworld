@@ -6,6 +6,8 @@ import { DialogueBox } from "../ui/DialogueBox";
 import { FONT, title } from "../ui/theme";
 import { runChain, switchTo, fadeThen } from "../Flow";
 import { dir, say } from "../../content/dsl";
+import { isMobile } from "../mobile/flag";
+import { phoneHooks } from "../mobile/boot";
 
 // Pseudo-3D road (OutRun style): the track is a list of segments, each with a curve and a height (hills);
 // every frame we project the ones in front of you, front-to-back for hill occlusion, then draw back-to-front.
@@ -448,7 +450,7 @@ export class BeepBeepScene extends Phaser.Scene {
       // controls
       const ptr = this.input.activePointer;
       steer = (k.D.isDown || k.RIGHT.isDown ? 1 : 0) - (k.A.isDown || k.LEFT.isDown ? 1 : 0);
-      if (ptr.isDown && ptr.y > 200) steer = ptr.x < W / 2 - 40 ? -1 : ptr.x > W / 2 + 40 ? 1 : 0;
+      if (ptr.isDown && ptr.y > 200 && !(isMobile() && phoneHooks()?.wheelTouch?.() === false)) steer = ptr.x < W / 2 - 40 ? -1 : ptr.x > W / 2 + 40 ? 1 : 0;
       const gas = k.W.isDown || k.UP.isDown || k.SPACE.isDown;
       const brake = k.S.isDown || k.DOWN.isDown;
       // the tank has to refill a bit before you can light it again

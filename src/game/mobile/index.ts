@@ -26,6 +26,7 @@ import { hint } from "./wording";
 import { whenRunning } from "./shell";
 import { installCombat } from "./combat";
 import { installBrawl, showFinisher } from "./brawl";
+import { installGames } from "./games";
 import { installBikeButton } from "./bike";
 import { PAD_CSS, PadHandover } from "./pad";
 import { ControlsPicture, tabFor } from "./controlsPicture";
@@ -40,6 +41,7 @@ import { PhoneArt } from "./art";
 import { PhoneAudio } from "./audio";
 import { PhonePerf } from "./perf";
 import { askToKeepSaves, bootLoadHeld, holdBootLoad, storageState } from "./storage";
+import { installScenes } from "./scenes";
 
 export { isMobile, setMobileForTests, mobileWhy, rememberPhoneMode } from "./flag";
 export { registerModeController, unregisterModeController, type ModeController, type ModeContext, type ControlSpec, TouchControl, TouchLayer } from "./touchLayer";
@@ -125,6 +127,8 @@ export function installMobile(game: Phaser.Game) {
   // stage 2 part 2: the finale's brawl, the Kreltality prompt, a controller handed over (brawl.ts, pad.ts)
   WORDING_HOOKS.skipHint = skipHintPill;
   const brawl = installBrawl(game, layer);
+  // stage 3 wave 2: the minigames by touch (its wording rows must be in before the scenes are hooked below)
+  const games = installGames(game, layer);
   brawl.pauseCard = (extra) => shell.pauseCard(extra);
   // the bike's RIDE / WALK button in the walking controls (town and the Kreddle Strip)
   installBikeButton(layer);
@@ -149,6 +153,8 @@ export function installMobile(game: Phaser.Game) {
       return true;
     },
   });
+  // stage 3 wave 2: the special scenes (Night of Freedom's gun, Beep Beep's pedals, skip pills, the telly's subtitles)
+  const scenes = installScenes(game, layer, shell);
   layer.onFullscreen = () => shell.goFullscreen();
   let releaseLoad: (() => void) | null = null;
   const guide = new HomeScreenGuide(parent, {
@@ -242,6 +248,7 @@ export function installMobile(game: Phaser.Game) {
       /* fine with one */
     }
     wording.hookScenes();
+    games.hookScenes();
     setFrameCap(game, phoneSettings().batterySaver);
     // scenes laid out for a phone when they are built (screens.ts)
     for (const sc of game.scene.scenes as Phaser.Scene[]) sc.sys.events.on("create", () => onSceneCreate(sc));
@@ -282,7 +289,9 @@ export function installMobile(game: Phaser.Game) {
     diag,
     combat,
     tapUse,
+    scenes,
     brawl,
+    games: { state: () => ({ ...games.state }), lag: () => games.lag() },
     pad,
     picture,
     dialogue,

@@ -111,3 +111,19 @@ describe("touch wording: the first how-to-play messages (round 1, P4)", () => {
     expect(touchWording("PRESS ANY KEY TO SKIP")).toBe("PRESS ANY KEY TO SKIP");
   });
 });
+
+describe("touch wording: HUD lines of the raid and Night of Freedom (stage 3 wave 2 review P2, P14)", () => {
+  it("the raid's objective says FIRE, the drive's HUD says the SLOPPY button", () => {
+    expect(touchWording("▶ EAST to the Palace. Burn through the GATES (HOLD attack to spray chemical fire)")).toBe("▶ EAST to the Palace. Burn through the GATES (HOLD FIRE to spray chemical fire)");
+    expect(touchWording("TORCH THE KREDDLE KRUNCHERS! All of them. (hold attack)")).toBe("TORCH THE KREDDLE KRUNCHERS! All of them. (hold FIRE)");
+    expect(touchWording("ROCKET READY   DRAWBRIDGE IN 12s   SLOPPY 100% — R!")).toBe("ROCKET READY   DRAWBRIDGE IN 12s   SLOPPY 100% — tap SLOPPY!");
+    expect(touchWording("ROCKET …   DRAWBRIDGE IN 12s   SLOPPY 40%")).toBe("ROCKET …   DRAWBRIDGE IN 12s   SLOPPY 40%");
+  });
+});
+
+describe("touch wording: the HUD rules leave the narrator's line alone", () => {
+  it("takeon.ts's line is unchanged; the rout's objective says FIRE", () => {
+    expect(touchWording("SHOOT (hold attack). Walk EAST. Take Kreddle. How hard can it be?")).toBe("SHOOT (hold attack). Walk EAST. Take Kreddle. How hard can it be?");
+    expect(touchWording("▶ EAST! Take Kreddle! (hold attack to shoot)")).toBe("▶ EAST! Take Kreddle! (hold FIRE to shoot)");
+  });
+});

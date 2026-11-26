@@ -2,7 +2,7 @@
 // PHONE MODE smoke test (Playwright, real touch events). Needs a running dev server.
 //
 //   npx vite --port 5202 --strictPort &
-//   node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,bike,dungeon,combat,side,brawl,together,review1,polish,platform,android,desktop]
+//   node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,bike,dungeon,combat,side,brawl,together,review1,polish,platform,android,tapuse,scenes,desktop]
 //
 // phone    iPhone 14 landscape (844x390, DPR 3, touch, mobile Safari UA). Boots by taps, starts a new game by taps,
 //          clears the welcome at home by taps, then checks: the idle stick and pause are up; a drag moves the player
@@ -88,6 +88,14 @@
 // android  Android Chrome 740x360: a press held past the Enter gate's fade still gets fullscreen and the back guard;
 //          the guide's written steps leave fullscreen (and closing it goes back in); the crash guard's notices show
 //          in fullscreen; an in-app browser shows "open it in Chrome first" during the load.
+// scenes   (stage 3 wave 2) iPhone 14, touch only: Night of Freedom (the how-to line in touch words; no gun button
+//          during the conversation; ROCKET big and the canvas ones hidden; the score clear of II; a finger near a car
+//          locks the crosshair and fires; ROCKET with a second thumb while aiming, and with no finger; SLOPPY only
+//          when full; II pauses; the drawbridge's mash by taps and its SKIP pill left of II, then back to the level);
+//          Beep Beep (BOOST / BRAKE / HORN and a left / right stick, no key hint; the stick steers, a thumb on the
+//          picture doesn't; BOOST, BRAKE, HORN work; a win by taps, nothing held after); the cannon's TAP line and two
+//          taps fire it; the finale's II card with SKIP SCENE skips it; the advert's SKIP pill; a long TV subtitle
+//          paged two lines at a time with the same words; the Lair's SKIP SCENE; the raid's FIRE held by touch id.
 // desktop  1280x720, mouse: phone mode off, no class, no layer, no CSS, no global, and at home the UI scene has no
 //          touch pad and TOUCH stays off (exactly as before). Also: a laptop with "1" left in storage by an old
 //          ?mobile=1 link, and a laptop opening ?mobile=1, are laptops; the phone code reads no storage and asks no
@@ -104,7 +112,7 @@ const arg = (k, d) => {
 };
 const URL0 = arg("--url", "http://localhost:5202/");
 const SHOTS = arg("--shots", "");
-const ONLY = (arg("--only", "phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,bike,dungeon,combat,side,brawl,together,review1,polish,platform,android,tapuse,tapfix,platfix,mix3,desktop") || "").split(",").filter(Boolean);
+const ONLY = (arg("--only", "phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,bike,dungeon,combat,side,brawl,together,review1,polish,platform,android,tapuse,tapfix,platfix,mix3,games,scenes,wave2,desktop") || "").split(",").filter(Boolean);
 const IOS_UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1";
 const IPHONE = { viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, userAgent: IOS_UA };
 const DESKTOP = { viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1, hasTouch: false, isMobile: false };
@@ -2497,6 +2505,25 @@ async function dungeon(browser) {
     }
     const inFight = await ph.mode();
     check("in the fight: combat mode on the phone controls (the old canvas pad gone)", inFight === "combat:Dungeon" && (await ph.ev(() => !window.__krel.game.scene.getScene("UI").touch)), inFight);
+    // the phone mix in a dungeon fight (the user: "the sound effects were simply very quiet"): the dungeon's own
+    // effects cut (x0.68) and song lift (x1.35) are taken back out, effects then go up, the song stays at its level
+    // (no update() here: the wrappers on setSfxScale / setMusicBoost, or the quarter-second poll, must have done it;
+    // read the mix's real gain nodes, not only what it says it set)
+    const mixNow = () => ph.ev(() => {
+      const a = window.__krelMobile.audio;
+      const gr = a.mix.graph;
+      const s = window.__krel.G.meta.settings;
+      const v = (n) => Math.round(n.gain.value * 1000) / 1000;
+      return { report: a.mix.report(), plan: a.mix.plan.fight, nodes: gr ? { preSfx: v(gr.entry.sfx), postSfx: v(gr.post.sfx), preSong: v(gr.entry.song) } : null, sfx: s.sfx ?? 0.8, master: s.master ?? 0.8, music: s.music ?? 0.5 };
+    });
+    const close = (x, y) => Math.abs(x - y) < 0.01 * Math.max(1, Math.abs(y));
+    const fmix = await mixNow();
+    {
+      const r = fmix.report, n = fmix.nodes || {};
+      const want = { preSfx: 1 / (fmix.sfx * 0.68), postSfx: fmix.master * fmix.sfx * 1.1 * fmix.plan.sfx, preSong: 1 / Math.min(1, fmix.master * fmix.music * 1.35) };
+      check("in the fight: the phone mix plays it as a fight (effects louder, the song's dungeon lift taken out), on its real gain nodes",
+        r.built && r.fight && close(n.preSfx, want.preSfx) && close(n.postSfx, want.postSfx) && close(n.preSong, want.preSong), { fmix, want });
+    }
     const paused = () => ph.ev(() => ({ menu: window.__krel.active().includes("Menu"), dungeon: window.__krel.game.scene.isPaused("Dungeon"), hp: window.__krel.G.s.hp, running: window.__krel.game.loop.running }));
     const resume = async () => {
       await ph.tapText("RESUME", { scene: "Menu", exact: true }).catch(() => 0);
@@ -2583,6 +2610,15 @@ async function dungeon(browser) {
     await sleep(800);
     const c3 = await ph.loop();
     check("a tap carries on", c3.running && !(await ph.ev(() => window.__krelMobile.shellState().card)), c3);
+    // out of the fight: the mix plays as anywhere else again (the dungeon's own levels back to 1)
+    await ph.ev(() => window.__krel.go("Hub", {}));
+    await ph.scene("Hub").catch(() => 0);
+    await sleep(1200);
+    {
+      const m = await mixNow();
+      const n = m.nodes || {};
+      check("out of the dungeon (to the town): the phone mix is out of fight mode, its gains the town's", !m.report.fight && close(n.preSfx, 1 / m.sfx) && close(n.postSfx, m.master * m.sfx * 1.1), m);
+    }
     check("dungeon: no page errors", errors.length === 0, errors.slice(0, 3));
   } finally {
     await ctx.close();
@@ -4492,6 +4528,60 @@ async function platform(browser) {
     await sleep(300);
     const g5 = await ph.ev(() => ({ g: window.__krelMobile.audio.musicGain(), m: window.__krel.G.meta.settings.master }));
     check("platform: the Music setting reaches the song (0 → gain 0, 0.5 → master x 0.5; the element stays at full volume)", !!g0 && g0.gain < 0.001 && !!g5.g && Math.abs(g5.g.gain - g5.m * 0.5) < 0.02 && g5.g.elementVolume === 1, { g0, g5 });
+    // the phone mix (mix.ts, wave 2: "Speech and sound effects are a little quiet on phones"): built on the game's
+    // context, the sliders applied after its compressors (exactly), voices redirected into it, never over -1 dBFS
+    const mx = await ph.ev(async () => {
+      const L = await import("/src/game/mobile/mixLogic.ts");
+      const G = window.__krel.G;
+      const a = window.__krelMobile.audio;
+      const want = (st) => L.mixGains(st);
+      const near = (x, y) => Math.abs(x - y) < 0.01;
+      const r0 = a.mix.report();
+      const st0 = { ...G.meta.settings };
+      const ok0 = r0.built && near(r0.post.music, want(st0).song.post) && near(r0.post.voice, want(st0).voice.post) && near(r0.post.sfx, want(st0).sfx.post) && near(r0.pre.voice, want(st0).voice.pre);
+      // Master halved: every path's output halves (the compressors in front see the same level)
+      G.meta.settings.master = st0.master / 2;
+      window.__krel.synth.setVolumes(G.meta.settings);
+      await new Promise((r) => setTimeout(r, 300));
+      const r1 = a.mix.report();
+      const half = near(r1.post.music, r0.post.music / 2) && near(r1.post.sfx, r0.post.sfx / 2) && near(r1.post.voice, r0.post.voice / 2) && near(r1.pre.song * (st0.master / 2) * st0.music, 1);
+      // the Voice slider (no call of its own): read within a quarter second
+      G.meta.settings.master = st0.master;
+      G.meta.settings.voiceVolume = 0.4;
+      window.__krel.synth.setVolumes(G.meta.settings);
+      await new Promise((r) => setTimeout(r, 600));
+      const r2 = a.mix.report();
+      const voiceSlider = near(r2.post.voice, want(G.meta.settings).voice.post);
+      // everything at 100%, a voice line over the song, explosions and gunshots: the output's peak stays under -1 dBFS
+      Object.assign(G.meta.settings, { master: 1, music: 1, sfx: 1, voiceVolume: 1 });
+      window.__krel.synth.setVolumes(G.meta.settings);
+      const v0 = a.mix.redirected.voice;
+      const clip = await window.__krel.voice.clipMs("DR. JAMESON", "I'm afraid you have terminal cancer.");
+      window.__krel.voice.say("DR. JAMESON", "I'm afraid you have terminal cancer.");
+      let peak = 0, heard = 0;
+      const t0 = performance.now();
+      let n = 0;
+      while (performance.now() - t0 < 3500) {
+        if (n === 10 || n === 40) window.__krel.synth.play("explode");
+        if (n % 12 === 5) window.__krel.synth.play("shoot");
+        if (n === 25) window.__krel.synth.play("gun_shotgun");
+        const p = a.mix.peak() ?? 0;
+        peak = Math.max(peak, p);
+        if (p > 0.01) heard++;
+        n++;
+        await new Promise((r) => setTimeout(r, 30));
+      }
+      window.__krel.voice.stop();
+      Object.assign(G.meta.settings, st0);
+      window.__krel.synth.setVolumes(G.meta.settings);
+      return { ok0, half, voiceSlider, r0, r1, r2, clip, voiceRedirected: a.mix.redirected.voice - v0, redirected: a.mix.redirected, peak: Math.round(peak * 1000) / 1000, peakDb: L.dbfs(peak), heard, line: a.diag().mix };
+    });
+    check("platform: the phone mix is built on the game's sound; its slider gains follow the settings (pre takes the slider out, post puts it back)", mx.ok0, mx.r0);
+    check("platform: the phone mix: Master halved halves every path's output exactly (the sliders come after the compressors)", mx.half, { r0: mx.r0.post, r1: mx.r1.post, pre: mx.r1.pre });
+    check("platform: the phone mix: the Voice slider reaches it within a quarter second", mx.voiceSlider, mx.r2);
+    check("platform: the phone mix: a voice line goes through it (its connection to the speakers redirected)", mx.clip === undefined || mx.voiceRedirected >= 1, { clip: mx.clip, redirected: mx.redirected });
+    check("platform: the phone mix: every slider at 100%, a voice line, explosions and gunshots over the song: heard, and the peak stays under -1 dBFS", mx.heard > 10 && mx.peak > 0.05 && mx.peak < 0.891, { peak: mx.peak, dB: mx.peakDb, heard: mx.heard });
+    check("platform: the phone mix: ?mobilediag's sound lines name it", /^sound mix phone: voice drive/.test(mx.line), mx.line);
     // hidden, then shown: the context is suspended and comes back running, the song with it, never twice
     await setVisibility(ph, "hidden");
     await sleep(1200);
@@ -5076,6 +5166,987 @@ async function tapuse(browser) {
   }
 }
 
+// ------------------------------------------------------------------ games (stage 3 wave 2: the minigames by touch)
+
+/** The minigame scene's state (mode, over, talking, its HUD line, and whether the game counted it a win). */
+const mgNow = (ph) =>
+  ph.ev(() => {
+    const s = window.__krel.game.scene.getScene("Minigame");
+    const live = window.__krel.game.scene.isActive("Minigame");
+    const f = window.__krel.G.s.flags;
+    return { live, mode: s.mode, ended: !!s.ended, talking: !!(s.box && s.box.active), hud: s.hud ? s.hud.text : "", won: !!f[`mg_${s.mode}_won`], played: !!f[`mg_${s.mode}_played`] };
+  });
+
+/** A quick tap by one finger (CDP touch, its own id). */
+async function fingerTap(ph, x, y, id = 1) {
+  await ph.touch("touchStart", [{ x, y, id }]);
+  await ph.touch("touchEnd", []);
+}
+
+/** A minigame by itself (no arc step: the laptop's own finish), the intro conversation tapped through by touch. */
+async function mgInto(ph, mode, who, data = {}) {
+  await ph.ev(
+    ({ mode, who, data }) => {
+      const k = window.__krel;
+      k.newRun(who);
+      Object.assign(k.G.s.flags, { ch1_intro: true, ch1_home: true, home_seen: true, flyover_seen: true, tv_klerble_welcome: true, prologue_done: true, met_emergency: true, founding_seen: true });
+      const g = k.game;
+      for (const sc of g.scene.getScenes(true)) if (sc.sys.settings.key !== "UI") g.scene.stop(sc.sys.settings.key);
+      g.scene.start("Minigame", { mode, ...data });
+    },
+    { mode, who, data },
+  );
+  await ph.until(() => window.__krel.game.scene.isActive("Minigame") && !!window.__krel.game.scene.getScene("Minigame").box, null, 60000, "the minigame");
+  await sleep(900);
+  // (the intro conversation: a tap advances it, as on a laptop's Space)
+  for (let i = 0; i < 12; i++) {
+    const m = await mgNow(ph);
+    if (!m.talking) break;
+    await ph.tapCss(422, 120);
+    await sleep(450);
+  }
+  await sleep(300);
+}
+
+/** Tap through the outcome conversation until the scene has gone. */
+async function mgOut(ph, ms = 30000) {
+  const t0 = Date.now();
+  while (Date.now() - t0 < ms) {
+    const live = await ph.ev(() => window.__krel.game.scene.isActive("Minigame"));
+    if (!live) return true;
+    await ph.tapCss(422, 120);
+    await sleep(500);
+  }
+  return false;
+}
+
+/** Mash with two thumbs, the second landing while the first is still down (every finger counts). */
+async function twoThumbs(ph, n, until) {
+  const L = { x: 300, y: 230 };
+  const R = { x: 560, y: 230 };
+  for (let i = 0; i < n; i++) {
+    await ph.touch("touchStart", [{ ...L, id: 1 }]);
+    await ph.touch("touchStart", [{ ...L, id: 1 }, { ...R, id: 2 }]);
+    await ph.touch("touchEnd", [{ ...R, id: 2 }]);
+    await ph.touch("touchEnd", []);
+    if (i % 4 === 3 && until && (await until())) return i + 1;
+    await sleep(25);
+  }
+  return n;
+}
+
+/**
+ * The game's own frame loop stopped; the test steps it, 60 frames to a game second, whatever the machine's load (the
+ * test machine runs other jobs: real-time play there runs at 7-20 fps and every tap lands late). Touches still go in
+ * through the real touch path; only the clock is the test's.
+ */
+const freeze = (ph) =>
+  ph.ev(() => {
+    const g = window.__krel.game;
+    const l = g.loop;
+    l.sleep();
+    window.__ft = l.lastTime;
+    // (frames stepped by the test are updated but not drawn: drawing is most of a frame's cost on this machine. The
+    // cameras are back on between steps, so touches find what they always find.)
+    if (!window.__fullCb) {
+      const full = (window.__fullCb = l.callback);
+      l.callback = (t, d) => {
+        const hidden = [];
+        for (const sc of g.scene.getScenes(true)) for (const c of sc.cameras ? sc.cameras.cameras : []) if (c.visible) (c.visible = false), hidden.push(c);
+        try {
+          full(t, d);
+        } finally {
+          for (const c of hidden) c.visible = true;
+        }
+      };
+    }
+  });
+const thaw = (ph) =>
+  ph.ev(() => {
+    const l = window.__krel.game.loop;
+    if (window.__fullCb) {
+      l.callback = window.__fullCb;
+      window.__fullCb = null;
+    }
+    if (!l.running) l.wake();
+  });
+const stepN = (ph, n) =>
+  ph.ev((n) => {
+    const l = window.__krel.game.loop;
+    for (let i = 0; i < n; i++) {
+      window.__ft += 1000 / 60;
+      l.step(window.__ft);
+    }
+  }, n);
+
+/** Two thumbs drumming at a human pace (`every` frames between pairs: 12 = ten taps a second), on a stepped clock. */
+async function drum(ph, n, every, until) {
+  for (let i = 0; i < n; i++) {
+    await ph.touch("touchStart", [{ x: 300, y: 230, id: 1 }]);
+    await ph.touch("touchStart", [{ x: 300, y: 230, id: 1 }, { x: 560, y: 230, id: 2 }]);
+    await ph.touch("touchEnd", [{ x: 560, y: 230, id: 2 }]);
+    await ph.touch("touchEnd", []);
+    await stepN(ph, every);
+    if (i % 3 === 2 && until && (await until())) return i + 1;
+  }
+  return n;
+}
+
+/** The page position of a game point in the Minigame scene. */
+const gpos = (ph, gx, gy) => ph.g2c(gx, gy);
+
+/** FACEBROOK / THE MODULATOR's answers, read from the game's own source (the bot knows the jokes, like a player who has played it). */
+function fbAnswers() {
+  const src = fs.readFileSync(path.join(__dirname, "../src/game/scenes/MinigameScene.ts"), "utf8");
+  const out = {};
+  for (const m of src.matchAll(/text: "((?:[^"\\]|\\.)*)",\s*opts: \[[\s\S]*?\],\s*troll: (\d)/g)) out[m[1].replace(/\\"/g, '"').replace(/\\'/g, "'")] = Number(m[2]);
+  return out;
+}
+
+async function games(browser) {
+  console.log("GAMES (every compulsory minigame won by touch, the optional ones finished or skipped)");
+  const { ctx, page, ph, errors } = await phoneAtTitle(browser);
+  const shot = async (n) => ph.shot(`games-${n}`);
+  // (GAMES_ONLY=bully,crocodile runs just those, for working on one)
+  const only = (process.env.GAMES_ONLY || "").split(",").filter(Boolean);
+  const want = (g) => !only.length || only.includes(g);
+  try {
+    await ph.ev(() => window.__krelMobile.setInsets({ top: 0, right: 47, bottom: 21, left: 47 }));
+    await sleep(400);
+
+    if (want("bully")) {
+      // ---- BULLY: two thumbs drumming anywhere; the II is there; the first-time cue
+      await mgInto(ph, "bully", "FLENKY");
+      let s = await ph.snap();
+      const st0 = await ph.ev(() => window.__krelMobile.games.state());
+      check("games: a minigame is tap mode with the II (the pause menu) and says which game it is", s.decision.mode === "tap" && s.decision.pause === "menu" && s.buttons.pause && s.decision.game === "bully", s.decision);
+      check("games: the first time, a one-line cue in touch words shows over it (and takes no touches)", /TAP ANYWHERE/.test(st0.cue || ""), st0.cue);
+      const hits = async () => Number(((await mgNow(ph)).hud.match(/HITS (\d+)/) || [])[1] || 0);
+      const h0 = await hits();
+      await twoThumbs(ph, 3);
+      await sleep(250);
+      const h1 = await hits();
+      check("games: BULLY: two thumbs, the second landing while the first is down, both count (3 rounds = 6 hits)", h1 - h0 === 6, { h0, h1 });
+      await shot("bully");
+      await freeze(ph);
+      await drum(ph, 200, 12, async () => (await mgNow(ph)).ended);
+      await thaw(ph);
+      await ph.until(() => window.__krel.G.s.flags.mg_bully_won, null, 8000, "bully won").catch(() => {});
+      check("games: BULLY won by tapping anywhere", (await mgNow(ph)).won, await mgNow(ph));
+      await mgOut(ph);
+    }
+
+    if (want("burpees")) {
+      // ---- BURPEES: tap anywhere as the ring closes (the right move, as SPACE); ▼ / ▲ stay under the thumbs
+      await mgInto(ph, "burpees", "KREBLIS");
+      await ph.ev(() => {
+        const sc = window.__krel.game.scene.getScene("Minigame");
+        const g = sc.children.list.find((o) => o.type === "Graphics" && o.depth === 110);
+        // (the test reads the closing ring's radius the way a player sees it: what the scene draws)
+        let lw = 0;
+        const ls = g.lineStyle.bind(g);
+        g.lineStyle = (w, c, a) => ((lw = w), ls(w, c, a));
+        window.__judged = [];
+        const hf = sc.hitFx.bind(sc);
+        const mf = sc.missFx.bind(sc);
+        sc.hitFx = (...a) => (window.__judged.push(Math.round(a[2] * 1000)), hf(...a));
+        sc.missFx = (...a) => (window.__judged.push("miss"), mf(...a));
+        const sc0 = g.strokeCircle.bind(g);
+        g.strokeCircle = (x, y, r) => {
+          if (lw === 7) window.__burpR = { r };
+          return sc0(x, y, r);
+        };
+      });
+      const burpHelp = await ph.ev(() => window.__krel.game.scene.getScene("Minigame").children.list.filter((o) => o.type === "Text" && /^Ring closes/.test(o.text)).map((o) => o.text));
+      check("games: BURPEES' how-to line: tap (no keys)", burpHelp.length === 1 && /tap to drop/.test(burpHelp[0]) && !/Space|S W/.test(burpHelp[0]), burpHelp);
+      // (the ring closes from 46 + 120 px over two beats: its radius says how long until the beat; the round's beat is the
+      // game's EMOM table. The game is stepped frame by frame; a tap goes in on the frame the ring says the beat is due.)
+      await freeze(ph);
+      for (let i = 0; i < 4000; i++) {
+        const m = await ph.ev(() => {
+          const l = window.__krel.game.loop;
+          const sc = window.__krel.game.scene.getScene("Minigame");
+          for (let f = 0; f < 90; f++) {
+            window.__burpR = null;
+            window.__ft += 1000 / 60;
+            l.step(window.__ft);
+            if (sc.ended || !window.__krel.game.scene.isActive("Minigame")) return { end: true };
+            const R = window.__burpR;
+            if (!R) continue;
+            const roundT = sc.children.list.find((o) => o.type === "Text" && /^EMOM · ROUND \d/.test(o.text));
+            const ri = roundT ? Number(roundT.text.match(/ROUND (\d)/)[1]) - 1 : 0;
+            const beat = sc.constructor.EMOM[ri].beat * 1000;
+            if (((R.r - 46) / 120) * 2 * beat <= 9) return { tap: true };
+          }
+          return null;
+        });
+        if (m && m.end) break;
+        if (m && m.tap) {
+          await fingerTap(ph, 422, 230);
+          await stepN(ph, 2);
+        }
+      }
+      await thaw(ph);
+      await ph.until(() => window.__krel.G.s.flags.mg_burpees_won, null, 8000, "burpees won").catch(() => {});
+      check("games: BURPEES won by tapping on the ring (a tap anywhere is the right move)", (await mgNow(ph)).won, { now: await mgNow(ph), judged: (await ph.ev(() => window.__judged || [])).slice(0, 24), fps: await ph.ev(() => Math.round(window.__krel.game.loop.actualFps)) });
+      await mgOut(ph, 40000);
+    }
+
+    if (want("crocodile")) {
+      // ---- THE CROCODILE: tap the column (left LEFT, middle CHOMP, right RIGHT) as each move reaches the ring
+      // (on a stepped clock the song's own clock can't be used: the chart runs on the scene's clock instead, its fallback
+      // for a song that hasn't loaded; the judging is the game's)
+      await ph.ev(() => {
+        const sy = window.__krel.synth;
+        sy.musicEl = () => null;
+        sy.fileProgress = () => ({ t: 0, d: 0, ended: false });
+      });
+      await mgInto(ph, "crocodile", "MIKEY");
+      const pads = await ph.ev(() => {
+        const sc = window.__krel.game.scene.getScene("Minigame");
+        return sc.children.list.filter((o) => o.type === "Rectangle" && o.width === 250 && o.input).map((o) => ({ x: o.x, bottom: o.y + o.height / 2, hit: { x: o.input.hitArea.x, y: o.input.hitArea.y, w: o.input.hitArea.width, h: o.input.hitArea.height } }));
+      });
+      const rect = await ph.rect();
+      const k = rect.w / 960;
+      check("games: CROCODILE's three pads sit above the home-indicator strip (bottom edge over 21 CSS px from the screen's bottom)", pads.length === 3 && pads.every((p) => rect.y + p.bottom * k <= 390 - 21), pads.map((p) => p.bottom));
+      check("games: CROCODILE: each pad's touch area is its whole column under the note lane", pads.length === 3 && pads.every((p) => p.hit.h >= 360 && p.hit.w >= 280), pads.map((p) => p.hit));
+      await ph.ev(() => {
+        const sc = window.__krel.game.scene.getScene("Minigame");
+        window.__judged = [];
+        const hf = sc.hitFx.bind(sc);
+        const mf = sc.missFx.bind(sc);
+        sc.hitFx = (...a) => (window.__judged.push(Math.round(a[2] * 1000)), hf(...a));
+        sc.missFx = (...a) => (window.__judged.push("miss"), mf(...a));
+      });
+      const croc = { L: [rect.x + 170 * k, rect.y + 380 * k], C: [rect.x + 480 * k, rect.y + 300 * k], R: [rect.x + 790 * k, rect.y + 250 * k] };
+      await shot("crocodile");
+      await freeze(ph);
+      for (let i = 0; i < 6000; i++) {
+        const m = await ph.ev(() => {
+          const l = window.__krel.game.loop;
+          const sc = window.__krel.game.scene.getScene("Minigame");
+          for (let f = 0; f < 120; f++) {
+            window.__ft += 1000 / 60;
+            l.step(window.__ft);
+            if (sc.ended || !window.__krel.game.scene.isActive("Minigame")) return { end: true };
+            for (const o of sc.children.list) {
+              if (o.type !== "Container" || o.depth !== 150 || !o.active || o.__tapped || o.x > 420 || o.x < 100) continue;
+              // (a gold rim: double time, twice as fast)
+              const fast = o.list[0].strokeColor === 0xffd23f;
+              if (((o.x - 150) / (330 * (fast ? 2 : 1))) * 1000 > 9) continue;
+              o.__tapped = true;
+              const t = o.list.find((c) => c.type === "Text");
+              return { k: t.text === "◀" ? "L" : t.text === "▶" ? "R" : "C" };
+            }
+          }
+          return null;
+        });
+        if (m && m.end) break;
+        if (m && m.k) await fingerTap(ph, croc[m.k][0], croc[m.k][1], 3);
+      }
+      await thaw(ph);
+      await ph.ev(() => {
+        const sy = window.__krel.synth;
+        delete sy.musicEl;
+        delete sy.fileProgress;
+      });
+      const cr = await mgNow(ph);
+      const crHits = Number((cr.hud.match(/🐊 (\d+)/) || [])[1] || 0);
+      const crMiss = Number((cr.hud.match(/MISSED (\d+)/) || [])[1] || 0);
+      await ph.until(() => window.__krel.G.s.flags.mg_crocodile_won, null, 15000, "croc done").catch(() => {});
+      check("games: CROCODILE danced to the end by tapping the columns, most moves in time", (await mgNow(ph)).won && crHits >= 0.9 * (crHits + crMiss), { crHits, crMiss, hud: cr.hud, judged: (await ph.ev(() => window.__judged || [])).slice(0, 30), fps: await ph.ev(() => Math.round(window.__krel.game.loop.actualFps)) });
+      await mgOut(ph, 40000);
+    }
+
+    if (want("deadlift")) {
+      // ---- DEADLIFT (Jenko's lift: the gentle one, as on a laptop)
+      await mgInto(ph, "deadlift", "FLENKY");
+      const help = await ph.ev(() => window.__krel.game.scene.getScene("Minigame").children.list.filter((o) => o.type === "Text" && /Mash/.test(o.text)).map((o) => o.text));
+      check("games: DEADLIFT's how-to line says the screen, not SPACE", help.length === 1 && /Mash the screen/.test(help[0]) && !/SPACE/.test(help[0]), help);
+      // (ten taps a second, two thumbs: a phone player's pace; the lift's clock and slip are the laptop's)
+      await freeze(ph);
+      await drum(ph, 200, 12, async () => (await mgNow(ph)).ended);
+      await thaw(ph);
+      await ph.until(() => window.__krel.G.s.flags.mg_deadlift_won, null, 8000, "deadlift won").catch(() => {});
+      check("games: DEADLIFT won by mashing with two thumbs", (await mgNow(ph)).won, await mgNow(ph));
+      await mgOut(ph);
+    }
+
+    if (want("girlfriends")) {
+      // ---- GIRLFRIENDS: tap the phone that's ringing
+      await mgInto(ph, "girlfriends", "KREZWONK");
+      const keyCaps = await ph.ev(() => window.__krel.game.scene.getScene("Minigame").children.list.filter((o) => o.type === "Text" && /^\[[123]\]$/.test(o.text)).length);
+      check("games: GIRLFRIENDS: no [1] [2] [3] key captions under the phones", keyCaps === 0, keyCaps);
+      // (stepped: half a second to answer, a quick player's reaction)
+      let answered = 0;
+      await freeze(ph);
+      for (let i = 0; i < 400 && !(await mgNow(ph)).ended; i++) {
+        await stepN(ph, 6);
+        const ring = await ph.ev(() => {
+          const sc = window.__krel.game.scene.getScene("Minigame");
+          const c = sc.children.list.find((o) => o.type === "Container" && o.list.length > 4 && o.list[0].fillAlpha > 0.2);
+          return c ? { x: c.x, y: c.y } : null;
+        });
+        if (!ring) continue;
+        await stepN(ph, 24);
+        const [x, y] = await gpos(ph, ring.x, ring.y + 40);
+        await fingerTap(ph, x, y);
+        answered++;
+      }
+      await thaw(ph);
+      await ph.until(() => window.__krel.G.s.flags.mg_girlfriends_won, null, 8000, "girlfriends won").catch(() => {});
+      check("games: GIRLFRIENDS won by tapping the ringing phone", (await mgNow(ph)).won, { answered, now: await mgNow(ph) });
+      await mgOut(ph);
+    }
+
+    if (want("renovate")) {
+      // ---- FLIP IT: tap each problem on its ring, off its picture (the ring is the tap area on a phone)
+      await mgInto(ph, "renovate", "SCROMBUS");
+      const flipHelp = await ph.ev(() => window.__krel.game.scene.getScene("Minigame").children.list.filter((o) => o.type === "Text" && /problems before they ROT/.test(o.text)).map((o) => o.text));
+      check("games: FLIP IT's how-to line says tap (no arrows, WASD, SPACE)", flipHelp.length === 1 && /^Tap problems/.test(flipHelp[0]) && !/WASD|SPACE/.test(flipHelp[0]), flipHelp);
+      // (stepped: a tap every 9 frames, a quick player's pace, on the problem that has been up longest)
+      let ringHits = 0;
+      let tapsDone = 0;
+      await freeze(ph);
+      for (let i = 0; i < 1200 && !(await mgNow(ph)).ended; i++) {
+        await stepN(ph, 9);
+        const p = await ph.ev(() => {
+          const sc = window.__krel.game.scene.getScene("Minigame");
+          const r = sc.sys.game.canvas.getBoundingClientRect();
+          const k = r.width / 960;
+          const o = sc.children.list.find((o) => o.input && o.input.enabled && o.depth === 10 && o.active && o.scaleX > 0.9);
+          if (!o) return null;
+          window.__flipP = o;
+          // (34 game px right of the centre: off the picture, inside the ring that is its tap area on a phone)
+          const off = Math.max(o.displayWidth / 2 + 3, 34);
+          return { x: r.x + (o.x + off) * k, y: r.y + o.y * k };
+        });
+        if (!p) continue;
+        await fingerTap(ph, p.x, p.y, 9);
+        tapsDone++;
+        if (await ph.ev(() => !window.__flipP.active || !window.__flipP.scene)) ringHits++;
+      }
+      await thaw(ph);
+      await ph.until(() => window.__krel.G.s.flags.mg_renovate_won, null, 8000, "flip won").catch(() => {});
+      const flip = await mgNow(ph);
+      check("games: FLIP IT won by tapping the problems' rings (taps off the picture count)", flip.won && ringHits >= 5, { ringHits, tapsDone, flip });
+      await mgOut(ph);
+    }
+
+    if (want("facebook")) {
+      // ---- FACEBROOK: tap a reply row (the bot knows which reply is the troll)
+      const ans = fbAnswers();
+      await mgInto(ph, "facebook", "KREBLIS");
+      const fbKeys = await ph.ev(() => window.__krel.game.scene.getScene("Minigame").children.list.flatMap((o) => (o.type === "Container" ? o.list : [o])).filter((o) => o.type === "Text" && /^\[[123]\] /.test(o.text)).length);
+      check("games: FACEBROOK's replies lose their [1] [2] [3]", fbKeys === 0, fbKeys);
+      for (let i = 0; i < 12 && !(await mgNow(ph)).ended; i++) {
+        const post = await ph.ev(() => {
+          const sc = window.__krel.game.scene.getScene("Minigame");
+          const card = sc.children.list.find((o) => o.type === "Container" && o.list.some((c) => c.type === "Text" && c.style && c.style.fontSize === "16px"));
+          const t = card && card.list.find((c) => c.type === "Text" && c.y === 150);
+          const rows = card ? card.list.filter((c) => c.type === "Rectangle" && c.input && c.input.enabled).length : 0;
+          return t ? { text: t.text, rows } : null;
+        });
+        if (!post || post.rows < 3) {
+          await sleep(300);
+          continue;
+        }
+        const key = Object.keys(ans).find((k) => k.replace(/\s+/g, " ").trim() === post.text.replace(/\s+/g, " ").trim());
+        const pick = key !== undefined ? ans[key] : 0;
+        const [x, y] = await gpos(ph, 480, 300 + pick * 62);
+        await fingerTap(ph, x, y);
+        await sleep(2900);
+      }
+      await ph.until(() => window.__krel.G.s.flags.mg_facebook_won, null, 8000, "facebook won").catch(() => {});
+      check("games: FACEBROOK won by tapping the troll replies", (await mgNow(ph)).won, await mgNow(ph));
+      await mgOut(ph);
+    }
+
+    if (want("cannon")) {
+      // ---- THE CANNON: tap for the angle, tap for the power, as many goes as it takes
+      await mgInto(ph, "cannon", "FLENKY");
+      for (let i = 0; i < 40 && !(await mgNow(ph)).ended; i++) {
+        await sleep(650 + (i % 3) * 170);
+        await fingerTap(ph, 500, 220);
+        await sleep(500 + (i % 4) * 140);
+        await fingerTap(ph, 500, 220);
+        await ph.until(() => { const s = window.__krel.game.scene.getScene("Minigame"); return s.ended || !s.box.active; }, null, 8000).catch(() => {});
+        await sleep(2600);
+        for (let k = 0; k < 6 && (await mgNow(ph)).talking && !(await mgNow(ph)).ended; k++) {
+          await ph.tapCss(422, 120);
+          await sleep(400);
+        }
+      }
+      await ph.until(() => window.__krel.G.s.flags.mg_cannon_won, null, 8000, "cannon won").catch(() => {});
+      check("games: THE CANNON won by tapping (angle, then power)", (await mgNow(ph)).won, await mgNow(ph));
+      await mgOut(ph);
+    }
+
+    if (want("runescape")) {
+      // ---- RUNESCAPE: CHOP (the right thumb), DROP ALL and the re-up when they'd do something; win 99 Woodcutting
+      await mgInto(ph, "runescape", "KREBLIS");
+      await sleep(400);
+      let g = await ph.ev(() => window.__krelMobile.games.state());
+      check("games: RUNESCAPE shows CHOP under the right thumb, and nothing it can't use yet (no DROP ALL with an empty bag)", g.buttons.includes("chop") && !g.buttons.includes("drop"), g.buttons);
+      const btn = async (id) =>
+        ph.ev((id) => {
+          const e = document.querySelector(`[data-ctl="${id}"]`);
+          if (!e || !e.classList.contains("show")) return null;
+          const b = e.getBoundingClientRect();
+          return { x: b.x + b.width / 2, y: b.y + b.height / 2, w: b.width };
+        }, id);
+      const chop = await btn("g-chop");
+      check("games: CHOP is a big thumb button (84 CSS px) inside the screen", !!chop && chop.w >= 80 && chop.x < 844 - 47 && chop.y < 390 - 21, chop);
+      let st;
+      let rings = 0;
+      let lastChop = 0;
+      let dropped = false;
+      let reup = false;
+      for (let i = 0; i < 40000; i++) {
+        st = await ph.ev(() => {
+          const s = window.__krel.game.scene.getScene("Minigame");
+          const box = window.__krel.game.scene.getScene("Minigame").children.list.find((o) => o.type === "Container" && o.depth === 70);
+          return { ...s.phoneRs.state(), talking: !!s.box.active, ended: !!s.ended, lvlBox: !!(box && box.visible) };
+        });
+        if (st.ended || st.over) break;
+        if (st.lvlBox) {
+          // (the level-up box in the chat: "Tap here to continue")
+          await ph.tapCss(...(await ph.g2c(300, 440)));
+          await sleep(60);
+          continue;
+        }
+        if (st.logs >= 24) {
+          const d = await btn("g-drop");
+          if (d) {
+            await fingerTap(ph, d.x, d.y, 4);
+            dropped = true;
+            await sleep(120);
+            continue;
+          }
+        }
+        if (st.gear < 30) {
+          const r = await btn("g-reup");
+          if (r && Date.now() - lastChop > 1200) {
+            await fingerTap(ph, r.x, r.y, 5);
+            reup = true;
+            lastChop = Date.now();
+            await sleep(200);
+            continue;
+          }
+        }
+        const c = await btn("g-chop");
+        if (!c) {
+          await sleep(30);
+          continue;
+        }
+        if (st.ring && st.ringR <= 22 && st.ringR >= 12) {
+          await fingerTap(ph, c.x, c.y, 6);
+          rings++;
+          await sleep(40);
+        } else if (!st.chopping && !st.ring && Date.now() - lastChop > 700) {
+          lastChop = Date.now();
+          await fingerTap(ph, c.x, c.y, 6);
+        } else await sleep(5);
+      }
+      await ph.until(() => window.__krel.G.s.flags.mg_runescape_won, null, 15000, "rs won").catch(() => {});
+      const rs = await mgNow(ph);
+      check("games: RUNESCAPE won (99 Woodcutting) with CHOP, DROP ALL and the re-up by touch", rs.won && rings > 5, { rings, dropped, reup, level: st && st.level, rs });
+      await mgOut(ph, 40000);
+    }
+
+    if (want("gig")) {
+      // ---- the corner under the II: the minigames' own LEAVE / END GIG moved left of it
+      await mgInto(ph, "gig", "KREBON");
+      const gigCheck = await ph.ev(() => {
+        const sc = window.__krel.game.scene.getScene("Minigame");
+        const b = sc.children.list.find((o) => o.type === "Text" && /END GIG/.test(o.text));
+        const r = b.getBounds();
+        return { right: r.right, w: r.width, h: r.height, help: sc.children.list.filter((o) => o.type === "Text" && /prance/.test(o.text)).map((o) => o.text) };
+      });
+      const rect = await ph.rect();
+      const k = rect.w / 960;
+      const pz = await ph.ev(() => {
+        const e = document.querySelector(".kt-pause");
+        const b = e.getBoundingClientRect();
+        return { x: b.x, y: b.y, w: b.width, h: b.height };
+      });
+      check("games: THE GIG's END GIG ends left of the II (never under it)", rect.x + gigCheck.right * k < pz.x - 4, { endRight: rect.x + gigCheck.right * k, pause: pz });
+      check("games: THE GIG's how-to line: hold and tap, no keys", gigCheck.help.length === 1 && !/A\/D|SPACE/.test(gigCheck.help[0]), gigCheck.help);
+      // a tap on Benn prances; a held thumb moves him
+      const benn0 = await ph.ev(() => window.__krel.game.scene.getScene("Minigame").children.list.find((o) => o.type === "Sprite" && o.texture.key === "spr_KREBON" && o.depth === 10).x);
+      const [hx, hy] = await gpos(ph, 800, 420);
+      await ph.touch("touchStart", [{ x: hx, y: hy, id: 8 }]);
+      await sleep(900);
+      await ph.touch("touchEnd", []);
+      const benn1 = await ph.ev(() => window.__krel.game.scene.getScene("Minigame").children.list.find((o) => o.type === "Sprite" && o.texture.key === "spr_KREBON" && o.depth === 10).x);
+      check("games: THE GIG (optional): a held thumb walks Benn that way", benn1 > benn0 + 60, { benn0, benn1 });
+      // the safe cut: END GIG appears after 45 s of the set and finishes it (the laptop's own finish)
+      // (END GIG shows after 45 s of the set, on the game's clock: stepped there, so a loaded machine can't stretch it)
+      await freeze(ph);
+      await ph.ev(() => {
+        const l = window.__krel.game.loop;
+        const sc = window.__krel.game.scene.getScene("Minigame");
+        for (let f = 0; f < 60 * 70; f++) {
+          const b = sc.children.list.find((o) => o.type === "Text" && /END GIG/.test(o.text));
+          if ((b && b.visible) || sc.ended) return;
+          window.__ft += 1000 / 60;
+          l.step(window.__ft);
+        }
+      });
+      await thaw(ph);
+      const end = await ph.ev(() => {
+        const sc = window.__krel.game.scene.getScene("Minigame");
+        const b = sc.children.list.find((o) => o.type === "Text" && /END GIG/.test(o.text));
+        const r = b.getBounds();
+        return { x: r.centerX, y: r.centerY, visible: b.visible };
+      });
+      if (end.visible) await ph.tapGame(end.x, end.y);
+      await sleep(600);
+      check("games: THE GIG (optional) can be finished by touch (END GIG), the laptop's finish", (await mgNow(ph)).played, await mgNow(ph));
+      await mgOut(ph);
+    }
+
+    if (want("console")) {
+      // ---- a console replay (Home's console): the same minigame, back home after
+      await ph.ev(() => {
+        const k = window.__krel;
+        k.newRun("FLENKY");
+        Object.assign(k.G.s.flags, { ch1_intro: true, ch1_home: true, home_seen: true, flyover_seen: true, tv_klerble_welcome: true, prologue_done: true, met_emergency: true, founding_seen: true });
+        const g = k.game;
+        for (const sc of g.scene.getScenes(true)) if (sc.sys.settings.key !== "UI") g.scene.stop(sc.sys.settings.key);
+        g.scene.start("Minigame", { mode: "bully", console: true });
+      });
+      await ph.until(() => window.__krel.game.scene.isActive("Minigame"), null, 30000);
+      await sleep(900);
+      for (let i = 0; i < 8 && (await mgNow(ph)).talking; i++) {
+        await ph.tapCss(422, 120);
+        await sleep(450);
+      }
+      await twoThumbs(ph, 300, async () => (await mgNow(ph)).ended);
+      await mgOut(ph);
+      await ph.until(() => window.__krel.game.scene.isActive("Home"), null, 20000, "home").catch(() => {});
+      check("games: a console replay (optional) plays by touch and goes back home", await ph.ev(() => window.__krel.game.scene.isActive("Home") && !!window.__krel.G.s.flags.mg_bully_won), await ph.active());
+    }
+
+    if (want("squeeze")) {
+      // ---- the golden juice squeeze: a tap anywhere squeezes; the circle says TAP
+      await toWalk(ph, "Hub");
+      const sq = await ph.ev(async () => {
+        const m = await import("/src/game/systems/squeeze.ts");
+        const hub = window.__krel.game.scene.getScene("Hub");
+        const me = hub.av;
+        const her = { name: "TRACY", spr: hub.children.list.find((o) => o.type === "Sprite" && o !== me) };
+        const G = window.__krel.G;
+        // (the conversations answer themselves: Hug her, then Drink it)
+        const talk = async (lines) => {
+          for (const l of lines) if (l.choice) Object.assign(G.s.flags, l.choice[0].set);
+        };
+        window.__sq = m.squeeze(hub, talk, her, me).then((v) => (window.__sqDone = v));
+        return true;
+      });
+      await sleep(600);
+      const sqUi = await ph.ev(() => {
+        const hub = window.__krel.game.scene.getScene("Hub");
+        const t = hub.children.list.flatMap((o) => (o.type === "Container" ? o.list : [o])).filter((o) => o.type === "Text" && o.text === "TAP");
+        return t.length;
+      });
+      check("games: the squeeze's circle says TAP on a phone (no key names)", sq && sqUi === 1, sqUi);
+      for (let i = 0; i < 30; i++) {
+        await fingerTap(ph, 200 + (i % 5) * 90, 300);
+        await sleep(90);
+        if (await ph.ev(() => window.__sqDone !== undefined)) break;
+      }
+      await ph.until(() => window.__sqDone !== undefined, null, 15000, "squeeze").catch(() => {});
+      check("games: the golden juice squeeze is won by tapping anywhere (never on its little circle)", await ph.ev(() => window.__sqDone === true), await ph.ev(() => window.__sqDone));
+    }
+
+    if (want("pit")) {
+      // ---- the Krunch Pit (optional): its card, by tap, and out again
+      await ph.ev(() => window.__krel.go("Pit", { result: { mode: "range", outcome: "quit", earned: { coins: 0, krokens: 0 } } }));
+      await ph.scene("Pit");
+      await sleep(2500);
+      const pitKeys = await ph.ev(() => window.__krel.game.scene.getScene("Pit").children.list.filter((o) => o.type === "Text" && /any key/.test(o.text)).length);
+      check("games: the Krunch Pit's card has no 'any key' line on a phone", pitKeys === 0, pitKeys);
+      await shot("pit");
+    }
+
+    check("games: no page errors", errors.length === 0, errors.slice(0, 3));
+  } finally {
+    await ctx.close();
+  }
+}
+
+// ------------------------------------------------------------------ scenes (stage 3 wave 2)
+
+/**
+ * The special scenes by touch only (iPhone profile, real touches): Night of Freedom (finger aim, ROCKET, SLOPPY, the
+ * drawbridge's mash and SKIP), Beep Beep (the stick steers, BOOST / BRAKE / HORN, a win), the cannon's wording and
+ * taps, the finale's PAUSED card with SKIP SCENE, the advert's SKIP pill, the telly's paged subtitles, the Lair's
+ * SKIP SCENE, a pseudo-3D shot skipped by a tap, the raid's FIRE.
+ */
+async function scenesSection(browser) {
+  console.log("SCENES (Night of Freedom, Beep Beep, the cannon, the finale's card, skip pills, the telly, the raid)");
+  const { ctx, ph, errors } = await phoneAtTitle(browser);
+  const ctlOf = async (id) => (await ph.snap()).controls.find((c) => c.id === id);
+  const mid = (c) => [c.face.x + c.face.w / 2, c.face.y + c.face.h / 2];
+  const T = () =>
+    ph.ev(async () => {
+      const T = (await import("/src/game/ui/TouchControls.ts")).TOUCH;
+      return { mx: +T.mx.toFixed(2), attack: T.attack };
+    });
+  /** Tap the screen's top middle (conversations advance on a tap) until `fn` says so. */
+  const tapUntil = async (fn, arg, n = 90) => {
+    for (let i = 0; i < n; i++) {
+      if (await ph.ev(fn, arg).catch(() => false)) return true;
+      await ph.tapCss(422, 140);
+      await sleep(220);
+    }
+    return !!(await ph.ev(fn, arg).catch(() => false));
+  };
+  const into = (key, data) =>
+    ph.ev(({ key, data }) => {
+      const k = window.__krel;
+      k.newRun("FLENKY");
+      k.setChapter(5);
+      k.go(key, data);
+    }, { key, data });
+  try {
+    await ph.ev(() => window.__krelMobile.setInsets({ top: 0, right: 47, bottom: 21, left: 47 }));
+    const resume = { dungeon: "arena_sanmik", room: 0 };
+
+    // ---- Night of Freedom
+    await into("Drive", { chain: [], resume });
+    await ph.scene("Drive");
+    await sleep(1500);
+    let s = await ph.snap();
+    check("scenes: Night of Freedom's intro has no gun buttons (only the conversation)", !s.controls.some((c) => c.id === "sc-rocket" && c.shown), s.controls.filter((c) => c.shown).map((c) => c.id));
+    const seen = { touch: false, keys: false };
+    const ran = await tapUntil(() => {
+      const d = window.__krel.scene("Drive");
+      const w = (window.__scSeen = window.__scSeen || { touch: false, keys: false });
+      const walk = (o) => (o.type === "Container" ? o.list.forEach(walk) : o.type === "Text" && o.visible && ((w.touch = w.touch || /Hold a finger on whatever you want to shoot/.test(o.text)), (w.keys = w.keys || /Hold the mouse|Right-click, Space/.test(o.text))));
+      d.children.list.forEach(walk);
+      return d.running;
+    });
+    Object.assign(seen, await ph.ev(() => window.__scSeen || {}));
+    check("scenes: Night of Freedom's how-to line is in touch words on a phone (no mouse / keys)", seen.touch && !seen.keys, seen);
+    check("scenes: tapping through the intro starts the chase", ran);
+    await sleep(2500);
+    s = await ph.snap();
+    const canvasBtns = await ph.ev(() => window.__krel.scene("Drive").children.list.filter((o) => o.depth === 451 && /^(ROCKET|SLOPPY)$/.test(o.text) && o.visible).length);
+    const rocket = await ctlOf("sc-rocket");
+    check("scenes: the chase shows ROCKET (big, under the right thumb) and II; the canvas ROCKET / SLOPPY are hidden; SLOPPY only when full", s.decision.gunner === true && rocket?.shown && rocket.face.w >= 60 && rocket.face.x > 600 && canvasBtns === 0 && !(await ctlOf("sc-sloppy"))?.shown && s.buttons.pause, { rocket, canvasBtns });
+    const scoreClear = await ph.ev(() => {
+      const d = window.__krel.scene("Drive");
+      const p = document.querySelector(".kt-pause").getBoundingClientRect();
+      const cb = window.__krel.game.scale.canvasBounds;
+      const right = cb.x + (d.scoreText.x * cb.width) / 960;
+      return { right, pause: p.left };
+    });
+    check("scenes: the score sits left of II (it was under it)", scoreClear.right <= scoreClear.pause, scoreClear);
+    await ph.shot("scenes-nof-chase");
+    // a finger on a car: the gun pulls onto it and fires
+    const aimAt = async () => {
+      const f = await ph.ev(() => {
+        const d = window.__krel.scene("Drive");
+        const f = d.foes.filter((f) => !f.dead && f.kind !== "spikes" && f.kind !== "ramp" && f.spr.x > 40 && f.spr.x < 900).sort((a, b) => Math.abs(a.spr.x - 400) - Math.abs(b.spr.x - 400))[0];
+        return f ? [f.spr.x, f.spr.y] : null;
+      });
+      return f;
+    };
+    let foe = null;
+    for (let i = 0; i < 30 && !foe; i++) {
+      foe = await aimAt();
+      if (!foe) await sleep(300);
+    }
+    const shots0 = await ph.ev(() => window.__krel.scene("Drive").shotN);
+    let locked = false;
+    if (foe) {
+      for (let i = 0; i < 25 && !(locked && i >= 8); i++) {
+        const f = (await aimAt()) || foe;
+        const [cx, cy] = await ph.g2c(f[0] + 12, f[1] - 36);
+        await ph.touch(i ? "touchMove" : "touchStart", [{ x: cx, y: cy, id: 11 }]);
+        await sleep(90);
+        locked = locked || (await ph.ev(() => window.__krelMobile.scenes.gunner.locked));
+      }
+    }
+    await ph.shot("scenes-nof-aim");
+    const g1 = await ph.ev(() => ({ shots: window.__krel.scene("Drive").shotN, finger: window.__krelMobile.scenes.gunner.fingerDown }));
+    check("scenes: a finger near a car pulls the aim onto it (the crosshair locks) and the gun fires while it is held", !!foe && locked && g1.shots > shots0 && g1.finger, { foe, locked, shots0, g1 });
+    // ROCKET with the other thumb while aiming (two fingers at once)
+    const r0 = await ph.ev(() => window.__krel.scene("Drive").nextRocket);
+    const [rx, ry] = mid(rocket);
+    const f2 = (await aimAt()) || foe;
+    const [ax, ay] = await ph.g2c(f2[0], f2[1] - 30);
+    await ph.touch("touchMove", [{ x: ax, y: ay, id: 11 }]);
+    await ph.touch("touchStart", [{ x: ax, y: ay, id: 11 }, { x: rx, y: ry, id: 12 }]);
+    await sleep(120);
+    // (CDP's touchEnd names the fingers that lift: the ROCKET thumb)
+    await ph.touch("touchEnd", [{ x: rx, y: ry, id: 12 }]);
+    await sleep(150);
+    const g2 = await ph.ev(() => ({ rocket: window.__krel.scene("Drive").nextRocket, finger: window.__krelMobile.scenes.gunner.fingerDown }));
+    check("scenes: ROCKET with the other thumb fires a rocket while the aim finger stays down", g2.rocket > r0 && g2.finger, { r0, g2 });
+    await ph.touch("touchEnd", []);
+    await sleep(800);
+    // ROCKET with no finger: it goes at the biggest thing on screen
+    const r1 = await ph.ev(() => window.__krel.scene("Drive").nextRocket);
+    await ph.tapCss(rx, ry);
+    await sleep(500);
+    check("scenes: ROCKET with no finger aiming still fires (at the biggest thing on screen)", (await ph.ev(() => window.__krel.scene("Drive").nextRocket)) > r1);
+    // SLOPPY shows when full and does the Sloppy Surprise
+    await ph.ev(() => (window.__krel.scene("Drive").sloppy = 100));
+    await sleep(500);
+    const sl = await ctlOf("sc-sloppy");
+    check("scenes: SLOPPY appears above ROCKET when it is full", !!sl?.shown, sl);
+    if (sl?.shown) {
+      await ph.tapCss(...mid(sl));
+      await sleep(400);
+      check("scenes: SLOPPY does the Sloppy Surprise (and hides again)", (await ph.ev(() => window.__krel.scene("Drive").sloppy)) < 100 && !(await ctlOf("sc-sloppy")).shown);
+    }
+    // pause: II opens the pause menu over the chase; RESUME carries on
+    await tapPause(ph);
+    await ph.until(() => window.__krel.game.scene.isActive("Menu"), null, 10000, "the pause menu").catch(() => 0);
+    check("scenes: II pauses the chase (the pause menu, the chase held)", await ph.ev(() => window.__krel.game.scene.isActive("Menu") && window.__krel.game.scene.isPaused("Drive")));
+    await ph.tapText("RESUME", { scene: "Menu" }).catch(() => 0);
+    await ph.until(() => !window.__krel.game.scene.isActive("Menu"), null, 10000, "the menu closed").catch(() => 0);
+    // the drawbridge: the mash is a tap anywhere, SKIP a pill left of II
+    await ph.ev(() => (window.__krel.scene("Drive").t = 84.9));
+    check("scenes: the drawbridge's conversation comes and goes by taps", await tapUntil(() => !!window.__krel.scene("Drive").db && !window.__krel.scene("Drive").box.active, null, 60));
+    let geared = false;
+    for (let i = 0; i < 24 && !geared; i++) {
+      await ph.tapCss(300 + (i % 8) * 20, 200);
+      await sleep(90);
+      geared = await ph.ev(() => window.__krel.scene("Drive").children.list.some((o) => o.type === "Text" && /^(GEAR [2-9]|HIGHEST GEAR!!)$/.test(o.text)));
+    }
+    check("scenes: mashing by tapping shifts gears", geared);
+    await ph.until(() => !!window.__krel.scene("Drive").db?.skipBtn?.active, null, 15000, "the drawbridge's SKIP").catch(() => 0);
+    await sleep(300);
+    const sk = await ph.ev(() => {
+      const b = window.__krel.scene("Drive").db?.skipBtn;
+      if (!b) return null;
+      const r = b.getBounds();
+      const cb = window.__krel.game.scale.canvasBounds;
+      const k = cb.width / 960;
+      const p = document.querySelector(".kt-pause").getBoundingClientRect();
+      return { x: cb.x + r.centerX * k, y: cb.y + r.centerY * k, w: r.width * k, h: r.height * k, right: cb.x + r.right * k, pause: p.left, text: b.text };
+    });
+    check("scenes: the drawbridge's SKIP is a 44 px pill left of II (it was 13 px under II)", !!sk && sk.h >= 43 && sk.right <= sk.pause && /SKIP/.test(sk.text), sk);
+    await ph.shot("scenes-nof-drawbridge");
+    if (sk) await ph.tapCss(sk.x, sk.y);
+    check("scenes: SKIP ends the drawbridge; the chase's ending conversation then goes on by taps, back to the level", await tapUntil(() => !window.__krel.active().includes("Drive"), null, 120), await ph.active());
+
+    // ---- Beep Beep
+    await into("BeepBeep", { chain: [], resume });
+    await ph.scene("BeepBeep");
+    await sleep(1200);
+    check("scenes: Beep Beep's briefing goes by taps; then the stick and the pedals come up", await tapUntil(() => window.__krel.scene("BeepBeep").running && !window.__krel.scene("BeepBeep").box.active));
+    await sleep(800);
+    s = await ph.snap();
+    const shownB = s.controls.filter((c) => c.shown).map((c) => c.id);
+    check("scenes: Beep Beep shows BOOST, BRAKE, HORN and II, a left / right stick, and no key hint", ["sc-boost", "sc-brake", "sc-horn", "pause"].every((id) => shownB.includes(id)) && s.decision.stick === "x" && !(await ph.ev(() => window.__krel.scene("BeepBeep").hint.visible)), { shownB, stick: s.decision.stick });
+    await ph.shot("scenes-beepbeep");
+    // steer left with the stick (a drag on the left)
+    const px0 = await ph.ev(() => window.__krel.scene("BeepBeep").px);
+    await ph.touch("touchStart", [{ x: 200, y: 260, id: 21 }]);
+    for (let i = 1; i <= 6; i++) {
+      await ph.touch("touchMove", [{ x: 200 - i * 10, y: 260, id: 21 }]);
+      await sleep(40);
+    }
+    await sleep(700);
+    const steerL = await ph.ev(() => ({ px: window.__krel.scene("BeepBeep").px, a: window.__krel.scene("BeepBeep").keys.A.isDown }));
+    await ph.touch("touchEnd", []);
+    await sleep(200);
+    check("scenes: dragging left on the left steers left (the game's A key held)", steerL.px < px0 - 0.05 && steerL.a, { px0, steerL });
+    check("scenes: letting go lets the steering go", !(await ph.ev(() => window.__krel.scene("BeepBeep").keys.A.isDown)));
+    // a touch on the right of the picture no longer steers (only the stick does)
+    const px1 = await ph.ev(() => window.__krel.scene("BeepBeep").px);
+    await ph.touch("touchStart", [{ x: 560, y: 260, id: 22 }]);
+    await sleep(600);
+    const px2 = await ph.ev(() => window.__krel.scene("BeepBeep").px);
+    await ph.touch("touchEnd", []);
+    check("scenes: a thumb resting on the picture's right does not steer", Math.abs(px2 - px1) < 0.25, { px1, px2 });
+    // BOOST held
+    const boost = await ctlOf("sc-boost");
+    const [bx, by] = mid(boost);
+    await ph.touch("touchStart", [{ x: bx, y: by, id: 23 }]);
+    await sleep(500);
+    const bst = await ph.ev(() => ({ boosting: window.__krel.scene("BeepBeep").boosting, speed: window.__krel.scene("BeepBeep").speed }));
+    await ph.touch("touchEnd", []);
+    await sleep(300);
+    check("scenes: holding BOOST boosts; letting go stops it", bst.boosting && !(await ph.ev(() => window.__krel.scene("BeepBeep").keys.SHIFT.isDown)), bst);
+    // BRAKE held slows the car
+    const brake = await ctlOf("sc-brake");
+    const v0 = await ph.ev(() => window.__krel.scene("BeepBeep").speed);
+    await ph.touch("touchStart", [{ x: mid(brake)[0], y: mid(brake)[1], id: 24 }]);
+    await sleep(600);
+    const v1 = await ph.ev(() => window.__krel.scene("BeepBeep").speed);
+    await ph.touch("touchEnd", []);
+    check("scenes: holding BRAKE slows the car", v1 < v0 - 1000, { v0, v1 });
+    // HORN
+    const h0 = await ph.ev(() => window.__krel.scene("BeepBeep").hornReady);
+    await sleep(2600);
+    await ph.tapCss(...mid(await ctlOf("sc-horn")));
+    await sleep(300);
+    check("scenes: HORN honks", (await ph.ev(() => window.__krel.scene("BeepBeep").hornReady)) > h0);
+    // win: the end conversation by taps, then on to the next part of the chain
+    await ph.ev(() => (window.__krel.scene("BeepBeep").hits = 25));
+    await sleep(500);
+    check("scenes: Beep Beep's win and its conversation go by taps, then the game moves on; nothing is held", await tapUntil(() => !window.__krel.active().includes("BeepBeep"), null, 80), await ph.active());
+    const t1 = await T();
+    check("scenes: no held input after Beep Beep", t1.mx === 0 && !t1.attack, t1);
+
+    // ---- the cannon (the airport): its how-to line in touch words, taps set ANGLE and POWER
+    await into("Minigame", { mode: "cannon", chain: [], resume });
+    await ph.scene("Minigame");
+    await sleep(1500);
+    const tip = await ph.ev(() => window.__krel.scene("Minigame").children.list.filter((o) => o.type === "Text" && /ANGLE, then POWER/.test(o.text)).map((o) => o.text));
+    // (worded by the minigames' rows ("Tap: ...") or the scenes' own ("TAP: ..."), whichever reaches it first; its dark
+    // pill fitted to the line either way)
+    const pillFit = await ph.ev(() => {
+      const sc = window.__krel.scene("Minigame");
+      const o = sc.children.list.find((t) => t.type === "Text" && /ANGLE, then POWER/.test(t.text));
+      const bg = o && sc.children.list.find((r) => r.type === "Rectangle" && Math.round(r.x) === Math.round(o.x) && Math.round(r.y) === Math.round(o.y));
+      return o && bg ? { text: Math.round(o.width), pill: Math.round(bg.width) } : null;
+    });
+    check("scenes: the cannon's how-to line says TAP (no SPACE), its pill fitted to it", tip.length === 1 && /^tap: ANGLE/i.test(tip[0]) && !/SPACE/.test(tip[0]) && (!pillFit || pillFit.pill === pillFit.text + 28), { tip, pillFit });
+    await tapUntil(() => !window.__krel.scene("Minigame").box?.active, null, 30);
+    await sleep(400);
+    await ph.tapCss(500, 200);
+    await sleep(700);
+    await ph.tapCss(500, 200);
+    await sleep(300);
+    const flying = await ph.ev(() => window.__krel.scene("Minigame").children.list.some((o) => o.type === "Sprite" && o.visible && o.depth === 19));
+    check("scenes: two taps fire the cannon (ANGLE, POWER)", flying);
+
+    // ---- the finale between its fights: II → the PAUSED card with SKIP SCENE (Esc on a laptop)
+    await into("Finale", { beat: "emerge" });
+    await ph.scene("Finale");
+    await sleep(2500);
+    await tapPause(ph);
+    await sleep(500);
+    const card = await ph.ev(() => {
+      const x = document.querySelector(".kres-x");
+      return { shown: !!document.querySelector(".kres") && getComputedStyle(document.querySelector(".kres")).display !== "none", label: x?.textContent ?? "", on: !!x?.classList.contains("on") };
+    });
+    check("scenes: the finale's II shows the PAUSED card with SKIP SCENE ▸▸", card.on && /SKIP SCENE/.test(card.label), card);
+    await ph.shot("scenes-finale-card");
+    if (card.on) {
+      await ph.tapSel(".kres-x.on");
+      check("scenes: SKIP SCENE skips the finale's scene (as Esc does)", await ph.until(() => !window.__krel.active().includes("Finale"), null, 30000, "the finale skipped").then(() => true).catch(() => false), await ph.active());
+    }
+
+    // ---- the telly: a long line is paged, two lines at a time, every word kept
+    const ep = await ph.ev(async () => {
+      const { ALL_EPISODES } = await import("/src/content/television/channels.ts");
+      for (const e of ALL_EPISODES) {
+        if (e.style === "pov" || e.style === "news" || e.contentNote) continue;
+        const i = e.beats.findIndex((b) => b.type === "speaker" && b.text.length > 150);
+        if (i >= 0 && i < 30) return { id: e.id, beat: i, text: e.beats[i].character + ": " + e.beats[i].text };
+      }
+      return null;
+    });
+    if (ep) {
+      await into("TV", { episode: ep.id, once: true });
+      await ph.scene("TV");
+      await ph.until(() => window.__krel.scene("TV").mode === "playing", null, 30000, "the show playing").catch(() => 0);
+      await sleep(500);
+      await ph.ev((b) => {
+        const tv = window.__krel.scene("TV");
+        tv.beat = b;
+        tv.runBeat();
+      }, ep.beat);
+      await ph.until(() => window.__krel.scene("TV").subs.text.length > 0, null, 15000, "the subtitle").catch(() => 0);
+      const p1 = await ph.ev(() => {
+        const t = window.__krel.scene("TV").subs;
+        return { text: t.text, lines: t.getWrappedText(t.text).length };
+      });
+      await ph.shot("scenes-tv-subs");
+      await ph.until((a) => window.__krel.scene("TV").subs.text !== a, p1.text, 40000, "the next page").catch(() => 0);
+      const p2 = await ph.ev(() => window.__krel.scene("TV").subs.text);
+      const norm = (x) => x.replace(/\s+/g, " ").trim();
+      const shown = norm(p1.text + " " + p2);
+      check("scenes: a long TV subtitle shows two lines at a time, then the rest of the same words", p1.lines <= 2 && p1.text !== p2 && norm(ep.text).startsWith(norm(p1.text)) && norm(ep.text).includes(norm(p2)), { p1, p2: p2.slice(0, 80), full: ep.text.slice(0, 80), shown: shown.length });
+    } else check("scenes: found a TV episode with a long line", false);
+
+    // ---- the Crobley advert: SKIP ADVERT ▸▸ does what Tab does
+    await into("Vignette", { id: "crobley_ad" });
+    await ph.scene("Vignette");
+    await ph.until(() => window.__krel.scene("Vignette").children.list.some((o) => o.type === "Text" && o.text === "SKIP ADVERT ▸▸"), null, 30000, "the advert's skip pill").catch(() => 0);
+    const adv = await ph.find("SKIP ADVERT", { scene: "Vignette" });
+    check("scenes: the advert's \"TAB: skip advert\" is a SKIP ADVERT ▸▸ pill up top", !!adv && adv.y < 80, adv);
+    await ph.shot("scenes-advert");
+    if (adv) {
+      await ph.tapGame(adv.x, adv.y);
+      check("scenes: SKIP ADVERT ends the advert", await ph.until(() => !window.__krel.scene("Vignette").children.list.some((o) => o.type === "Text" && o.text === "SKIP ADVERT ▸▸" && o.active), null, 15000, "advert gone").then(() => true).catch(() => false));
+    }
+
+    // (the advert's vignette carries on after the advert: its conversation by taps, until it has moved on)
+    await tapUntil(() => !window.__krel.active().includes("Vignette"), null, 120);
+    // ---- the raid (Kreddle): FIRE is a layer button under the right thumb that holds the game's attack
+    await ph.ev(() => {
+      const k = window.__krel;
+      k.newRun("FLENKY");
+      k.setChapter(6, { revenge_meeting: true, raid_march: true });
+      k.go("Kreddle", { raid: true });
+    });
+    await ph.scene("Kreddle");
+    // (taps carry the raid's opening conversations on, until FIRE is up)
+    await tapUntil(() => {
+      const r = window.__krel.scene("Kreddle").raid;
+      return !!r && !r.busy && !!window.__krelMobile.snapshot().controls.find((c) => c.id === "sc-raidfire" && c.shown);
+    }, null, 160);
+    await sleep(300);
+    const fire = await ctlOf("sc-raidfire");
+    const canvasFire = await ph.ev(() => !!window.__krel.scene("Kreddle").raid?.fireBtn?.visible);
+    check("scenes: the raid's FIRE is a big layer button (the canvas one hidden)", !!fire?.shown && fire.face.w >= 60 && !canvasFire, { fire, canvasFire, active: await ph.active() });
+    await ph.shot("scenes-raid");
+    if (fire?.shown) {
+      // (the raid has scripted beats where FIRE steps away: try a fresh press up to three times, each once it is up)
+      let res = null;
+      for (let tries = 0; tries < 3 && !(res && res.held.attack && res.slid.attack && !res.after.attack); tries++) {
+        await tapUntil(() => !!window.__krelMobile.snapshot().controls.find((c) => c.id === "sc-raidfire" && c.shown) && !window.__krel.scene("Kreddle").raid.busy, null, 60);
+        const c = await ctlOf("sc-raidfire");
+        if (!c) continue;
+        const [fx, fy] = mid(c);
+        await ph.touch("touchStart", [{ x: fx, y: fy, id: 31 }]);
+        await sleep(250);
+        const held = await T();
+        // slide off the button: it keeps firing (held by touch id), then let go
+        await ph.touch("touchMove", [{ x: fx - 90, y: fy - 60, id: 31 }]);
+        await sleep(200);
+        const slid = await T();
+        await ph.touch("touchEnd", []);
+        await sleep(200);
+        const after = await T();
+        res = { tries, held, slid, after };
+      }
+      check("scenes: holding FIRE fires (also after the thumb slides off it); letting go stops", !!res && res.held.attack && res.slid.attack && !res.after.attack, res);
+    }
+    // ---- the first dungeon's how-to-play pages: a SKIP pill does what Esc does (over a paused scene, as the dungeon launches it)
+    await ph.ev(() => {
+      const g = window.__krel.game;
+      g.scene.pause("Kreddle");
+      g.scene.run("Tutorial", { caller: "Kreddle" });
+    });
+    await ph.scene("Tutorial");
+    await sleep(800);
+    const tut = await ph.find("SKIP ▸▸", { scene: "Tutorial" });
+    if (tut) await ph.tapGame(tut.x, tut.y);
+    check("scenes: the how-to-play pages' SKIP pill closes them (Esc on a laptop) and the game carries on", !!tut && (await ph.until(() => !window.__krel.active().includes("Tutorial") && window.__krel.game.scene.isActive("Kreddle"), null, 15000, "tutorial closed").then(() => true).catch(() => false)), tut);
+    // ---- the Lair's SKIP SCENE (stage 2) still skips by touch; a pseudo-3D shot skips with a tap
+    await into("Lair", {});
+    await ph.scene("Lair");
+    await ph.until(() => window.__krel.scene("Lair").children.list.some((o) => o.type === "Text" && o.text === "SKIP SCENE ▸▸" && o.input), null, 20000, "the Lair's skip").catch(() => 0);
+    const lair = await ph.find("SKIP SCENE", { scene: "Lair" });
+    if (lair) await ph.tapGame(lair.x, lair.y);
+    check("scenes: the Lair's SKIP SCENE skips it by touch", !!lair && (await ph.until(() => !window.__krel.active().includes("Lair"), null, 20000, "lair skipped").then(() => true).catch(() => false)));
+
+    check("scenes: no page errors", errors.length === 0, errors.slice(0, 3));
+  } finally {
+    await ctx.close();
+  }
+}
+
 /** Stage 3 fix round 1: parked pictures that come back blank, offline or late (R1-R4), and the sound pool (R5-R8). */
 async function platfix(browser) {
   console.log("PLATFORM, fix round 1 (a boss's sheets together, the VS card waits, the offline copy, the sound pool)");
@@ -5607,6 +6678,140 @@ async function mix3(browser) {
   }
 }
 
+// ------------------------------------------------------------------ wave2 (stage 3 wave 2 merged: the parts together)
+/**
+ * Stage 3 wave 2 together (iPhone 14): tap to use into a minigame (Home's console), played by touch, the phone locked
+ * mid-game (its pause menu on return, RESUME by touch); the sound mix in that minigame and in a TV show; a fight's stick
+ * and pocket buttons as the thumb-feel round left them.
+ */
+async function wave2(browser) {
+  console.log("WAVE 2 TOGETHER (tap to use into a minigame, played by touch, paused on lock; the mix in a minigame and a TV show; the fight's stick and pocket)");
+  const { ctx, ph, errors } = await phoneAtTitle(browser);
+  const shot = async (n) => {
+    if (SHOTS) await ph.page.screenshot({ path: `${SHOTS}/wave2-${n}.png` }).catch(() => 0);
+  };
+  const setVis = (v) =>
+    ph.ev((v) => {
+      Object.defineProperty(document, "visibilityState", { configurable: true, get: () => v });
+      Object.defineProperty(document, "hidden", { configurable: true, get: () => v === "hidden" });
+      document.dispatchEvent(new Event("visibilitychange"));
+    }, v);
+  try {
+    // ---- 1. Home: tap the games console (tap to use), pick a replay by touch
+    check("wave2: Home reaches walk mode", await toWalk(ph, "Home"), await ph.mode());
+    await ph.ev(() => { window.__krel.G.s.flags.mg_bully_played = true; });
+    await ph.ev(() => window.__krelMobile.setInsets({ top: 0, right: 47, bottom: 21, left: 47 }));
+    await homeMe(ph, 700, 520);
+    await sleep(400);
+    const tt = await tapThing(ph, /games console/);
+    await ph.until(() => window.__krel.game.scene.getScene("Home").busy === true, null, 25000, "the console panel").catch(() => 0);
+    await sleep(800);
+    const via = await tapState(ph);
+    check("wave2: a tap on the games console (tap to use) walks there and opens it", (await ph.ev(() => window.__krel.game.scene.getScene("Home").busy === true)) && /games console/.test((via.last && via.last.tag) || tt.t.tag), { last: via.last, tag: tt.t.tag });
+    await shot("console-panel");
+    // (the first game button: x 480-190, y 140, 360x40 in game px, as HomeScene.consolePanel lays it out)
+    const btn = { x: 290, y: 140 };
+    await ph.tapGame(btn.x, btn.y);
+    const inMg = await ph.until(() => window.__krel.game.scene.isActive("Minigame"), null, 30000, "the minigame").then(() => true).catch(() => false);
+    check("wave2: the console's game button (a tap) starts the minigame", !!btn && inMg, { btn, active: await ph.active() });
+    await sleep(900);
+    for (let i = 0; i < 12 && (await mgNow(ph)).talking; i++) {
+      await ph.tapCss(422, 120);
+      await sleep(450);
+    }
+    const dec = await ph.ev(() => { const s = window.__krelMobile.snapshot(); return { mode: s.mode, scene: s.decision && s.decision.scene, game: s.decision && s.decision.game, pause: s.decision && s.decision.pause, ids: s.controls.filter((c) => c.shown).map((c) => c.id) }; });
+    dec.layer = await ph.mode();
+    check("wave2: in the minigame the layer is tap mode with the game named, the menu pause and II", /^tap/.test(String(dec.layer)) && dec.game === "bully" && dec.pause === "menu" && dec.ids.includes("pause"), dec);
+    // ---- played by touch: two thumbs
+    const hud0 = (await mgNow(ph)).hud;
+    await twoThumbs(ph, 8);
+    const m1 = await mgNow(ph);
+    check("wave2: the minigame plays by touch (two thumbs move its count)", m1.hud !== hud0 || m1.ended, { hud0, hud1: m1.hud, ended: m1.ended });
+    // ---- the sound mix in the minigame
+    const mixMg = await ph.ev(async () => {
+      const a = window.__krelMobile.audio;
+      try { window.__krel.synth && window.__krel.synth.sfx && window.__krel.synth.sfx("hit"); } catch (e) {}
+      await new Promise((r) => setTimeout(r, 300));
+      return { report: a.mix.report(), line: a.mix.line(), peak: a.mix.peak() };
+    });
+    check("wave2: the phone sound mix is built and wired during the minigame", mixMg.report.built && !!mixMg.report.post && mixMg.report.redirected.master >= 1, mixMg);
+    await shot("minigame");
+    // ---- the lock (page hidden) and back: the minigame's pause menu, not a drop straight in
+    if (!m1.ended) {
+      const tLeft = (h) => { const m = /TIME (\d+)s/.exec(String(h || "")); return m ? +m[1] : null; };
+      const t0 = tLeft((await mgNow(ph)).hud);
+      await setVis("hidden");
+      await sleep(3500);
+      const hid = await ph.loop();
+      await setVis("visible");
+      await sleep(1500);
+      const back = await ph.ev(() => ({ active: window.__krel.active(), mgPaused: window.__krel.game.scene.isPaused("Minigame"), shell: window.__krelMobile.shellState() }));
+      check("wave2: locked mid-minigame, the loop sleeps; back, the minigame is paused under its pause menu", !hid.running && back.mgPaused && back.active.some((k) => /^(Menu|Pause)/.test(k)) && back.shell.lastWake === "pause", { hid, back });
+      await shot("paused");
+      // carry on by touch
+      const res = (await ph.find("RESUME")) || (await ph.find("Resume")) || (await ph.find("CARRY ON"));
+      if (res) await ph.tapGame(res.x, res.y);
+      await sleep(800);
+      const again = await ph.ev(() => ({ mgPaused: window.__krel.game.scene.isPaused("Minigame"), active: window.__krel.active() }));
+      check("wave2: RESUME by touch carries the minigame on", !!res && !again.mgPaused, { res, again });
+      // (review R1) the minigame's clock held while locked and paused: the seconds locked are not lost
+      const t1 = tLeft((await mgNow(ph)).hud);
+      check("wave2: the minigame's clock held through the lock and the pause (time left not eaten by them)", t0 !== null && t1 !== null && t0 - t1 <= 3, { t0, t1 });
+      await twoThumbs(ph, 300, async () => (await mgNow(ph)).ended);
+    }
+    // (taps through the outcome only while the minigame is up and not fading: a tap landing in Home would be tap to use)
+    for (let i = 0; i < 60; i++) {
+      const st = await ph.ev(() => { const g = window.__krel.game; const m = g.scene.getScene("Minigame"); return { home: g.scene.isActive("Home"), mg: g.scene.isActive("Minigame"), fading: !!(m && m.cameras && m.cameras.main && m.cameras.main.fadeEffect.isRunning) }; });
+      if (st.home || !st.mg) break;
+      if (!st.fading) await ph.tapCss(422, 120);
+      await sleep(500);
+    }
+    await ph.until(() => window.__krel.game.scene.isActive("Home"), null, 20000, "home").catch(() => {});
+    await sleep(1500);
+    check("wave2: the console replay ends back home", await ph.ev(() => window.__krel.game.scene.isActive("Home")), await ph.active());
+
+    // ---- 2. a TV show: the mix carries its voices
+    const before = await ph.ev(() => window.__krelMobile.audio.mix.report().redirected.voice);
+    await ph.ev(() => { const g = window.__krel.game; for (const sc of g.scene.getScenes(true)) if (sc.sys.settings.key !== "UI") g.scene.stop(sc.sys.settings.key); g.scene.start("TV", { fromTitle: true, episode: "tcc_ep7" }); });
+    await ph.scene("TV");
+    let tvMix = null;
+    for (let i = 0; i < 40; i++) {
+      tvMix = await ph.ev(() => ({ report: window.__krelMobile.audio.mix.report(), peak: window.__krelMobile.audio.mix.peak(), line: window.__krelMobile.audio.mix.line() }));
+      if (tvMix.report.redirected.voice > before) break;
+      await sleep(500);
+    }
+    check("wave2: a TV show's voices go through the phone mix", tvMix.report.built && tvMix.report.redirected.voice > before, { before, tvMix });
+    await shot("tv");
+    await ph.ev(() => window.__krel.game.scene.stop("TV"));
+
+    // ---- 3. a fight: the stick stays where the thumb lands; the pocket buttons
+    const ok = await toFight(ph, "drongus", 1, 1);
+    check("wave2: a fight reached", ok, await ph.mode());
+    await sleep(800);
+    await ph.ev(async () => {
+      const st = await import("/src/game/systems/stats.ts");
+      const k = window.__krel; const s = k.G.s; const d = k.game.scene.getScene("Dungeon");
+      for (const e of d.enemies) if (!e.dead && !e.isBoss) e.setPosition(-5000, -5000);
+      s.bongos = 2; s.bottles = 2; s.hp = Math.round(st.maxHp(s) * 0.3); k.G.rt.fart = 55;
+      if (d.player) d.player.iframesUntil = d.now() + 8000;
+    });
+    await sleep(1500);
+    const pk = await ph.ev(() => window.__krelMobile.snapshot().controls.filter((c) => c.shown && /^c-(bongo|fart|heal)$/.test(c.id)).map((c) => ({ id: c.id, w: Math.round(c.face.w), h: Math.round(c.face.h), right: c.face.x + c.face.w / 2 > innerWidth / 2 })));
+    check("wave2: the fight's pocket buttons (💨 🍺 HEAL) are 60 px on the right", ["c-bongo", "c-fart", "c-heal"].every((id) => pk.some((c) => c.id === id)) && pk.every((c) => c.right && Math.min(c.w, c.h) >= (c.id === "c-heal" ? 51.5 : 59.5)), pk);
+    await ph.touch("touchStart", [{ x: 150, y: 260, id: 31 }]);
+    for (let i = 1; i <= 8; i++) { await ph.touch("touchMove", [{ x: 150 + i * 25, y: 260, id: 31 }]); await sleep(25); }
+    await sleep(150);
+    const sn = await ph.snap();
+    const ts = await ph.touchState();
+    await ph.touch("touchEnd", []);
+    check("wave2: in the fight the stick's base stays where the thumb landed (200 px of drag later), full speed", !!sn.stick && Math.abs(sn.stick.x - 150) < 1 && Math.abs(sn.stick.y - 260) < 1 && ts.mx > 0.9, { base: sn.stick, mx: ts.mx });
+    await shot("fight");
+    check("wave2: no page errors", errors.length === 0, errors.slice(0, 3));
+  } finally {
+    await ctx.close();
+  }
+}
+
 (async () => {
   const t0 = Date.now();
   let browser;
@@ -5643,6 +6848,9 @@ async function mix3(browser) {
       ["tapfix", tapfix],
       ["platfix", platfix],
       ["mix3", mix3],
+      ["games", games],
+      ["scenes", scenesSection],
+      ["wave2", wave2],
       ["desktop", desktop],
     ]) {
       if (!ONLY.includes(id)) continue;

@@ -69,6 +69,12 @@ export interface PhoneHooks {
   hazardScale?(): number;
   /** A side room's pit: where to put the player back (phone assist: further from the edge, the stick waits). */
   pitRespawn?(level: unknown, fellX: number, safeX: number, roomW: number, now: number): number;
+  /** Rhythm minigames (stage 3): seconds to take off a tap's judged time (the phone's sound output delay + the setting). */
+  rhythmLag?(): number;
+  /** Night of Freedom (DriveScene): where the gun aims this frame on a phone (null: the game's own aim). */
+  gunAim?(scene: unknown, pointer: { worldX: number; worldY: number; isDown: boolean; wasTouch: boolean }): { x: number; y: number } | null;
+  /** Beep Beep: the game's own "hold left / right of the wheel" steering by touch (false on a phone: the stick steers). */
+  wheelTouch?(): boolean;
 }
 
 let hooks: PhoneHooks | null = null;

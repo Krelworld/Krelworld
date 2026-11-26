@@ -33,6 +33,7 @@ import { CELL, cellOf, dirIndex, FEET, feetOf, HEAD, SpriteBank, type Base, type
 import { buildings, placements, WorldArt, type Placement } from "./world";
 import { Stall } from "./stall";
 import { Fx } from "./fx";
+import { FirstPerson, type FpSprite } from "./fp";
 import { holeState, inCubicle, knifeOn } from "../stadium/gloryhole";
 import { incapacitated, knockedOut, lootable } from "../stadium/combat";
 import { CAP, ensureFloor, ensureMaterials, facade, floodlight, matOf, adBoard, banner, pixelText as pixelTextOn, PPM, roof, TILE_FILES, type BuildingSpec } from "./build";
@@ -158,6 +159,7 @@ class StadiumScene extends Phaser.Scene {
     this.ui = this.add.graphics().setDepth(1e7);
     this.d3 = new Drive3D(this);
     this.fx = new Fx(this, this.P);
+    this.fp = new FirstPerson($("game"));
     this.stall = new Stall({
       act: (arg) => { if (this.pc) dispatch(this.w, { verb: "hole", actor: this.pc.id, arg }); },
       play: (clip, vol = 1) => this.audio.play(clip as Clip, vol, { minGap: 0.05 }),
@@ -346,6 +348,7 @@ class StadiumScene extends Phaser.Scene {
         // the camera jolts, the victim flashes white and flies back spraying blood.
         const by = s.actors[e.by], who = s.actors[e.who];
         if (!by || !who) break;
+        if (e.by === pcId) this.fp.punchAt = performance.now();
         if (e.horse) { a.play("trample", 0.4 + near(who.x, who.y, 35) * 0.6, { minGap: 0.1 }); this.impact(e.by, e.who, e.dx, e.dy, 1.2, near(who.x, who.y, 35)); break; }
         const v = near(who.x, who.y, 35);
         a.play("whoosh", 0.25 + v * 0.5, { minGap: 0.05, rate: 0.9 + Math.random() * 0.25 });
@@ -544,7 +547,7 @@ class StadiumScene extends Phaser.Scene {
     this.drawCrowd();
   }
 
-  crowdImgs: { im: Phaser.GameObjects.Image; y: number; ph: number; sp: number; x: number; fr: number; away: boolean }[] = [];
+  crowdImgs: { im: Phaser.GameObjects.Image; y: number; ph: number; sp: number; x: number; wy: number; fr: number; away: boolean }[] = [];
   /** The whole ground up on its feet (a goal, a near miss) until this time. */
   crowdUpUntil = 0;
   crowdUpSide: "home" | "away" | "all" = "all";
@@ -603,7 +606,7 @@ class StadiumScene extends Phaser.Scene {
       if (blit) {
         const im = this.add.image(Math.round(sx), Math.round(sy), `crowd3-${opp.short}`, st.row * 8 + st.f).setOrigin(0.5, 46 / 52).setScale(scale);
         blit.add(im);
-        this.crowdImgs.push({ im, y: Math.round(sy), ph: rnd() * Math.PI * 2, sp: 1.5 + rnd() * 2.5, x: st.x, fr: st.row * 8 + st.f, away: st.shirt >= 3 });
+        this.crowdImgs.push({ im, y: Math.round(sy), ph: rnd() * Math.PI * 2, sp: 1.5 + rnd() * 2.5, x: st.x, wy: st.y, fr: st.row * 8 + st.f, away: st.shirt >= 3 });
         continue;
       }
       const shirt = [0xf4f4f4, 0xc8102e, 0x1b2a6b, opp.colour, opp.colour2][st.shirt];
@@ -656,10 +659,53 @@ class StadiumScene extends Phaser.Scene {
     if (this.inCab()) this.d3.draw(this.s, this.driveView, this.scale.width / DPR, this.scale.height / DPR, (a) => this.styleOf(a), this.pc.drive?.steer ?? 0, this.cameras.main.zoom, DPR);
     else { this.d3.hide(); this.d3.hideSpeed(); }
     this.drawHud();
+    if (this.fp.on && this.pc) this.drawFirstPerson();
     this.stepCine();
     this.stepPopups();
     if ((this.s.tick & 15) === 0) this.updateCrowd();
     if (this.pc) this.stall.update(inCubicle(this.pc) && !this.pc.hiddenIn && !st.ending, holeState(this.w), !!knifeOn(this.w, this.pc));
+  }
+
+  toggleFirstPerson(): void {
+    const on = !this.fp.on;
+    this.fp.show(on);
+    this.cameras.main.setVisible(!on);
+    $("fpBtn").classList.toggle("on", on);
+  }
+
+  /** Everyone and everything near you, as billboards for the first-person view. */
+  drawFirstPerson(): void {
+    const s = this.s, pc = this.pc, out: FpSprite[] = [];
+    const tex = (key: string) => (this.textures.exists(key) ? (this.textures.get(key).getSourceImage() as HTMLCanvasElement) : null);
+    for (const id in s.actors) {
+      const a = s.actors[id];
+      if (a === pc || a.hiddenIn || (a.fb && a.fb.status === "gone") || Math.abs(a.x - pc.x) > 40 || Math.abs(a.y - pc.y) > 40) continue;
+      if (a.npc?.job === "dog") continue;
+      const { base, rc } = this.spriteFor(a);
+      if (!this.bank.has(base)) continue;
+      const key = this.bank.variant(base, rc), cell = cellOf(base);
+      const toMe = Math.atan2(pc.y - a.y, pc.x - a.x), di = dirIndex(Math.PI / 2 + (a.facing - toMe));
+      const down = a.dead || a.downUntil > s.tick;
+      const fall = tex(`${key}-fall`), walk = tex(`${key}-walk`), moving = Math.hypot(a.vx, a.vy) > 0.4;
+      let img = tex(`${key}-rot`)!, sx = di * cell, sy = 0;
+      if (down && fall) { const n = Math.round(fall.width / cell); img = fall; sx = (n - 1) * cell; sy = di * cell; }
+      else if (moving && walk) { const n = Math.round(walk.width / cell); img = walk; sx = (Math.floor(s.tick * 0.15) % n) * cell; sy = di * cell; }
+      out.push({ x: a.x, y: a.y, img, sx, sy, sw: cell, sh: a.seated ? 52 : cell, mh: (a.seated ? 52 : cell) / 32, footFrac: a.seated ? 0.95 : feetOf(base) / cell });
+    }
+    for (const p of this.placed.list) {
+      const meta = this.world.base[p.key], im = tex(`k-${p.key}`);
+      if (!meta || !im || p.flat || Math.abs(p.x - pc.x) > 40 || Math.abs(p.y - pc.y) > 40) continue;
+      out.push({ x: p.x, y: p.y, img: im, sx: 0, sy: 0, sw: im.width, sh: im.height, mh: im.height / 32, footFrac: meta.foot / im.height });
+    }
+    // The seated crowd, from the stand atlas (only the near ones: there are thousands).
+    const opp = s.match!.teams[1], atlas = tex(`crowd3-${opp.short}`);
+    if (atlas) for (const c of this.crowdImgs) {
+      if (Math.abs(c.x - pc.x) > 26 || Math.abs(c.wy - pc.y) > 26) continue;
+      const fr = Number(c.im.frame.name), col = fr % 8, row = Math.floor(fr / 8);
+      out.push({ x: c.x, y: c.wy, img: atlas, sx: col * CELL, sy: row * 52, sw: CELL, sh: 52, mh: 52 / 32, footFrac: 46 / 52, cheap: true });
+    }
+    const here = areaAt(pc.x, pc.y), hand = pc.hand ? tex(`ico-${s.items[pc.hand].def}`) : null;
+    this.fp.draw(s, pc, out, !!here.outside || !!here.pitch || !!here.seats, VENUE.id, hand);
   }
 
   /** Behind the wheel, in one of the 3D views? */
@@ -700,6 +746,7 @@ class StadiumScene extends Phaser.Scene {
   bubbleG: Phaser.GameObjects.Graphics | null = null;
   flashesUntil = 0;
   stall!: Stall;
+  fp!: FirstPerson;
   fx!: Fx;
   pursuers: Actor[] = [];
   /** A cinematic moment: letterbox, a push-in on a point (or a long lead ahead), slow motion. */
@@ -829,6 +876,14 @@ class StadiumScene extends Phaser.Scene {
     let y = (k.S.isDown || k.DOWN.isDown ? 1 : 0) - (k.W.isDown || k.UP.isDown ? 1 : 0);
     let run = k.SHIFT.isDown;
     if (this.joyId !== -1) { x = this.jx; y = this.jy; run = Math.hypot(x, y) > 0.85; }
+    if (this.fp?.on) {
+      // First person: left and right turn you, up and down walk you forward and back.
+      pc.facing += x * 0.055;
+      const fwd = -y, mag = Math.abs(fwd) < 0.12 ? 0 : run ? 1 : 0.8;
+      pc.moveX = Math.cos(pc.facing) * Math.sign(fwd) * mag; pc.moveY = Math.sin(pc.facing) * Math.sign(fwd) * mag;
+      if (Math.abs(x) > 0.1 && !mag) { pc.moveX = Math.cos(pc.facing) * 0.001; pc.moveY = Math.sin(pc.facing) * 0.001; }
+      return;
+    }
     let l = Math.hypot(x, y);
     if (l > 0.12 && pc.seated && !pc.heldBy) { dispatch(this.w, { verb: "stand", actor: pc.id }); this.setZoom(); this.setSpeed(1); }
     if (pc.effects.drunk > this.s.tick && l > 0.1) {
@@ -2154,6 +2209,7 @@ class StadiumScene extends Phaser.Scene {
     try { const saved = localStorage.getItem("kd-zoom2"); const z = saved ? +saved : 0; if (ZOOMS.includes(z)) this.zoomLevel = z; } catch { /* ignore */ }
     $("zoomBtn").textContent = this.zoomLabel();
     $("zoomBtn").addEventListener("click", () => this.cycleZoom());
+    $("fpBtn").addEventListener("click", () => this.toggleFirstPerson());
     $("viewBtn").textContent = this.driveView === "chase" ? "Chase" : this.driveView === "cab" ? "Cab" : "Map";
     $("viewBtn").addEventListener("click", () => this.cycleDriveView());
     $("hornBtn").addEventListener("click", () => this.honk());
@@ -2217,6 +2273,7 @@ class StadiumScene extends Phaser.Scene {
       else if (k === "escape") { this.sheetKind ? (this.sheetKind === "menu" && this.setSpeed(1), this.closeSheet()) : this.openMenu(); }
       else if (k === "`") this.toggleDebug();
       else if (k === "z") this.cycleZoom();
+      else if (k === "v") this.toggleFirstPerson();
       else if (/^[1-9]$/.test(k) && this.sheetKind === "more") this.run(((this as any).moreOpts as Option[])[+k - 1]);
     });
     // Debug: three taps on the score.

@@ -82,7 +82,7 @@ function brickwork(cx: Ctx, w: number, h: number, base: number, mortar: number, 
   }
 }
 
-function material(m: Mat): HTMLCanvasElement {
+export function material(m: Mat): HTMLCanvasElement {
   const [cv, cx] = canvas(64, 64), r = rng(m.length * 977 + m.charCodeAt(0));
   switch (m) {
     case "palisade": {

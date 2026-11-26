@@ -58,7 +58,9 @@ export interface PhoneMixPlan {
  *  about 3% of a busy fight's samples (still under -1 dBFS). */
 export const PHONE_MIX: PhoneMixPlan = {
   drive: { music: 1, sfx: 2, voice: 3 },
-  out: { music: 0.85, sfx: 1.1, voice: 1.15 },
+  // (sfx 1.1 -> 0.8, fight 1.3 -> 1.2: the user, after playing it: "Sound effects are now too loud"; about -2.8 dB
+  // in town and -3.5 dB in fights, still well above the live build the user found "very quiet")
+  out: { music: 0.85, sfx: 0.8, voice: 1.15 },
   lowCut: 110,
   presence: { freq: 3000, gain: 3, q: 0.8 },
   comp: {
@@ -67,7 +69,7 @@ export const PHONE_MIX: PhoneMixPlan = {
   },
   ceiling: 0.88,
   kneeAt: 0.7,
-  fight: { sfx: 1.3, music: 1 },
+  fight: { sfx: 1.2, music: 1 },
 };
 
 /** -1 dBFS, linear: nothing the phone plays may peak above this. */

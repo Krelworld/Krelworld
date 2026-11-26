@@ -3043,7 +3043,7 @@ async function firingStyles(browser) {
       const d = window.__krel.game.scene.getScene("Dungeon");
       const p = d.player;
       const kind = (d.room.waves && d.room.waves[0] && d.room.waves[0][0] && d.room.waves[0][0][0]) || "supply_teacher";
-      const e = d.spawnEnemy(kind, p.x + 150, p.y - 20, { noDrops: true });
+      const e = d.spawnEnemy(kind, p.x + (p.x < d.room.w / 2 ? 150 : -150), p.y - 20, { noDrops: true });
       if (!e) return null;
       // (everything else goes quietly: only the dummy is there to shoot)
       for (const o of [...d.enemies]) if (o !== e && !o.dead) d.damageEnemy(o, 1e9, { noWonk: true, label: "" });
@@ -3067,7 +3067,7 @@ async function firingStyles(browser) {
             const tick = () => {
               const e = window.__afDummy;
               if (e && !e.dead) {
-                e.body.reset(d.player.x + 150, d.player.y - 20);
+                e.body.reset(d.player.x + (d.player.x < d.room.w / 2 ? 150 : -150), d.player.y - 20);
                 e.setAlpha(1).setVisible(true);
               }
               window.__krel.G.rt.wonk = 0;
@@ -3130,7 +3130,7 @@ async function firingStyles(browser) {
         const p = d.player;
         const old = window.__afDummy;
         if (old && !old.dead) d.damageEnemy(old, 1e9, { noWonk: true, label: "" });
-        const e = d.spawnEnemy(window.__afKind || "supply_teacher", p.x + 150, p.y - 20, { noDrops: true });
+        const e = d.spawnEnemy(window.__afKind || "supply_teacher", p.x + (p.x < d.room.w / 2 ? 150 : -150), p.y - 20, { noDrops: true });
         if (e) e.hp = e.maxHp = 1e6;
         window.__afDummy = e;
       });

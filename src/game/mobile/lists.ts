@@ -81,6 +81,8 @@ export interface PListSpec {
   /** Game px (960 x 540): where on the canvas the card goes. */
   rect: { x: number; y: number; w: number; h: number };
   title?: string;
+  /** Long names may take two lines (row names and the title) instead of being cut off with "…" (the archive). */
+  wrapLabels?: boolean;
   /** Left of the title (◀ BACK / ✕). */
   back?: PAction;
   /** Right of the title. */
@@ -165,6 +167,7 @@ const CSS = `
 .pl *{box-sizing:border-box}
 .pl-card{display:flex;flex-direction:column;width:100%;height:100%;background:#120c20;border:2px solid var(--pl-acc,#ffd23f);border-radius:12px;overflow:hidden}
 .pl.glass .pl-card{background:rgba(14,9,26,.9)}
+.pl.wrapl .pl-l,.pl.wrapl .pl-title{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-height:1.15}
 .pl-head{display:flex;align-items:center;gap:6px;flex:none;min-height:46px;padding:0 4px 0 10px;border-bottom:1px solid rgba(255,255,255,.12)}
 .pl-title{flex:1;min-width:0;font:700 16px "Krel Bold",system-ui,sans-serif;color:var(--pl-acc,#ffd23f);letter-spacing:.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pl-b{flex:none;min-width:44px;min-height:44px;padding:0 12px;border-radius:10px;border:2px solid rgba(255,255,255,.28);background:#2a1d45;color:#fff;
@@ -418,6 +421,7 @@ export class PhoneList {
     const newList = opening || memoKey !== this.memoKey;
     this.memoKey = memoKey;
     this.el.classList.toggle("glass", !!s.glass);
+    this.el.classList.toggle("wrapl", !!s.wrapLabels);
     this.el.style.setProperty("--pl-acc", s.accent ?? "#ffd23f");
     const head = s.title || s.back || s.head?.length ? `<div class="pl-head">${this.act(s.back)}<span class="pl-title">${esc(s.title ?? "")}</span>${(s.head ?? []).map((a) => this.act(a)).join("")}</div>` : "";
     const tabs = s.tabs?.length

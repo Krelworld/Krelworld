@@ -1,3 +1,4 @@
+import { bikeAvailable } from "../systems/bike";
 import { keysFor, prettyKey } from "../systems/keybinds";
 import { currentGun, ownedGuns, gunMax } from "../combat/Guns";
 import { superMs } from "../combat/Super";
@@ -478,6 +479,8 @@ export class UIScene extends Phaser.Scene {
   private faceImg: Phaser.GameObjects.Image | null = null;
 
   update(time: number) {
+    // tablets' pad: the bike button, while there's a bike to get on or off
+    this.touch?.show("bike", bikeAvailable());
     const s = G.s;
     const g = this.g;
     g.clear();
@@ -661,12 +664,18 @@ export class UIScene extends Phaser.Scene {
       }
       g.lineStyle(2, b.shielded ? 0x6fd8ff : 0xffd23f, 1);
       g.strokeRect(bb.x, bb.y, bb.w, 16);
-      const tag = sh?.state === "shielded" ? `  [SHIELDED ${sh.cracks}/${sh.need} — KILL THE MINIONS]` : vuln ? "  [VULNERABLE!]" : b.shielded ? "  [SHIELDED]" : "";
+      const pf = this.phoneFight();
+      // (phones: a short tag, and the name shrinks to fit the bar so it never runs over KREZZ / WONK or the weapon chip)
+      const tag = pf
+        ? (sh?.state === "shielded" ? `  [SHIELD ${sh.cracks}/${sh.need}]` : vuln ? "  [VULNERABLE]" : b.shielded ? "  [SHIELDED]" : "")
+        : sh?.state === "shielded" ? `  [SHIELDED ${sh.cracks}/${sh.need} — KILL THE MINIONS]` : vuln ? "  [VULNERABLE!]" : b.shielded ? "  [SHIELDED]" : "";
       this.bossT.setText(b.name + tag).setColor(sh?.state === "shielded" ? "#7dd3fc" : vuln ? "#ffd23f" : "#ffffff").setVisible(true);
+      if (pf) this.bossT.setScale(Math.min(1, (bb.w - (sh?.state === "shielded" ? 32 : 4)) / Math.max(1, this.bossT.width)));
+      else if (isMobile()) this.bossT.setScale(1);
       if (sh?.state === "shielded") {
         // frozen behind the shield: a glassy sheen over the bar, and a drawn shield badge by the name
         g.fillStyle(0xffffff, 0.18).fillRect(bb.x + 2, bb.y + 2, bb.w - 4, 4);
-        const x = bb.x + bb.w / 2 - this.bossT.width / 2 - 14;
+        const x = bb.x + bb.w / 2 - (pf ? this.bossT.displayWidth : this.bossT.width) / 2 - 14;
         const y = bb.ny - 1;
         g.fillStyle(0x000000, 1).fillPoints([{ x: x - 9, y: y - 11 }, { x, y: y - 14 }, { x: x + 9, y: y - 11 }, { x: x + 8, y: y + 2 }, { x, y: y + 12 }, { x: x - 8, y: y + 2 }], true);
         g.fillStyle(0x2f7bff, 1).fillPoints([{ x: x - 7, y: y - 9 }, { x, y: y - 11 }, { x: x + 7, y: y - 9 }, { x: x + 6, y: y + 1 }, { x, y: y + 9 }, { x: x - 6, y: y + 1 }], true);

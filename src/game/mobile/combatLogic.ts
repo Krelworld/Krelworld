@@ -115,6 +115,51 @@ export function spamGap(now: number, since: number): boolean {
   return phase >= SPAM_BURST_MS;
 }
 
+// ------------------------------------------------------------------ firing styles (the auto-fire audit, ga-02)
+
+/** LIGHT firing: auto-fire shoots at this share of the gun's own pace (holding FIRE gives the full pace). */
+export const LIGHT_PACE = 0.6;
+/** STILL firing: auto-fire starts once the stick has rested this long (ms)... */
+export const STILL_MS = 120;
+/** ...under this much push (a thumb resting on the glass wobbles a little). */
+export const STILL_STICK = 0.2;
+
+/**
+ * LIGHT firing's pace: after each shot auto-fire waits out the gun's cooldown and then a bit more, so it fires at
+ * LIGHT_PACE of the gun's rate. Shots fired by a held FIRE don't count (they go at the full pace).
+ */
+export class AutoPace {
+  private nextAt = 0;
+  /** A shot went at `now`; the gun is ready again at `readyAt` (the player's attack cooldown). */
+  shot(now: number, readyAt: number) {
+    const cd = Math.max(0, readyAt - now);
+    this.nextAt = Math.max(now, readyAt) + cd * (1 / LIGHT_PACE - 1);
+  }
+  /** May auto-fire shoot now? */
+  ok(now: number): boolean {
+    return now >= this.nextAt;
+  }
+  reset() {
+    this.nextAt = 0;
+  }
+}
+
+/** STILL firing: has the player stood still long enough for auto-fire? (`mag`: the stick's push, 0..1.) */
+export class StillGate {
+  private since = -1;
+  update(now: number, mag: number, dodging: boolean): boolean {
+    if (mag >= STILL_STICK || dodging) {
+      this.since = -1;
+      return false;
+    }
+    if (this.since < 0) this.since = now;
+    return now - this.since >= STILL_MS;
+  }
+  reset() {
+    this.since = -1;
+  }
+}
+
 /** The short name of each character's special on SPECIAL (one word: research "a single verb or an icon"). */
 export const SPECIAL_WORD: Readonly<Record<string, string>> = Object.freeze({
   banishment_dash: "DASH",

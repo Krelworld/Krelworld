@@ -29,3 +29,45 @@ export function shouldPark(state: ArtState, lastUsed: number, now: number, held:
   return state === "live" && !held && now - lastUsed >= keepMs;
 }
 
+
+/**
+ * Pictures that go together (fix round R3): a boss's sheets are one family. While its fighting sheet is drawn or held,
+ * its death, down and move sheets and its finisher close-up (kcv_) stay loaded too, so the kneel at the kill and a
+ * stagger mid-fight never show a blank frame while their sheet is fetched. They are parked again with the room.
+ */
+const BOSS_SHEETS = ["bossanim", "bossdie", "bossdown", "bossmove"] as const;
+
+export function family(key: string): string[] {
+  const m = /^(bossanim|bossdie|bossdown|bossmove)_(.+)$/.exec(key);
+  if (!m) return [];
+  const id = m[2];
+  const out: string[] = BOSS_SHEETS.filter((p) => p !== m[1]).map((p) => `${p}_${id}`);
+  out.push(`kcv_${id}`);
+  return out;
+}
+
+/**
+ * After a failed fetch, when to try again (fix round R2): 2 s, 4 s, 8 s ... up to 30 s, never on every frame (a picture
+ * on screen used to ask again on every draw, one failed request per frame, for as long as the signal was gone).
+ */
+export function retryDelay(fails: number): number {
+  if (fails <= 0) return 0;
+  return Math.min(30000, 2000 * 2 ** (fails - 1));
+}
+
+/** The overlay scenes that wait (up to HOLD_MAX_MS) for their parked pictures before they start (R4). */
+export const HOLD_SCENES: readonly string[] = ["VsSplash", "KrelCine"];
+export const HOLD_MAX_MS = 1200;
+
+/**
+ * The phone's offline copy of the parked pictures (R2): one CacheStorage cache per set of art. The name carries a hash
+ * of the art manifest, so new art never comes from an old copy; older copies are deleted.
+ */
+export function offlineCacheName(manifestText: string): string {
+  let h = 2166136261;
+  for (let i = 0; i < manifestText.length; i++) {
+    h ^= manifestText.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return `krel-art-${(h >>> 0).toString(36)}`;
+}

@@ -27,6 +27,7 @@ import { whenRunning } from "./shell";
 import { installCombat } from "./combat";
 import { installBrawl, showFinisher } from "./brawl";
 import { installGames } from "./games";
+import { installBikeButton } from "./bike";
 import { PAD_CSS, PadHandover } from "./pad";
 import { ControlsPicture, tabFor } from "./controlsPicture";
 import { phoneHooks, setPhoneHooks } from "./boot";
@@ -129,6 +130,8 @@ export function installMobile(game: Phaser.Game) {
   // stage 3 wave 2: the minigames by touch (its wording rows must be in before the scenes are hooked below)
   const games = installGames(game, layer);
   brawl.pauseCard = (extra) => shell.pauseCard(extra);
+  // the bike's RIDE / WALK button in the walking controls (town and the Kreddle Strip)
+  installBikeButton(layer);
   const picture = new ControlsPicture(layer);
   const pad = new PadHandover();
   pad.start((fn) => {

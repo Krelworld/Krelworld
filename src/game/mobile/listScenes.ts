@@ -526,6 +526,8 @@ const archive: Adapter = {
       id: "archive",
       rect: { x: 12, y: 62, w: 340, h: 440 },
       title: `${ents.filter((e) => un.includes(e.id)).length}/${ents.length} records`,
+      // (P6: "The Founding C…", "The Defence Qu…": a record's whole name, on two lines where it needs them)
+      wrapLabels: true,
       // (the list sits where the game's own ◀ LEAVE is: the way out is on the card, as chapter select's BACK)
       back: { label: "◀ LEAVE", id: "archive-leave", fn: () => sc.leave() },
       rows,

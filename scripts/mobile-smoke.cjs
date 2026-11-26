@@ -2,7 +2,7 @@
 // PHONE MODE smoke test (Playwright, real touch events). Needs a running dev server.
 //
 //   npx vite --port 5202 --strictPort &
-//   node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,together,review1,polish,platform,android,tapuse,scenes,desktop]
+//   node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,bike,dungeon,combat,side,brawl,together,review1,polish,platform,android,tapuse,scenes,desktop]
 //
 // phone    iPhone 14 landscape (844x390, DPR 3, touch, mobile Safari UA). Boots by taps, starts a new game by taps,
 //          clears the welcome at home by taps, then checks: the idle stick and pause are up; a drag moves the player
@@ -51,6 +51,10 @@
 // optout   the same phone with ?mobile=0: no layer, no "mobile" class, no phone CSS, no phone global.
 // town     the Hub on a phone: with Mikey following, a door's ACTION is ENTER (not SHOVE); SHOVE when he's all
 //          there is; the shoving match on the bridge shows SHOVE and it shoves; the first toasts speak touch.
+// bike     the bike in town (iPhone 14): the RIDE button is up out in town (and not at Home indoors), a tap gets you
+//          on (the face says WALK, lit), the stick steers it across town faster than walking (about 1.8x), WALK gets
+//          you off, and on again then ENTER at a door gets you off and through it; the first-time tip toast names the
+//          button, not a key.
 // dungeon  Wildern room 1: the phone controls, not the old pad; the page hidden mid-press lets go of the stick and
 //          FIRE; coming back (hidden → visible, upright → sideways, the guide from the rotate screen) opens the pause
 //          menu instead of dropping into the fight; a fight with no pause menu waits behind "tap to carry on".
@@ -108,7 +112,7 @@ const arg = (k, d) => {
 };
 const URL0 = arg("--url", "http://localhost:5202/");
 const SHOTS = arg("--shots", "");
-const ONLY = (arg("--only", "phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,together,review1,polish,platform,android,tapuse,tapfix,mix3,games,scenes,wave2,desktop") || "").split(",").filter(Boolean);
+const ONLY = (arg("--only", "phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,bike,dungeon,combat,side,brawl,together,review1,polish,platform,android,tapuse,tapfix,platfix,mix3,games,scenes,wave2,desktop") || "").split(",").filter(Boolean);
 const IOS_UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1";
 const IPHONE = { viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, userAgent: IOS_UA };
 const DESKTOP = { viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1, hasTouch: false, isMobile: false };
@@ -881,7 +885,7 @@ async function settings(browser) {
   try {
     const key = await ph.ev(async () => (await import("/src/game/variant.ts")).storageKey("krelworld.phone.settings"));
     let st = await ph.ev((k) => ({ s: window.__krelMobile.settings.get(), stored: localStorage.getItem(k), n: window.__krelMobile.settings.list().length }), key);
-    check("defaults: right-handed, M, 30%, auto-fire, normal aim assist, phone assist on, battery saver off, readability ON (stage 2), haptics on", JSON.stringify(st.s) === JSON.stringify({ leftHanded: false, buttonSize: "M", opacity: 0.3, stick: "stays", autoFire: true, aimAssist: "normal", phoneAssist: true, batterySaver: false, readability: true, textSize: "normal", haptics: true, syncOffsetMs: 0, playOverMyMusic: false }), st.s);
+    check("defaults: right-handed, M, 30%, HOLD FIRE (auto-fire off: EASY is a choice), normal aim assist, phone assist on, battery saver off, readability ON (stage 2), haptics on", JSON.stringify(st.s) === JSON.stringify({ leftHanded: false, buttonSize: "M", opacity: 0.3, stick: "stays", autoFire: false, firing: "auto", aimAssist: "normal", phoneAssist: true, batterySaver: false, readability: true, textSize: "normal", haptics: true, syncOffsetMs: 0, playOverMyMusic: false }), st.s);
     check("nothing is written just by loading", st.stored === null);
     check("the typed list a settings screen renders has every setting", st.n === 13, st.n);
     const before = await ph.snap();
@@ -1613,7 +1617,7 @@ async function settings2(browser) {
     };
     const s0 = await get();
     const fails = [];
-    for (const key of ["leftHanded", "haptics", "autoFire", "phoneAssist", "readability", "batterySaver", "playOverMyMusic"]) {
+    for (const key of ["leftHanded", "haptics", "phoneAssist", "readability", "batterySaver", "playOverMyMusic"]) {
       const before = (await get())[key];
       await into(`.kps-row[data-key="${key}"]`);
       await sleep(60);
@@ -1624,11 +1628,14 @@ async function settings2(browser) {
       await sleep(150);
       if (mid === before || (await get())[key] !== before) fails.push(key);
     }
-    for (const [key, vals] of [["buttonSize", ["S", "L", "M"]], ["stick", ["fixed", "follows", "stays"]], ["aimAssist", ["strong", "off", "normal"]], ["textSize", ["large", "normal"]]]) {
+    for (const [key, vals] of [["buttonSize", ["S", "L", "M"]], ["stick", ["fixed", "follows", "stays"]], ["aimAssist", ["strong", "off", "normal"]], ["textSize", ["large", "normal"]], ["firing", ["auto", "hold"]]]) {
       for (const v of vals) {
         await tapIn(key, `[data-v="${v}"]`);
         await sleep(150);
-        if ((await get())[key] !== v) fails.push(`${key}=${v}`);
+        const g = await get();
+        // (Firing: HOLD is auto-fire off; the row keeps autoFire in step)
+        const now = key === "firing" ? (g.autoFire === false ? "hold" : g.firing) : g[key];
+        if (now !== v || (key === "firing" && g.autoFire !== (v !== "hold"))) fails.push(`${key}=${v}`);
       }
     }
     for (const [key, d, want] of [["opacity", "1", 0.4], ["opacity", "-1", 0.3], ["syncOffsetMs", "1", 5], ["syncOffsetMs", "-1", 0]]) {
@@ -1645,7 +1652,9 @@ async function settings2(browser) {
     const auto = await ph.ev((k) => localStorage.getItem(k), mk);
     if (off.v !== "0" || !off.note || auto !== null) fails.push(`phoneLayout ${JSON.stringify({ off, auto })}`);
     check("every row works by tap (toggles both ways, every choice, sliders up and down, Phone layout off then auto)", fails.length === 0, fails);
-    check("and the settings end where they started", JSON.stringify(await get()) === JSON.stringify(s0));
+    // (Firing compares by the style in force: HOLD is stored as auto-fire off, whatever flavour `firing` keeps)
+    const styled = (g) => JSON.stringify({ ...g, firing: g.autoFire === false ? "hold" : g.firing });
+    check("and the settings end where they started", styled(await get()) === styled(s0));
     // Bigger text off: the menu behind is drawn again at the game's own sizes; on again
     await into('.kps-row[data-key="readability"]');
     await ph.tapSel('.kps-row[data-key="readability"]');
@@ -2367,6 +2376,106 @@ async function town(browser) {
   }
 }
 
+// ------------------------------------------------------------------ the bike (game additions)
+
+async function bike(browser) {
+  console.log("BIKE (riding round town on a phone)");
+  const { ctx, ph, errors } = await phoneAtTitle(browser);
+  const bikeBtn = () =>
+    ph.ev(() => {
+      const e = document.querySelector(".kt-btn.kt-bike");
+      if (!e || !e.classList.contains("show")) return null;
+      const b = e.getBoundingClientRect();
+      return { x: b.x + b.width / 2, y: b.y + b.height / 2, w: b.width, word: e.textContent.trim(), riding: e.classList.contains("riding") };
+    });
+  const hub = () =>
+    ph.ev(() => {
+      const h = window.__krel.game.scene.getScene("Hub");
+      return { riding: !!h.bike && h.bike.riding, x: Math.round(h.av.x), y: Math.round(h.av.y), v: Math.round(Math.hypot(h.av.body.velocity.x, h.av.body.velocity.y)), busy: h.busy };
+    });
+  /** Hold the stick pushed right (a real touch) for `ms`; returns the top speed seen and where it ended. */
+  const holdRight = async (ms) => {
+    await ph.touch("touchStart", [{ x: 150, y: 250, id: 3 }]);
+    for (let i = 1; i <= 6; i++) {
+      await ph.touch("touchMove", [{ x: 150 + i * 14, y: 250, id: 3 }]);
+      await sleep(16);
+    }
+    let top = 0;
+    const t0 = Date.now();
+    while (Date.now() - t0 < ms) {
+      await sleep(250);
+      top = Math.max(top, (await hub()).v);
+    }
+    const end = await hub();
+    await ph.touch("touchEnd", []);
+    await sleep(300);
+    return { top, end };
+  };
+  const tapBike = async () => {
+    const b = await bikeBtn();
+    if (!b) throw new Error("no bike button");
+    await ph.tapCss(b.x, b.y);
+    await sleep(600);
+  };
+  const place = (x, y) => ph.ev(([x, y]) => window.__krel.game.scene.getScene("Hub").av.body.reset(x, y), [x, y]);
+  try {
+    check("the Hub reaches walk mode", await toWalk(ph, "Hub"), await ph.mode());
+    await ph.ev(() => {
+      window.__krel.game.scene.getScene("Hub").tryChatter = () => {};
+    });
+    // the clear road east of the fountain
+    await place(1400, 800);
+    await ph.until(() => !!document.querySelector(".kt-btn.kt-bike.show"), null, 20000, "the bike button").catch(() => 0);
+    await sleep(400);
+    let b = await bikeBtn();
+    const snap = await ph.snap();
+    check("out in town the bike button is up, saying RIDE, on the right thumb's line left of ACTION's corner", !!b && /RIDE/.test(b.word) && b.w >= 44 && b.x > 844 / 2 && b.x < snap.slots.prime.cx, b);
+    const walk = await holdRight(2500);
+    await place(1400, 800);
+    await sleep(400);
+    await tapBike();
+    let st = await hub();
+    b = await bikeBtn();
+    check("a tap on it: you're on the bike, the button says WALK and is lit", st.riding && !!b && /WALK/.test(b.word) && b.riding, { st, b });
+    const toast = await ph.ev(() => {
+      const t = [];
+      const walk = (o) => (o.type === "Container" ? o.list.forEach(walk) : o.type === "Text" && t.push(o.text));
+      window.__krel.game.scene.getScene("UI").children.list.forEach(walk);
+      return t.filter((x) => /bike/i.test(x));
+    });
+    check("the first-time tip names the button, not a key", toast.some((x) => /Tap RIDE/.test(x)) && !toast.some((x) => /Press Z|Z again/.test(x)), toast);
+    const x0 = st.x;
+    const ride = await holdRight(2500);
+    check("the stick steers the bike across town, faster than walking (about 1.8x)", ride.end.x - x0 > 250 && ride.top > walk.top * 1.4, { walk: walk.top, ride: ride.top, moved: ride.end.x - x0 });
+    await ph.shot("bike-riding");
+    await tapBike();
+    st = await hub();
+    const parked = await ph.ev(() => window.__krel.game.scene.getScene("Hub").bike.parkedAt());
+    check("WALK gets you off (the bike is left standing beside you)", !st.riding && !!parked, { st, parked });
+    // on again, then ride up to the Krezz Arms door: ENTER gets you off and in
+    await tapBike();
+    for (let i = 0; i < 6; i++) {
+      await place(560, 952);
+      await sleep(150);
+    }
+    st = await hub();
+    const s2 = await ph.snap();
+    check("riding up to a door: ACTION says ENTER", st.riding && s2.buttons.action && s2.actionLabel === "ENTER", { st, action: s2.actionLabel });
+    await ph.tapCss(s2.slots.prime.cx, s2.slots.prime.cy);
+    await ph.until(() => window.__krel.active().includes("Pub"), null, 60000, "the Krezz Arms").catch(() => 0);
+    const after = await ph.ev(() => ({ riding: window.__krel.game.scene.getScene("Hub").bike?.riding, active: window.__krel.active() }));
+    check("ENTER at the door gets you off the bike and through it", after.riding === false && after.active.includes("Pub"), after);
+    // indoors (Home): no bike button
+    await ph.ev(() => window.__krel.go("Home"));
+    await ph.scene("Home");
+    await sleep(2500);
+    check("indoors (Home) there is no bike button", !(await bikeBtn()), await ph.mode());
+    check("bike: no page errors", errors.length === 0, errors.slice(0, 3));
+  } finally {
+    await ctx.close();
+  }
+}
+
 // ------------------------------------------------------------------ a fight (the dungeon, still on the old pad)
 
 async function dungeon(browser) {
@@ -2423,7 +2532,10 @@ async function dungeon(browser) {
     };
     // thumbs on the stick and FIRE when the page hides (no touchcancel): both let go (R9; FIRE sits where ATTACK was)
     const [sx, sy] = await ph.g2c(150, 400);
-    const [ax, ay] = await ph.g2c(860, 440);
+    // (on FIRE itself: with HOLD the default, nothing but a thumb on FIRE fires, so a press beside it would read as no
+    // attack; it used to pass on auto-fire alone)
+    const fireCtl = (await ph.snap()).controls.find((c) => c.id === "c-fire" && c.shown);
+    const [ax, ay] = fireCtl ? [fireCtl.face.x + fireCtl.face.w / 2, fireCtl.face.y + fireCtl.face.h / 2] : await ph.g2c(860, 440);
     await ph.touch("touchStart", [{ x: sx, y: sy, id: 1 }]);
     for (let i = 1; i <= 5; i++) {
       await ph.touch("touchMove", [{ x: sx + i * 10, y: sy, id: 1 }]);
@@ -2603,7 +2715,17 @@ async function combat(browser) {
   try {
     await ph.ev(() => window.__krelMobile.setInsets({ top: 0, right: 47, bottom: 21, left: 47 }));
     await ph.ev(() => window.__krelMobile.combat.resetTeaching());
+    // (the one-time HOLD tip: every toast is noted from here on)
+    await ph.ev(() => {
+      window.__toastsSeen = [];
+      window.__krel.G.on((ev, d) => ev === "toast" && d && window.__toastsSeen.push(String(d.title)));
+    });
     check("a top-down room reached through DebugSkip (as Mikey): combat mode", await toFight(ph, "wildern", 0, 2, "MIKEY"), await ph.mode());
+    {
+      const st0 = await ph.ev(() => ({ s: window.__krelMobile.combat.snapshot().firing, toasts: window.__toastsSeen }));
+      check("a fresh phone fights on HOLD, and its first fight says so once (HOLD FIRE TO SHOOT)", st0.s === "hold" && st0.toasts.filter((t) => t === "HOLD FIRE TO SHOOT").length === 1, st0);
+      await ph.shot("combat-hold-tip");
+    }
     let s = await ph.snap();
     const shown = (id) => !!s.controls.find((c) => c.id === id && c.shown);
     const pad = await ph.ev(() => window.__krel.game.scene.getScene("UI").touch);
@@ -2667,6 +2789,178 @@ async function combat(browser) {
       if (killed) break;
     }
     check("auto-fire kills a test enemy in range without a thumb on FIRE (M1)", victim !== null && killed, { victim });
+    // ---- Settings > Firing (the auto-fire audit): LIGHT fires at a slower pace, STILL only while you stand still
+    // (the player to an open spot first, inside the room with nothing solid within 200 px: HOLD and the auto-fire
+    // flavours only aim at what you can see, and the stick tests may leave you by a wall, with the test enemy pinned
+    // beside you then inside the wall)
+    const toSpot = () => ph.ev(async () => {
+      const d = window.__krel.game.scene.getScene("Dungeon");
+      const p = d.player;
+      const walls = (d.obstacles?.getChildren() ?? []).map((o) => o.body).filter(Boolean).map((b) => ({ x: b.x, y: b.y, w: b.width, h: b.height }));
+      const W = d.room.w;
+      const H = d.room.h;
+      const clear = (x, y) => x > 260 && x < W - 260 && y > 140 && y < H - 140 && walls.every((r) => x < r.x - 200 || x > r.x + r.w + 200 || y < r.y - 60 || y > r.y + r.h + 60);
+      let best = null;
+      for (let y = 140; y < H - 140 && !best; y += 20) for (let x = 260; x < W - 260; x += 20) if (clear(x, y) && (!best || Math.abs(x - W / 2) + Math.abs(y - H / 2) < Math.abs(best.x - W / 2) + Math.abs(best.y - H / 2))) best = { x, y };
+      const at = best ?? { x: W / 2, y: H / 2 };
+      p.spr.body.reset(at.x, at.y);
+    });
+    await toSpot();
+    await sleep(600);
+    const dummy = await ph.ev(() => {
+      const d = window.__krel.game.scene.getScene("Dungeon");
+      const p = d.player;
+      const kind = (d.room.waves && d.room.waves[0] && d.room.waves[0][0] && d.room.waves[0][0][0]) || "drongle";
+      const e = d.spawnEnemy(kind, p.x + 150, p.y - 20, { noDrops: true });
+      if (!e) return null;
+      for (const o of d.enemies) if (o !== e && !o.dead) o.setPosition(p.x - 900, p.y - 900);
+      e.hp = e.maxHp = 1e6;
+      window.__afDummy = e;
+      return e.uid;
+    });
+    // count shots over a stretch of game time (the dummy pinned in front, never dying)
+    const shotsFor = (ms) =>
+      ph.ev(
+        (ms) =>
+          new Promise((res) => {
+            const d = window.__krel.game.scene.getScene("Dungeon");
+            const t0 = d.time.now;
+            let last = d.player.attackAnimUntil;
+            let n = 0;
+            let auto = 0;
+            let frames = 0;
+            const tick = () => {
+              const e = window.__afDummy;
+              // (fully seen all along: some kinds flicker through a dash's wind-up, which the aim rightly skips)
+              if (e && !e.dead) {
+                e.body.reset(d.player.x + 150, d.player.y - 20);
+                e.setAlpha(1).setVisible(true);
+              }
+              frames++;
+              if (window.__krelMobile.combat.snapshot().autoShooting) auto++;
+              if (d.player.attackAnimUntil !== last) {
+                last = d.player.attackAnimUntil;
+                n++;
+              }
+              if (d.time.now - t0 >= ms) {
+                d.events.off("postupdate", tick);
+                res({ n, auto: auto / Math.max(1, frames) });
+              } else return;
+            };
+            d.events.on("postupdate", tick);
+          }),
+        ms,
+      );
+    let fullRate = null;
+    let lightRate = null;
+    if (dummy !== null) {
+      await ph.ev(() => window.__krelMobile.settings.set({ autoFire: true, firing: "auto" }));
+      await sleep(300);
+      fullRate = await shotsFor(2500);
+      await ph.ev(() => window.__krelMobile.settings.set({ firing: "light" }));
+      await sleep(300);
+      lightRate = await shotsFor(2500);
+    }
+    const ratio = fullRate && lightRate && fullRate.n ? lightRate.n / fullRate.n : 0;
+    check("Firing LIGHT: auto-fire shoots at about 60% of AUTO's pace at the same enemy, no thumb on FIRE", ratio > 0.45 && ratio < 0.78, { fullRate, lightRate, ratio });
+    // LIGHT: a held FIRE goes at the gun's full pace
+    {
+      const fire = await ctlOf("c-fire");
+      const [fx, fy] = mid(fire);
+      await ph.touch("touchStart", [{ x: fx, y: fy, id: 7 }]);
+      const heldRate = await shotsFor(2500);
+      await ph.touch("touchEnd", []);
+      check("Firing LIGHT: holding FIRE fires at the full pace", fullRate && heldRate.n >= fullRate.n * 0.85, { fullRate, heldRate });
+    }
+    // STILL: nothing while the stick is pushed, shooting again once it rests
+    await ph.ev(() => window.__krelMobile.settings.set({ firing: "still" }));
+    await sleep(300);
+    await ph.touch("touchStart", [{ x: 120, y: 260, id: 1 }]);
+    for (let i = 1; i <= 6; i++) {
+      await ph.touch("touchMove", [{ x: 120 + i * 9, y: 260, id: 1 }]);
+      await sleep(30);
+    }
+    const moving = await shotsFor(900);
+    await ph.touch("touchEnd", []);
+    await toSpot();
+    await sleep(600);
+    const resting = await shotsFor(1200);
+    check("Firing STILL: no auto-fire while you move, auto-fire once you stand still", moving.auto === 0 && resting.auto > 0.5 && resting.n > 0, { moving, resting });
+    // HOLD: never by itself
+    await ph.ev(() => window.__krelMobile.settings.set({ firing: "hold" }));
+    await sleep(300);
+    const hold = await shotsFor(1200);
+    check("Firing HOLD: no shots without a thumb on FIRE", hold.n === 0 && hold.auto === 0, hold);
+    // ---- HOLD (the default): the aim locks only onto an enemy in front of you, on screen, not behind a wall; EASY
+    // still aims all round
+    if (dummy !== null) {
+      // the dummy pinned at an offset from the player for a stretch, facing set; then what the aim is on
+      const aimFor = (dx, dy, facing, ms = 500) =>
+        ph.ev(
+          ([dx, dy, facing, ms]) =>
+            new Promise((res) => {
+              const d = window.__krel.game.scene.getScene("Dungeon");
+              const c = window.__krelMobile.combat;
+              const t0 = d.time.now;
+              const tick = () => {
+                const e = window.__afDummy;
+                if (e && !e.dead) {
+                  e.body.reset(d.player.x + dx, d.player.y + dy);
+                  e.setAlpha(1).setVisible(true);
+                }
+                // (only the dummy counts: the room's own enemies, and any the next wave brings, are kept out of it)
+                for (const o of d.enemies) if (o !== e && !o.dead) o.visible = false;
+                c.lastMove = facing;
+                if (d.time.now - t0 < ms) return;
+                d.events.off("postupdate", tick);
+                const sn = c.snapshot();
+                for (const o of d.enemies) if (o !== e && !o.dead) o.visible = true;
+                res({ target: sn.target ? sn.target.id : null, aim: sn.aim === null ? null : +sn.aim.toFixed(2), want: e ? e.uid : null, dist: e ? Math.round(Math.hypot(e.x - d.player.x, e.y - d.player.y)) : null, me: [Math.round(d.player.x), Math.round(d.player.y)], view: ((v) => [v.x, v.y, v.width, v.height].map(Math.round))(d.cameras.main.worldView) });
+              };
+              d.events.on("postupdate", tick);
+            }),
+          [dx, dy, facing, ms],
+        );
+      await ph.ev(() => window.__krelMobile.settings.set({ autoFire: false, firing: "auto" }));
+      await toSpot();
+      await sleep(600);
+      const ahead = await aimFor(150, -20, 0);
+      const behind = await aimFor(-150, 20, 0);
+      const turned = await aimFor(-150, 20, Math.PI);
+      check("HOLD: the aim locks onto the enemy in front, not one behind you (aims ahead instead); turning toward it locks on", ahead.target === ahead.want && behind.target !== behind.want && (behind.target !== null || Math.abs(behind.aim) < 0.05) && turned.target === turned.want, { ahead, behind, turned });
+      const view = await ph.ev(() => {
+        const d = window.__krel.game.scene.getScene("Dungeon");
+        const v = d.cameras.main.worldView;
+        return { right: v.x + v.width - d.player.x, w: v.width };
+      });
+      const offs = await aimFor(view.right + 30, 0, 0);
+      check("HOLD: never locks onto an enemy off screen, even right in front", offs.target === null, { offs, view });
+      // a pillar between you and it
+      await ph.ev(() => {
+        const d = window.__krel.game.scene.getScene("Dungeon");
+        const p = d.player;
+        window.__pillar = d.add.rectangle(p.x + 90, p.y, 40, 140, 0, 0);
+        d.obstacles.add(window.__pillar);
+      });
+      const walled = await aimFor(170, 0, 0);
+      await ph.ev(() => window.__krelMobile.settings.set({ autoFire: true, firing: "auto" }));
+      const easyBehind = await aimFor(-150, 20, 0);
+      const easyWalled = await aimFor(170, 0, 0);
+      await ph.ev(() => {
+        const d = window.__krel.game.scene.getScene("Dungeon");
+        if (window.__pillar) d.obstacles.remove(window.__pillar, true, true);
+        window.__pillar = null;
+      });
+      check("HOLD: never locks onto an enemy behind a wall or pillar", walled.target === null, walled);
+      check("EASY (the old auto-fire): still aims all round you and through pillars", easyBehind.target === easyBehind.want && easyWalled.target === easyWalled.want, { easyBehind, easyWalled });
+    }
+    await ph.ev(() => {
+      window.__krelMobile.settings.set({ autoFire: true, firing: "auto" });
+      const e = window.__afDummy;
+      if (e && !e.dead) e.hp = 1;
+      window.__afDummy = null;
+    });
+    await sleep(300);
     // ---- FIRE by hand (auto-fire off): hold fires, slide aims, the stream carries on 200 ms after lifting
     await ph.ev(() => window.__krelMobile.settings.set({ autoFire: false }));
     await sleep(300);
@@ -3673,10 +3967,10 @@ async function together(browser) {
       await sleep(400);
     };
     const af0 = await ph.ev(() => window.__krelMobile.settings.get().autoFire);
-    await tapIn("autoFire");
+    await tapIn("firing", "EASY");
     await tapIn("buttonSize", "L");
     const s1 = await ph.ev(() => window.__krelMobile.settings.get());
-    check("the page's auto-fire and button size rows change the settings", s1.autoFire === !af0 && s1.buttonSize === "L", { af0, autoFire: s1.autoFire, buttonSize: s1.buttonSize });
+    check("the page's Firing (EASY: auto-fire on; HOLD is the default) and button size rows change the settings", af0 === false && s1.autoFire === true && s1.firing === "auto" && s1.buttonSize === "L", { af0, autoFire: s1.autoFire, firing: s1.firing, buttonSize: s1.buttonSize });
     await ph.tapSel(".kps-done");
     await sleep(500);
     await ph.tapText("RESUME", { scene: "Menu" });
@@ -3685,7 +3979,7 @@ async function together(browser) {
     const fire1 = await ctlOf("c-fire");
     ts = await hudTexts(ph, ["UI"]);
     check("back in the fight: the bigger buttons at once, and HUD and buttons still fit", fire1.face.w > fire0.face.w + 2 && offGame(ts).length === 0 && (await domSpill(ph, ".kt *")).length === 0, { before: fire0.face.w, after: fire1.face.w });
-    await ph.ev(() => window.__krelMobile.settings.set({ buttonSize: "M", autoFire: true, textSize: "large" }));
+    await ph.ev(() => window.__krelMobile.settings.set({ buttonSize: "M", autoFire: true, firing: "auto", textSize: "large" }));
     await sleep(1200);
     ts = await hudTexts(ph, ["UI"]);
     mv = await metersVsChips(ph);
@@ -4305,14 +4599,16 @@ async function platform(browser) {
       return { paused: el?.paused, t: el?.currentTime ?? 0 };
     });
     check("platform: a rhythm song starts straight away, with no tap (pooled element unlocked by the first tap)", croc.paused === false && croc.t > 0.5, croc);
+    const d0 = await ph.ev(() => window.__krelMobile.audio.diag().doubles);
     await ph.ev(() => {
       const a = new Audio(window.__krel.synth.musicEl().src);
       a.play().catch(() => {}); // (stopped by the phone straight away: its promise rejects)
       window.__stray = a;
     });
-    await sleep(1200);
+    // (a song just handed out is given RETIRE_MS before it counts as a stray: fix round R8)
+    await sleep(2200);
     const stray = await ph.ev(() => ({ paused: window.__stray.paused, d: window.__krelMobile.audio.diag() }));
-    check("platform: never two songs at once (a stray second song is stopped)", stray.paused === true && stray.d.music === 1 && stray.d.doubles >= 1, stray);
+    check("platform: never two songs at once (a stray second song is stopped)", stray.paused === true && stray.d.music === 1 && stray.d.doubles - d0 === 1, { ...stray, d0 });
     const lines = await ph.ev(() => window.__krelMobile.diag.lines().join("\n"));
     check("platform: ?mobilediag shows the sound route, the last resume, the parked pictures and the saves' storage", /sound route web audio/.test(lines) && /last resume: page shown/.test(lines) && /parked \d+/.test(lines) && /saves kept by the browser/.test(lines), lines.split("\n").filter((l) => /sound|resume|parked|saves/.test(l)));
 
@@ -4324,6 +4620,17 @@ async function platform(browser) {
       return m;
     };
     check("platform: texture memory after the boot is under 400 MB (the laptop holds about 920)", peak.mb < 400, peak);
+    // (the JS heap too: texture bytes don't see what scripts hold; fix round R9)
+    const heapMB = async () => {
+      // (after a full collection: what is really held, not garbage waiting to be collected)
+      await ph.cdp.send("HeapProfiler.collectGarbage").catch(() => {});
+      const m = await ph.cdp.send("Performance.getMetrics").catch(() => null);
+      const v = m && m.metrics.find((x) => x.name === "JSHeapUsedSize");
+      return v ? Math.round(v.value / 1048576) : -1;
+    };
+    await ph.cdp.send("Performance.enable").catch(() => {});
+    const heap0 = await heapMB();
+    check("platform: the JS heap after the boot is under 400 MB", heap0 > 0 && heap0 < 400, heap0);
     await toWalk(ph, "Home");
     await note("home");
     await ph.ev(() => window.__krel.go("Hub"));
@@ -4364,6 +4671,8 @@ async function platform(browser) {
       } else check(`platform: ${label} reached (${m} MB of textures)`, ok, m);
     }
     check("platform: the texture peak over home, town, a TV show, the Hoard and the concept boss stays under 500 MB", peak.mb < 500, peak);
+    const heap1 = await heapMB();
+    check("platform: the JS heap after home, town, a TV show and two boss rooms is under 500 MB", heap1 > 0 && heap1 < 500, { boot: heap0, now: heap1 });
 
     // 3. pause in a minigame: the II opens the pause menu; coming back to the phone opens it too
     await ph.ev(() => {
@@ -4378,7 +4687,7 @@ async function platform(browser) {
     await tapPause(ph);
     await ph.until(() => window.__krel.game.scene.isActive("Menu"), null, 15000, "the pause menu").catch(() => {});
     let st = await ph.ev(() => ({ menu: window.__krel.game.scene.isActive("Menu"), paused: window.__krel.game.scene.isPaused("Minigame"), song: window.__krel.synth.musicEl()?.paused }));
-    check("platform: the II in a minigame opens the pause menu, the minigame and its song hold", st.menu && st.paused && st.song !== false, st);
+    check("platform: the II in a minigame opens the pause menu, the minigame and its song hold", st.menu && st.paused && st.song === true, st);
     await ph.ev(() => window.__krel.game.scene.getScene("Menu").close());
     await sleep(800);
     await setVisibility(ph, "hidden");
@@ -4725,7 +5034,8 @@ async function tapuse(browser) {
     await homeMe(ph, 700, 520);
     await sleep(300);
     await tapThing(ph, /^Sleep/);
-    await sleep(300);
+    // (soon: on a loaded machine a long frame can carry the walker into the bed's reach within 300 ms)
+    await sleep(120);
     const re1 = await tapThing(ph, /Jukebox/);
     check("a second tap on another thing re-targets", re1.now.st.walking && /Jukebox/.test(re1.now.st.tag || ""), re1.now.st);
     done = await tapDone(ph);
@@ -5837,6 +6147,148 @@ async function scenesSection(browser) {
   }
 }
 
+/** Stage 3 fix round 1: parked pictures that come back blank, offline or late (R1-R4), and the sound pool (R5-R8). */
+async function platfix(browser) {
+  console.log("PLATFORM, fix round 1 (a boss's sheets together, the VS card waits, the offline copy, the sound pool)");
+  let { ctx, ph, errors } = await phoneAtTitle(browser);
+  try {
+    // ---- R3: the kneel at the kill, on a boss whose fighting sheet is up: its death sheet is already in
+    const kneel = await ph.ev(async () => {
+      const g = window.__krel.game;
+      const a = window.__krelMobile.art;
+      const sc = g.scene.getScene("Title");
+      const id = "troll";
+      const fight = sc.add.sprite(300, 250, `bossanim_${id}`, 0).setDepth(9999);
+      await new Promise((r) => setTimeout(r, 2500));
+      a.sweep(0); // (whatever nothing holds is parked now: the family stays)
+      const key = `bossdie_${id}`;
+      const tex = g.textures.get(key);
+      const down = sc.add.sprite(500, 250, key, 0).setDepth(9999);
+      fight.setVisible(false);
+      let blank = 0;
+      const t0 = performance.now();
+      await new Promise((res) => {
+        const step = () => {
+          if (a.isParked(key) || !(tex.getSourceImage() instanceof HTMLImageElement)) blank++;
+          if (performance.now() - t0 < 800) requestAnimationFrame(step);
+          else res();
+        };
+        requestAnimationFrame(step);
+      });
+      fight.destroy();
+      down.destroy();
+      a.sweep(0);
+      return { blank, parkedAfter: a.isParked(key) && a.isParked(`bossanim_${id}`) };
+    });
+    check("R3: a boss's death sheet is in while its fighting sheet is (the kneel never shows a blank frame)", kneel.blank === 0, kneel);
+    check("R3: ...and the whole family is parked again once nothing holds it", kneel.parkedAfter, kneel);
+
+    // ---- R4: the VS card waits for its faces instead of opening blank
+    const vs = await ph.ev(async () => {
+      const g = window.__krel.game;
+      const a = window.__krelMobile.art;
+      const ks = ["vs_FLENKY", "vs_brand"];
+      const before = ks.map((k) => a.isParked(k));
+      const h0 = a.report().holds;
+      window.__krel.vs("brand");
+      let blankRunning = 0;
+      const t0 = performance.now();
+      await new Promise((res) => {
+        const step = () => {
+          const sc = g.scene.getScene("VsSplash");
+          if (sc && sc.sys.isActive() && !sc.sys.isPaused() && ks.some((k) => a.isParked(k) || !(g.textures.get(k).getSourceImage() instanceof HTMLImageElement))) blankRunning++;
+          if (performance.now() - t0 < 3500) requestAnimationFrame(step);
+          else res();
+        };
+        requestAnimationFrame(step);
+      });
+      const r = a.report();
+      return { before, blankRunning, holds: r.holds - h0, longestHoldMs: r.longestHoldMs };
+    });
+    check("R4: the VS card holds (paused, a moment at most) until both faces are in: no running frame without them", vs.before.every(Boolean) && vs.blankRunning === 0 && vs.holds === 1 && vs.longestHoldMs <= 1300, vs);
+
+    // ---- R2: the offline copy (the loader's own downloads, then the browser's cache): a parked picture comes back
+    // with no signal; one not in the copy is retried after a pause that grows, not on every frame
+    const pick = await ph.ev(async () => {
+      const g = window.__krel.game;
+      const a = window.__krelMobile.art;
+      for (let i = 0; i < 150; i++) {
+        const ks = Object.keys(g.textures.list).filter((x) => x.startsWith("tvface_") && a.isParked(x));
+        const inC = ks.find((k) => a.inCopy(k));
+        const outC = ks.find((k) => !a.inCopy(k));
+        if (inC && outC) return { inC, outC, offline: a.report().offline };
+        await new Promise((r) => setTimeout(r, 1000));
+      }
+      return { offline: a.report().offline };
+    });
+    check("R2: the offline copy is filling (CacheStorage, named after the art)", !!pick.inC && pick.offline.stored > 0 && /^(filling|waiting|done)$/.test(pick.offline.state), pick);
+    if (pick.inC && pick.outC) {
+      await ctx.setOffline(true);
+      const off = await ph.ev(async (pick) => {
+        const g = window.__krel.game;
+        const sc = g.scene.getScene("Title");
+        const a = window.__krelMobile.art;
+        const res = {};
+        for (const k of [pick.inC, pick.outC]) {
+          const before = a.report();
+          const im = sc.add.image(400, 200, k).setDepth(9999);
+          await new Promise((r) => setTimeout(r, 3000));
+          const after = a.report();
+          res[k === pick.inC ? "inCopy" : "notInCopy"] = { k, failed: after.failed - before.failed, fromCopy: after.fromCopy - before.fromCopy, live: !a.isParked(k) && g.textures.get(k).getSourceImage() instanceof HTMLImageElement };
+          im.destroy();
+        }
+        return res;
+      }, pick);
+      await ctx.setOffline(false);
+      check("R2: offline, a parked picture in the copy comes back (from the copy, no network)", off.inCopy.live && off.inCopy.fromCopy >= 1 && off.inCopy.failed === 0, off.inCopy);
+      check("R2: offline, one not in the copy fails a couple of times in 3 s, not once a frame", !off.notInCopy.live && off.notInCopy.failed >= 1 && off.notInCopy.failed <= 3, off.notInCopy);
+    }
+
+    // ---- R5 / R8: songs asked for in a rush: none is stopped as a stray, the pool keeps its size
+    const rush = await ph.ev(async () => {
+      const { MUSIC_FILES } = await import("/src/game/audio/Synth.ts");
+      const ids = Object.keys(MUSIC_FILES).filter((k, i, a) => a.findIndex((x) => MUSIC_FILES[x] === MUSIC_FILES[k]) === i).slice(1, 5);
+      const au = window.__krelMobile.audio;
+      const d0 = au.diag().doubles;
+      for (const id of ids.slice(0, 3)) {
+        window.__krel.synth.music(id, true);
+        await new Promise((r) => setTimeout(r, 120));
+      }
+      await new Promise((r) => setTimeout(r, 2500));
+      const el = window.__krel.synth.musicEl();
+      const p = au.items.find((x) => x.el === el);
+      return { doubles: au.diag().doubles - d0, playing: au.diag().music, pooledCurrent: p ? p.pooled : null, items: au.items.length };
+    });
+    check("R5/R8: three songs in quick turns: one plays, on an element the first tap unlocked, and no fade-out counts as a stray", rush.doubles === 0 && rush.playing === 1 && rush.pooledCurrent === true, rush);
+    // ---- R6: voice lines that can't play free their element; the pool doesn't grow line after line
+    const voices = await ph.ev(async () => {
+      const au = window.__krelMobile.audio;
+      for (let i = 0; i < 3; i++) {
+        const u = URL.createObjectURL(new Blob([new Uint8Array([1, 2, 3, 4])], { type: "audio/mpeg" }));
+        const el = new Audio(u);
+        el.play().catch(() => {});
+      }
+      await new Promise((r) => setTimeout(r, 1500));
+      const n0 = au.items.length;
+      const r = await fetch("audio/krel_world.mp3");
+      const slice = (await r.arrayBuffer()).slice(0, 60000);
+      for (let i = 0; i < 8; i++) {
+        const el = new Audio(URL.createObjectURL(new Blob([slice], { type: "audio/mpeg" })));
+        el.playbackRate = 1.2;
+        await el.play().catch(() => {});
+        await new Promise((r) => setTimeout(r, 120));
+        el.pause();
+      }
+      await new Promise((r) => setTimeout(r, 300));
+      return { n0, n1: au.items.length, busyVoices: au.items.filter((x) => x.kind === "voice" && x.busy).length };
+    });
+    check("R6: bad voice lines free their element, and eight more lines reuse the pool (no new element each time)", voices.busyVoices === 0 && voices.n1 <= voices.n0 + 1, voices);
+    check("platfix: no page errors", errors.length === 0, errors.slice(0, 3));
+  } finally {
+    await ctx.close();
+  }
+}
+
 /** Stage 3 fix round 1: the tap that closes a line, ACTION over the console, the MOVE ring, Kreddle's frontages. */
 async function tapfix(browser) {
   console.log("TAP TO USE, fix round 1 (closing taps, ACTION over a thing, the MOVE ring, Kreddle's buildings)");
@@ -6002,6 +6454,60 @@ async function tapfix(browser) {
       check("P4: tap the ARCADE's frontage: walk to the slots", onScreen && st.walking && /KRAZY REELS/.test(st.tag || ""), { pg, onScreen, last: st.last, tag: st.tag });
       await tapDone(ph);
     }
+    // ---- R9 / R10: routes in the town on a slow phone (the CPU 4x slower): the slowest route, the grid built once
+    check("the Hub for routes", await toWalk(ph, "Hub"), await ph.mode());
+    await setIn();
+    await sleep(800);
+    await ph.cdp.send("Emulation.setCPUThrottlingRate", { rate: 4 }).catch(() => {});
+    const r0 = (await tapState(ph)).stats;
+    const vp0 = await ph.ev(() => ({ w: innerWidth, h: innerHeight }));
+    const doors = (await tapTargets(ph)).filter((t) => !t.low && t.far > 150 && t.page.x > 60 && t.page.x < vp0.w - 60 && t.page.y > 70 && t.page.y < vp0.h - 30).slice(0, 4);
+    for (const d of doors) {
+      await ph.tapCss(d.page.x, d.page.y);
+      await sleep(400);
+      await ph.ev(() => window.__krelMobile.tapUse.cancel("test"));
+    }
+    const r1 = (await tapState(ph)).stats;
+    await ph.cdp.send("Emulation.setCPUThrottlingRate", { rate: 1 }).catch(() => {});
+    check("R9/R10: town routes with the CPU 4x slower: the slowest under 120 ms", r1.routes - r0.routes >= 2 && r1.routeMs < 120, { routes: r1.routes - r0.routes, slowestMs: Math.round(r1.routeMs) });
+
+    // ---- P5: Whack-a-Drongus's card with the bigger text: the rule and every row inside the card, nothing overlapping
+    await ph.ev(() => {
+      const k = window.__krel;
+      k.newRun("FLENKY");
+      k.go("Whack");
+    });
+    await ph.scene("Whack");
+    await sleep(2500);
+    const wc = await ph.ev(() => {
+      const sc = window.__krel.game.scene.getScene("Whack");
+      const L = sc.layer.list;
+      const card = L.find((o) => o.type === "Rectangle" && o.width === 700).getBounds();
+      const texts = L.filter((o) => o.type === "Text" && o.y > card.y && o.y < card.bottom).map((o) => ({ t: o.text.slice(0, 24), b: o.getBounds() }));
+      const hit = (a, b) => a.x < b.right - 1 && b.x < a.right - 1 && a.y < b.bottom - 1 && b.y < a.bottom - 1;
+      const over = [];
+      for (let i = 0; i < texts.length; i++) for (let j = i + 1; j < texts.length; j++) if (hit(texts[i].b, texts[j].b)) over.push(`${texts[i].t} / ${texts[j].t}`);
+      const out = texts.filter((x) => x.b.x < card.x || x.b.right > card.right || x.b.bottom > card.bottom).map((x) => x.t);
+      return { over, out, n: texts.length };
+    });
+    check("P5: Whack-a-Drongus's card: nothing overlaps, everything inside the card", wc.n > 10 && wc.over.length === 0 && wc.out.length === 0, wc);
+
+    // ---- P6: the archive's records by their whole names (two lines where needed)
+    await ph.ev(() => {
+      const k = window.__krel;
+      k.newRun("FLENKY");
+      k.setChapter(4, {});
+      k.G.s.archiveUnlocked = ["arch_motto", "arch_scrombus_arrival", "arch_national_drink", "arch_vending", "arch_flenky_bans"];
+      k.go("Archive");
+    });
+    await ph.scene("Archive");
+    await sleep(2500);
+    const ar = await ph.ev(() => {
+      const ls = [...document.querySelectorAll(".pl.wrapl .pl-row .pl-l")].slice(0, 5);
+      const title = document.querySelector(".pl.wrapl .pl-title");
+      return { n: ls.length, whole: ls.filter((e) => e.scrollHeight <= e.clientHeight + 1).length, title: title ? title.scrollHeight <= title.clientHeight + 1 && title.scrollWidth <= title.clientWidth + 1 : false };
+    });
+    check("P6: the archive list shows its records' names whole (at most one long one clamped) and the count in full", ar.n === 5 && ar.whole >= 4 && ar.title, ar);
     check("tapfix: no page errors", errors.length === 0, errors.slice(0, 3));
   } finally {
     await ctx.close();
@@ -6043,8 +6549,24 @@ async function mix3(browser) {
     check("mix3: the TV show's faces came in, and are parked again when nothing uses them (memory released)", live1 > 0 && parked.live === 0, { live1, parked });
     const st = await homeWalkToTelly(ph);
     check("mix3: back in Home, a tap on the telly from the far side starts the walk", st.walking && st.tag === "Watch KrelTV", st);
-    const cores = await ph.ev(() => window.__krelMobile.tapUse.debugTargets().map((t) => [t.tag, Math.round(t.core.w), Math.round(t.core.h)]));
-    check("mix3: every tappable thing in Home keeps its real picture size (none read as a parked 1x1)", cores.length > 5 && cores.every((c) => c[1] > 8 && c[2] > 8), cores.filter((c) => c[1] <= 8 || c[2] <= 8));
+    // (a TileSprite made on a parked picture: the kart track in the Mario Kart clip, R1. It copies its picture when it is
+    // made, so it must be copied again once the picture is back)
+    const kart = await ph.ev(async () => {
+      const g = window.__krel.game;
+      const a = window.__krelMobile.art;
+      const sc = g.scene.getScene("Home");
+      const was = a.isParked("tvc_kart_track");
+      const ts = sc.add.tileSprite(0, 0, 300, 150, "tvc_kart_track").setDepth(-1).setAlpha(0.01);
+      for (let i = 0; i < 40 && a.isParked("tvc_kart_track"); i++) await new Promise((r) => setTimeout(r, 200));
+      await new Promise((r) => setTimeout(r, 300));
+      const c = ts.fillCanvas;
+      const px = c.getContext("2d").getImageData(0, 0, c.width, c.height).data;
+      let n = 0;
+      for (let i = 3; i < px.length; i += 4) if (px[i] > 0) n++;
+      ts.destroy();
+      return { was, opaque: n, of: c.width * c.height };
+    });
+    check("mix3: a tiled picture made while parked (the kart track) shows once it is back (R1)", kart.was && kart.opaque > kart.of * 0.5, kart);
     const done = await tapDone(ph);
     await ph.until(() => window.__krel.active().includes("TV"), null, 8000, "the telly").catch(() => 0);
     check("mix3: ...the walk ends at the telly and uses it (KrelTV opens)", done.st.last.what === "use" && (await ph.active()).includes("TV"), done.st.last);
@@ -6131,8 +6653,25 @@ async function mix3(browser) {
     await ph.touch("touchEnd", []);
     await sleep(300);
     check("mix3: in town the stick stops a tapped walk at once (the stick walks)", !far.err && hb.walking && !ha.walking && ha.last.what === "stick", far.err || { before: hb.walking, after: ha.last });
-    const cull = await ph.ev(() => ({ culled: window.__krelMobile.perf.lastCulled, drawn: window.__krelMobile.perf.lastDrawn }));
-    check("mix3: the town draws with the off-screen skip on (tap to use and culling together)", cull.drawn > 0, cull);
+    const cull = await ph.ev(() => {
+      const sc = window.__krel.game.scene.getScene("Hub");
+      const cam = sc.cameras.main;
+      const v = cam.worldView;
+      const wrong = [];
+      let inView = 0;
+      for (const o of sc.children.list) {
+        if (!o.visible || !o.alpha || typeof o.getBounds !== "function" || typeof o.willRender !== "function") continue;
+        if ((o.scrollFactorX ?? 1) !== 1 || (o.scrollFactorY ?? 1) !== 1) continue;
+        const b = o.getBounds();
+        if (!(b.width > 0 && b.height > 0)) continue;
+        // (well inside the view: the skip only ever drops what is wholly outside it plus a margin)
+        if (b.right < v.x + 4 || b.x > v.right - 4 || b.bottom < v.y + 4 || b.y > v.bottom - 4) continue;
+        inView++;
+        if (!o.willRender(cam)) wrong.push(`${o.type}:${o.texture ? o.texture.key : ""}`);
+      }
+      return { culled: window.__krelMobile.perf.lastCulled, drawn: window.__krelMobile.perf.lastDrawn, inView, wrong: wrong.slice(0, 8) };
+    });
+    check("mix3: the town's off-screen skip runs and never skips a thing on screen", cull.culled > 0 && cull.inView > 10 && cull.wrong.length === 0, cull);
     check("mix3: no page errors", errors.length === 0, errors.slice(0, 3));
   } finally {
     await ctx.close();
@@ -6295,6 +6834,7 @@ async function wave2(browser) {
       ["guide", guide],
       ["optout", optout],
       ["town", town],
+      ["bike", bike],
       ["dungeon", dungeon],
       ["combat", combat],
       ["side", sideRooms],
@@ -6306,6 +6846,7 @@ async function wave2(browser) {
       ["android", android],
       ["tapuse", tapuse],
       ["tapfix", tapfix],
+      ["platfix", platfix],
       ["mix3", mix3],
       ["games", games],
       ["scenes", scenesSection],

@@ -857,7 +857,7 @@ export const DUNGEONS: Record<string, DungeonDef> = {
         ],
         enterLines: [
           { s: "NARRATOR", t: "The Catford Job Centre Plus. A sign says 'NO HOT TUBS'. Somebody has crossed out 'NO'.", dir: true },
-          { s: "SANCHZ", t: "MC Polsonator. Signing on. Big up the Job Centre Plus. YEGHHH." },
+          { s: "SANMIK", t: "Where da fuck is SanChz?", variants: { MIKEY: "Where da fuck is SanChz?" } },
           { s: "NARRATOR", t: "The advisors rise from behind their desks. They have clipboards. They have questions about your availability.", dir: true },
         ],
       },

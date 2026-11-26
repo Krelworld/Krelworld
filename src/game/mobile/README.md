@@ -62,7 +62,7 @@ main.ts ── boot.ts installMobile(game) ──► isMobile()? no → return (
 | `rotate.ts` | The "turn your phone sideways" screen (DOM, so it also covers the first load), with an empty `extra` slot |
 | `css.ts` | All phone CSS, injected at runtime (index.html is never edited) |
 | `combat.ts` | Stage 2: the top-down fights (FIRE with auto-fire and slide-to-aim, DODGE, SWAP, SPECIAL, READY, HEAL, ACTION, the weapon chip, the pocket (💨 / 🍺 / SANMIK), the mash overlay), the hooks it lends the game (`setPhoneHooks`), phone assist, the fight's touch wording |
-| `aim.ts` | Pure: target choice (nearest, stick-biased, sticky, objects as a fallback), snap, lead, auto-fire's "in range, on screen, no barrel by your feet" |
+| `aim.ts` | Pure: target choice (nearest, stick-biased, sticky, objects as a fallback), snap, lead, auto-fire's "in range, on screen, no barrel by your feet"; HOLD's rules: the cone (`CONE_DEG` 35, `CONE_KEEP_DEG` 45, `inCone`), body on screen (`inView`), line of sight (`lineOfSight`, `segHitsRect`) |
 | `combatLogic.ts` | Pure: READY's order, HEAL's rule, tap / hold (`HoldTracker`), SPECIAL's word and fill, the Dungeon's two mode rows |
 | `combatWording.ts` | Pure: the fights' touch wording rows (the weapon picker's how-to line, the first dungeon's how-to-play rows, the finale's inject hint) |
 | `combatCss.ts` | The fight controls' CSS (its own `<style>`, phones only) |
@@ -76,6 +76,7 @@ main.ts ── boot.ts installMobile(game) ──► isMobile()? no → return (
 | `games.ts` / `gamesLogic.ts` | Stage 3 wave 2: every minigame by touch (RuneScape's CHOP / DROP ALL / RE-UP, the crocodile's columns, Flip It's rings, LEAVE / END GIG clear of pause, Whack's buttons out of the strip, the first-time cue, the rhythm lag); the pure part (the minigames' touch wording, `rhythmLag`, the crocodile's columns, RuneScape's buttons) |
 | `storage.ts` | Stage 3: `navigator.storage.persist()` asked quietly (never in Firefox), a save on `freeze`; the boot's download held in an app's own browser until PLAY HERE ANYWAY |
 | `scenes.ts` / `scenesLogic.ts` | Stage 3 wave 2: the special scenes (Night of Freedom's finger aim, ROCKET / SLOPPY; Beep Beep's stick and pedals; the raid's FIRE; skip pills; the finale card's SKIP SCENE; the telly's paged subtitles); the pure rules (aim pull, rocket target, steering, subtitle pages, narrator tips) |
+| `bike.ts` / `bikeLogic.ts` | The bike's RIDE / WALK button in the walking controls (town and the Kreddle Strip); its pure face and show rule |
 | `index.ts` | The phone chunk's `installMobile()`, `mobileLayer()`, `mobileShell()` and re-exports |
 
 ## Deciding phone mode
@@ -190,6 +191,8 @@ Stage 2 part 2 added **no hook in any game file** either. It wraps, once, from t
 | `CharSelectScene.prototype.create` (screens.ts's wrapper) | `screens.ts` | P16: a tap on a face picks it, PLAY AS starts (or a second tap on the same face) |
 | `TitleScene.prototype.askPassword` | `screens.ts` | the Chapter Select password box in the top quarter (above a landscape keyboard), the text box 44 px |
 | the Lair's and RoofCutscene's `create` event | `screens.ts` | "Esc: skip scene" becomes a SKIP SCENE ▸▸ button (the scene's own `finish(true)`, as Esc) |
+| `WhackScene.prototype.attract` (stage 3 fix round, P5) | `screens.ts` | the start card with the bigger text: the multiplier rule (same words, its two sentences run on) in the slot under the right-hand column, a row's points moved right where its name needs the room |
+| `Phaser.Loader.FileTypes.ImageFile.prototype.onProcess`, `game.scene.create` (stage 3 fix round, R2 / R4) | `art.ts` | a parked picture's download goes into the offline copy; the VS card and the finisher close-up wait for their parked pictures |
 
 The pause menu is laid out from whatever buttons it has (two or three columns), so a row another stage adds (the
 combat controls' CONTROLS page) needs nothing here.
@@ -202,7 +205,7 @@ topmost running scene per rule):
 
 | Running scene | Mode | Pause | Live |
 |---|---|---|---|
-| Boot, Enter, Title, CharSelect, Difficulty, Banter, ChapterSelect, DebugSkip, Menu, Slots, WeaponPick, Dialogue, Meeting, Cutscene, Vignette, TV, Archive, KrazyFact, Exile, Ending, Tutorial, Lair, RoofCutscene, KrelCue, `__p3d*` | none | – | – |
+| Boot, Enter, Title, CharSelect, Difficulty, Banter, ChapterSelect, DebugSkip, Menu, Slots, WeaponPick, Dialogue, Meeting, Cutscene, Vignette, TV, Archive, KrazyFact, Exile, Ending, Tutorial, Lair, RoofCutscene, KrelCue, DonutToilet (the Job Centre toilet cutscene, scenes/side/donutToilet.ts), `__p3d*` | none | – | – |
 | Drive (wave 2, `scenes.ts`) | tap, `gunner` while the chase runs: ROCKET / SLOPPY on the layer, the finger on the canvas aims | `menu` | yes |
 | BeepBeep (wave 2, `scenes.ts`) | tap, `pedals` and the `"x"` stick while driving: BOOST / BRAKE / HORN | `menu` | yes |
 | Minigame, Whack, Drive, BeepBeep | tap | `menu` (stage 3: the II and the pause menu) | yes |
@@ -301,26 +304,39 @@ Which thing (`pickTarget`): each thing can be tapped within its picture grown to
 a picture beats near one; among pictures the tap is inside, the smallest wins (the book lying on the bed); among near
 ones, the nearest. A follower at your side (Mikey) only counts when nothing else is there. The player figure is never a
 target (a thing behind the player is tapped through it). The controls win where they are drawn: with a prompt up, a tap
-on ACTION is ACTION even over the console in Home's corner.
+on ACTION's face is ACTION. ACTION's touch area reaches past its face; a still tap there that lands on the picture of a
+thing other than the prompt's (Home's games console in the corner) is that thing's (fix round P2; `passThrough` /
+`onPassTap` on a `TouchControl`), unless that picture is something big the whole button sits on (a wall, the door).
+
+Only a touch that **lands** while the room is walkable can walk or use (fix round P1). The game closes a line, the TV
+and its menus on the finger's down, so by the time that finger lifts the room is walkable again; that same touch used to
+count as a tap on the room (a stray walk, the gun rack or the book opening, the window's line opening again for ever).
+Canvas touches are only recorded when the layer's decision (last frame's) is walking, and every tap carries the time its
+finger landed: one that landed before the scene became walkable (`walkSince`, set when the layer enters "walk") does
+nothing. A still tap in the stick's half puts the faint MOVE ring back where it rests (P3).
 
 Pictures (`tapTargets.ts`): Home's spots by their words → the furniture's texture (`p_tv`, `p_bed`, `p_gunrack`...)
 or a box drawn from the backdrop (the window, the door out, the poster); the town's interactables → the person's
 sprite, or the spot's box joined to the collider it stands at (`standsOn`: a building, so tapping the building enters
-it, a vending machine, the Tap); Kreddle's machines → every image of their texture row; the Club's places → its zones
+it, a vending machine, the Tap); Kreddle's machines → every image of their texture row, and the ARCADE and CASINO
+frontages behind them (P4: tapping the building walks to its machines); the Club's places → its zones
 (the stage is the dancer, the bar, the wonk-off table, the exit, the booth); people → their sprites.
 
 The route (`findPath`): the town only (the other rooms have no colliders, just a floor to clamp to): a 16 px grid over
 the physics world, each collider grown by the player's feet body; A* in 8 directions with no corner cutting, then
 pulled straight where the walker can see ahead. A goal inside a collider (a door's spot under its building) moves to
 the nearest free cell; with no route at all, the walk goes as near as it can and stops (the prompt shows what's there).
-About 1-5 ms on the town; never more than once per tap, plus a re-route when a person walks 24 px or the walker is
-stuck (no nearer by 3 px in 650 ms; twice, then it stops).
+About 1-5 ms on the town (11-63 ms with the CPU 4x slower, the first route building the grid); never more than once per
+tap, plus a re-route when a person walks 24 px or the walker is stuck (no nearer by 3 px in 650 ms; the second and
+later times a 40 px step aside first, P7; after four, it stops). The grid is built once per visit (its colliders do not
+move) and the search reuses one set of buffers, marked by a generation stamp (no garbage per route: R10).
 
 Stops at once: the stick moving past 15% of its travel (the stick takes over), a second tap (re-targets), a
 conversation, a menu, a cutscene or a panel (the mode leaves "walk"), the page hiding, the thing going away, 15 s.
 
 `window.__krelMobile.tapUse`: `state()` (walking, target, tag, path, last: what happened, stats), `debugTargets()`
-(every tappable thing now, world coordinates), `tap(x, y)` (page CSS px). Smoke: `--only tapuse`.
+(every tappable thing now, world coordinates), `tap(x, y, t0?)` (page CSS px; `t0`: when the finger landed),
+`claims(x, y, face?)`. Smoke: `--only tapuse,tapfix`.
 
 ## Fights: the top-down rooms and bosses (`combat.ts`, stage 2 part 1)
 
@@ -368,13 +384,42 @@ With no enemy about, holding FIRE aims at the nearest barrel or crate.
 A red ring sits at the target's feet (orange for an object). Strong aim leads moving targets. Aim assist off: FIRE
 shoots straight ahead (the last stick direction) and slides don't snap; auto-fire still aims at what it shoots.
 
-**Auto-fire** (research M1, on by default for the first device test): only at an enemy in the gun's own range (each
+**HOLD's aim: only what is in front of you** (the default since the user played the auto-fire build: "both auto firing
+and auto aiming. It was so easy"; their choice: "1 and 4", report `ga-08-aim-fix.md`). On every firing style but EASY
+the target must also be (1) within `CONE_DEG` (35°) either side of the way you face, which is the way you last pushed
+the stick (side rooms: the way you last ran); the target already aimed at stays until `CONE_KEEP_DEG` (45°), so one on
+the cone's edge doesn't flicker; and (4) really visible: its body on screen (centre no more than half its radius
+outside the camera's view, `inView`), inside the room's walls (top-down), and no wall, pillar or furniture block (the
+Dungeon's `obstacles` group, read from outside) on the line from you to it (`lineOfSight`). Barrels and crates obey the
+same rules. You aim by turning with the stick; with nothing in front, FIRE shoots straight ahead. While FIRE is held
+(and its 200 ms grace) the target it is on stays locked wherever it goes round you (`lockPrev`), so you can strafe
+and back off while shooting it; it goes when it dies, leaves reach or can't be seen, and the next one is again picked
+only in front. (Without the lock, measured: a player who must keep facing a target walks into it, and the first
+Cafeteria room went from a clear in 32 s to a death; see `ga-08-aim-fix.md`.) A slide on FIRE still
+aims anywhere by hand, and snaps only onto an enemy you can see. EASY keeps the old aim exactly (all round you, centre
+within 16 px of the screen, through pillars, as shots really fly through them).
+
+**Auto-fire** (research M1; Settings > Firing > EASY, off by default since `ga-08`): only at an enemy in the gun's own range (each
 gun's `range`, modded; the Fart Blaster's), on screen, and never through a live barrel within 115 px of you (it would
 blow up in your face). Never at barrels or crates, never a special, never in the mash overlay, the picker, a pause,
 a conversation or a scripted moment, never while golden (the golden attack is a lunging melee: auto-fire never moves
 you). When the gun runs dry the game's own auto-switch runs (and, the first times, SWAP pulses). In a room whose decree
 bans holding the trigger (NO_ATTACK_SPAM, 2.5 s), auto-fire lets go for 160 ms every 2 s, the way a laptop player taps.
 FIRE glows red while auto-fire is shooting and flashes with each shot.
+
+**Firing styles** (Settings > Firing, one row: **HOLD** (the default) / **EASY**; reports `ga-02-autofire.md` and
+`ga-08-aim-fix.md`). HOLD never shoots by itself: hold FIRE and it aims as above (in front of you). EASY (stored as
+`firing: "auto"` with `autoFire: true`) is the stage 2 auto-fire with the old all-round aim. The audit's LIGHT and STILL
+are no longer offered on the row (they only made fights harder and felt broken) but still work when set (the smoke
+test sets them); they use HOLD's aim. Every style keeps FIRE by hand exactly as above (hold = fire with aim assist,
+slide = aim by hand); only what happens with no thumb on FIRE differs: EASY as above; LIGHT waits out the gun's
+cooldown and then 2/3 of it again after each auto shot (`AutoPace`); STILL fires only while the stick rests (under 0.2
+push for 120 ms, not mid-dodge; `StillGate`), in side rooms too; HOLD never. The first fight on HOLD shows a one-time
+toast ("HOLD FIRE TO SHOOT", `FIRE_TIP`, cue `fire-hold` in cues.ts) and FIRE pulses for 4 s. The first dungeon's
+how-to lines (`tut-shoot`, `wildern-controls`) follow the style in force.
+LIGHT, STILL and HOLD give FIRE the 200 ms grace after the thumb lifts. The Controls picture's FIRE line follows the
+style (`fireLine`, combatWording.ts). `combat.snapshot()` adds `autoShooting` (auto-fire shooting this frame, after
+LIGHT's pace and STILL's gate; `autoFiring` is the wish, which FIRE's glow shows), `firing` and `facing` (radians).
 
 **Phone assist** (`phoneAssist`, research S9; numbers in `ASSIST`): pick-ups (coins, ammo, health, Krezz, bottles,
 bongos; never quest items) come to you from 140 world px instead of 90 and faster (0.5 px/ms, 2 px/ms inside 60); a
@@ -410,7 +455,7 @@ SanMik Zone / Catford, the Nu Warehouse trip, the Cuddle Tower and the citadel's
 colon) drops the old canvas pad on a phone. Layout v2: **JUMP** (84, prime corner, touch area to the corner), **FIRE**
 (60) left of it, DODGE / SPECIAL / READY / HEAL / ACTION / the pocket as in top-down rooms, no SWAP button (the weapon
 chip swaps). The stick is `"x"`: left / right only, full speed at 35% of the travel. Aim: the way you face plus
-auto-aim (no slide-aim); auto-fire is the same setting as top-down rooms (on by default).
+auto-aim (no slide-aim; HOLD's cone round the way you face); firing is the same setting as top-down rooms (HOLD by default).
 
 Jump feel on a phone (the Player's side branch asks `phoneHooks().sideMove()` first; gravity, take-off speeds and run
 speed are the game's):
@@ -541,10 +586,12 @@ One typed object, `PhoneSettings`, kept under its own key `storageKey("krelworld
 nothing; a change is saved at once; storage that throws (private mode, full) is survived (the settings then last for the
 visit). `installMobile()` attaches the store before anything lays itself out.
 
-**Only what the player chose is stored** (`{ v: 2, buttonSize: "L" }`, `chosenPhoneSettings()`), never the defaults, so
+**Only what the player chose is stored** (`{ v: 3, buttonSize: "L" }`, `chosenPhoneSettings()`), never the defaults, so
 changing a default in `DEFAULT_PHONE_SETTINGS` later reaches everyone who never chose that setting, whatever else they
 changed; a player who set it themselves keeps their choice. Reset forgets every choice. Version 1 (stage 1 part 2,
 never shipped) stored every field: reading one, only the values that differ from version 1's defaults count as chosen.
+Version 3 (`ga-08`, HOLD became the default): reading an older object, `autoFire: true` and any `firing` but `hold`
+(the old default and the audit's flavours) are not choices, so those phones move to HOLD; `autoFire: false` stays.
 Research S12: when a default changes, tell the player (a one-line toast on the next visit) rather than changing it
 silently.
 
@@ -558,7 +605,8 @@ silently.
 | `readability` | **true** (stage 2) | yes (see below) | "Bigger text": the font floor and the reading sizes |
 | `textSize` | `"normal"` | yes, with readability | `"large"`: every floor x1.25 (labels 13.75, reading 20 CSS px) |
 | `batterySaver` | false | yes | 30 frames a second |
-| `autoFire` | true | yes (top-down fights) | combat fires by itself at an enemy in range, on screen, with no barrel by your feet in the line |
+| `autoFire` | false | yes (fights) | combat fires by itself at an enemy in range, on screen, with no barrel by your feet in the line (EASY). Off by default since `ga-08` (HOLD). No row of its own: the Firing row's HOLD is `autoFire: false`, EASY is `true`, and the row keeps it in step |
+| `firing` | `"auto"` | yes (fights) | Settings > Firing (`fireStyle()`): the auto-fire flavour while `autoFire` is on: `auto` (EASY), `light` (auto-fire at 60% of the gun's pace, `LIGHT_PACE`), `still` (auto-fire only once the stick has rested 120 ms, `StillGate`); `hold` never by itself. `autoFire: false` reads as `hold` whatever this says. The row offers HOLD / EASY only |
 | `aimAssist` | `"normal"` | yes | `off` (FIRE shoots straight ahead, slides don't snap) / `normal` (stick-biased, sticky, 15° snap) / `strong` (stickier, 25° snap, leads moving targets) |
 | `phoneAssist` | true | yes (top-down fights; part 2 adds the jump help) | pick-ups come from further and faster, a dodge's safe window +60 ms, enemy bullets drawn 1.25x |
 | `syncOffsetMs` | 0 | yes (stage 3 wave 2: the crocodile, the burpees) | "Rhythm sync", -300 to 300 ms: + when taps are judged late (added to the sound output delay, `rhythmLag`) |
@@ -870,20 +918,39 @@ size, so a pixel read is blank, never an error) and the GPU holds a 1 x 1 blank.
 Sprite rendering it), asks for it (`textures.get` / `getFrame`, after the boot) or starts an animation on it fetches it
 back (from the browser's cache, decoded off the main thread: 100-800 ms in emulation; it pops in). A 5 s sweep parks
 what nothing has used for 30 s and no game object holds. A lost WebGL context fetches the live ones again. No game file
-changed for it. Measured on the iPhone profile: boot 917 → 309 MB; peak over home, town, a TV show, the Hoard and the
+changed for it.
+
+Fix round 1 (R1-R4): a **TileSprite** copies its picture into its own canvas when it is made, so one made on a parked
+picture (the kart track in the Mario Kart TV clip) is copied again the moment the picture is back (`refreshTiles`; a
+TileSprite's picture is its `displayTexture`, which `held()` now counts). A boss's sheets are one **family**
+(`artLogic.family`): while `bossanim_X` is drawn or held, `bossdie_X`, `bossdown_X`, `bossmove_X` and `kcv_X` are wanted
+and held too, so the kneel at the kill and a stagger never show a blank frame; they park with the room. The **VS card
+and the finisher close-up** (`HOLD_SCENES`) wait, paused and drawn as they are, until their parked pictures are in
+(1.2 s at most; measured 140-300 ms) instead of playing blank. The **offline copy**: the phone keeps the parked
+pictures in CacheStorage (`krel-art-<hash of the art manifest>`, older copies deleted): the loader's own download of
+each goes in as it arrives (a few held at a time, no second download), the rest are read from the browser's cache
+(`force-cache`) a file at a time after the boot (the 5 s sweep tops it up; about 65 MB on disk for 661 files). A parked
+picture in the copy comes back from it, so it works with no signal and never waits on a revalidation; with no signal
+the filling pauses for a minute. A **failed fetch** is retried after 2, 4, 8, 16, then every 30 s (`retryDelay`), never
+on every draw. No CacheStorage (an in-app browser, a private window): no copy, as before. Measured on the iPhone profile: boot 917 → 309 MB; peak over home, town, a TV show, the Hoard and the
 concept boss 953 → 352 MB (`mobile-smoke --only platform` fails above 500). Decoded sound stays about 120 MB.
 
 **Sound (`audio.ts`).** iOS ignores an `<audio>` element's volume and lets an element play only if its first `play()`
 came from a tap; the game makes a new element for every song and every slowed / sped-up voice line. On a phone
-`window.Audio` hands out one of five pooled elements (three songs, two voices) that the first `touchend` / `click`
-started silently; each is routed through its own gain node, and the element's `volume` property sets that gain (the
+`window.Audio` hands out one of six pooled elements (four songs, two voices) that the first `touchend` / `click`
+started silently (fix round R5: four, so a few songs asked for inside one 350 ms fade-out each get an unlocked element;
+a spare made when all are busy is kept for reuse once it has played (then it is unlocked too), the rest are let go with
+their Web Audio nodes disconnected); each is routed through its own gain node, and the element's `volume` property sets that gain (the
 Music / Voice sliders, fades and the dialogue duck all work). The game's listeners on a pooled element are removed when it
 is handed out again. A self-test listens to the first song: five seconds of digital silence through the route switches
 later songs to plain elements (the slider is then on / off through `muted`). The audio session is "playback" (sound with
 the ringer switch off) unless "Play over my music" is on ("ambient"). After the page is shown again the context is
 checked (it must run and its clock must move; otherwise suspend + resume once more; the next tap tries again). A song
 playing that is neither the current one nor fading out is stopped (no double music); a song the pause menu holds stays
-held. `?mobilediag` shows the route, the session, what is playing and the last resume and its reason.
+held. An element that was the current song in the last 1.2 s, or was handed out in the last 1.2 s, is never a stray
+(R8: Synth's fade-out can outlive its `fading` set when a fade-in on the same element ends first). A voice line that
+cannot load or whose `play()` is refused frees its element (R6). Once the route proved silent, voices skip it too (R7).
+`?mobilediag` shows the route, the session, what is playing and the last resume and its reason.
 
 **Frame rate (`perf.ts`).** Top-level Images and Sprites that scroll with the world and sit wholly outside the camera's
 view (plus 96 px) are skipped for that camera (nothing else about them changes). At most 40 blood pools show in a fight
@@ -912,7 +979,8 @@ Hook added in stage 3 (guarded; the laptop fingerprint is unchanged):
 |---|---|---|
 | `src/game/scenes/finale/KrelfordFinale.ts` | `setZoom(isMobile() ? 1 : 0.8)` and `zoomTo(isMobile() ? 1 : 0.8, 10)` (and the flag import) | The audit: zoomed out below 1, everything on a phone's screen is too small |
 
-On a phone `window.__krelMobile` also has `art` (`report()`, `resident()`, `isParked(key)`, `sweep(ms)`), `audio`
+On a phone `window.__krelMobile` also has `art` (`report()` with `offline`, `fromCopy`, `holds`; `resident()`,
+`isParked(key)`, `inCopy(key)`, `sweep(ms)`), `audio`
 (`diag()`, `musicGain()`), `perf` (`lastCulled`, `lastDrawn`, `poolsHidden`, `enabled`) and `storage` (`state`, `held()`).
 
 ## Minigames by touch (`games.ts`, `gamesLogic.ts`): stage 3 wave 2
@@ -1078,6 +1146,23 @@ press", "Is there a pause button?", "The joystick ... can slide all over the scr
   not on menus (they are the pause), and not in the overlay minigames: none of them pauses on a laptop (Whack and
   RuneScape's Esc leaves); stage 3 looks at those.
 
+## The bike (game additions, all versions)
+
+The bike is ordinary game code (it is on laptops too): `systems/bike.ts` (the rules and numbers, and `BIKE`, the state
+the scene you ride in writes every frame), `gfx/Bike.ts` (the sprites round the rider), and small parts of
+`HubScene` / `KreddleScene` (ride, get off), `Controls.bike()` (the key Z, L3 on a pad, `TOUCH.edges` "bike"),
+`keybinds` / `padbinds` (the rebindable key; L3 as a fixed pad row), the tablets' canvas pad (a 🚲 button in town)
+and Synth (`bikebell`, `bikeoff`). On a phone, `bike.ts` here adds one control to walk mode:
+
+| Slot | Control | When | What it does (laptop key) |
+|---|---|---|---|
+| walkBike (60; in 148, up 44: left of ACTION on the thumb's resting line) | **RIDE** (a drawn bike, the word under it); **WALK** and lit red while riding | walk mode, while the scene says there is a bike to get on or off (`bikeAvailable()`: Hub and Kreddle, not busy, no cutscene, no street fight) | get on / off (Z) |
+
+It pulses until pressed once on the phone (`cueSeen("bike")`). The stick steers the bike; tapping a thing to use it
+gets you off first (any use does). The first-time tip ("Press Z to hop on your bike...") is a toast, reworded by the
+`bike-on` / `bike-off` rows of `TOUCH_WORDING`. The Controls picture's WALKING tab has a RIDE line. Smoke section:
+`bike`.
+
 ## Testing
 
 ```sh
@@ -1085,7 +1170,7 @@ npx vitest run tests/mobile tests/desktopNotPhone.test.ts   # flag, modes, layou
 
 npx vite --port 5202 --strictPort &                       # normal build
 VITE_KREL_ALT=1 npx vite --port 5212 --strictPort &       # ALT build
-node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,together,review1,polish,platform,android,tapuse,tapfix,mix3,games,scenes,wave2,desktop]
+node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,bike,dungeon,combat,side,brawl,together,review1,polish,platform,android,tapuse,tapfix,platfix,mix3,games,scenes,wave2,desktop]
 node scripts/mobile-smoke.cjs --url http://localhost:5212/
 # (tapuse: at Home the telly, the book and the gun rack from the far side of the room, the stick stopping a walk, a
 #  second tap re-targeting, the floor, in reach = at once; a person and the Krezz Arms in the town; a Kreddle local;
@@ -1106,8 +1191,12 @@ node scripts/mobile-smoke.cjs --url http://localhost:5212/
 # (together: the two stage 2 tracks at once: bigger text in a fight, a conversation in a fight (pills, no fight
 #  buttons), PHONE SETTINGS live in a fight, pause -> CONTROLS on FIGHTS, the Krezz Arms brawl by tap)
 # (mix3: stage 3 wave 1's two tracks at once: the TV faces parked and fetched back around a tapped walk to the telly,
-#  every tappable thing keeping its real size, the page hidden mid-walk (the walk lets go, the sound resumes once),
-#  the II mid-walk, the stick stopping a routed walk in town with the off-screen skip on)
+#  a tiled picture made while parked showing once it is back, the page hidden mid-walk (the walk lets go, the sound
+#  resumes once), the II mid-walk, the stick stopping a routed walk in town, nothing on screen skipped by the culling)
+# (tapfix: a tap that closes the window's line is never a tap on the room; the console beside ACTION; the MOVE ring
+#  after a still tap; Kreddle's frontages; town routes with the CPU 4x slower; Whack-a-Drongus's card; the archive list)
+# (platfix: a boss's death sheet in with its fighting sheet; the VS card waits for its faces; the offline copy with the
+#  network off (in the copy: back; not: two retries in 3 s); songs in a rush; voice lines that cannot play)
 
 # the laptop must not change (both must end with DESKTOP FINGERPRINT: OK)
 A="--url http://localhost:5202/ --alt-url http://localhost:5212/ --check"

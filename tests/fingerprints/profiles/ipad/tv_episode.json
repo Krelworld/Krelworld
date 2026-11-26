@@ -16,7 +16,7 @@
   {
    "key": "UI",
    "status": "RUNNING",
-   "count": {"top":19,"all":26,"hidden":10,"interactive":3},
+   "count": {"top":19,"all":28,"hidden":12,"interactive":3},
    "cam": {"x":0,"y":0,"w":960,"h":540,"scrollX":0,"scrollY":0,"zoom":[1,1],"bg":"0,0,0,0","roundPixels":true},
    "input": {
     "enabled": true,
@@ -36,7 +36,7 @@
     {"t":"Text","x":68,"y":6,"w":79,"h":14,"o":[0,0],"text":"FLENKY JENKY","font":"Krel Regular 12px","asked":"ui 13px bold","color":"#ffd23f","shadow":"1,1 #000 0"},
     {"t":"Text","x":68,"y":44,"w":0,"h":13,"o":[0,0],"text":"","font":"Krel Regular 11px","asked":"ui 12px","color":"#ffffff","lineSpacing":2,"shadow":"1,1 #000 0"},
     {"t":"Text","x":455,"y":6,"w":114,"h":13,"o":[0.5,0],"text":"CHAPTER 1 · KRELFORD","font":"Krel Regular 11px","asked":"ui 12px","color":"#c9c3e6","shadow":"1,1 #000 0"},
-    {"t":"Container","x":0,"y":0,"w":0,"h":0,"d":900,"n":7,"kids":[
+    {"t":"Container","x":0,"y":0,"w":0,"h":0,"d":900,"n":9,"kids":[
      {"t":"Arc","x":110,"y":430,"w":124,"h":124,"fill":"#ffffff 0.12","line":"#ffffff 0.35 2","r":62},
      {"t":"Arc","x":110,"y":430,"w":56,"h":56,"fill":"#ffffff 0.35","r":28},
      {"t":"Zone","x":0,"y":160,"w":420,"h":380,"o":[0,0],"hit":{"shape":"rect","x":0,"y":0,"w":420,"h":380}},
@@ -117,7 +117,7 @@
       {"t":"Rectangle","x":382.4,"y":144,"w":77.6,"h":139.6,"o":[0,0],"blend":1,"fill":"#60a5fa 0.014"},
       {"t":"Rectangle","x":500,"y":144,"w":77.6,"h":139.6,"o":[0,0],"blend":1,"fill":"#facc15 0"},
       {"t":"Rectangle","x":617.6,"y":144,"w":77.6,"h":139.6,"o":[0,0],"blend":1,"fill":"#ffffff 0"},
-      {"t":"Sprite","x":480,"y":398.6,"w":168.96,"h":169.12,"o":[0.5,1],"s":[1.32,1.321],"tex":"tvanchor_NEWSREADER:0"}
+      {"t":"Sprite","x":480,"y":398.6,"w":168.96,"h":169.1,"o":[0.5,1],"s":[1.32,1.321],"tex":"tvanchor_NEWSREADER:0"}
      ]},
      {"t":"Container","x":0,"y":0,"w":0,"h":0,"n":3,"kids":[
       {"t":"Ellipse","x":313.3,"y":60,"w":160,"h":260,"o":[0.5,0],"a":0.637,"blend":1,"fill":"#bfdbfe 0.03"},
@@ -162,7 +162,7 @@
      {"t":"Text","x":0,"y":14,"w":71,"h":15,"text":"SWITCH OFF","font":"Krel Regular 13px","asked":"ui 14px bold","color":"#ffffff"},
      {"t":"Text","x":0,"y":33,"w":17,"h":12,"text":"Esc","font":"Krel Regular 10px","asked":"ui 10px","color":"#a8a29e"}
     ]},
-    {"t":"Graphics","x":0,"y":0,"d":101,"gfx":{"n":203,"h":"1d7fa5b4"}}
+    {"t":"Graphics","x":0,"y":0,"d":101,"gfx":{"n":203,"h":"3d050db5"}}
    ]
   }
  ],
@@ -231,7 +231,7 @@
    "input": {"gameout":3,"gameover":3,"process":3},
    "textures": {}
   },
-  "textures": 2542,
+  "textures": 2544,
   "anims": 42
  },
  "dom": {

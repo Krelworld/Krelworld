@@ -19,6 +19,16 @@ export type ButtonSize = "S" | "M" | "L";
 export type StickMode = "stays" | "follows" | "fixed";
 export type AimAssist = "off" | "normal" | "strong";
 export type TextSize = "normal" | "large";
+/**
+ * How fights fire on a phone. "hold" (the default since the user played it: "both auto firing and auto aiming. It was
+ * so easy") never shoots by itself: hold FIRE and the game aims at an enemy in front of you (within aim.ts CONE_DEG of
+ * the way you face, on screen, not behind a wall); slide FIRE to aim by hand. "auto" is EASY in Settings: the old
+ * stage 2 way, shooting by itself at any enemy in range and aiming all round you. "light" (auto at a slower pace) and
+ * "still" (auto only while you stand still) came from the auto-fire audit (ga-02); the Settings row no longer offers
+ * them (they only made fights harder and felt broken) but they still work if set. FIRE held works the same in all.
+ */
+export type FireStyle = "auto" | "light" | "still" | "hold";
+export const FIRE_STYLES: readonly FireStyle[] = ["auto", "light", "still", "hold"];
 
 export interface PhoneSettings {
   /** Mirror the thumb controls: stick on the right, buttons on the left. */
@@ -29,8 +39,10 @@ export interface PhoneSettings {
   opacity: number;
   /** Where the stick's base goes: where the thumb lands and stays there, follows the thumb, or one fixed spot. */
   stick: StickMode;
-  /** Combat: fire by itself when auto-aim has an enemy in range (FIRE still works by hand). */
+  /** Combat: fire by itself when auto-aim has an enemy in range (FIRE still works by hand). Off by default: HOLD. */
   autoFire: boolean;
+  /** Combat: the firing style when auto-fire is on (see FireStyle; `autoFire: false` is "hold" whatever this says). */
+  firing: FireStyle;
   /** Combat: off / normal (sticky auto-aim: keeps its target until it dies or leaves range) / strong. */
   aimAssist: AimAssist;
   /** Phone assist: the forgiving touches on top of the difficulty (wider timing, bigger pickup radius, jump help). */
@@ -56,7 +68,10 @@ export const DEFAULT_PHONE_SETTINGS: Readonly<PhoneSettings> = Object.freeze({
   buttonSize: "M",
   opacity: 0.3,
   stick: "stays",
-  autoFire: true,
+  // (HOLD FIRE is the default: auto-fire, EASY in Settings, is a choice; the user found auto-fire with all-round aim
+  // too easy)
+  autoFire: false,
+  firing: "auto",
   aimAssist: "normal",
   phoneAssist: true,
   batterySaver: false,
@@ -87,6 +102,8 @@ export function cleanSetting<K extends PhoneSettingKey>(k: K, v: unknown): Phone
         return v === "floating" ? "stays" : oneOf(v, ["stays", "follows", "fixed"] as const);
       case "aimAssist":
         return oneOf(v, ["off", "normal", "strong"] as const);
+      case "firing":
+        return oneOf(v, FIRE_STYLES);
       case "textSize":
         return oneOf(v, ["normal", "large"] as const);
       case "syncOffsetMs": {
@@ -127,7 +144,7 @@ export function changedKeys(a: PhoneSettings, b: PhoneSettings): PhoneSettingKey
  * whatever else they changed. Version 1 (part 2 of stage 1, never shipped) stored every field: reading one, only the
  * values that differ from version 1's defaults count as chosen.
  */
-export const PHONE_SETTINGS_VERSION = 2;
+export const PHONE_SETTINGS_VERSION = 3;
 
 /** The defaults version 1 was written with (a copy: DEFAULT_PHONE_SETTINGS may change later; this must not). */
 const V1_DEFAULTS: Readonly<Record<PhoneSettingKey, unknown>> = Object.freeze({
@@ -136,6 +153,7 @@ const V1_DEFAULTS: Readonly<Record<PhoneSettingKey, unknown>> = Object.freeze({
   opacity: 0.3,
   stick: "floating",
   autoFire: true,
+  firing: "auto",
   aimAssist: "normal",
   phoneAssist: true,
   batterySaver: false,
@@ -159,9 +177,17 @@ export function chosenFromStored(raw: unknown): Partial<PhoneSettings> {
     if (r.v === 1 && v === V1_DEFAULTS[k]) continue;
     // (the old default stick, "floating", stored by a version that kept it as a choice: it follows the new default)
     if (k === "stick" && r[k] === "floating") continue;
+    // (before version 3 auto-fire was the default: "on", and the auto-fire flavours, follow the new default, HOLD;
+    // a phone that had turned auto-fire off was on HOLD already and stays there)
+    if (version(r) < 3 && ((k === "autoFire" && v === true) || (k === "firing" && v !== "hold"))) continue;
     out[k] = v;
   }
   return out as Partial<PhoneSettings>;
+}
+
+/** A stored object's version (an object without one is version 1, the first that was ever stored). */
+function version(r: Record<string, unknown>): number {
+  return typeof r.v === "number" && Number.isFinite(r.v) ? r.v : 1;
 }
 
 /** Where the settings live between visits. */
@@ -327,6 +353,10 @@ interface SpecBase<K extends PhoneSettingKey> {
   group: SettingGroup;
   /** Does changing it do something yet? (Stage 2/3 flip this when they wire the feature; a screen may hide the rest.) */
   live: boolean;
+  /** The value the row shows, when it is worked out from more than its own key (Firing: `autoFire` off reads HOLD). */
+  read?: (s: Readonly<PhoneSettings>) => PhoneSettings[PhoneSettingKey];
+  /** Other settings a choice on this row also sets (Firing keeps `autoFire` in step). */
+  also?: (v: PhoneSettings[PhoneSettingKey]) => Partial<PhoneSettings>;
 }
 
 export type SettingSpec =
@@ -341,7 +371,17 @@ export const PHONE_SETTINGS: SettingSpec[] = [
   { key: "opacity", type: "slider", group: "controls", live: true, label: "Button visibility", help: "How see-through the buttons are.", min: 0.2, max: 0.8, step: 0.1, unit: "%" },
   { key: "stick", type: "choice", group: "controls", live: true, label: "Stick", help: "Stays where your thumb lands, follows your thumb, or one fixed spot.", options: [{ value: "stays", label: "STAYS" }, { value: "follows", label: "FOLLOWS" }, { value: "fixed", label: "FIXED" }] },
   { key: "haptics", type: "toggle", group: "controls", live: true, label: "Vibration", help: "A little buzz on presses (Android only)." },
-  { key: "autoFire", type: "toggle", group: "combat", live: true, label: "Auto-fire", help: "Shoots by itself when an enemy is in range." },
+  {
+    key: "firing",
+    type: "choice",
+    group: "combat",
+    live: true,
+    label: "Firing",
+    help: "HOLD: you hold FIRE. EASY: it shoots for you.",
+    options: [{ value: "hold", label: "HOLD" }, { value: "auto", label: "EASY" }],
+    read: (s) => fireStyle(s),
+    also: (v) => ({ autoFire: v !== "hold" }),
+  },
   { key: "aimAssist", type: "choice", group: "combat", live: true, label: "Aim assist", help: "How much the game aims for you.", options: [{ value: "off", label: "OFF" }, { value: "normal", label: "NORMAL" }, { value: "strong", label: "STRONG" }] },
   { key: "phoneAssist", type: "toggle", group: "combat", live: true, label: "Phone assist", help: "Picks things up for you; kinder dodges and jumps." },
   { key: "readability", type: "toggle", group: "display", live: true, label: "Bigger text", help: "Bigger words in menus and conversations." },
@@ -357,7 +397,12 @@ export type PhoneSettingEntry = SettingSpec & { get(): PhoneSettings[PhoneSettin
 export function phoneSettingsList(): PhoneSettingEntry[] {
   return PHONE_SETTINGS.map((spec) => ({
     ...spec,
-    get: () => current[spec.key],
-    set: (v: PhoneSettings[PhoneSettingKey]) => updatePhoneSettings({ [spec.key]: v } as Partial<PhoneSettings>),
+    get: () => (spec.read ? spec.read(current) : current[spec.key]),
+    set: (v: PhoneSettings[PhoneSettingKey]) => updatePhoneSettings({ [spec.key]: v, ...(spec.also?.(v) ?? {}) } as Partial<PhoneSettings>),
   }));
+}
+
+/** The firing style in force: `autoFire` off (the stage 2 toggle, still honoured) is HOLD whatever `firing` says. */
+export function fireStyle(s: Pick<PhoneSettings, "autoFire" | "firing"> = current): FireStyle {
+  return s.autoFire === false ? "hold" : s.firing;
 }

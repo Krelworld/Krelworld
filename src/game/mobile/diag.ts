@@ -150,7 +150,7 @@ export class DiagOverlay {
     const a = this.extras.art?.();
     if (!a) return "";
     const s = a.stats;
-    return ` · parked ${s.parked} (~${mb(s.savedBytes)} saved) · back ${s.streamed}, slowest ${s.slowestMs} ms${s.failed ? ` · failed ${s.failed}` : ""}`;
+    return ` · parked ${s.parked} (~${mb(s.savedBytes)} saved) · back ${s.streamed}, slowest ${s.slowestMs} ms${s.failed ? ` · failed ${s.failed}` : ""} · offline copy ${s.offline.state === "off" ? "off" : `${s.offline.stored}/${s.offline.total}`}`;
   }
 
   private audioLines(): string[] {

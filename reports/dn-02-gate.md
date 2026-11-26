@@ -49,4 +49,13 @@ PASS for the feature (see the smoke section for the phone smoke result).
 4. Eyes are behind his shades (as the builder says); the open mouth and blush carry the moan.
 
 ## Phone smoke
-SMOKE_RESULT_PLACEHOLDER
+- main, full: **440 of 441**. The one failure is review1 **P2** (pit with the stick held: 4-5 falls). A `--only review1`
+  rerun failed it again (4 falls). This is pre-existing and unrelated: s3-review-laptop's base run, s3-games, s3-perf and
+  s3-scenes fail it too (see the s3 reports). It is a side-room pit test, and the toilet/combat.ts change does not run
+  in it.
+- ALT, full: **439 of 441**. The failures are coyote (a timing check) and the same P2. A `--only side` rerun passed 21 of 21.
+  The `lists` crash the builder hit did not come back; the whole run completed.
+- So the phone smoke is not fully green, only because of the known P2. Nothing in the smoke points at this change.
+
+Logs: /tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/mobile/work/donut-review/ (fp1, fp2,
+prof, sm-main, sm-alt). Probe: rev.cjs there. Shots: mobile/shots/donut-review/. Servers stopped; worktree clean.

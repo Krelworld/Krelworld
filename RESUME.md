@@ -202,3 +202,10 @@ To resume: `Workflow({scriptPath: "<script>", resumeFromRunId: "wf_574a5950-314"
   session_01VMaYe3QBTD6c23kmufj59J on branch s3-wave2 (from s3-games 8ab9690f). It messages back here when gated.
   Then: merge origin/s3-wave2 (and s3-tap final, game-adds, aim, donut) at publish time, run the full check once, push.
   Stage 4 can also go to a child session.
+
+## 10:50 UTC update
+- aim: fix done (HOLD + 35° cone, lock while FIRE held); AIM-1 boss-name overlap fixed by coordinator f338e373 (phone-only scale + short tag; shots mobile/shots/aim-regate/fixed/). Ready.
+- donut: gate PASSED (dn-02-gate.md). Coordinator room change 0c7f61ba (no SanChz until scene, SanMik "Where da fuck is SanChz?", Signing-on line removed); verified in browser (check: mobile/work/donut-room/check.cjs). donut ff'd to 0c7f61ba.
+- bundle-wt / branch `bundle` = mobile + donut (incl. game-adds 4b8355bd) + aim, tsc clean. Redo when game-adds gate (wwb7ethuw) finishes (it may add commits). Merge messages need the footer (redo with -m).
+- Still running: wave1 final gate (wc5mur9si), game-adds gate (wwb7ethuw). Child session for wave 2.
+- Publish order: wave1 (s3-tap + mobile) first, then bundle merged on top; full check ONCE per publish; re-record baselines only for all-version features (bike already 4b8355bd; check whether donut-room changed any fingerprint state).

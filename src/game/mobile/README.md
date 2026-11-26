@@ -54,7 +54,7 @@ main.ts ── boot.ts installMobile(game) ──► isMobile()? no → return (
 | `diag.ts` | `?mobilediag`: a small read-out for checking a real phone (fps, texture and sound memory, sizes, insets, mode, why, last error) |
 | `haptics.ts` | A short buzz on presses where the phone can (Android), behind the Vibration setting |
 | `battery.ts` | Battery saver: the loop capped at 30 frames a second, live |
-| `layout.ts` | Pure layout maths: slots, scale, safe area, Dynamic Island band, hit areas, stick zone and stick maths |
+| `layout.ts` | Pure layout maths: slots, scale, safe area, Dynamic Island band, hit areas, stick zone and stick maths; the fight cluster (`fightCluster`, s4b) |
 | `modes.ts` | Pure: `LayerMode`, `GameView`, `ModeDecision`, the scene table `SCENE_RULES`, `resolveMode()`, `verbFromPrompt()` |
 | `observe.ts` | Reads the live game (per-scene adapters: busy, prompt, side, raid/rout) and acts on it (interact, pause, SanMik) |
 | `touchLayer.ts` | The DOM layer: floating stick, `TouchControl` / `addControl()` (ACTION, pause, SANMIK, fullscreen offer are built on it), prompt bubble and target taps, see-through, tap hand-over, `registerModeController()` |
@@ -344,22 +344,23 @@ conversation, a menu, a cutscene or a panel (the mode leaves "walk"), the page h
 
 The old twelve-button canvas pad is gone from phone fights in top-down rooms and boss rooms (tablets keep it; the
 `androidtab` fingerprint profile pins that). The left thumb has the town's floating stick (left 45%, the black gutter
-included, P9). The right thumb has research "layout v2" (offsets from the bottom-right safe corner, scaled by
-`clamp(h / 390)` x S/M/L, mirrored for left-handed play):
+included, P9). The right thumb has a compact grid in the bottom-right safe corner (s4b, `fightCluster` in layout.ts;
+it was research "layout v2", whose pocket and ACTION had crept 206 to 286 px in), scaled by `clamp(h / 390)` x S/M/L,
+mirrored for left-handed play; see "The fight cluster" below for the cells:
 
 | Slot | Control | When | What it does (laptop key) |
 |---|---|---|---|
-| prime (84) | **FIRE** (crosshair) | always | hold = fire (J / left mouse), on touch-down; slide 24 px+ = aim by hand along the slide, snapping onto an enemy within 15° (25° strong), with an aim line; with auto-fire off the stream carries on 200 ms after the thumb lifts. Its touch area runs to the screen's corner |
-| upLeft (60) | **DODGE** | always | dodge where the stick points (Space) |
-| left (60) | **SWAP** | when there is more than one weapon with ammo | tap = next gun (X), hold 300 ms = the slow-motion weapon picker: slide onto a gun and let go; let go elsewhere and it stays up for a tap, with CLOSE where FIRE was. A thumb that moves 12 px before 300 ms cancels |
-| up (60) | **SPECIAL** (the lad's word: DASH, LOAN, NEWS, OMEN, TURRET, KRUNCH, LURK, SLAM, NUKE; HEADBUTT in the troll fight) | only while it would go (enough Krezz, no decree against it); pops in, pulsing the first 2 times | the character special (F / right mouse) |
-| ready (60) | **READY** (gold, pops in) | a meter ability is ready | WONK! (R) when the WONK meter is full, then GOLD (T, golden juice drunk), IBS! (G at level 4); while golden, CUME (C). Never relabelled under a thumb; ignores presses for 300 ms after a new word |
-| heal (56) | **HEAL** (pops in, with the count) | a drink would heal (hurt, juice to drink, healing allowed); red and pulsing (the first 2 times) under 40% | pussy juice (Q) |
-| combatAction (56) | **ACTION** (the verb) | a prompt is up | interact (E); tapping the prompt over your head works too |
+| corner (84) | **FIRE** (crosshair) | always | hold = fire (J / left mouse), on touch-down; slide 24 px+ = aim by hand along the slide, snapping onto an enemy within 15° (25° strong), with an aim line; with auto-fire off the stream carries on 200 ms after the thumb lifts. Its touch area runs to the screen's corner |
+| c1r1 (60) | **DODGE** | always | dodge where the stick points (Space) |
+| b1, left of FIRE (60) | **SWAP** | when there is more than one weapon with ammo | tap = next gun (X), hold 300 ms = the slow-motion weapon picker: slide onto a gun and let go; let go elsewhere and it stays up for a tap, with CLOSE where FIRE was. A thumb that moves 12 px before 300 ms cancels |
+| c0r1, above FIRE (60) | **SPECIAL** (the lad's word: DASH, LOAN, NEWS, OMEN, TURRET, KRUNCH, LURK, SLAM, NUKE; HEADBUTT in the troll fight) | while it would go (enough Krezz, no decree against it), and while it recharges after a use (s4b: dimmed, a ring filling round it); pops in, pulsing the first 2 times; the first time a lad's special shows on a phone, a toast says what it does | the character special (F / right mouse); a tap that can't go floats "Recharging… Ns" or "Not enough Krezz (needs N)" |
+| c0r2 (60) | **READY** (gold, pops in) | a meter ability is ready | WONK! (R) when the WONK meter is full, then GOLD (T, golden juice drunk), IBS! (G at level 4); while golden, CUME (C). Never relabelled under a thumb; ignores presses for 300 ms after a new word |
+| c1r2 (60) | **HEAL** (pops in, with the count) | a drink would heal (hurt, juice to drink, healing allowed); red and pulsing (the first 2 times) under 40% | pussy juice (Q) |
+| c2r1 (60) | **ACTION** (the verb) | a prompt is up | interact (E); tapping the prompt over your head works too |
 | top, 24 px left of pause (140x44) | **weapon chip** (icon, name, ammo) | always | tap = next gun, hold = the picker (same as SWAP; its touch area reaches the top edge) |
-| pocketFart (60, in 206 / up 186) | **💨** with its level (FAIRY / BEANS / CABBAGE) | fart level 1 to 3 (at 4 READY says IBS!) | let one rip (G) |
-| pocketBongo (60, in 206 / up 266) | **🍺 BONGO** with the count | a bongo to drink | fizzy bongo (B) |
-| pocketSanmik (60, in 286 / up 226) | **SANMIK** | as Mikey, when the game lets you change | Mikey ⇄ SanMik (V) |
+| the pocket's 1st free cell (60) | **💨** FART | fart level 1 to 3 (at 4 READY says IBS!) | let one rip (G) |
+| the 2nd (60) | **🍺 BONGO** with the count | a bongo to drink | fizzy bongo (B) |
+| the 3rd (60) | **SANMIK** | as Mikey, when the game lets you change | Mikey ⇄ SanMik (V) |
 | the whole screen | the **mash overlay** | the WONK YOUR THANG gauge or the roof's group wonk is up (`mash`) | every finger anywhere is a press (R / Space / click); the buttons hide meanwhile |
 
 The cluster shares its touches (research M3): every control's element reaches `GAP_REACH` (20) px past its drawing; a
@@ -371,8 +372,8 @@ its mode has moved on; then it hides. Pop-ins (SWAP, READY, HEAL, ACTION, the po
 **The pocket** (thumb-feel round, the user: "the specials, when they do activate, are tiny to press"): the fart, the
 fizzy bongo and the SanMik change were 32 px chips under the health bars, top left, out of the right thumb's reach. They
 are now full-size round buttons (60 px drawn at 844x390, never under 52; 100 px touch areas), each in its own fixed
-place at the cluster's upper left, part of the cluster's shared touch surface, shown only while they can be used (the
-calm-screen rule). The juice chip is gone: HEAL is the one button for the juice, up whenever a drink would heal
+cell of the cluster (s4b: the free cells nearest the edge), part of the cluster's shared touch surface, shown only while
+they can be used (the calm-screen rule). The juice chip is gone: HEAL is the one button for the juice, up whenever a drink would heal
 (`healShown`), red under 40% (`healWanted`).
 During a long freeze (more than 400 ms of hit-stop left: the golden transformation's cut-in, a boss's phase break) the
 fight buttons hide rather than queue presses for afterwards; the short hit-stops of a fight don't count. SANMIK is
@@ -451,6 +452,66 @@ control tips" below.
 
 `window.__krelMobile.combat`: `snapshot()` (target, aim, manual / snapped, autoFiring, fireHeld, ready, heal, picker,
 mash, mashPresses, taught) and `resetTeaching()`.
+
+### The fight cluster (s4b)
+
+The user, on an iPhone in the Wildern Cafeteria: "Do you think it's good that the buttons can start creeping to the
+centre of the screen?" No: with SANMIK, FART / BONGO, HEAL, READY, SPECIAL, DODGE, SWAP and FIRE all up, the pocket and
+ACTION sat 206 to 286 px in from the edge, over the middle of the fight. `fightCluster(vp, settings, shown, keepOut)`
+(layout.ts, pure) now places every fight button in three tight columns hugging the safe corner (mirrored
+left-handed). At 844x390 (centres, px in from the safe edge / up from the safe bottom):
+
+```
+          col 2       col 1       col 0
+                      FART        .            column 0's top is under pause: no cell there
+          [spare]     116,253
+          188,234                 READY 44,208
+          SANMIK      HEAL
+          188,162     116,181     SPECIAL 44,136
+                      DODGE
+          ACTION      116,109
+          188,90             SWAP 136,40    FIRE 52,52 (84 px)
+```
+
+- **Columns**: 60 px buttons (x scale, never under 52), 12 px between drawings (research M5; x scale above 1), column
+  0's centre 44 px in (and clear of the Dynamic Island band). Each column starts as low as FIRE and the cell left of
+  FIRE allow, 12 px clear, and stacks upward a pitch at a time while the cell stays clear of the keep-out. SWAP (side
+  rooms: FIRE) is the cell left of FIRE.
+- **Reach**: no cell's centre is more than `FIGHT_REACH` (200 px at scale 1, x the drawn size elsewhere) from the safe
+  edge on the thumb's side; at 844x390 the furthest is 188 px. At size M every phone size checked (844x390 with
+  47/47/21, 740x360, 750x340, 932x430 with 59/59/21; left-handed too) has a full-size cell for everything that can be
+  up at once (eight besides FIRE: a fizzy bongo only shows while HEAL doesn't).
+- **Keep-out**: a cell's drawing never reaches into `keepOut`: right-handed, the touch areas of pause, the weapon chip
+  (`weaponChip`) and Android's fullscreen offer; left-handed, the HUD's top-left block (`hudKeepOut`: the face, name,
+  bars, KREZZ / WONK, and one line of the status line, more if it has them). The top cells' shared touch area stops
+  under pause and the chip (`Placed.clipTop`), so their own touch areas stay theirs. Pause and the chip never move.
+- **Stable**: every button has a fixed home (`FIGHT_HOMES`); FART and SANMIK (`POCKET_HOMES`) have the cells left over,
+  nearest the edge first; BONGO's home is HEAL's (one drink button, one place). Nothing moves when another button comes
+  or goes.
+- **More buttons than cells** (size L on a short screen): a fixed button without a home takes a free cell nearest the
+  edge; the pocket's buttons are drawn at `POCKET_MIN` (44 px, a 64 px touch area) in the gaps the others leave, nearest
+  the edge, never further in than the reach (12 px clear where there is room, closer only as the last resort).
+- combat.ts works the cluster out only when the buttons that are up, the screen or the keep-out change (`relayout`),
+  before showing them, so a button popping in lands in its place. The Controls picture draws the homes
+  (`combatControls().home(role)`). Tests: `tests/mobileCluster.test.ts`; smoke `--only cluster` (all four phone
+  sizes, small text, left-handed, a side room; `--cluster iphone` for one phone).
+
+**SPECIAL's feedback** (s4b; the user tapped NUKE and "nothing happened", and didn't know what it does). Read the way
+the game reads it (`specialState`: the signature's cost with `specialCost`'s discounts, the Player's `specialCd`, its
+`noSpecialUntil`), nothing in the game changed:
+
+- While it recharges after a use, SPECIAL stays up (`specialShown`), dimmed, with a ring filling round its edge (a CSS
+  animation started once per recharge, put right if the game's clock drifts from it, as in SWAP's slow motion), and
+  flashes when it is ready again. Recharged but without the Krezz, it goes (the calm screen).
+- A tap that can't go floats a short word up from the button (`specialTapCue`): "Not enough Krezz (needs 40)" first
+  (waiting won't fix that), else "Recharging… 4s". HEADBUTT and a decree say nothing (the game says the decree itself).
+- The first time a lad's special shows on this phone, a toast says what it does (`specialTip`, UI text from the
+  signature: its name, the first sentence of the description, or two when the first is very short, with "cursor"
+  reworded, and its real cost): "NUKE / Nuclear Option: Carpet bomb the area where you're aiming. 40 Krezz."
+  Remembered per special in the phone's cue store (`cues.ts`, `storageKey("krelworld.phone.cues")`, id
+  `special:<signature id>`).
+- `combat.snapshot()` adds `specialCooling` (0..1) and `specialCue`. Tests: `tests/mobileSpecial.test.ts`; smoke
+  `--only cluster --cluster iphone`.
 
 ## Side rooms, the brawl, finishers, a controller (stage 2 part 2)
 
@@ -571,6 +632,15 @@ Android camera cutout (16-40), so SPECIAL is never pushed onto DODGE nor READY o
 - Visible again: wake, resume the sound (the context is suspended then resumed 150 ms later: iPhone's "running but
   silent" bug).
 - `visualViewport` / window resize / orientation: debounced `game.scale.refresh()` and a re-layout.
+- **The fit, checked again** (s4b; a home-screen launch on an iPhone once drew the game in a smaller box with a black
+  strip along the bottom, until something re-laid the page): at `REFIT_MS` (0, 250, 750, 1500 ms) after launch, a
+  resize or rotation, `pageshow` and the page coming back, and whenever the visual viewport differs from what the
+  canvas was last fitted to (compared every `FIT_CHECK_MS`, 500 ms, while the game runs), the shell measures and puts
+  right only what is wrong (no flicker): a `#game` box short of the screen (`boxStale`: 100dvh worked out too early)
+  takes `innerHeight` in px and follows it from then on; a canvas fitted to an old box (`fitStale`, or Phaser's
+  `parentSize` not the box) is measured again (`getParentBounds()`: `refresh()` alone keeps Phaser's old idea of the
+  box) and refreshed, and the touch layer lays itself out again. `shellState().refits` counts the checks and fixes.
+  Tests: `tests/mobileRefit.test.ts`; smoke `--only cluster --cluster iphone`.
 - Android: the Enter gate acts on touch-down and fades for 650 ms; the shell notes the touches that began on the gate
   and asks for fullscreen on `#game` in that touch's touchend wherever it ends (a press held past the fade still counts),
   and locks `"landscape"` (both ways round). `game.scale.fullscreenTarget` is `#game` so the layer stays visible.
@@ -898,7 +968,7 @@ potential special even when they're not active". The rule now (`combatLogic.ts`,
   SPECIAL (enough Krezz for it, no decree against it: `specialWanted`, with the game's own discounts in `specialCost`),
   READY (a meter ability is ready), HEAL (a drink would heal: `healShown`; red under 40%), ACTION (a prompt), and the
   pocket (thumb-feel round): 🍺 (a bongo to drink), 💨 (level 1 to 3; IBS is READY's), SANMIK (as Mikey, when the game
-  lets you change), full-size buttons at the cluster's upper left.
+  lets you change), full-size buttons in the cluster's free cells nearest the edge (s4b).
 - **Names, not captions** (N1): the first-fights words live inside the icon buttons; the brawl's buttons carry their
   word; no fight control has a caption under it, so nothing can print on a neighbour, the HUD or the home-indicator
   strip at any size, side or setting.
@@ -1209,11 +1279,11 @@ Smoke: `--only s4` (parts with `--s4 posse,layout,back,wonk,tv`).
 ## Testing
 
 ```sh
-npx vitest run tests/mobile tests/desktopNotPhone.test.ts   # flag, modes, layout, settings, readability, wording, home screen + diag, combat, jump; dialogue (pills, AUTO, choices, Back, page size, narrator tips, settings page, idle stick), lists (paging, reorder, boxes of ammo, character select, the wording sweep); the not-a-phone devices
+npx vitest run tests/mobile tests/desktopNotPhone.test.ts   # flag, modes, layout, the fight cluster, SPECIAL's feedback, the re-fit, settings, readability, wording, home screen + diag, combat, jump; dialogue (pills, AUTO, choices, Back, page size, narrator tips, settings page, idle stick), lists (paging, reorder, boxes of ammo, character select, the wording sweep); the not-a-phone devices
 
 npx vite --port 5202 --strictPort &                       # normal build
 VITE_KREL_ALT=1 npx vite --port 5212 --strictPort &       # ALT build
-node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,bike,dungeon,combat,side,brawl,together,review1,polish,platform,android,tapuse,tapfix,platfix,mix3,games,scenes,wave2,desktop]
+node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,bike,dungeon,combat,side,brawl,together,review1,polish,platform,android,tapuse,tapfix,platfix,mix3,games,scenes,wave2,s4,cluster,desktop]
 node scripts/mobile-smoke.cjs --url http://localhost:5212/
 # (tapuse: at Home the telly, the book and the gun rack from the far side of the room, the stick stopping a walk, a
 #  second tap re-targeting, the floor, in reach = at once; a person and the Krezz Arms in the town; a Kreddle local;
@@ -1229,6 +1299,9 @@ node scripts/mobile-smoke.cjs --url http://localhost:5212/
 #  mid-game and back to its pause menu, RESUME by touch; the phone mix in that minigame and a TV show; a fight's stick
 #  base where the thumb landed and its 60 px pocket buttons)
 # tests/mobileWordingScan.test.ts: no touch-wording rule may match any character line in the game
+# (cluster: every fight button up at once at four phone sizes, small text, left-handed and a side room: all within 200 px
+#  of the edge, none on another, pause and the chip clear, places kept; SPECIAL's recharge ring, its two floating words
+#  and its first-time toast; the fit put right after pageshow)
 # (platform: the sound route and the Music setting, the phone mix (wiring, sliders, peak under -1 dBFS), resume after a hidden page, one song at a time, the texture ceiling
 #  over six scenes, pause in a minigame and the finale, the in-app download hold; tests/mobilePlatform.test.ts the rules)
 # (together: the two stage 2 tracks at once: bigger text in a fight, a conversation in a fight (pills, no fight

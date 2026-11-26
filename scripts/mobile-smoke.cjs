@@ -2,7 +2,7 @@
 // PHONE MODE smoke test (Playwright, real touch events). Needs a running dev server.
 //
 //   npx vite --port 5202 --strictPort &
-//   node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,bike,dungeon,combat,side,brawl,together,review1,polish,platform,android,tapuse,scenes,desktop]
+//   node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,bike,dungeon,combat,side,brawl,together,review1,polish,platform,android,tapuse,scenes,s4,cluster,desktop]
 //
 // phone    iPhone 14 landscape (844x390, DPR 3, touch, mobile Safari UA). Boots by taps, starts a new game by taps,
 //          clears the welcome at home by taps, then checks: the idle stick and pause are up; a drag moves the player
@@ -115,7 +115,9 @@ const SHOTS = arg("--shots", "");
 // (the s4 section's parts, for a quicker look at one: --s4 posse,back,wonk,tv,...)
 const S4PART = (arg("--s4", "") || "").split(",").filter(Boolean);
 const s4part = (p) => !S4PART.length || S4PART.includes(p);
-const ONLY = (arg("--only", "phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,bike,dungeon,combat,side,brawl,together,review1,polish,platform,android,tapuse,tapfix,platfix,mix3,games,scenes,wave2,s4,desktop") || "").split(",").filter(Boolean);
+// (the cluster section's phones, for a quicker look at one: --cluster iphone,android,safari-bars,bigphone)
+const CLUSTERPART = (arg("--cluster", "") || "").split(",").filter(Boolean);
+const ONLY = (arg("--only", "phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,bike,dungeon,combat,side,brawl,together,review1,polish,platform,android,tapuse,tapfix,platfix,mix3,games,scenes,wave2,s4,cluster,desktop") || "").split(",").filter(Boolean);
 const IOS_UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1";
 const IPHONE = { viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, userAgent: IOS_UA };
 const DESKTOP = { viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1, hasTouch: false, isMobile: false };
@@ -4267,21 +4269,41 @@ function measureScreen(ph) {
 const overlap = (a, b, pad = 0) => a.x < b.x + b.w - pad && b.x < a.x + a.w - pad && a.y < b.y + b.h - pad && b.y < a.y + a.h - pad;
 const inside = (a, b, pad = 1) => a.x >= b.x - pad && a.y >= b.y - pad && a.x + a.w <= b.x + b.w + pad && a.y + a.h <= b.y + b.h + pad;
 
+/** A caption or word (a rectangle) on a control's face (a circle when round). */
+const rectInFace = (r, face) => (isRound(face) ? rectInCircle(r, face) : overlap(r, face));
+/** A round control's face (as wide as tall) is a circle; anything else a rectangle. */
+const isRound = (r) => Math.abs(r.w - r.h) < 1;
+/** Does a rectangle reach into a circle by more than `pad` px? */
+const rectInCircle = (r, c, pad = 0) => {
+  const cx = c.x + c.w / 2;
+  const cy = c.y + c.h / 2;
+  const dx = Math.max(r.x - cx, 0, cx - (r.x + r.w));
+  const dy = Math.max(r.y - cy, 0, cy - (r.y + r.h));
+  return Math.hypot(dx, dy) < c.w / 2 - pad;
+};
+/** Do two drawings overlap (by more than `pad`)? Round faces are circles (a diagonal neighbour's corner is not it). */
+const shapesOverlap = (a, b, pad = 0) => {
+  if (isRound(a) && isRound(b)) return Math.hypot(a.x + a.w / 2 - b.x - b.w / 2, a.y + a.h / 2 - b.y - b.h / 2) < a.w / 2 + b.w / 2 - pad;
+  if (isRound(b)) return rectInCircle(a, b, pad);
+  if (isRound(a)) return rectInCircle(b, a, pad);
+  return overlap(a, b, pad);
+};
+
 /** No caption over another caption, a control, or the HUD; words inside their own faces; no two faces on each other. */
 function collisions(m) {
   const out = [];
   for (const c of m.caps) {
-    for (const o of m.controls) if (o.id !== c.id && overlap(c.r, o.face)) out.push(`caption ${c.id}:${c.text} on ${o.id}`);
+    for (const o of m.controls) if (o.id !== c.id && rectInFace(c.r, o.face)) out.push(`caption ${c.id}:${c.text} on ${o.id}`);
     for (const o of m.caps) if (o !== c && overlap(c.r, o.r)) out.push(`caption ${c.id} on caption ${o.id}`);
     for (const h of m.hud) if (overlap(c.r, h.r)) out.push(`caption ${c.id} on HUD ${h.id}`);
     if (c.r.y + c.r.h > m.vp.h || c.r.x < 0 || c.r.x + c.r.w > m.vp.w) out.push(`caption ${c.id} off screen`);
   }
   for (const w of m.words) {
     if (!inside(w.r, w.face)) out.push(`word ${w.id}:${w.text} outside its button`);
-    for (const o of m.controls) if (o.id !== w.id && overlap(w.r, o.face)) out.push(`word ${w.id} on ${o.id}`);
+    for (const o of m.controls) if (o.id !== w.id && rectInFace(w.r, o.face)) out.push(`word ${w.id} on ${o.id}`);
   }
   for (let i = 0; i < m.controls.length; i++)
-    for (let j = i + 1; j < m.controls.length; j++) if (overlap(m.controls[i].face, m.controls[j].face, 1)) out.push(`${m.controls[i].id} on ${m.controls[j].id}`);
+    for (let j = i + 1; j < m.controls.length; j++) if (shapesOverlap(m.controls[i].face, m.controls[j].face, 1)) out.push(`${m.controls[i].id} on ${m.controls[j].id}`);
   return out;
 }
 
@@ -7102,6 +7124,233 @@ async function s4fix(browser) {
   }
 }
 
+// ------------------------------------------------------------------ the fight cluster hugs the right edge (s4b)
+
+/**
+ * The fit, checked again (s4b; a home-screen launch once drew the game in a smaller box with a black strip along the
+ * bottom): a box left short of the screen and a canvas fitted to it are put right after pageshow, and after a resize
+ * with no further event; nothing is touched when the fit is right.
+ */
+async function refitCheck(ph) {
+  const fit = () =>
+    ph.ev(() => {
+      const c = document.querySelector("canvas").getBoundingClientRect();
+      const b = document.getElementById("game").getBoundingClientRect();
+      return { cw: Math.round(c.width), ch: Math.round(c.height), bh: Math.round(b.height), sh: innerHeight, sw: innerWidth, r: window.__krelMobile.shellState().refits };
+    });
+  const f0 = await fit();
+  await ph.ev(() => window.dispatchEvent(new PageTransitionEvent("pageshow")));
+  await sleep(2000);
+  const f1 = await fit();
+  check("refit: with the fit right, the checks after pageshow change nothing (no flicker)", f1.r.checks >= f0.r.checks + 4 && f1.r.fixes === f0.r.fixes && f1.ch === f0.ch && !f1.r.pinned, { f0, f1 });
+  // the bug: the box worked out short (100dvh too early) and the canvas fitted to it
+  await ph.ev(() => {
+    document.getElementById("game").style.height = `${innerHeight - 50}px`;
+    window.__krel.game.scale.getParentBounds();
+    window.__krel.game.scale.refresh();
+  });
+  await sleep(300);
+  const bad = await fit();
+  await ph.ev(() => window.dispatchEvent(new PageTransitionEvent("pageshow")));
+  await sleep(2000);
+  const good = await fit();
+  check("refit: a short box and the canvas fitted to it are put right after pageshow (the box follows the screen)", bad.ch < bad.sh - 20 && good.bh === good.sh && Math.abs(good.ch - Math.min(good.sh, (good.sw * 540) / 960)) <= 1.5 && good.r.pinned && good.r.fixes > bad.r.fixes, { bad, good });
+  await ph.shot("refit-after-pageshow");
+}
+
+/**
+ * SPECIAL's feedback (s4b; the user tapped NUKE and "nothing happened"): the first time it shows, a toast says what it
+ * does; used, it stays up with a ring filling while it recharges; tapped then, "Recharging… Ns" floats up; tapped
+ * without the Krezz, "Not enough Krezz (needs 40)". The game's own rule is untouched (a press while it recharges does
+ * nothing in the game).
+ */
+async function specialFeedback(ph) {
+  const ctl = async (id) => (await ph.snap()).controls.find((c) => c.id === id);
+  const press = async (id, tid) => {
+    const c = await ctl(id);
+    const x = c.face.x + c.face.w / 2;
+    const y = c.face.y + c.face.h / 2;
+    await ph.touch("touchStart", [{ x, y, id: tid }]);
+    await sleep(80);
+    await ph.touch("touchEnd", []);
+  };
+  const P = () =>
+    ph.ev(() => {
+      const d = window.__krel.game.scene.getScene("Dungeon");
+      return { cd: d.player.specialCd, now: d.now(), krezz: window.__krel.G.s.krezz };
+    });
+  await ph.ev(() => {
+    const d = window.__krel.game.scene.getScene("Dungeon");
+    for (const e of d.enemies || []) if (!e.dead && !e.isBoss) e.setPosition(-5000, -5000);
+    window.__krel.G.s.krezz = 60;
+    d.player.iframesUntil = d.now() + 20000;
+  });
+  await sleep(900);
+  const tips = await ph.ev(() => window.__toastsSeen.filter((t) => t.title === "NUKE"));
+  check("special: the first time NUKE shows on this phone, a toast says what it does and what it costs (once)", tips.length === 1 && /^Nuclear Option: .*aiming.* 40 Krezz\.$/.test(tips[0].text), tips);
+  const p0 = await P();
+  await press("c-special", 61);
+  await sleep(400);
+  const p1 = await P();
+  const s1 = await ph.ev(() => ({ snap: window.__krelMobile.combat.snapshot(), cls: document.querySelector('.kt-btn[data-ctl="c-special"]').className, ring: (() => { const r = document.querySelector('.kt-btn[data-ctl="c-special"] .kt-cd'); return r ? getComputedStyle(r).display : null; })() }));
+  check("special: SPECIAL fires NUKE (40 Krezz), then stays up recharging with its ring filling", p1.cd > p0.cd && p1.krezz < p0.krezz - 30 && (await ctl("c-special")).shown && /\bcooling\b/.test(s1.cls) && s1.ring === "block" && s1.snap.specialCooling > 0.5, { p0, p1, cls: s1.cls, ring: s1.ring, cooling: s1.snap.specialCooling });
+  // tapped while it recharges, with Krezz enough: "Recharging…", and the game does nothing (its own rule)
+  await ph.ev(() => (window.__krel.G.s.krezz = 100));
+  await sleep(300);
+  await press("c-special", 62);
+  await sleep(250);
+  const p2 = await P();
+  const cue1 = await ph.ev(() => ({ cue: window.__krelMobile.combat.snapshot().specialCue, el: (document.querySelector(".kt-float.go span") || {}).textContent || null }));
+  check("special: tapped while recharging, \"Recharging… Ns\" floats up and nothing else happens (the game's rule)", /^Recharging… \d+s$/.test(cue1.cue || "") && cue1.el === cue1.cue && p2.cd === p1.cd && p2.krezz >= 99.5, { cue1, p2 });
+  await ph.shot("cluster-iphone-special-recharging");
+  // without the Krezz: "Not enough Krezz (needs 40)"
+  await ph.ev(() => (window.__krel.G.s.krezz = 10));
+  await sleep(300);
+  await press("c-special", 63);
+  await sleep(250);
+  const cue2 = await ph.ev(() => window.__krelMobile.combat.snapshot().specialCue);
+  check("special: tapped without the Krezz, \"Not enough Krezz (needs 40)\"", cue2 === "Not enough Krezz (needs 40)", cue2);
+  await ph.shot("cluster-iphone-special-krezz");
+  // once it has recharged without the Krezz: gone again (the calm screen)
+  const left = Math.max(0, p1.cd - (await P()).now);
+  await sleep(left + 900);
+  check("special: recharged but without the Krezz, SPECIAL goes (the calm screen)", !(await ctl("c-special")).shown, await ph.ev(() => window.__krelMobile.combat.snapshot().specialCooling));
+}
+
+/**
+ * The fight buttons, everything up at once (Mikey with his Krezz, a second gun, WONK full, fart charge, a bongo or
+ * low health with juice, a prompt), measured at the phone sizes the user plays on: every fight button's centre within
+ * 200 px (x the controls' scale) of the safe edge on the thumb's side, no two drawings on each other, pause and the
+ * weapon chip where they always are and clear, nothing over the HUD's texts; the same with Bigger text off,
+ * left-handed, and in a side room (JUMP). Buttons that stay up keep their place when others come and go.
+ */
+async function cluster(browser) {
+  console.log("CLUSTER (the fight buttons hug the thumb's edge: every one within 200 px, nothing overlapping, stable)");
+  const profiles = [
+    { tag: "iphone", profile: IPHONE, insets: { top: 0, right: 47, bottom: 21, left: 47 } },
+    { tag: "android", profile: { ...ANDROID, userAgent: UA.androidChrome }, insets: null },
+    { tag: "safari-bars", profile: { ...IPHONE, viewport: { width: 750, height: 340 } }, insets: null },
+    { tag: "bigphone", profile: { ...IPHONE, viewport: { width: 932, height: 430 } }, insets: { top: 0, right: 59, bottom: 21, left: 59 } },
+  ];
+  const FIGHT = /^c-(fire|sfire|jump|dodge|swap|special|ready|heal|action|bongo|fart|sanmik)$/;
+  for (const pr of profiles) {
+    if (CLUSTERPART.length && !CLUSTERPART.includes(pr.tag)) continue;
+    const { ctx, ph, errors } = await phoneAtTitle(browser, pr.profile);
+    const where = `${pr.tag} ${pr.profile.viewport.width}x${pr.profile.viewport.height}`;
+    // everything up: the game's own state, held each frame (nothing is forced on the layer itself)
+    const loadOut = (o) =>
+      ph.ev(async (o) => {
+        const k = window.__krel;
+        const s = k.G.s;
+        const d = k.game.scene.getScene("Dungeon");
+        const st = await import("/src/game/systems/stats.ts");
+        const g = await import("/src/game/combat/Guns.ts");
+        for (const e of d.enemies || []) if (!e.dead && !e.isBoss) e.setPosition(-5000, -5000);
+        s.guns = s.guns || {};
+        for (const id of Object.keys(g.GUNS).filter((id) => id !== "chem_flamer").slice(0, 2)) s.guns[id] = Math.max(20, s.guns[id] || 0);
+        if (!s.gun) s.gun = Object.keys(s.guns)[0];
+        if (window.__clusterHold) clearInterval(window.__clusterHold);
+        const keep = () => {
+          s.krezz = st.maxKrezz(s);
+          s.bongos = 2;
+          s.bottles = o.heal ? 3 : 0;
+          s.hp = Math.round(st.maxHp(s) * (o.heal ? 0.3 : 1));
+          k.G.rt.fart = 55;
+          s.flags.sanmik_form = false;
+          if (d.player) {
+            d.player.wonk = o.ready ? 100 : 0;
+            d.player.iframesUntil = d.now() + 6000;
+          }
+        };
+        keep();
+        window.__clusterHold = setInterval(keep, 200);
+        // a prompt: ACTION
+        d.interactables = (d.interactables || []).filter((it) => !it.__cluster);
+        if (o.action && d.player) d.interactables.push({ __cluster: true, x: d.player.x, y: d.player.y, r: 99999, label: "Search", use() {} });
+      }, o);
+    const measure = async (name) => {
+      await sleep(1300);
+      const m = await measureScreen(ph);
+      const info = await ph.ev(async () => {
+        const L = await import("/src/game/mobile/layout.ts");
+        const S = await import("/src/game/mobile/settings.ts");
+        const sn = window.__krelMobile.snapshot();
+        const st = S.phoneSettings();
+        const vp = sn.viewport;
+        const side = Math.max(vp.insets.left, vp.insets.right, 0);
+        return { vp, side, scale: L.controlScale(vp.h, st.buttonSize), left: st.leftHanded };
+      });
+      const reach = 200 * info.scale + 0.5;
+      const fight = m.controls.filter((c) => FIGHT.test(c.id));
+      const far = fight
+        .map((c) => ({ id: c.id, from: Math.round(info.left ? c.face.x + c.face.w / 2 - info.side : info.vp.w - info.side - (c.face.x + c.face.w / 2)) }))
+        .filter((c) => c.from > reach);
+      const col = collisions(m);
+      const onHud = [];
+      for (const c of fight) for (const h of m.hud) if (shapesOverlap(c.face, h.r, 1)) onHud.push(`${c.id} on ${h.id}`);
+      const small = fight.filter((c) => Math.min(c.face.w, c.face.h) < 43.5).map((c) => `${c.id}:${Math.round(c.face.w)}`);
+      // research M5: 12 px or more between drawn edges
+      const close = [];
+      for (let i = 0; i < fight.length; i++)
+        for (let j = i + 1; j < fight.length; j++) {
+          const a = fight[i].face;
+          const b = fight[j].face;
+          const g = Math.hypot(a.x + a.w / 2 - b.x - b.w / 2, a.y + a.h / 2 - b.y - b.h / 2) - a.w / 2 - b.w / 2;
+          if (g < 11.5) close.push(`${fight[i].id}/${fight[j].id}:${Math.round(g)}`);
+        }
+      check(`cluster ${where} ${name}: 12 px or more between the fight buttons`, close.length === 0, close);
+      check(`cluster ${where} ${name}: every fight button within ${Math.round(reach)} px of the thumb's edge`, far.length === 0, far.length ? far : fight.map((c) => c.id));
+      check(`cluster ${where} ${name}: no button on another (pause and the weapon chip clear), none over the HUD's words, none under 44 px`, col.length === 0 && onHud.length === 0 && small.length === 0, [...col, ...onHud, ...small].slice(0, 8));
+      await ph.shot(`cluster-${pr.tag}-${name}`);
+      const at = {};
+      for (const c of m.controls) at[c.id] = [Math.round(c.face.x + c.face.w / 2), Math.round(c.face.y + c.face.h / 2)];
+      return { at, ids: m.controls.map((c) => c.id) };
+    };
+    try {
+      if (pr.insets) await ph.ev((i) => window.__krelMobile.setInsets(i), pr.insets);
+      await ph.ev(() => window.__krelMobile.combat.resetTeaching());
+      await ph.ev(() => {
+        window.__toastsSeen = [];
+        window.__krel.G.on((ev, d) => ev === "toast" && d && window.__toastsSeen.push({ title: String(d.title), text: String(d.text) }));
+      });
+      if (pr.tag === "iphone") await refitCheck(ph);
+      const ok = await toFight(ph, "wildern", 1, 2, "MIKEY");
+      check(`cluster ${where}: a top-down room as Mikey`, ok, await ph.mode());
+      if (pr.tag === "iphone") await specialFeedback(ph);
+      await loadOut({ heal: true, ready: true, action: true });
+      const all = await measure("all-heal");
+      check(`cluster ${where}: everything is up (FIRE, DODGE, SWAP, SPECIAL, READY, HEAL, ACTION, FART, SANMIK)`, ["c-fire", "c-dodge", "c-swap", "c-special", "c-ready", "c-heal", "c-action", "c-fart", "c-sanmik"].every((id) => all.ids.includes(id)), all.ids);
+      await loadOut({ heal: false, ready: true, action: true });
+      const allB = await measure("all-bongo");
+      check(`cluster ${where}: BONGO up instead of HEAL`, allB.ids.includes("c-bongo") && !allB.ids.includes("c-heal"), allB.ids);
+      // stable: READY and ACTION go; nobody else moves
+      await loadOut({ heal: false, ready: false, action: false });
+      const fewer = await measure("fewer");
+      const moved = Object.keys(fewer.at).filter((id) => allB.at[id] && Math.hypot(fewer.at[id][0] - allB.at[id][0], fewer.at[id][1] - allB.at[id][1]) > 1);
+      check(`cluster ${where}: buttons keep their places when others go (READY, ACTION gone)`, moved.length === 0, { moved, before: allB.at, after: fewer.at });
+      await loadOut({ heal: true, ready: true, action: true });
+      await ph.ev(() => window.__krelMobile.settings.set({ readability: false }));
+      await measure("all-smalltext");
+      await ph.ev(() => window.__krelMobile.settings.set({ readability: true, leftHanded: true }));
+      await measure("all-lefthanded");
+      await ph.ev(() => window.__krelMobile.settings.set({ leftHanded: false }));
+      // a side room (JUMP in the corner, FIRE beside it)
+      const okS = await toFight(ph, "arena_sanmik", 1, 5, "MIKEY", "side:Dungeon");
+      check(`cluster ${where}: a side room as Mikey`, okS, await ph.mode());
+      await loadOut({ heal: true, ready: true, action: true });
+      const sd = await measure("side-all");
+      check(`cluster ${where} side: JUMP and FIRE up with the rest`, ["c-jump", "c-sfire", "c-dodge", "c-special", "c-heal"].every((id) => sd.ids.includes(id)), sd.ids);
+      await ph.ev(() => window.__krelMobile.settings.set({ leftHanded: true }));
+      await measure("side-lefthanded");
+      await ph.ev(() => window.__krelMobile.settings.set({ leftHanded: false }));
+      check(`cluster ${where}: no page errors`, errors.length === 0, errors.slice(0, 3));
+    } finally {
+      await ph.ev(() => window.__clusterHold && clearInterval(window.__clusterHold)).catch(() => {});
+      await ctx.close();
+    }
+  }
+}
+
 (async () => {
   const t0 = Date.now();
   let browser;
@@ -7142,6 +7391,7 @@ async function s4fix(browser) {
       ["scenes", scenesSection],
       ["wave2", wave2],
       ["s4", s4fix],
+      ["cluster", cluster],
       ["desktop", desktop],
     ]) {
       if (!ONLY.includes(id)) continue;

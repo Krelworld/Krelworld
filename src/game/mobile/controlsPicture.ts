@@ -4,7 +4,8 @@
 // for walking, top-down fights, side rooms and the brawl.
 
 import type { TouchLayer } from "./touchLayer";
-import type { Placed, Rect, SlotId } from "./layout";
+import type { FightRole, Placed, Rect, SlotId } from "./layout";
+import { combatControls } from "./combat";
 import { BRAWL_BUTTONS } from "./brawl";
 import { fireStyle, phoneSettings } from "./settings";
 import { FIRE_AUTO, fireLine } from "./combatWording";
@@ -12,8 +13,8 @@ import { FIRE_AUTO, fireLine } from "./combatWording";
 export type PictureTab = "walk" | "fight" | "side" | "brawl";
 
 export interface PictureItem {
-  /** Where it sits: a slot, a placed control's id, or the stick zone. */
-  at: { slot: SlotId } | { control: string } | { zone: true };
+  /** Where it sits: a slot, a fight cluster button's home (s4b), a placed control's id, or the stick zone. */
+  at: { slot: SlotId } | { fight: FightRole } | { control: string } | { zone: true };
   word: string;
   line: string;
 }
@@ -30,7 +31,7 @@ export { FIRE_AUTO, FIRE_LIGHT, FIRE_MANUAL, FIRE_STILL, fireLine } from "./comb
 
 const PAUSE: PictureItem = { at: { control: "pause" }, word: "II", line: "Pause (and this menu)" };
 /** The pocket (thumb-feel round): the fart, a fizzy bongo and the SanMik change, full size, only when they can be used. */
-const POCKET: PictureItem = { at: { slot: "pocketFart" }, word: "💨 🍺", line: "Your fart and fizzy bongos pop up here when you can use them" };
+const POCKET: PictureItem = { at: { fight: "fart" }, word: "💨 🍺", line: "Your fart and fizzy bongos pop up here when you can use them" };
 
 /** What each kind of screen has, in plain words (one line per control). */
 export const PICTURE: Record<PictureTab, PictureItem[]> = {
@@ -42,23 +43,23 @@ export const PICTURE: Record<PictureTab, PictureItem[]> = {
   ],
   fight: [
     { at: { zone: true }, word: "MOVE", line: "Drag to move" },
-    { at: { slot: "prime" }, word: "FIRE", line: FIRE_AUTO },
-    { at: { slot: "upLeft" }, word: "DODGE", line: "Dodge the way you're moving" },
-    { at: { slot: "up" }, word: "SPECIAL", line: "Your lad's special move. Pops up once you've enough Krezz for it" },
-    { at: { slot: "left" }, word: "SWAP", line: "Shows up with a second gun: tap for the next one, hold to pick one" },
-    { at: { slot: "ready" }, word: "READY", line: "Pops up when WONK!, GOLD or IBS! is ready: tap it" },
-    { at: { slot: "heal" }, word: "HEAL", line: "Pops up when you're hurt: drink some juice (red when you're low)" },
+    { at: { fight: "prime" }, word: "FIRE", line: FIRE_AUTO },
+    { at: { fight: "dodge" }, word: "DODGE", line: "Dodge the way you're moving" },
+    { at: { fight: "special" }, word: "SPECIAL", line: "Your lad's special move. Pops up once you've enough Krezz for it" },
+    { at: { fight: "second" }, word: "SWAP", line: "Shows up with a second gun: tap for the next one, hold to pick one" },
+    { at: { fight: "ready" }, word: "READY", line: "Pops up when WONK!, GOLD or IBS! is ready: tap it" },
+    { at: { fight: "heal" }, word: "HEAL", line: "Pops up when you're hurt: drink some juice (red when you're low)" },
     POCKET,
     { at: { control: "c-chip" }, word: "GUN", line: "Your gun and its ammo. Tap: next gun" },
     PAUSE,
   ],
   side: [
     { at: { zone: true }, word: "RUN", line: "Drag left or right to run. Hold it down to drop through a platform" },
-    { at: { slot: "prime" }, word: "JUMP", line: "Tap to jump, hold it for the highest jump, tap again in the air to double jump" },
-    { at: { slot: "left" }, word: "FIRE", line: "Hold to shoot (with auto-fire on it shoots by itself)" },
-    { at: { slot: "upLeft" }, word: "DODGE", line: "Dash out of trouble" },
-    { at: { slot: "up" }, word: "SPECIAL", line: "Your lad's special move. Pops up once you've enough Krezz" },
-    { at: { slot: "ready" }, word: "READY", line: "Pops up when a big move is ready" },
+    { at: { fight: "prime" }, word: "JUMP", line: "Tap to jump, hold it for the highest jump, tap again in the air to double jump" },
+    { at: { fight: "second" }, word: "FIRE", line: "Hold to shoot (with auto-fire on it shoots by itself)" },
+    { at: { fight: "dodge" }, word: "DODGE", line: "Dash out of trouble" },
+    { at: { fight: "special" }, word: "SPECIAL", line: "Your lad's special move. Pops up once you've enough Krezz" },
+    { at: { fight: "ready" }, word: "READY", line: "Pops up when a big move is ready" },
     POCKET,
     { at: { control: "c-chip" }, word: "GUN", line: "Tap for the next gun, hold to pick one" },
     PAUSE,
@@ -106,6 +107,7 @@ function rectOf(layer: TouchLayer, it: PictureItem): Rect | null {
   if ("zone" in at) return layer.zoneRect.w > 0 ? layer.zoneRect : null;
   let p: Placed | null | undefined;
   if ("slot" in at) p = layer.slots?.[at.slot];
+  else if ("fight" in at) p = combatControls()?.home(at.fight) ?? layer.slots?.prime;
   else p = layer.control(at.control)?.placed;
   if (!p) return null;
   const w = p.w ?? p.size;

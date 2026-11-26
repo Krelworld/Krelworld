@@ -269,7 +269,9 @@ export class TouchControl {
     const fw = p.w ?? p.size;
     const fh = p.h ?? p.size;
     // (a group's controls reach GAP_REACH past the drawing; the prime corner runs out to the screen's corner)
-    const hit = this.spec.group || this.spec.toCorner ? groupHit(this.layer.viewport, p, this.spec.group ? GAP_REACH : HIT_SLOP, !!this.spec.toCorner) : p.hit;
+    let hit = this.spec.group || this.spec.toCorner ? groupHit(this.layer.viewport, p, this.spec.group ? GAP_REACH : HIT_SLOP, !!this.spec.toCorner) : p.hit;
+    // (the fight cluster's top row: its shared touch area stops under pause and the weapon chip, s4b)
+    if (p.clipTop !== undefined && hit.y < p.clipTop) hit = { ...hit, y: p.clipTop, h: Math.max(0, hit.y + hit.h - p.clipTop) };
     this.placed = { ...p, hit };
     const b = this.el.style;
     b.width = `${hit.w}px`;

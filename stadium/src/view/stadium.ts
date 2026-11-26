@@ -16,7 +16,7 @@ import { Announcer } from "../stadium/announcer";
 import { isNaked } from "../stadium/naked";
 import { roofHeight, roofs } from "../stadium/roofs";
 import { RIFLE_RANGE, rifleOf, windowBroken, windows } from "../stadium/missiles";
-import { FIXES, fixesDone } from "../stadium/fixes";
+import { FIXES, fixesDone, isHint } from "../stadium/fixes";
 import { BOXER_FEE, burnerOn, knows } from "../stadium/phone";
 import { isSecurity } from "../stadium/security";
 import { aimThrow, bribeWhy, itemName, itemOptions, looksOutOfPlace, options, personName, primary, throwTarget, type Option } from "../stadium/context";
@@ -240,6 +240,7 @@ class StadiumScene extends Phaser.Scene {
         if (a && Math.hypot(a.x - this.pc.x, a.y - this.pc.y) < 5.5 && e.text.length > 12 && !this.log.some((l) => l.text === e.text)) this.say(e.text, a.name, false, false);
       }
       if (e.type === "action_failed" && e.action.actor === this.s.stadium!.pc) this.hint(e.reason);
+      if (e.type === "action" && e.action.actor === this.s.stadium!.pc && (e.action.verb === "talk" || e.action.verb === "threaten" || e.action.verb === "bribe") && e.action.target?.k === "actor") this.talkedTo = { id: e.action.target.id, at: performance.now() };
       if (e.type === "fb_goal" || e.type === "caught" || e.type === "fb_foul" && e.penalty) this.setSpeed(1);
       if (e.type === "fb_goal") { this.crowdJump = 120 * (e.team === 0 ? 1 : -1); this.crowdUpUntil = performance.now() + 6000; this.crowdUpSide = e.team === 0 ? "home" : "away"; }
       if (e.type === "fb_miss" || e.type === "fb_woodwork") { this.crowdUpUntil = performance.now() + 1400; this.crowdUpSide = "all"; }
@@ -1034,10 +1035,13 @@ class StadiumScene extends Phaser.Scene {
     this.fp.show(on);
     this.cameras.main.setVisible(!on);
     $("fpBtn").classList.toggle("on", on);
+    // In first person the button's the way back out; otherwise it lives in the menu.
+    $("fpBtn").hidden = !on || this.scoped;
   }
 
   // ---------- The rifle ----------
   roofHinted = false;
+  talkedTo: { id: string; at: number } | null = null;
   fixHinted = false;
   scoped = false;
   scopeOwnFp = false;
@@ -1995,21 +1999,41 @@ class StadiumScene extends Phaser.Scene {
     const pcTalk = this.pcLine && this.pcLine.until > performance.now() && pc && !pc.hiddenIn ? this.pcLine.text : null;
     // Nearest first (you, then whoever's closest), at most six, and never on top of each other.
     const near0 = (a: Actor) => (pc ? Math.hypot(a.x - pc.x, a.y - pc.y) : 0);
-    const talkers = [...(pcTalk ? [pc!] : []), ...Object.values(s.actors).filter((a) => a.npc?.bubble && !a.hiddenIn && onScreen(a.x, a.y)).sort((p, q) => near0(p) - near0(q))].slice(0, Math.min(6, this.bubbles.length));
+    // What gets a full bubble (GTA and Hitman subtitle only what's aimed at you or matters; The Sims
+    // and Animal Crossing show the rest as a little "..."): anyone talking to you or near you,
+    // security, and anything useful (a lead, a fix). Of the background chatter, only the nearest
+    // one line at a time; everyone else chatting gets a chat dot.
+    const speaking = Object.values(s.actors).filter((a) => a.npc?.bubble && !a.hiddenIn && onScreen(a.x, a.y)).sort((p, q) => near0(p) - near0(q));
+    const talkingTo = this.talkedTo && performance.now() - this.talkedTo.at < 12000 ? this.talkedTo.id : null;
+    const matters = (a: Actor) => a.id === talkingTo || (a.npc!.mode !== "routine" && a.npc!.mode !== "flee") || isHint(a.npc!.bubble!.text) || !!st.snitches?.some((x) => x.by === a.id);
+    const key = speaking.filter(matters), chatter = speaking.filter((a) => !matters(a));
+    const shownChat = chatter.filter((a) => near0(a) < 9).slice(0, 1);
+    const talkers = [...(pcTalk ? [pc!] : []), ...key.slice(0, 2), ...shownChat].slice(0, this.bubbles.length);
+    const dots = chatter.filter((a) => !shownChat.includes(a));
     if (!this.bubbleG) this.bubbleG = this.add.graphics().setDepth(1e7 + 0.5);
     const bg = this.bubbleG.clear(), zz = this.cameras.main.zoom, px = DPR / zz;
+    for (const a of dots) {
+      // A chat dot: a small white pill with three dots, over their head.
+      const tx = Math.round(P.sx(a.x, a.y)), ty = Math.round(headTop(P, a.x, a.y) - 8 * px - this.liftOf(a) * P.S);
+      bg.fillStyle(0x000000, 0.85).fillRoundedRect(tx - 11 * px, ty - 9 * px, 22 * px, 11 * px, 4 * px);
+      bg.fillStyle(0xf6f3ea, 0.95).fillRoundedRect(tx - 10 * px, ty - 8 * px, 20 * px, 9 * px, 3 * px);
+      const ph = Math.floor(performance.now() / 300) % 3;
+      for (let k = 0; k < 3; k++) bg.fillStyle(k === ph ? 0x12151a : 0x8a8a8a, 1).fillRect(tx + (k - 1) * 5 * px - px, ty - 4.5 * px, 2 * px, 2 * px);
+    }
     const placed: { x0: number; y0: number; x1: number; y1: number }[] = [];
+    const rb = $("radarBox"), radarR = rb.hidden ? null : rb.getBoundingClientRect();
     this.bubbles.forEach((bt, i) => {
       const a = talkers[i];
       if (!a) { bt.setVisible(false); return; }
       // A comic bubble: same size on screen whatever the zoom, a black pixel outline and a tail.
       const tx = Math.round(P.sx(a.x, a.y)), ty0 = Math.round(headTop(P, a.x, a.y) - 10 * px);
       const lift = this.liftOf(a) * P.S;
-      bt.setVisible(true).setText(a.npc ? a.npc.bubble!.text : pcTalk!).setScale(1 / zz);
+      const ambient = !!a.npc && shownChat.includes(a), hintLine = !!a.npc && isHint(a.npc.bubble!.text);
+      bt.setVisible(true).setText(a.npc ? a.npc.bubble!.text : pcTalk!).setScale((ambient ? 0.85 : 1) / zz).setAlpha(ambient ? 0.92 : 1);
       const w2 = bt.displayWidth, h2 = bt.displayHeight;
       // Slide sideways off the screen edge, and up past any bubble it would cover.
       const v = this.cameras.main.worldView;
-      const bx = Phaser.Math.Clamp(tx, v.x + w2 / 2 + 8 * px, v.right - w2 / 2 - 8 * px);
+      let bx = Phaser.Math.Clamp(tx, v.x + w2 / 2 + 8 * px, v.right - w2 / 2 - 8 * px);
       let by = ty0 - lift;
       for (let k = 0; k < 6; k++) {
         const hit = placed.find((r) => bx - w2 / 2 < r.x1 + 4 * px && bx + w2 / 2 > r.x0 - 4 * px && by - h2 < r.y1 + 6 * px && by > r.y0 - 6 * px);
@@ -2017,10 +2041,15 @@ class StadiumScene extends Phaser.Scene {
         by = hit.y0 - 8 * px;
       }
       by = Math.max(by, v.y + h2 + 60 * px);
+      // Not under the radar: slide left of it.
+      if (radarR) {
+        const rx0 = v.x + (radarR.left * DPR) / zz, ry1 = v.y + (radarR.bottom * DPR) / zz, ry0 = v.y + (radarR.top * DPR) / zz;
+        if (bx + w2 / 2 > rx0 - 4 * px && by - h2 < ry1 && by > ry0) bx = Math.max(v.x + w2 / 2 + 8 * px, rx0 - 6 * px - w2 / 2);
+      }
       placed.push({ x0: bx - w2 / 2, y0: by - h2, x1: bx + w2 / 2, y1: by });
       bt.setPosition(bx, by);
       const sec = !!a.npc && a.npc.mode !== "routine" && a.npc.mode !== "escort";
-      const x0 = bx - w2 / 2, y0 = by - h2, fill = a === pc ? 0xd8ecff : sec ? 0xffd166 : 0xf6f3ea;
+      const x0 = bx - w2 / 2, y0 = by - h2, fill = a === pc ? 0xd8ecff : sec ? 0xffd166 : hintLine ? 0xfff0b8 : 0xf6f3ea;
       bg.fillStyle(0x000000, 1).fillRect(x0 - 2 * px, y0 - 2 * px, w2 + 4 * px, h2 + 4 * px).fillRect(x0, y0 - 4 * px, w2, h2 + 8 * px);
       bg.fillStyle(fill, 1).fillRect(x0, y0, w2, h2).fillRect(x0 + 2 * px, y0 - 2 * px, w2 - 4 * px, h2 + 4 * px);
       // The tail points at the speaker's head, wherever the bubble had to go; a long one if it was pushed up.
@@ -2695,9 +2724,11 @@ class StadiumScene extends Phaser.Scene {
     if (area.name !== this.lastArea) { this.lastArea = area.name; this.areaShownAt = performance.now(); }
     const fresh = performance.now() - this.areaShownAt < 2200;
     const where = busV?.drivenBy === pc.id ? `Driving the ${m.teams[1].name} team bus` : pc.hiddenIn === "car" ? `Driving a nicked ${st.myCar?.kind === "policecar" ? "police car" : st.myCar?.kind === "taxi" ? "black cab" : "motor"}` : pc.hiddenIn ? (pc.hiddenIn === busV?.cargo ? "Hiding in the bus's luggage hold" : `Hiding in the back of the ${VENUE.delivery.name}`) : pc.heldBy ? "Being frogmarched"
-      : bad ? `${area.name} · you shouldn't be here` : fresh ? area.name : this.objective();
+      : bad ? `${area.name} · you shouldn't be here` : fresh ? area.name : this.objectiveNow();
     const wEl = $("where");
     if (wEl.textContent !== where) wEl.textContent = where;
+    // Like Hitman's and MGS's area names: up when it changes, then out of the way (a warning stays).
+    wEl.hidden = !where;
     wEl.classList.toggle("bad", bad && !pc.hiddenIn);
     // One indicator for all of security: the worst attention you are getting.
     let worst = 0;
@@ -2757,18 +2788,33 @@ class StadiumScene extends Phaser.Scene {
       const ta = (this as any).throwAt as Actor | null;
       const canThrow = !!pc.hand && !pc.heldBy && !pc.hiddenIn;
       thr.hidden = !canThrow;
-      if (canThrow) thr.textContent = ta ? `Throw at ${personName(ta).replace(/ \(.*\)$/, "")}` : `Throw ${itemName(s.items[pc.hand!]).toLowerCase()}`;
+      // Short labels: the verb and the last word of their name ("Big Kev" is Kev, "Steward Pauline" is Pauline).
+      const short = (n: string) => n.replace(/ \(.*\)$/, "").split(" ").pop() ?? n;
+      if (canThrow) thr.textContent = ta ? `Throw at ${short(personName(ta))}` : "Throw";
       // In a fight, the hit button sticks to the one you're fighting (and goes to Stamp once he's down).
       const hit = $("hit"), hitOpt = hitFirst;
       hit.hidden = !hitOpt || !!pc.heldBy || !!pc.hiddenIn;
-      if (hitOpt) { hit.textContent = hitOpt.label.replace(/ \(.*\)$/, "").replace(/^(Punch|Stab) the /, "$1 the ").split(" ").slice(0, 3).join(" "); (this as any).hitOpt = hitOpt; }
-      const betEl = $("betBtn");
-      betEl.hidden = canBetHere(this.w, pc) !== "phone" || !!pc.heldBy;
-      const canFast = pc.seated || area.id === "pub";
-      $("speed").hidden = !canFast;
+      if (hitOpt) {
+        const lab = hitOpt.label.replace(/ \(.*\)$/, ""), m2 = lab.match(/^(Take down|Counter|Stamp on|Punch|Stab|Glass|Chair|Hit) (.+?)(!| with .*)?$/);
+        hit.textContent = m2 ? `${m2[1]} ${short(m2[2])}` : lab.split(" ").slice(0, 3).join(" ");
+        (this as any).hitOpt = hitOpt;
+      }
+      // Betting by phone is the phone's betting app now (one fewer button).
+      $("betBtn").hidden = true;
+      // Fast-forward only while you're sat watching, bottom left, out of the way.
+      const canFast = !!pc.seated;
+      $("speed").hidden = !canFast; $("speed").classList.toggle("seated", canFast);
       if (!canFast && this.speed !== 1) this.setSpeed(1);
       if (this.sheetKind === "more") this.openMore();
     }
+  }
+
+  /** The objective strap: shown for a few seconds when it changes, then gone. */
+  objShown = ""; objAt = 0;
+  objectiveNow(): string {
+    const o = this.objective(), now = performance.now();
+    if (o !== this.objShown) { this.objShown = o; this.objAt = now; }
+    return now - this.objAt < 5000 ? o : "";
   }
 
   /** Who you're fighting: the last one you hit, for a few seconds, while he's close. */
@@ -2981,8 +3027,10 @@ class StadiumScene extends Phaser.Scene {
     if (lbl.textContent !== text) lbl.textContent = text;
     const cls = mode === 4 ? "alert" : mode === 3 ? "evasion" : mode === 2 ? "caution" : "";
     if (lbl.className !== cls) lbl.className = cls;
-    const stars = `<b>${"★".repeat(heat)}</b>${"★".repeat(5 - heat)}`;
+    const stars = heat ? `<b>${"★".repeat(heat)}</b>${"★".repeat(5 - heat)}` : "";
     if (this.starsHtml !== stars) { this.starsHtml = stars; $("stars").innerHTML = stars; }
+    // Like GTA's: no stars on screen until you're wanted.
+    const hb = $("heat"); if (hb.hidden !== (!heat && !text)) hb.hidden = !heat && !text;
   }
   radarTop?: number;
   starsHtml = "";
@@ -3525,6 +3573,7 @@ class StadiumScene extends Phaser.Scene {
   newsEvents(e: any) {
     const s = this.s, st = s.stadium!, pcId = st.pc, nm = (id: string) => (s.actors[id] ? personName(s.actors[id]) : "Someone");
     switch (e.type) {
+
       case "pc_say": this.pcLine = { text: e.text, until: performance.now() + 2600 }; break;
       case "snitch": if (e.who === pcId) { this.hint(`${nm(e.by)} saw that, and he's off to find a steward. Tap him: pay him off, lean on him, or flatten him first.`); this.audio.play("heat_alert", 0.35, { minGap: 2 }); } break;
       case "snitch_stopped": if (e.how !== "down") this.hint(e.how === "paid" ? `${nm(e.by)} never saw a thing.` : `${nm(e.by)} has seen sense.`); this.tick("grass"); break;
@@ -3593,7 +3642,7 @@ class StadiumScene extends Phaser.Scene {
   openMenu() {
     const cps = this.game2.checkpoints;
     this.sheet("menu", `<h2>Paused</h2><p>Go back to a checkpoint. Everything since then is undone, and the match will not play out the same way.</p>
-      <div class="list">${cps.map((c) => `<button data-cp="${c.id}">${esc(c.label)}</button>`).join("")}<button data-new="1">Start a new match day</button><button data-mute="1">${this.audio.muted ? "Sound: off" : "Sound: on"}</button></div>
+      <div class="list">${cps.map((c) => `<button data-cp="${c.id}">${esc(c.label)}</button>`).join("")}<button data-new="1">Start a new match day</button><button data-mute="1">${this.audio.muted ? "Sound: off" : "Sound: on"}</button><button data-zoom="1">Zoom: ${esc(this.zoomLabel())}</button><button data-fp="1">${this.fp.on ? "Back to the overhead view" : "First-person view"}</button></div>
       <h2>Fixes (${fixesDone(this.w)}/${FIXES.length})</h2><div class="log">${this.fixesHtml()}</div>
       <h2>To do (${this.mayhemDone.size}/${StadiumScene.MAYHEM.length})</h2><div class="log">${StadiumScene.MAYHEM.map((m) => `<p>${this.mayhemDone.has(m.id) ? "<b>✓</b> <s>" + esc(m.text) + "</s>" : "☐ " + esc(m.text)}</p>`).join("")}</div>
       <h2>Ways in you've heard about</h2><div class="log">${LEADS.filter((l) => this.s.stadium!.flags[`lead_${l.id}`]).map((l) => `<p><b>${esc(l.title)}</b> ${esc(l.how)}</p>`).join("") || "<p>Nothing yet. Talk to people: locals, staff, the man at the shed.</p>"}</div>
@@ -3748,6 +3797,8 @@ class StadiumScene extends Phaser.Scene {
       if (d.new) { this.newGame(); this.closeSheet(); this.setSpeed(1); $("ending").hidden = true; return; }
       if (d.next) { this.continueTournament(); return; }
       if (d.mute) { this.audio.toggleMute(); this.openMenu(); return; }
+      if (d.zoom) { this.cycleZoom(); this.openMenu(); return; }
+      if (d.fp) { this.toggleFirstPerson(); this.closeSheet(); this.setSpeed(1); return; }
     };
     $("sheet").addEventListener("click", onSheetClick);
     $("ending").addEventListener("click", onSheetClick);

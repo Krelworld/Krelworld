@@ -742,3 +742,23 @@ The opening film now has Krelworld's control bar along the bottom: Pause, Next (
   - painted back walls for the security office (a CCTV bank, the stadium plan, mugshots, lockers), the kitchen, the medical room, the kit room, the officials' room and the stewards' cabin;
   - proper door pictures: a steel staff door that stands open, lit, when it's open, and the players' double doors under the three lions.
 - **Pseudo-3D buildings: not doing it.** The view is already the three-quarter oblique view that top-down pixel games use (fronts with height, roofs, things behind walls hidden). The flat look came from the bits left as plain blocks, not from the projection. A perspective or parallax pass would fight the 1:1 pixel art (sheared pixels, shimmering edges) and phone performance, for less gain than painting the rooms and doors properly. The optional first-person view stays for the moments that want it (the scope).
+
+## UI review: less on screen, and only what matters
+
+A screenshot of the pub showed six speech bubbles, three rows of HUD (the speed buttons sitting on the objective), five empty stars, and seven buttons. What other games do, and what changed:
+
+- **Speech.** GTA, Hitman and RDR2 subtitle only what's aimed at you or matters, and leave crowd chatter as sound. The Sims and Animal Crossing show background talk as a little "…". Now:
+  - Full bubbles go to whoever you're talking to (for 12 seconds after Talk, Lean on or Bribe), to stewards and police who are after you, to grasses, and to anything useful (a fix or a way in). Useful lines are tinted yellow so you know to read them.
+  - Of the background chatter, only the nearest one line at a time shows, smaller.
+  - Everyone else talking gets a chat dot.
+  - Bubbles keep clear of the radar.
+- **Top of the screen.**
+  - GTA V shows stars only while you're wanted, so stars and the heat label now appear only then.
+  - MGS and Hitman flash the area or objective and then clear it, so the strap now shows the area name, or the objective for five seconds when it changes, then hides. A "you shouldn't be here" warning stays.
+  - The 1P and zoom buttons moved into the menu (in first person the 1P button comes back as the way out).
+  - Fast-forward appears only while you're sat watching the match, bottom left.
+- **Buttons.** Mobile action games keep one big contextual button with two or three secondaries under the thumb, and the rest behind a menu. Now:
+  - The big red button does the obvious thing.
+  - Under it are the blow and the throw, with short labels ("Punch Kev", "Throw at Kev").
+  - More, Phone and Bag are small utility buttons along the bottom.
+  - The Bet button is gone: bet with the phone's betting app or at the bookies.

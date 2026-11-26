@@ -7,6 +7,7 @@
 // and it says so.
 import type { World } from "../core/world";
 import type { Actor } from "../core/types";
+import { LEADS } from "./entries";
 
 export interface FixDef { id: "star" | "keeper" | "ref"; title: (w: World) => string; done: (w: World) => boolean; ways: { id: string; text: string }[] }
 
@@ -110,3 +111,8 @@ export function stepFixes(w: World): void {
 }
 
 export const fixesDone = (w: World) => FIXES.filter((fx) => w.state.stadium!.flags[`fixdone_${fx.id}`]).length;
+
+/** Is this line worth reading: it points at a fix or a way into the ground. */
+export function isHint(text: string): boolean {
+  return HINTS.some((h) => h.way && h.re.test(text)) || /number 10|their keeper|their goalie|referee/i.test(text) || LEADS.some((l) => l.hint.test(text));
+}

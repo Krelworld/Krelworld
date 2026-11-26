@@ -5,7 +5,7 @@
 // loud moments are held down and the rest brought up: a compressor. A compressor also flattens whatever is turned
 // down in front of it, so the player's sliders are applied AFTER it here, and still scale each path exactly as on a
 // laptop:
-//   each path's sound, with the game's own gains (the duck under dialogue, fades, the dungeon's music lift...)
+//   each path's sound, with the game's own gains (the duck under dialogue, fades...; a fight's own levels: see `fight`)
 //     -> "pre": the player's slider level taken back out (so the compressor always sees the same, full level)
 //     -> the path's drive -> voices and effects: a low cut (what a phone speaker cannot play anyway, and what made the
 //        compressor work for nothing) and, voices only, a presence lift -> their own compressor (it adds its own
@@ -42,12 +42,20 @@ export interface PhoneMixPlan {
   ceiling: number;
   /** Where the ceiling's curve leaves the straight line (linear, below `ceiling`). */
   kneeAt: number;
+  /** In a fight scene (the dungeon, the raid: the game turns its effects down and its song up there, for a laptop's
+   *  speakers): on a phone both are taken back out in "pre", then the effects get `sfx` more and the song `music`
+   *  (x, after the compressors). */
+  fight: { sfx: number; music: number };
 }
 
 /** The phone mix. Measured offline on the game's own files, "as a phone speaker hears it" (above ~250 Hz; report
  *  s3-08-sound.md): at the default settings speech about 4.5 dB louder on average (its loudest moments, already near
  *  full scale on a laptop, about 2 dB), explosions and gunshots 4-9 dB louder, songs 1.4 dB quieter; nothing above
- *  -1 dBFS even with every slider at 100% (there the ceiling bends about 0.5% of a voice line's samples). */
+ *  -1 dBFS even with every slider at 100% (there the ceiling bends about 0.5% of a voice line's samples).
+ *  Fights (`fight`): the user then played a dungeon on their phone: "the sound effects were simply very quiet". With
+ *  the dungeon's own effects cut and song lift taken out and effects x1.3, gunshots over the dungeon song are heard
+ *  2.7 dB under voice lines (they were 5.6 dB under; 12.9 on a laptop); with every slider at 100% the ceiling bends
+ *  about 3% of a busy fight's samples (still under -1 dBFS). */
 export const PHONE_MIX: PhoneMixPlan = {
   drive: { music: 1, sfx: 2, voice: 3 },
   out: { music: 0.85, sfx: 1.1, voice: 1.15 },
@@ -59,6 +67,7 @@ export const PHONE_MIX: PhoneMixPlan = {
   },
   ceiling: 0.88,
   kneeAt: 0.7,
+  fight: { sfx: 1.3, music: 1 },
 };
 
 /** -1 dBFS, linear: nothing the phone plays may peak above this. */
@@ -113,13 +122,33 @@ export interface MixGains {
   voice: PathGains;
 }
 
-/** Every slider-dependent gain of the mix. */
-export function mixGains(s: SoundSettings, plan: PhoneMixPlan = PHONE_MIX): MixGains {
+/** The game's own scene levels (Synth.setSfxScale / setMusicBoost): 1 and 1 outside fights. */
+export interface SceneLevels {
+  /** The effects' scale (the dungeon: 0.68). */
+  sfxScale?: number;
+  /** The song's lift (the dungeon 1.35, the raid 1.4; the hub's quiet moment 0.1). */
+  musicBoost?: number;
+}
+
+/** The part of the game's scene levels a phone takes back out, and whether this is a fight. Only a fight's own
+ *  levels count (effects scaled to 0.5-1, a song lifted to 1-2); anything else (the hub's near-silent 0.1) stays in
+ *  the signal as on a laptop. */
+export function fightLevels(c: SceneLevels = {}): { sfx: number; music: number; fight: boolean } {
+  const sc = typeof c.sfxScale === "number" && c.sfxScale >= 0.5 && c.sfxScale < 1 ? c.sfxScale : 1;
+  const bo = typeof c.musicBoost === "number" && c.musicBoost > 1 && c.musicBoost <= 2 ? c.musicBoost : 1;
+  return { sfx: sc, music: bo, fight: sc < 1 || bo > 1 };
+}
+
+/** Every slider-dependent gain of the mix (and the fight's, see PhoneMixPlan.fight). */
+export function mixGains(s: SoundSettings, plan: PhoneMixPlan = PHONE_MIX, scene: SceneLevels = {}): MixGains {
   const l = sliderLevels(s);
+  const f = fightLevels(scene);
+  const fm = f.fight ? plan.fight.music : 1;
+  const fs = f.fight ? plan.fight.sfx : 1;
   return {
-    song: pathGains(l.music, l.music, plan.out.music),
-    chip: pathGains(c01(s.music, 0.5), l.music, plan.out.music),
-    sfx: pathGains(c01(s.sfx, 0.8), l.sfx, plan.out.sfx),
+    song: pathGains(l.music * f.music, l.music, plan.out.music * fm),
+    chip: pathGains(c01(s.music, 0.5) * f.music, l.music, plan.out.music * fm),
+    sfx: pathGains(c01(s.sfx, 0.8) * f.sfx, l.sfx, plan.out.sfx * fs),
     voice: pathGains(l.voice, l.voice, plan.out.voice),
   };
 }

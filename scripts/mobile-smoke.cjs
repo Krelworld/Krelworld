@@ -2396,6 +2396,19 @@ async function dungeon(browser) {
     }
     const inFight = await ph.mode();
     check("in the fight: combat mode on the phone controls (the old canvas pad gone)", inFight === "combat:Dungeon" && (await ph.ev(() => !window.__krel.game.scene.getScene("UI").touch)), inFight);
+    // the phone mix in a dungeon fight (the user: "the sound effects were simply very quiet"): the dungeon's own
+    // effects cut (x0.68) and song lift (x1.35) are taken back out, effects then go up, the song stays at its level
+    const fmix = await ph.ev(() => {
+      const a = window.__krelMobile.audio;
+      a.mix.update();
+      const s = window.__krel.G.meta.settings;
+      return { report: a.mix.report(), plan: a.mix.plan.fight, sfx: s.sfx ?? 0.8, master: s.master ?? 0.8, music: s.music ?? 0.5 };
+    });
+    {
+      const r = fmix.report, close = (x, y) => Math.abs(x - y) < 0.01 * Math.max(1, Math.abs(y));
+      check("in the fight: the phone mix plays it as a fight (effects louder, the song's dungeon lift taken out)",
+        r.built && r.fight && close(r.pre.sfx, 1 / (fmix.sfx * 0.68)) && close(r.post.sfx, fmix.master * fmix.sfx * 1.1 * fmix.plan.sfx) && close(r.pre.song, 1 / (fmix.master * fmix.music * 1.35)), fmix);
+    }
     const paused = () => ph.ev(() => ({ menu: window.__krel.active().includes("Menu"), dungeon: window.__krel.game.scene.isPaused("Dungeon"), hp: window.__krel.G.s.hp, running: window.__krel.game.loop.running }));
     const resume = async () => {
       await ph.tapText("RESUME", { scene: "Menu", exact: true }).catch(() => 0);

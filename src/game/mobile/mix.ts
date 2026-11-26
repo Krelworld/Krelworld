@@ -14,7 +14,7 @@
 // Synth.master is left connected but has nothing going into it any more.
 import { G } from "../G";
 import { synth } from "../audio/Synth";
-import { ceilingCurve, mixGains, mixLine, PHONE_MIX, type MixGains, type PhoneMixPlan, type SoundSettings } from "./mixLogic";
+import { ceilingCurve, fightLevels, mixGains, mixLine, PHONE_MIX, type MixGains, type PhoneMixPlan, type SceneLevels, type SoundSettings } from "./mixLogic";
 
 export interface MixGraph {
   ctx: BaseAudioContext;
@@ -132,6 +132,8 @@ export class PhoneMix {
   private applied = "";
   /** The slider gains last set (a gain's .value lags its glide, and an idle path's is not updated at all). */
   private gains: MixGains | null = null;
+  /** The game's scene levels last applied (a fight: the dungeon, the raid). */
+  private scene: SceneLevels = {};
   /** The mix's own connection to the speakers is being made (leave it alone). */
   private building = false;
 
@@ -157,6 +159,15 @@ export class PhoneMix {
       setVolumes(v);
       this.update();
     };
+    // the dungeon's (and the raid's) own levels: a phone takes them back out and plays the fight its own way
+    for (const k of ["setSfxScale", "setMusicBoost"]) {
+      if (typeof s[k] !== "function") continue;
+      const fn = s[k].bind(synth);
+      s[k] = (x: number) => {
+        fn(x);
+        this.update();
+      };
+    }
     // a context the game made before this loaded
     this.ensure();
   }
@@ -218,10 +229,13 @@ export class PhoneMix {
     const gr = this.graph;
     if (!gr) return;
     const st = (G.meta?.settings ?? {}) as SoundSettings;
-    const key = `${st.master}|${st.music}|${st.sfx}|${st.voiceVolume}`;
+    const sy = synth as unknown as Bag;
+    const scene: SceneLevels = { sfxScale: sy.sfxScale, musicBoost: sy.musicBoost };
+    const key = `${st.master}|${st.music}|${st.sfx}|${st.voiceVolume}|${scene.sfxScale}|${scene.musicBoost}`;
     if (key === this.applied) return;
     this.applied = key;
-    this.gains = mixGains(st, this.plan);
+    this.scene = scene;
+    this.gains = mixGains(st, this.plan, scene);
     setGains(gr, this.gains);
   }
 
@@ -265,6 +279,7 @@ export class PhoneMix {
       pre: gr && k ? { song: v(k.song.pre), chip: v(k.chip.pre), sfx: v(k.sfx.pre), voice: v(k.voice.pre) } : null,
       post: gr && k ? { music: v(k.song.post), sfx: v(k.sfx.post), voice: v(k.voice.post) } : null,
       redirected: { ...this.redirected },
+      fight: fightLevels(this.scene).fight,
     };
   }
 }

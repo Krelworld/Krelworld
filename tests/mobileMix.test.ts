@@ -1,7 +1,7 @@
 // Stage 3 wave 2, the phone's sound mix: the gain plan (mixLogic.ts). The graph itself is checked by the phone smoke
 // test's "platform" section and measured offline (report s3-08-sound.md).
 import { describe, expect, it } from "vitest";
-import { ceilingCurve, dbfs, MAX_PEAK, mixGains, mixLine, OFF, pathGains, PHONE_MIX, sliderLevels } from "../src/game/mobile/mixLogic";
+import { ceilingCurve, dbfs, fightLevels, MAX_PEAK, mixGains, mixLine, OFF, pathGains, PHONE_MIX, sliderLevels } from "../src/game/mobile/mixLogic";
 
 const DEFAULTS = { master: 0.8, music: 0.5, sfx: 0.8, voiceVolume: 0.8 };
 
@@ -122,5 +122,45 @@ describe("phone mix: the ?mobilediag line", () => {
     expect(l).toMatch(/squeeze now voice 3\.2 \/ effects \? dB/);
     expect(l).toMatch(/peak -6 dBFS/);
     expect(mixLine(PHONE_MIX, { voice: 0, sfx: 0 }, 0)).toMatch(/peak silent/);
+  });
+});
+
+describe("phone mix: fights (the user: \"the sound effects were simply very quiet\" in the dungeon)", () => {
+  const DUNGEON = { sfxScale: 0.68, musicBoost: 1.35 };
+  it("only a fight's own levels count: the dungeon and the raid, not the hub's near-silent moment", () => {
+    expect(fightLevels(DUNGEON)).toEqual({ sfx: 0.68, music: 1.35, fight: true });
+    expect(fightLevels({ musicBoost: 1.4 })).toEqual({ sfx: 1, music: 1.4, fight: true });
+    expect(fightLevels({ sfxScale: 1, musicBoost: 0.1 })).toEqual({ sfx: 1, music: 1, fight: false });
+    expect(fightLevels({ sfxScale: 0, musicBoost: 9 })).toEqual({ sfx: 1, music: 1, fight: false });
+    expect(fightLevels({})).toEqual({ sfx: 1, music: 1, fight: false });
+  });
+
+  it("outside a fight the gains are exactly the ones without a scene", () => {
+    expect(mixGains(DEFAULTS, PHONE_MIX, { sfxScale: 1, musicBoost: 1 })).toEqual(mixGains(DEFAULTS));
+    expect(mixGains(DEFAULTS, PHONE_MIX, { musicBoost: 0.1 })).toEqual(mixGains(DEFAULTS));
+  });
+
+  it("in the dungeon the game's own effects cut and song lift are taken back out, effects then go up, the song does not", () => {
+    const town = mixGains(DEFAULTS);
+    const d = mixGains(DEFAULTS, PHONE_MIX, DUNGEON);
+    // the compressor sees the same effects level as anywhere else
+    expect(d.sfx.pre * 0.8 * 0.68).toBeCloseTo(1);
+    expect(d.sfx.post / town.sfx.post).toBeCloseTo(PHONE_MIX.fight.sfx);
+    expect(PHONE_MIX.fight.sfx).toBeGreaterThan(1);
+    // the song: its lift taken out, so it sits lower than the laptop's dungeon song
+    expect(d.song.pre * 0.4 * 1.35).toBeCloseTo(1);
+    expect(d.chip.pre * 0.5 * 1.35).toBeCloseTo(1);
+    expect(d.song.post / town.song.post).toBeCloseTo(PHONE_MIX.fight.music);
+    expect(PHONE_MIX.fight.music).toBeLessThanOrEqual(1);
+    expect(d.voice).toEqual(town.voice);
+  });
+
+  it("the sliders still scale a fight exactly", () => {
+    const a = mixGains(DEFAULTS, PHONE_MIX, DUNGEON);
+    const b = mixGains({ ...DEFAULTS, master: 0.4 }, PHONE_MIX, DUNGEON);
+    expect(b.sfx.post / a.sfx.post).toBeCloseTo(0.5);
+    expect(b.song.post / a.song.post).toBeCloseTo(0.5);
+    expect(b.sfx.pre).toBeCloseTo(a.sfx.pre);
+    expect(mixGains({ ...DEFAULTS, sfx: 0 }, PHONE_MIX, DUNGEON).sfx).toEqual({ pre: 0, post: 0 });
   });
 });

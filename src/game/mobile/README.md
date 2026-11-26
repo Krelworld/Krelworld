@@ -1029,11 +1029,20 @@ rest brought up. On a phone every path of the game's sound context goes through 
 - The sliders: "pre" takes the player's slider level out of each path's signal and "post" puts it back after the
   compressor, so the compressors always see the same level and every slider still scales its path exactly (half the
   Master, half the output; 0 is silence). `synth.setVolumes` is wrapped to update at once; the Voice slider (no call of
-  its own) is read every quarter second. The duck under dialogue, fades and the dungeon's music lift are in the game's
-  own gains, in front of "pre", so they work as before.
+  its own) is read every quarter second. The duck under dialogue and fades are in the game's own gains, in front of
+  "pre", so they work as before (the dungeon's own levels: see Fights below).
 - Measured offline on the game's own files (`OfflineAudioContext`, the mix built by `buildMix` itself; numbers in
   `reports/s3-08-sound.md`): at the default settings speech about +4.5 dB (as a phone speaker hears it), explosions and
   gunshots +4 to +9 dB, songs -1.4 dB; the peak never above -1.2 dBFS, even with every slider at 100%.
+- **Fights (dungeon, raid)**, after the user played the live game: "the sound effects were simply very quiet". For a
+  laptop's speakers the dungeon turns its effects down (`setSfxScale(0.68)`) and its song up (`setMusicBoost(1.35)`; the
+  raid 1.4). On a phone `mix.ts` wraps both calls and the mix takes them back out in "pre" (`fightLevels()`: only an
+  effects scale of 0.5-1 and a lift of 1-2 count, so the hub's near-silent 0.1 stays as it is), then plays effects
+  x1.3 in "post" and the song at its normal level (`PHONE_MIX.fight`). Measured on the dungeon song and its guns
+  (`reports/s3-08-sound.md`, "Fights"): gunshots over the dungeon song heard at -16.4 dB RMS (was -19.3; laptop -23.6),
+  2.7 dB under voice lines (-13.7); the whole fight +7.8 dB over the laptop's; the dungeon song -4 dB under the
+  laptop's dungeon song; peaks -1.2 dBFS with every slider at 100%; outside fights nothing changed. `report().fight`
+  says whether the mix is in a fight (smoke `--only dungeon`).
 - Not in the mix: the robot voice (`speechSynthesis`, only for a line with no recording) and songs after the route
   self-test fell back to plain elements (an old WebKit bug); both play as before.
 - `?mobilediag`: "sound mix phone: voice drive +9.5 dB, effects +6 dB, music -1.4 dB · squeeze now voice x / effects y dB ·

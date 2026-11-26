@@ -28,7 +28,9 @@ export class EndingScene extends Phaser.Scene {
     if (backdrop(this, "bg_ending", { dim: 0.15, depth: -10 })) enBg.setVisible(false);
     this.add.rectangle(0, 0, 960, 540, 0x000000, 0.25).setOrigin(0);
     const dr = this.add.sprite(480, 250, "spr_DRONGUS", 0).setScale(5).setAngle(-80).setTint(0xddddaa);
-    synth.stopMusic();
+    // the final prompt and the reaction card get their own quiet piano (a replay goes straight to the ending's song)
+    if (data?.replay && s.ending) synth.stopMusic();
+    else synth.music("ending_prompt");
     this.box = new DialogueBox(this, 1000, 0.15);
     if (data?.replay && s.ending) {
       this.showEnding(s.ending, dr, true);

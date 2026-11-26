@@ -52,6 +52,8 @@ PHIL: You… you fucking bitch.
 INT. GROZZ FAMILY LIVING ROOM - NIGHT
 (GROZZ stares at his own can of pussy juice. He turns slowly to SHEZLEIGH, his voice trembling.)
 GROZZ: You… you fucking bitch.
+SHEZLEIGH: Don't you look at me like that, you fat cunt!
+GROZZ: Shut it, you fucking slag.
 (SHEZLEIGH shrugs and takes a sip from her own can. The kids are now biting chunks out of the couch.)
 INT. AIRPLANE COCKPIT - NIGHT
 (Krozno's bandits occupy the cockpit. Their leader, KROZNO, balaclava, stick-on moustache, grins maniacally. He holds a can of KROZNO'S OWN-BRAND PUSSY JUICE.)

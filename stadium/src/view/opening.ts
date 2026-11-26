@@ -17,6 +17,9 @@ const LINES = ["n1", "n2", "s1", "s2", "s3", "n3", "g1", "g2", "k1", "k2", "k3",
 const SFX = ["sting", "tvsmash", "snap", "wail", "door", "pubcheer", "crisps", "fart_wet", "fart_long", "fart_squeak"];
 const CAST = ["fan", "shezleigh", "grozzyjr", "screnton"];
 const ANIMS = ["walk", "idle", "punch", "cheer", "rage", "snap", "throw", "shout", "cry", "tug"];
+/** Frame size per cast member: the detailed Grozz is drawn at twice the resolution of the rest. */
+const CELL: Record<string, number> = { grozzhd: 176 };
+const cellOf = (base: string) => CELL[base] ?? 88;
 // S, SE, E, NE, N, NW, W, SW
 const DIR = { S: 0, E: 2, N: 4, W: 6, SE: 1, SW: 7, NE: 3, NW: 5 } as const;
 
@@ -35,7 +38,7 @@ class Person {
     if (!this.has(anim)) { this.face(this.dir); return; }
     const key = `${this.base}-${anim}-${this.dir}`;
     if (!this.sc.anims.exists(key)) {
-      const n = Math.max(1, Math.floor(this.sc.textures.get(`${this.base}-${anim}`).getSourceImage().width / 88));
+      const n = Math.max(1, Math.floor(this.sc.textures.get(`${this.base}-${anim}`).getSourceImage().width / cellOf(this.base)));
       this.sc.anims.create({ key, frames: this.sc.anims.generateFrameNumbers(`${this.base}-${anim}`, { start: this.dir * n, end: this.dir * n + n - 1 }), frameRate: fps, repeat: loop ? -1 : 0 });
     }
     this.sp.play(key, true);
@@ -50,7 +53,7 @@ class Person {
     const ms = (Math.hypot(dx, dy) / ROOM_SCALE / speed) * 1000;
     return new Promise((res) => this.sc.tweens.add({ targets: this.sp, x: to.x, y: to.y, duration: ms, onUpdate: () => this.sp.setDepth(100 + this.sp.y / ROOM_SCALE), onComplete: () => { this.face(this.dir); res(); } }));
   }
-  get head() { return { x: this.sp.x, y: this.sp.y - 64 * this.scale * (this.base.startsWith("g") || this.base === "screnton" ? 0.62 : 0.78) }; }
+  get head() { return { x: this.sp.x, y: this.sp.y - (this.base === "grozzhd" ? 128 * this.scale * 0.86 : 64 * this.scale * (this.base.startsWith("g") || this.base === "screnton" ? 0.62 : 0.78)) }; }
 }
 
 class OpeningScene extends Phaser.Scene {
@@ -71,6 +74,8 @@ class OpeningScene extends Phaser.Scene {
     for (const k of ["glass_smash", "chair_smash", "wall_crash", "punch", "bodyfall", "fart", "chant_eng", "bark", "gulp", "dog_bite"]) this.load.audio(k, `audio/${k}.mp3`);
     // The coach: the inside of it, and the two of them sat in the front seat, drawn bigger and finer than the room.
     for (const k of ["coach_bg", "grozz_seat", "kev_seat", "ipad", "crisps"]) this.load.image(k, `scenes/${k}.png`);
+    // Grozz himself, drawn in detail for the films.
+    for (const a of ["rot", "walk", "idle", "punch", "rage", "throw", "snap"]) this.load.spritesheet(`grozzhd-${a}`, `art/grozzhd-${a}.png`, { frameWidth: 176, frameHeight: 176 });
     // Ronson, Grozz's dog.
     for (const a of ["rot", "walk", "run", "lunge", "chew"]) this.load.spritesheet(`ronson-${a}`, `art/ronson-${a}.png`, { frameWidth: 88, frameHeight: 88 });
     this.load.image("pint", "icons/pint_glass.png");
@@ -374,14 +379,14 @@ class OpeningScene extends Phaser.Scene {
     this.time.addEvent({ delay: 90, loop: true, callback: () => dim.setFillStyle(0x000000, Math.random() < 0.06 ? 0.3 : 0.06 + Math.random() * 0.05) });
     const ash = R(232, 186);
     this.time.addEvent({ delay: 420, loop: true, callback: () => { const p = this.add.circle(ash.x + (Math.random() - 0.5) * 6, ash.y, 4 + Math.random() * 3, 0xd8d8d8, 0.35).setDepth(1400); this.tweens.add({ targets: p, y: p.y - 70, x: p.x + (Math.random() - 0.5) * 30, scale: 2.2, alpha: 0, duration: 2200, onComplete: () => p.destroy() }); } });
-    const grozz = new Person(this, "fan", 215, 150, DIR.N);
+    const grozz = this.textures.exists("grozzhd-rot") ? new Person(this, "grozzhd", 215, 150, DIR.N, ROOM_SCALE * 0.5) : new Person(this, "fan", 215, 150, DIR.N);
     this.mark("room-grozz");
     const jr = new Person(this, "grozzyjr", 126, 140, DIR.E);
     const scr = new Person(this, "screnton", 158, 140, DIR.W);
     const shez = new Person(this, "shezleigh", 372, 118, DIR.W);
     shez.sp.setVisible(false);
     // Ronson: eating the settee. Bits of stuffing everywhere.
-    const ron = this.textures.exists("ronson-rot") ? new Person(this, "ronson", 92, 226, DIR.W) : null;
+    const ron = this.textures.exists("ronson-rot") ? new Person(this, "ronson", 92, 226, DIR.W, ROOM_SCALE * 0.72) : null;
     let stuffing: Phaser.Time.TimerEvent | null = null;
     if (ron) {
       ron.play(ron.has("chew") ? "chew" : "walk", true, 11);
@@ -649,7 +654,7 @@ class OpeningScene extends Phaser.Scene {
     const G = head(gz), K = head(kv);
     // Ronson, in the aisle, eating the seat in front.
     const dogOk = this.textures.exists("ronson-rot");
-    const ron = dogOk ? new Person(this, "ronson", 0, 0, DIR.E, 3.2) : null;
+    const ron = dogOk ? new Person(this, "ronson", 0, 0, DIR.E, 2.5) : null;
     if (ron) { ron.sp.setPosition(W * 0.13, H - 30).setDepth(120); ron.play(ron.has("chew") ? "chew" : "walk", true, 10); }
     const say = (k: string, who: Person, text: string) => this.say(`c_${k}`, text, who);
     // A fart: a green cloud out of the seat, a wobble, a noise, the other one's face.

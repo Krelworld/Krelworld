@@ -18,6 +18,7 @@ import { beginRestart } from "../football/restarts";
 import { areaAt, SPOTS, TURNSTILES, VENUE, WALLS } from "./layout";
 import { FAN_POOL, say, STAFF_LINES } from "./npc";
 import { alert, crime, isSecurity, struggle, wantedMatch, witnessesOf } from "./security";
+import { inDrag, isCreep, selfDefence } from "./drag";
 import { cargoOpen } from "./vehicles";
 import { holdOpen } from "./bus";
 import { hearLead } from "./entries";
@@ -48,7 +49,7 @@ export const fruitNear = (a: Actor) => VENUE.furniture.some((f) => f.key === "fr
  *  easier and more repeatable, the less; the big set pieces (the bus, a parachute, a streak) most. */
 export const REWARDS: Record<string, number> = {
   in: 20, ko_stw: 15, horse: 25, car: 20, pitch: 15, dog: 15, splat: 10, slap: 5, bus: 40, chute: 30, lenny: 20, evade: 15,
-  streak: 30, bomb: 15, grass: 10, boxer: 10, secret: 25, roof: 10, window: 10, stench: 15, rifle: 30,
+  streak: 30, bomb: 15, grass: 10, boxer: 10, secret: 25, roof: 10, window: 10, stench: 15, rifle: 30, creep: 15,
 };
 
 /** What the pawnbroker gives for a thing (0: he won't have it). Stolen goods go for about half. */
@@ -174,13 +175,15 @@ export function installRules(): void {
       // Held in his office: a sob story. Once. He might just be sick of the sight of you.
       const st0 = w.state.stadium!;
       if (n.job === "chief" && st0.detainedUntil && actor.id === st0.pc) {
-        if (st0.flags.sobStory) { say(w, t, pick(w.state.rng.world, ["Heard it.", "Save it for the magistrate.", "No."]), 3); return; }
+        // In a frock, he's a patronising arse about it.
+        const frock = inDrag(w, actor);
+        if (st0.flags.sobStory) { say(w, t, pick(w.state.rng.world, frock ? ["Oh, don't cry, love, your mascara'll run.", "Calm down, sweetheart. Deep breaths.", "Is it that time of the month, darling?"] : ["Heard it.", "Save it for the magistrate.", "No."]), 3); return; }
         st0.flags.sobStory = 1;
         if (!st0.policeCalled && chance(w.state.rng.world, 0.3)) {
-          say(w, t, "...Oh, for God's sake. Go on. Get out of my sight before I change my mind.", 4);
+          say(w, t, frock ? "...Oh, go on then, love. Off you pop. And leave the football to the men, eh?" : "...Oh, for God's sake. Go on. Get out of my sight before I change my mind.", 4);
           st0.detainedUntil = 0; st0.gates.officedoor = { until: w.state.tick + 600, for: actor.id };
           w.bus.emit({ type: "released", t: w.state.tick, who: actor.id });
-        } else say(w, t, pick(w.state.rng.world, ["Your nan's not ill. Sit down.", "Crying won't help. It's making it worse, if anything.", "That's the third dead grandad today."]), 4);
+        } else say(w, t, pick(w.state.rng.world, frock ? ["Aww. Did the big scary football get too much for you, love?", "Don't you worry your pretty little head. The police'll sort it.", "Does your husband know you're out, sweetheart?"] : ["Your nan's not ill. Sit down.", "Crying won't help. It's making it worse, if anything.", "That's the third dead grandad today."]), 4);
         return;
       }
       // Fans and locals: a proper exchange. Anyone with their own story (the dog's owner, say) tells it first.
@@ -415,7 +418,9 @@ export function installRules(): void {
       if (official) t.downUntil = w.state.tick + (weapon ? 1800 : 360);
       if (weapon && player) removePlayer(w, t.id, "injured");
       const sev = weapon ? 3 : official || player ? 3 : 2;
-      crime(w, actor, weapon ? "an attack with a weapon" : official ? "assaulting the referee" : player ? "assaulting a player" : "assault", sev, t);
+      // A man with his hands on Grozz-in-a-frock had it coming (short of a knife in him).
+      if (actor.id === w.state.stadium!.pc && isCreep(w, t) && !(held && hasProp(held, "sharp"))) selfDefence(w, actor, t);
+      else crime(w, actor, weapon ? "an attack with a weapon" : official ? "assaulting the referee" : player ? "assaulting a player" : "assault", sev, t);
       if (t.npc && result === "hurt") {
         const OUCH = weapon ? ["Aaargh!", "My head! My fucking head!", "Help! Somebody help!"]
           : ["My nose! My fucking nose!", "Ow! You mad bastard!", "What the fuck was that for?", "Jesus Christ!", "Ugh... my teeth...", "You're dead, mate. Dead!"];

@@ -11,12 +11,19 @@ export interface DetainHooks {
   /** A person side on: picture and cell, facing right (true) or left. */
   figure: (who: "pc" | "chief", right: boolean) => { img: CanvasImageSource; sx: number; sy: number; sw: number; sh: number; foot: number } | null;
   /** How it stands: seconds left, police on the way, the chief's name and whether he's up. */
-  state: () => { held: boolean; left: number; police: boolean; chief: string; chiefUp: boolean; money: number };
+  state: () => { held: boolean; left: number; police: boolean; chief: string; chiefUp: boolean; money: number; frock?: boolean };
   bribe: () => void;
   talk: () => void;
   getUp: () => void;
 }
 
+/** What he says to Grozz in a frock: the same man, patronising instead of bored. */
+const PATTER_F = [
+  "Name, sweetheart.", "Now, now, love. Let's not get hysterical.", "Bit emotional today, are we?",
+  "Shouldn't you be at home, love? Who's doing the tea?", "Don't worry your pretty little head about the paperwork.",
+  "Football's a man's game, darling. You wouldn't understand the offside rule.", "Smile, love. You'd be prettier if you smiled.",
+  "Is that your husband's shirt under there?", "I'll get one of the girls to come and sit with you.", "Big hands for a lady. Lovely, though.",
+];
 const PATTER = [
   "Name.", "I said, name.", "Do you know how much paperwork you are?", "We've got you on camera. All of it. The lot.",
   "Sit still.", "You smell like a brewery fire.", "I've been doing this twenty-two years. You're not special.",
@@ -77,7 +84,7 @@ export class Detain {
     this.clock.textContent = `${st.police ? "POLICE" : "OUT"} IN ${m}:${String(s).padStart(2, "0")}`;
     this.clock.style.color = st.police ? "#ff6b6b" : "#f2c94c";
     this.bBribe.disabled = st.money <= 0; this.bBribe.style.opacity = st.money > 0 ? "1" : "0.4";
-    if (now > this.lineAt) { this.say.textContent = `${st.chief}: "${PATTER[this.lineI++ % PATTER.length]}"`; this.lineAt = now + 3800; }
+    if (now > this.lineAt) { const pool = st.frock ? PATTER_F : PATTER; this.say.textContent = `${st.chief}: "${pool[this.lineI++ % pool.length]}"`; this.lineAt = now + 3800; }
     cx.fillStyle = "#000"; cx.fillRect(0, 0, W, H);
     if (this.bg.complete && this.bg.naturalWidth) cx.drawImage(this.bg, 0, 0);
     // You, on the chair, facing him; him, by the desk, facing you, leaning in now and then.

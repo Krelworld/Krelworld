@@ -37,6 +37,7 @@ import { drawBall, drawGoalFrame, drawPitch } from "./pitchArt";
 import { Projection } from "./projection";
 import { Audio, PC_LINES, VOICES, type Clip } from "./audio";
 import { Doorway } from "./doorway";
+import { inDrag as inDragSim } from "../stadium/drag";
 import STW_JSON from "../../assets/audio/stwlines.json";
 const STW_VOICE = STW_JSON as Record<string, string>;
 import { Drive3D, type DriveView } from "./drive3d";
@@ -919,6 +920,8 @@ class StadiumScene extends Phaser.Scene {
     void stage;
   }
 
+  /** One-off view hints. */
+  flags: Record<string, number> = {};
   doorway = new Doorway();
   gateFlash: Record<string, number> = {};
   /** Showing your ticket: it goes into the reader, a beep and a green light, and the flaps clunk
@@ -1218,7 +1221,7 @@ class StadiumScene extends Phaser.Scene {
       },
       state: () => {
         const s = this.s, st2 = s.stadium!, ch = this.chiefActor();
-        return { held: !!st2.detainedUntil && !st2.ending, left: Math.max(0, (st2.detainedUntil - s.tick) / 60), police: !!st2.policeCalled, chief: ch ? personName(ch) : "Security", chiefUp: !!ch && !ch.dead && ch.downUntil <= s.tick && !ch.hiddenIn, money: this.pc.money };
+        return { held: !!st2.detainedUntil && !st2.ending, left: Math.max(0, (st2.detainedUntil - s.tick) / 60), police: !!st2.policeCalled, chief: ch ? personName(ch) : "Security", chiefUp: !!ch && !ch.dead && ch.downUntil <= s.tick && !ch.hiddenIn, money: this.pc.money, frock: inDragSim(this.w, this.pc) };
       },
       bribe: () => {
         const ch = this.chiefActor(); if (!ch) return;
@@ -1966,8 +1969,8 @@ class StadiumScene extends Phaser.Scene {
             let im = this.worldSprites.get("dog-sprite");
             if (!im) { im = this.add.image(0, 0, key, f); this.worldSprites.set("dog-sprite", im); }
             this.worldSeen.add("dog-sprite");
-            im.setTexture(key, f).setOrigin(0.5, 66 / 88).setPosition(Math.round(P.sx(a.x, a.y)), Math.round(P.sy(a.x, a.y))).setDepth(dep).setVisible(true).setAlpha(1).setAngle(a.dead ? 90 : 0)
-              .setScale((P.standing && P.S === PPM ? 1 : P.S / PPM) * 1.15);
+            im.setTexture(key, f).setOrigin(0.5, 74 / 88).setPosition(Math.round(P.sx(a.x, a.y)), Math.round(P.sy(a.x, a.y))).setDepth(dep).setVisible(true).setAlpha(1).setAngle(a.dead ? 90 : 0)
+              .setScale((P.standing && P.S === PPM ? 1 : P.S / PPM) * 0.95);
           } });
           continue;
         }
@@ -2621,6 +2624,8 @@ class StadiumScene extends Phaser.Scene {
     if (out.base === "steward" && a.npc?.job === "police" && !out.rc.vest) out.rc = { vest: 0x1c2a4a };
     // A stick-on moustache and a wig are painted into the frames themselves, so they sit on the head
     // whichever way he turns and however he moves.
+    // Grozz himself is bald, whatever he's wearing.
+    if (a.id === this.s.stadium!.pc && ["fan", "fanbare", "fandress", "fannaked", "england", "steward", "referee", "police"].includes(out.base)) out.rc = { ...out.rc, bald: 1 };
     if (!out.base.startsWith("horse") && out.base !== "mascot") {
       const head = a.worn.head ? this.s.items[a.worn.head]?.def : undefined, face = a.worn.face ? this.s.items[a.worn.face]?.def : undefined;
       if (face === "moustache") out.rc = { ...out.rc, tache: ITEM_DEFS.moustache.colour ?? 0x3a2a1a };
@@ -3931,6 +3936,9 @@ class StadiumScene extends Phaser.Scene {
     const s = this.s, st = s.stadium!, pcId = st.pc, nm = (id: string) => (s.actors[id] ? personName(s.actors[id]) : "Someone");
     switch (e.type) {
 
+      case "groped": if (e.who === pcId) { this.bark("groped", 1, true); if (!this.flags.gropeHint) { this.flags.gropeHint = 1; this.hint("He's got his hands on you. Flatten him: nobody's going to call that assault."); } } break;
+      case "leered": if (e.who === pcId && e.advance && !this.flags.leerHint) { this.flags.leerHint = 1; this.hint("That one's coming over. If he lays a finger on you, he's fair game."); } break;
+      case "self_defence": if (e.by === pcId) { this.hint("Self-defence. Nobody's arguing with that."); this.tick("creep"); } break;
       case "fruit": if (e.by === pcId) this.fruitSpin(e.reels, e.win); break;
       case "ticket_scanned": if (e.who === pcId) this.scanCard(e.ok); if (e.ok) this.gateFlash[e.gate] = performance.now() + 4500; break;
       case "pc_say": this.pcLine = { text: e.text, until: performance.now() + 2600 }; break;
@@ -3967,7 +3975,7 @@ class StadiumScene extends Phaser.Scene {
     { id: "streak", text: "Streak across the pitch" }, { id: "bomb", text: "Call in a bomb threat" }, { id: "grass", text: "Shut a grass up" },
     { id: "boxer", text: "Have somebody sorted out" }, { id: "secret", text: "Find a hidden story" },
     { id: "roof", text: "Get up on a roof" }, { id: "window", text: "Put a brick through a window" }, { id: "stench", text: "Clear a crowd with a stink bomb" },
-    { id: "rifle", text: "Take a shot from a long way off" },
+    { id: "rifle", text: "Take a shot from a long way off" }, { id: "creep", text: "Flatten a bloke who gets handsy" },
   ];
   mayhemDone = new Set<string>();
   /** The to-do list ticks itself, from what happens. */

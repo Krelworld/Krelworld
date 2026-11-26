@@ -240,3 +240,29 @@ test("the to-do list pays once per item; the fruit machine takes a quid", () => 
   assert.equal(spent, 20);
   assert.ok(won < 60, `won ${won}`);
 });
+
+test("in a frock, a bloke gets handsy; flattening him isn't a crime, hitting an innocent man still is", () => {
+  const g = createGame("drag1"), s = g.w.state, pc = pcOf(g), st = s.stadium!, ev = events(g);
+  const dress = spawnItem(s, "dress", { k: "pocket", a: pc.id });
+  dispatch(g.w, { verb: "wear", actor: pc.id, item: dress.id });
+  // Out of the way of stewards, with a man stood near.
+  pc.x = SPOTS.pubYard.x; pc.y = SPOTS.pubYard.y;
+  for (const a of Object.values(s.actors)) if (a.npc && ["turnstile","doorguard","gateguard","pitchsteward","patrol","corridor","chief","police"].includes(a.npc.job) && Math.hypot(a.x - pc.x, a.y - pc.y) < 25) a.x += 60;
+  const man = find(g, (a) => a.npc?.job === "fan" && !a.female && !a.seated);
+  man.x = pc.x + 4; man.y = pc.y; man.npc!.plan = [];
+  st.flags.creepNext = 0;
+  // Force the advance (the dice decide normally).
+  st.creep = { id: man.id, phase: "advance", until: s.tick + 60 * 14 };
+  run(g, 6, () => { pc.moveX = pc.moveY = 0; });
+  assert.ok(ev.some((e) => e.type === "groped"), "he came over and got handsy");
+  const before = st.incidents.length;
+  pc.x = man.x - 0.9; pc.y = man.y; pc.facing = 0;
+  dispatch(g.w, { verb: "strike", actor: pc.id, target: { k: "actor", id: man.id } });
+  assert.equal(st.incidents.length, before, "no crime");
+  assert.ok(ev.some((e) => e.type === "self_defence"));
+  // A different man, who's done nothing: assault.
+  const other = find(g, (a) => a.npc?.job === "fan" && !a.female && a.id !== man.id && !a.seated);
+  other.x = pc.x + 0.9; other.y = pc.y;
+  dispatch(g.w, { verb: "strike", actor: pc.id, target: { k: "actor", id: other.id } });
+  assert.ok(st.incidents.length > before, "assault");
+});

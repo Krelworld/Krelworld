@@ -38,6 +38,7 @@ import { installReactions, installRules, SHOPS, stepRules } from "./rules";
 import { changedClothes, isSecurity, stepDetention, stepHeat, stepRadio, stepSecurity } from "./security";
 import type { StadiumState } from "./state";
 import { LORRY_LEN, LORRY_WID, lorryHits, stepVehicle } from "./vehicles";
+import { stepCreeps } from "./drag";
 
 export interface Checkpoint { id: "arrival" | "admission" | "kickoff" | "halftime"; label: string; tick: number; state: WorldState }
 
@@ -366,6 +367,7 @@ export function stepGame(g: Game): void {
   stepKickoff(w);
   stepTraffic(w);
   stepCombat(w);
+  stepCreeps(w);
   stepEntries(w);
   stepCoverups(w);
   stepChat(w);

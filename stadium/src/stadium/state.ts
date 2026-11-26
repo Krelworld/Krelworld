@@ -147,6 +147,8 @@ export interface StadiumState {
   /** Faces the stewards will turn away at the gate. */
   banned: Id[];
   wanted: Wanted[];
+  /** A bloke who has taken a fancy to Grozz in his frock (drag.ts). */
+  creep?: import("./drag").Creep;
   incidents: Incident[];
   /** Ever been inside the ground (for the admission checkpoint). */
   admitted: boolean;

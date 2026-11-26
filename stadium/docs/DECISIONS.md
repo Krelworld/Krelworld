@@ -926,3 +926,26 @@ It plays when you go in, not when you leave, and once per building per 20 second
 - **The moonwalk:** anyone walking sideways used to walk backwards, because east and west were swapped in the direction sum. Fixed.
 - **The iPad and crisps** are proper pixel art. The iPad snaps into two real halves with a spray of glass. The crisp packet tears in two and the crisps rain down and bounce.
 - **The rampage:** Grozz now breaks the room for real. The armchair, the telly cabinet, the cans and a crate are cut out of the painted room and fly apart in chunks that land as rubble, with bare floor where they stood.
+
+## Round: bald Grozz, HD Grozz, XL bully Ronson, the frock's admirers
+
+**Grozz is bald and late 40s.**
+- **In game:** his sprite (in every outfit and every animation) has the crown painted out to skin with a shine on top, so his buzzcut hairline is gone. It's done in the same per-frame pass as the wig and moustache, so other fans built on the same sprite keep their hair.
+- **In the films:** a new high-detail Grozz, a 128 px PixelLab character drawn twice as fine as the game sprites: bald, grey stubble, jowls, red nose, tattoos. He has walk, idle, punch, rage, throw and snap, and plays him in the house.
+- **The coach and phone:** the coach-seat art and the codec portrait were redrawn to match (bald, grey stubble, late 40s).
+
+**The wig** is drawn as hair now: strands down from a parting, darker at the edges and underneath, a sheen across the top, and ragged ends on the long one. It replaces the tiled checker pattern.
+
+**Ronson is an XL bully:** massive chest, a brick of a head, blue-grey with a white bib, studded collar. Same animations as before, everywhere he appears.
+
+**In a frock, men take an interest.**
+- **Leering:** every so often a bloke nearby who can see you leers ("Big girl, aren't ya?", "Give us a twirl, sweetheart").
+- **Advancing:** about half of them come over and get handsy ("What's under that dress then?"). Grozz shrieks in his falsetto.
+- **Self-defence:** flatten the man who has his hands on you and it isn't a crime. A woman nearby shouts "Good on ya, love!", or a steward says "Fair enough, he had that coming", and a steward who was after you for it lets it go.
+- **Not a licence:**
+  - Throw the first punch at a man who's only looked at you, and it's assault.
+  - A knife in him isn't self-defence either.
+- **Giving up:** walk away and he gives up ("Frigid cow!").
+- **To-do item:** it's on the list now, "Flatten a bloke who gets handsy" (£15).
+
+**Detained in a frock:** the head of security is patronising instead of bored ("Shouldn't you be at home, love? Who's doing the tea?", "Football's a man's game, darling"). His replies to your sob story change to match, including when he lets you go: "Off you pop. And leave the football to the men, eh?"

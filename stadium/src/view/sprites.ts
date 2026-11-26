@@ -38,6 +38,8 @@ export interface Recolour {
   /** A wig, painted over the head in every frame; `wigLong` 1 for the long one down to the shoulders. */
   wig?: number;
   wigLong?: number;
+  /** Grozz: bald as a coot. The crown's stubble painted out to skin, with a shine on top. */
+  bald?: number;
 }
 
 /** Paint a moustache and a wig onto every frame of a sheet, found from the figure itself: the top
@@ -45,7 +47,7 @@ export interface Recolour {
  *  NE, N, NW, W, SW: across for standing, down the rows for animations). A face that's turned
  *  away gets no moustache; a wig is all you see from behind. */
 function dressHead(cx: CanvasRenderingContext2D, cv: HTMLCanvasElement, sheet: string, rc: Recolour, C: number): void {
-  if (rc.tache === undefined && rc.wig === undefined) return;
+  if (rc.tache === undefined && rc.wig === undefined && rc.bald === undefined) return;
   const img = cx.getImageData(0, 0, cv.width, cv.height), d = img.data, W = cv.width;
   const cols = Math.floor(cv.width / C), rows = Math.floor(cv.height / C);
   const op = (x: number, y: number) => d[(y * W + x) * 4 + 3] > 100;
@@ -67,26 +69,56 @@ function dressHead(cx: CanvasRenderingContext2D, cv: HTMLCanvasElement, sheet: s
     if (hl < 0 || hw > 26) continue;
     const front = dir === 0 || dir === 1 || dir === 7, back = dir === 3 || dir === 4 || dir === 5;
     const toward = dir === 1 || dir === 2 || dir === 3 ? 1 : dir === 5 || dir === 6 || dir === 7 ? -1 : 0;
-    if (rc.wig !== undefined) {
-      const deep = back ? 13 : 5;
-      for (let y = top; y <= top + deep; y++) {
+    if (rc.bald !== undefined && rc.wig === undefined) {
+      // The crown (and, from behind, the whole back of the head): anything darker than skin that
+      // isn't the outline becomes skin, keeping its light and shade. Then a glint on top.
+      const deep = back ? 10 : toward && !front ? 5 : 4;
+      const skin = [214, 128, 94];
+      for (let y = top + 1; y <= top + deep; y++) {
         const [l, r] = span(y);
         if (l < 0) continue;
+        for (let x = l + 1; x < r; x++) {
+          if (!back && toward && y > top + 2 && (x - hc) * toward > 0) continue; // the face side, from the side
+          const i = (y * W + x) * 4, L = lum(d[i], d[i + 1], d[i + 2]);
+          if (L < 0.1 || L > 0.5) continue;
+          const k = 0.62 + (L - 0.1) * 1.1;
+          d[i] = Math.min(255, skin[0] * k); d[i + 1] = Math.min(255, skin[1] * k); d[i + 2] = Math.min(255, skin[2] * k);
+        }
+      }
+      const gx = Math.round(hc - toward * 2 - 1);
+      put(gx, top + 2, 0xfad8be, 1); put(gx + 1, top + 2, 0xfad8be, 0.95); put(gx, top + 3, 0xf5ac83, 1);
+    }
+    if (rc.wig !== undefined) {
+      // Hair, not a tiled pattern: strands running down from a parting, darker underneath and at the
+      // edges, a sheen across the top.
+      const deep = back ? 13 : 5, hash2 = (x: number) => ((x * 7919) % 13) / 13;
+      for (let y = top - 1; y <= top + deep; y++) {
+        const [l0, r0] = span(Math.max(top, y)), l = y < top ? l0 + 2 : l0, r = y < top ? r0 - 2 : r0;
+        if (l0 < 0) continue;
         for (let x = l; x <= r; x++) {
-          // From the side, the face side stays bare below the fringe.
           if (!back && y > top + 3 && toward !== 0 && (x - hc) * toward > hw * 0.15) continue;
-          const shade = x === l || x === r || y === top ? 0.55 : (x + y) % 3 === 0 ? 0.85 : 1;
-          put(x, y, rc.wig, shade);
+          const edge = x === l || x === r || y === top - 1, strand = (x + Math.round(hc)) % 2 === 0 ? 0.9 : 1, depth = 1 - (y - top) * 0.025;
+          const sheen = y === top + 1 && Math.abs(x - hc) < hw * 0.3 ? 1.18 : 1;
+          put(x, y, rc.wig, edge ? 0.5 : strand * depth * sheen * (0.94 + hash2(x) * 0.1));
         }
       }
       if (rc.wigLong) {
-        // Down past the ears to the shoulders: a curtain each side (round the back from behind).
+        // Down past the ears to the shoulders: a curtain each side (round the back from behind), the
+        // ends a little ragged.
         for (let y = top + 4; y <= top + 20; y++) {
-          if (back) { for (let x = Math.round(hl - 1); x <= Math.round(hr + 1); x++) put(x, y, rc.wig, (x + y) % 4 === 0 ? 0.8 : 0.95); continue; }
+          const fall = 1 - (y - top - 4) * 0.012;
+          if (back) {
+            for (let x = Math.round(hl - 1); x <= Math.round(hr + 1); x++) {
+              if (y > top + 17 && hash2(x + y) > 0.6) continue;
+              put(x, y, rc.wig, (x === Math.round(hl - 1) || x === Math.round(hr + 1) ? 0.55 : (x % 2 ? 0.9 : 1)) * fall);
+            }
+            continue;
+          }
           for (const side of [-1, 1]) {
             if (toward === side) continue;
             const ex = side < 0 ? hl - 1 : hr + 1;
-            for (let k = 0; k < 3; k++) put(Math.round(ex - side * k), y, rc.wig, k === 0 ? 0.6 : 0.95);
+            if (y > top + 17 && hash2(ex + y) > 0.5) continue;
+            for (let k = 0; k < 3; k++) put(Math.round(ex - side * k), y, rc.wig, (k === 0 ? 0.55 : k === 1 ? 0.95 : 0.82) * fall);
           }
         }
       }

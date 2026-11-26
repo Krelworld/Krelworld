@@ -71,9 +71,11 @@ main.ts ── boot.ts installMobile(game) ──► isMobile()? no → return (
 | `tapLogic.ts` | Pure: which thing a tap means (`pickTarget`), the grid path-finder (`buildGrid`, `findPath`), steering along the route |
 | `art.ts` / `artLogic.ts` | Stage 3: the texture budget. The big one-scene pictures (`PARKED_ART`) are parked (texture kept, pixels dropped) until drawn or asked for, then fetched back from the browser's cache; parked again 30 s after their last use |
 | `audio.ts` / `audioLogic.ts` | Stage 3: sound on iPhone. `new Audio()` hands out pooled elements the first tap unlocked, each through its own gain node (the volume settings work on iOS); audio session; resume checks; one song at a time; the route self-test |
+| `mix.ts` / `mixLogic.ts` | Stage 3 wave 2: the phone's sound mix. Every path of the game's sound (effects, songs, voices) through a drive, a low cut, a compressor per path and a soft ceiling under -1 dBFS; the player's sliders applied after the compressors |
 | `perf.ts` / `perfLogic.ts` | Stage 3: off-screen Images / Sprites skipped when drawing, blood pools capped at 40, the player's ring in dark or crowded rooms |
 | `games.ts` / `gamesLogic.ts` | Stage 3 wave 2: every minigame by touch (RuneScape's CHOP / DROP ALL / RE-UP, the crocodile's columns, Flip It's rings, LEAVE / END GIG clear of pause, Whack's buttons out of the strip, the first-time cue, the rhythm lag); the pure part (the minigames' touch wording, `rhythmLag`, the crocodile's columns, RuneScape's buttons) |
 | `storage.ts` | Stage 3: `navigator.storage.persist()` asked quietly (never in Firefox), a save on `freeze`; the boot's download held in an app's own browser until PLAY HERE ANYWAY |
+| `scenes.ts` / `scenesLogic.ts` | Stage 3 wave 2: the special scenes (Night of Freedom's finger aim, ROCKET / SLOPPY; Beep Beep's stick and pedals; the raid's FIRE; skip pills; the finale card's SKIP SCENE; the telly's paged subtitles); the pure rules (aim pull, rocket target, steering, subtitle pages, narrator tips) |
 | `index.ts` | The phone chunk's `installMobile()`, `mobileLayer()`, `mobileShell()` and re-exports |
 
 ## Deciding phone mode
@@ -201,6 +203,8 @@ topmost running scene per rule):
 | Running scene | Mode | Pause | Live |
 |---|---|---|---|
 | Boot, Enter, Title, CharSelect, Difficulty, Banter, ChapterSelect, DebugSkip, Menu, Slots, WeaponPick, Dialogue, Meeting, Cutscene, Vignette, TV, Archive, KrazyFact, Exile, Ending, Tutorial, Lair, RoofCutscene, KrelCue, `__p3d*` | none | – | – |
+| Drive (wave 2, `scenes.ts`) | tap, `gunner` while the chase runs: ROCKET / SLOPPY on the layer, the finger on the canvas aims | `menu` | yes |
+| BeepBeep (wave 2, `scenes.ts`) | tap, `pedals` and the `"x"` stick while driving: BOOST / BRAKE / HORN | `menu` | yes |
 | Minigame, Whack, Drive, BeepBeep | tap | `menu` (stage 3: the II and the pause menu) | yes |
 | Pub, Pit, PitLoan, PolsonHome | none | – | – |
 | Finale with the Super Saiyan brawl running (stage 2 part 2, `brawl.ts`) | brawl: the phone stick (`"2d"`), PUNCH / BLOCK / VANISH / KICK / KI; the rush is a tap anywhere | – | yes |
@@ -971,6 +975,70 @@ Hooks added in stage 3 wave 2 (all `isMobile()`-guarded; the laptop fingerprint 
 `--only games` (every compulsory minigame won by touch, on a stepped clock so the machine's load can't make a tap late;
 `GAMES_ONLY=bully,crocodile` runs a few).
 
+## Stage 3 wave 2: the special scenes (`scenes.ts`, `scenesLogic.ts`)
+
+One file drives the special scenes from outside (phones only), with two guarded hooks.
+
+| Scene | Phone scheme | Why |
+|---|---|---|
+| Night of Freedom (`DriveScene`) | **The finger is the crosshair**: hold a finger on a car to shoot it (the gun fires while the finger is down, as the laptop's held mouse). Aim assist NORMAL pulls the aim onto a car within 90 game px of the finger (a lock that holds to 126 px), and a crosshair shows where it aims (red and boxed when locked); OFF is the bare finger; STRONG is the game's own touch auto-aim (nearest along the road, hold anywhere). **ROCKET** (prime, 84 px) fires where the finger aims, or, with no finger down, swings onto the biggest thing on screen (tank > chopper > SWAT > unmarked > cop) and fires the next frame. **SLOPPY** shows above it only when full. The canvas ROCKET / SLOPPY are hidden; the score moves left of II. A one-line cue the first time ("Hold a finger on a car to shoot it · ROCKET for the big stuff") until the gun has been fired | The user asked to test manual aim here. Played all three by a bot thumb over the whole chase (85 s): auto-aim 101 kills, truck at 35 %; the finger with the pull 88 kills, truck at 87 %; the bare finger 51 kills, truck destroyed at 63 s (see the report). Choosing targets yourself is the game's whole fun when you can't move, and it is no harder (the truck survives better because the thumb goes for the car that's about to ram you). Auto-aim stays one setting away (STRONG). The two-thumb grip works: ROCKET is a layer control, so the aim finger keeps its own touch |
+| The drawbridge (`drive/Drawbridge.ts`) | The mash is the game's own tap anywhere; its SKIP (Tab; a 13 px label under II) is a 44 px pill left of II | – |
+| Beep Beep (`BeepBeepScene`) | **Drag left / right on the left** to steer (the layer's `"x"` stick; past 25 % = the A / D key held). **The foot is down all the time** (W held: phone assist); **BOOST** (prime, hold = SHIFT), **BRAKE** (hold = S, beats the gas as on a laptop), **HORN** (tap = H; dimmed while it recharges, BOOST dimmed until the tank can light). The game's own "hold left / right of the wheel" touch steering is off on a phone (guarded hook), so a thumb resting on the picture never steers. "SHIFT BOOST · E HORN" is hidden; the timer and combo move left of II | Phone racers steer with one thumb and pedal with the other; a split-screen steer would fight the pedals. Same keys, same speeds, same win rule |
+| The cannon (`MinigameScene` "cannon") | Unchanged game: tap anywhere sets ANGLE, then POWER. Its how-to line says "TAP: ANGLE, then POWER." | A timing game, not an aiming one: dragging to aim would change its difficulty. A tap anywhere is the most forgiving target there is |
+| Kreddle's raid / rout | **FIRE** is a layer control (prime; left of ACTION when something can be used) holding the game's `TOUCH.attack` by touch id (sliding off it keeps firing); the canvas FIRE (let go on `pointerout`) is hidden. Aim: the game's own touch aim (the nearest target, else where you walk; OFF = where you walk) through `PhoneHooks.aim` | The stick and FIRE at once, without the canvas pad's dropped presses |
+| The finale between its fights | II → the PAUSED card offers **SKIP SCENE ▸▸** (the laptop's Esc there) | Every skip key has a touch way out |
+| The Crobley advert (vignette `crobley_ad`) | "TAB: skip advert" (bottom right, in the home-indicator strip) becomes a **SKIP ADVERT ▸▸** pill top right that sends the scene its own Tab | – |
+| The 3D epilogue (`ending/krelworld3d.ts`) | Its 11 px "skip ▶▶" link is a 44 px pill (CSS class only) | – |
+| The first dungeon's how-to-play pages (`TutorialScene`) | A SKIP ▸▸ pill top right does what Esc does (NEXT still pages) | – |
+| The telly (`TVScene`): DEFERRED P5 | A subtitle that wraps to more than two lines at reading size is **paged two lines at a time** (the same words in order), each page for its share of the line's own beat time (`systems/tv.ts beatDuration`), the last page staying until the show moves on; a paused telly holds the page | 16 px text on a 520 px strip wrapped to four or five lines and covered the speaker |
+| Narrator how-to lines (Night of Freedom, the drawbridge, Beep Beep) | Only the control words, through `NARRATOR_TIPS` (`SCENE_NARRATOR_TIPS`; tests/mobileScenes.test.ts proves no character line matches) | Rule 3's narrow exception |
+
+Unchanged and already fine by touch (checked): the pseudo-3D shots (`gfx/Pseudo3D.ts`: a tap skips), the Lair and the
+Citadel roof (stage 2's SKIP SCENE), the ending's reaction and DELETE CHAT buttons, Exile and the cutscenes (the
+conversation's SKIP / LOG / AUTO), the Kreddle Express chase vignette (drag aims), the archive (stage 2), the concept
+boss and KiMode (stage 2's fight controls; SPECIAL held charges the CUMEHAMEHA through `TOUCH.held`).
+
+Hooks added (guarded; the laptop fingerprint is unchanged):
+
+| Where | What | Why |
+|---|---|---|
+| `src/game/scenes/DriveScene.ts` `update()` | `const phoneAim = isMobile() ? (phoneHooks()?.gunAim?.(this, ptr) ?? null) : null; if (phoneAim) {...} else if (ptr.wasTouch) {...the game's auto-aim...}` (and the two imports) | The finger-is-the-crosshair aim |
+| `src/game/scenes/BeepBeepScene.ts` `update()` | `if (ptr.isDown && ptr.y > 200 && !(isMobile() && phoneHooks()?.wheelTouch?.() === false)) steer = ...` (and the two imports) | The stick steers on a phone; a thumb on the picture doesn't |
+| `src/game/mobile/boot.ts` `PhoneHooks` | `gunAim`, `wheelTouch` (types only) | – |
+
+`window.__krelMobile.scenes` has `gunner` (`lock`, `locked`, `last`, `fingerDown`), `pedals`, `raid` and `stats`.
+
+## Stage 3 wave 2: the phone's sound mix (`mix.ts`, `mixLogic.ts`)
+
+The user, on their iPhone: "Speech and sound effects are a little quiet on phones." On a laptop speech already peaks near
+full scale (about -3 dBFS at the default settings), so it can only get louder if its loud moments are held down and the
+rest brought up. On a phone every path of the game's sound context goes through a mix:
+
+| Path | Where it came from | In the mix |
+|---|---|---|
+| effects, ambience / weather loops, shouts, the distant cackles, Beep Beep's engine | `Synth.sfxGain` -> `Synth.master` | `sfxGain` -> pre (1 / Effects) -> drive x2 -> low cut 110 Hz -> compressor (-18 dB, 6:1) -> post (Master x Effects x 1.1) |
+| chiptune songs | `Synth.musicGain` -> `Synth.master` | pre (1 / Music) -> post (Master x Music x 0.85) |
+| recorded songs | pooled `<audio>` -> its gain (audio.ts) | pre (1 / (Master x Music)) -> post (Master x Music x 0.85) |
+| voice lines, layered crowd lines, slowed lines | a gain -> `ctx.destination` (Voice.ts), pooled voice `<audio>` | pre (1 / voice level) -> drive x3 -> presence +3 dB at 3 kHz -> low cut -> compressor (-18 dB, 8:1, 2 ms) -> post (voice level x 1.15) |
+| everything | | summed -> a soft ceiling (straight up to 0.7, never above 0.88 = -1.1 dBFS) -> the speakers |
+
+- The game's code is unchanged. `Synth.musicGain` / `sfxGain` are re-plumbed once the context exists; `Synth.master` stays
+  connected with nothing going into it; any other connection to the game context's speakers (the voices) is sent to the
+  voice path by a wrapper on `AudioNode.prototype.connect` that is installed on phones only and touches no other
+  context (Phaser's own context and an `OfflineAudioContext` are left alone).
+- The sliders: "pre" takes the player's slider level out of each path's signal and "post" puts it back after the
+  compressor, so the compressors always see the same level and every slider still scales its path exactly (half the
+  Master, half the output; 0 is silence). `synth.setVolumes` is wrapped to update at once; the Voice slider (no call of
+  its own) is read every quarter second. The duck under dialogue, fades and the dungeon's music lift are in the game's
+  own gains, in front of "pre", so they work as before.
+- Measured offline on the game's own files (`OfflineAudioContext`, the mix built by `buildMix` itself; numbers in
+  `reports/s3-08-sound.md`): at the default settings speech about +4.5 dB (as a phone speaker hears it), explosions and
+  gunshots +4 to +9 dB, songs -1.4 dB; the peak never above -1.2 dBFS, even with every slider at 100%.
+- Not in the mix: the robot voice (`speechSynthesis`, only for a line with no recording) and songs after the route
+  self-test fell back to plain elements (an old WebKit bug); both play as before.
+- `?mobilediag`: "sound mix phone: voice drive +9.5 dB, effects +6 dB, music -1.4 dB · squeeze now voice x / effects y dB ·
+  ceiling -1.1 dBFS · peak z dBFS". On a phone `window.__krelMobile.audio.mix` has `report()`, `peak()`, `squeeze()`.
+
 ## Thumb-feel round (the user's own iPhone test)
 
 The user, on the live build: "jumping feels a little awkward", "The specials, when they do activate, are tiny to
@@ -995,7 +1063,7 @@ npx vitest run tests/mobile tests/desktopNotPhone.test.ts   # flag, modes, layou
 
 npx vite --port 5202 --strictPort &                       # normal build
 VITE_KREL_ALT=1 npx vite --port 5212 --strictPort &       # ALT build
-node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,together,review1,polish,platform,android,tapuse,games,desktop]
+node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,together,review1,polish,platform,android,tapuse,games,scenes,desktop]
 node scripts/mobile-smoke.cjs --url http://localhost:5212/
 # (tapuse: at Home the telly, the book and the gun rack from the far side of the room, the stick stopping a walk, a
 #  second tap re-targeting, the floor, in reach = at once; a person and the Krezz Arms in the town; a Kreddle local;
@@ -1004,8 +1072,11 @@ node scripts/mobile-smoke.cjs --url http://localhost:5212/
 #  JUMP plain over the first pit, the room name clear of the HUD, the Leave card above the home-indicator strip)
 # (review1: FIRE held through a death leaves no held attack; a pad resting off-centre never takes over; the archive's
 #  LEAVE; the finale brawl's II and SKIP FIGHT; a pit with the stick held toward it)
+# (scenes: Night of Freedom by finger, ROCKET with a second thumb, SLOPPY, the drawbridge's mash and SKIP; Beep Beep's stick,
+#  BOOST / BRAKE / HORN and a win; the cannon; the finale card's SKIP SCENE; the advert's SKIP; the telly's paged
+#  subtitles; the raid's FIRE; the how-to pages' SKIP; the Lair; tests/mobileScenes.test.ts the rules)
 # tests/mobileWordingScan.test.ts: no touch-wording rule may match any character line in the game
-# (platform: the sound route and the Music setting, resume after a hidden page, one song at a time, the texture ceiling
+# (platform: the sound route and the Music setting, the phone mix (wiring, sliders, peak under -1 dBFS), resume after a hidden page, one song at a time, the texture ceiling
 #  over six scenes, pause in a minigame and the finale, the in-app download hold; tests/mobilePlatform.test.ts the rules)
 # (together: the two stage 2 tracks at once: bigger text in a fight, a conversation in a fight (pills, no fight
 #  buttons), PHONE SETTINGS live in a fight, pause -> CONTROLS on FIGHTS, the Krezz Arms brawl by tap)

@@ -14,11 +14,14 @@
 //  - Coming back after a lock, a call, Siri or an app switch: the shell suspends and resumes the sound (shell.ts); here
 //    the context is checked again (it can say "running" and stay silent, or stay "interrupted" after a call) and kicked
 //    once more, and the next tap tries again. The reason for the last resume is kept for ?mobilediag.
+//  - The phone's own mix (mix.ts): songs a little down, voices and effects up, a gentle compressor and a ceiling under
+//    -1 dBFS ("Speech and sound effects are a little quiet on phones"). The routed elements join it here.
 //  - Never two songs at once: an element still playing that is neither the game's current song nor fading out is
 //    stopped; a song the pause menu holds stays held.
 import Phaser from "phaser";
 import { synth } from "../audio/Synth";
 import { audioKind, routeSilent, sessionType, volumePlan } from "./audioLogic";
+import { PhoneMix } from "./mix";
 import { onPhoneSettingsChange, phoneSettings } from "./settings";
 
 type Bag = Record<string, any>;
@@ -75,6 +78,8 @@ export interface AudioDiag {
   lastResume: string;
   resumes: number;
   doubles: number;
+  /** The phone mix's one-line read-out (?mobilediag). */
+  mix: string;
 }
 
 export class PhoneAudio {
@@ -93,6 +98,8 @@ export class PhoneAudio {
   private lastResumeAt = 0;
   resumes = 0;
   doubles = 0;
+  /** The phone's mix (mix.ts): every path of the game's context goes through it. */
+  readonly mix = new PhoneMix();
 
   constructor(
     readonly game: Phaser.Game,
@@ -206,10 +213,10 @@ export class PhoneAudio {
         if (!this.tap) {
           this.tap = ctx.createAnalyser();
           this.tap.fftSize = 512;
-          this.tap.connect(ctx.destination);
+          this.tap.connect(this.mix.busNode("music") ?? ctx.destination);
         }
         g.connect(this.tap);
-      } else g.connect(ctx.destination);
+      } else g.connect(this.mix.busNode("voice") ?? ctx.destination);
       p.gain = g;
     } catch {
       p.gain = null;
@@ -305,6 +312,8 @@ export class PhoneAudio {
   private tick() {
     const now = performance.now();
     if (now - this.lastTick < 250) return;
+    // the Voice slider has no call of its own: the mix reads the settings here too
+    this.mix.update();
     const dt = this.lastTick ? (now - this.lastTick) / 1000 : 0;
     this.lastTick = now;
     const s = synth as unknown as Bag;
@@ -358,6 +367,7 @@ export class PhoneAudio {
       lastResume: `${this.lastResume}${ago}`,
       resumes: this.resumes,
       doubles: this.doubles,
+      mix: this.mix.line(),
     };
   }
 

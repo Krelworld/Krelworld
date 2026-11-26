@@ -55,7 +55,9 @@ cmd = sys.argv[1]
 if cmd == "new":
     name, desc = sys.argv[2], sys.argv[3]
     code, r = call("POST", "/create-character-v3", {"description": desc, "name": f"KD {name}", "image_size": {"width": 64, "height": 64},
-                                                     "view": "low top-down", "outline": "single color black outline", "detail": "medium detail"})
+                                                     "view": "low top-down", "outline": "single color black outline", "detail": "medium detail",
+                                                     **({"template_id": os.environ["TEMPLATE"]} if os.environ.get("TEMPLATE") else {}),
+                                                     **({"image_size": {"width": int(os.environ["SIZE"]), "height": int(os.environ["SIZE"])}} if os.environ.get("SIZE") else {})})
     print(name, code, json.dumps(r)[:300])
     if r.get("character_id"): save_id(name, r["character_id"])
 elif cmd == "state":
@@ -94,7 +96,7 @@ elif cmd == "sheets":
     if c.get("status") != "completed": print(name, "not ready:", c.get("status")); sys.exit(1)
     rot = [img(c["rotation_urls"][d]) for d in DIRS]
     # The game's cells are 88 px with the 64 px figure frame 12 px in, as the first sheets were.
-    W = Hh = 88; P = 12
+    W = Hh = int(os.environ.get("CELLSZ", "88")); P = 12
     sheet = Image.new("RGBA", (W * 8, Hh))
     for i, f in enumerate(rot): sheet.paste(f, (i * W + (W - f.width) // 2, (Hh - f.height) // 2))
     if not (len(sys.argv) > 4 and sys.argv[4] == "anims"): sheet.save(os.path.join(ART, f"{prefix}-rot.png")); print("rot", W, Hh)

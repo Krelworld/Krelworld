@@ -4,7 +4,7 @@ import { chance, pick, rnd, rndRange } from "../core/rng";
 import { DT, type Actor, type Role } from "../core/types";
 import { spawnActor, type World } from "../core/world";
 import { HL } from "../football/config";
-import { AREAS, areaById, KICKOFF_AT, SPOTS, TURNSTILES, VENUE } from "./layout";
+import { AREAS, areaAt, areaById, KICKOFF_AT, SOLID, SPOTS, TURNSTILES, VENUE } from "./layout";
 import { findPath } from "./nav";
 import type { Job, Npc, Task } from "./state";
 
@@ -83,6 +83,11 @@ function runPlan(w: World, a: Actor): void {
       a.moveX = a.moveY = 0;
       if (n.face !== undefined && n.post && Math.hypot(a.x - n.post.x, a.y - n.post.y) < 0.8) a.facing = n.face;
       if (n.gawk && tick < n.gawk.until) a.facing = Math.atan2(n.gawk.y - a.y, n.gawk.x - a.x);
+      else if (n.group && Math.hypot(n.group.x - a.x, n.group.y - a.y) > 0.3) {
+        a.facing = Math.atan2(n.group.y - a.y, n.group.x - a.x);
+        // Now and then someone in a group says something.
+        if (n.act === "chat" && tick > n.nextBark && (tick + a.id.length * 97) % 600 === 0 && chance(w.state.rng.world, 0.35)) { say(w, a, pick(w.state.rng.world, CHAT)); n.nextBark = tick + 60 * 20; }
+      }
       if (!n.waitUntil) n.waitUntil = tick + Math.round(t.s * 60);
       if (tick >= n.waitUntil) { n.waitUntil = 0; n.plan.shift(); }
       return;
@@ -99,6 +104,47 @@ function runPlan(w: World, a: Actor): void {
   }
 }
 
+/** Somewhere to stand in an area that isn't inside a table or a wall. */
+const SOLID_CLEAR = 0.7;
+function clearSpot(w: World, areaId: string, pad: number): { x: number; y: number } {
+  let p = randIn(w, areaId, pad);
+  for (let i = 0; i < 8; i++) {
+    if (!SOLID.some((q) => p.x > q.x - SOLID_CLEAR && p.x < q.x + q.w + SOLID_CLEAR && p.y > q.y - SOLID_CLEAR && p.y < q.y + q.h + SOLID_CLEAR)) return p;
+    p = randIn(w, areaId, pad);
+  }
+  return p;
+}
+
+const CHAT = ["Two-nil England. Easy.", "Whose round is it?", "My missus thinks I'm at work.", "Ten pints and a kebab, that's the plan.", "I've got a good feeling about today.",
+  "Did you see the price of a pint in there?", "Penalties. It's always bloody penalties.", "It's coming home!", "Their keeper's a clown.", "I'm not even drunk yet.",
+  "Ref's a wrong'un, I can tell.", "We go again, lads."];
+
+/** Hang about in an area: join a group already standing there if there's room, or start one. */
+function hangOut(w: World, a: Actor, areaId: string, seconds: number): void {
+  const n = a.npc!, s = w.state, r = s.rng.world;
+  let centre: { x: number; y: number } | null = null;
+  if (chance(r, 0.75)) {
+    const counts = new Map<string, { c: { x: number; y: number }; k: number }>();
+    for (const id in s.actors) {
+      const o = s.actors[id].npc;
+      if (!o?.group || id === a.id || o.plan[0]?.k !== "wait" && o.plan[1]?.k !== "wait") continue;
+      if (areaAt(o.group.x, o.group.y).id !== areaId) continue;
+      const key = `${o.group.x.toFixed(1)},${o.group.y.toFixed(1)}`;
+      const e = counts.get(key) ?? { c: o.group, k: 0 };
+      e.k++; counts.set(key, e);
+    }
+    const open = [...counts.values()].filter((e) => e.k < 5);
+    if (open.length) centre = pick(r, open).c;
+  }
+  centre ??= clearSpot(w, areaId, 2.5);
+  const ang = rndRange(r, 0, Math.PI * 2), rad = rndRange(r, 0.8, 1.2);
+  n.group = centre;
+  const inPub = areaId === "pub" || areaId === "pub_yard";
+  const roll = rnd(r);
+  n.act = inPub ? (roll < 0.5 ? "drink" : roll < 0.85 ? "chat" : "idle") : roll < 0.4 ? "chat" : roll < 0.55 ? "cheer" : roll < 0.72 ? "smoke" : roll < 0.85 ? "drink" : "idle";
+  n.plan.push({ k: "go", x: centre.x + Math.cos(ang) * rad, y: centre.y + Math.sin(ang) * rad }, { k: "wait", s: seconds });
+}
+
 const randIn = (w: World, areaId: string, pad = 1) => {
   const ar = areaById(areaId), r = w.state.rng.world;
   return { x: ar.x + pad + rnd(r) * (ar.w - pad * 2), y: ar.y + pad + rnd(r) * (ar.h - pad * 2) };
@@ -107,6 +153,7 @@ const randIn = (w: World, areaId: string, pad = 1) => {
 /** Decide what to do next when the plan runs out. Purely about routine, never about the player. */
 function routine(w: World, a: Actor): void {
   const n = a.npc!, s = w.state, r = s.rng.world, t = secs(w), m = s.match!;
+  n.group = undefined; n.act = undefined;
   const later = (...ts: Task[]) => n.plan.push(...ts);
   const finished = m.phase === "finished";
   switch (n.job) {
@@ -114,7 +161,7 @@ function routine(w: World, a: Actor): void {
       if (finished && n.stage < 9) {
         n.stage = 9; n.sitting = false; a.seated = false;
         const ts = pick(r, [-6, 0, 6]);
-        later({ k: "go", x: ts, y: 42.5 }, { k: "go", x: ts, y: 47 }, { k: "go", x: rndRange(r, -80, 80), y: 88 }, { k: "despawn" });
+        later({ k: "go", x: ts, y: 42.5 }, { k: "go", x: ts, y: 47 }, { k: "go", x: rndRange(r, -80, 80), y: 94 }, { k: "despawn" });
         return;
       }
       if (n.stage === 0) {
@@ -122,7 +169,7 @@ function routine(w: World, a: Actor): void {
         n.goInAt ??= KICKOFF_AT - (chance(r, 0.25) ? rndRange(r, 140, 240) : rndRange(r, 20, 140));
         if (t >= n.goInAt) { n.stage = 1; return; }
         const where = n.team === 1 ? pick(r, ["plaza", "carpark", "plaza"]) : pick(r, ["pub", "pub", "pub_yard", "plaza", "plaza"]);
-        later({ k: "go", ...randIn(w, where, 2) }, { k: "wait", s: Math.min(rndRange(r, 10, 35), Math.max(1, n.goInAt - t)) });
+        hangOut(w, a, VENUE.features.fanZone && where === "pub" ? "plaza" : where, Math.min(rndRange(r, 15, 45), Math.max(1, n.goInAt - t)));
         return;
       }
       if (n.stage === 1) {
@@ -152,9 +199,9 @@ function routine(w: World, a: Actor): void {
     }
     case "local": {
       // Drinks in the pub; wanders the approach; watches the match on the pub telly.
-      if (m.phase !== "pre" && !finished) later({ k: "go", ...randIn(w, "pub", 3) }, { k: "wait", s: rndRange(r, 40, 120) });
-      else if (chance(r, 0.6)) later({ k: "go", ...randIn(w, "pub", 3) }, { k: "wait", s: rndRange(r, 20, 80) });
-      else later({ k: "go", ...randIn(w, "plaza", 2) }, { k: "wait", s: rndRange(r, 10, 40) });
+      if (m.phase !== "pre" && !finished) hangOut(w, a, "pub", rndRange(r, 40, 120));
+      else if (chance(r, 0.6)) hangOut(w, a, "pub", rndRange(r, 20, 80));
+      else hangOut(w, a, "plaza", rndRange(r, 10, 40));
       return;
     }
     case "doorguard": {
@@ -274,7 +321,8 @@ export function spawnFan(w: World, away: boolean, seated: boolean): Actor {
   const s = w.state, r = s.rng.world;
   const standId = away ? "stand_e" : pick(r, ["stand_s", "stand_s", "stand_w", "stand_n"]);
   const seat = randIn(w, standId, 1.2);
-  const start = seated ? seat : { x: rndRange(r, -85, 85), y: rndRange(r, 86, 91) };
+  // Arrivals come off the far pavement and cross the ring road (the traffic waits for them).
+  const start = seated ? seat : { x: rndRange(r, -85, 85), y: rndRange(r, 93, 95) };
   const a = spawnActor(s, "npc", away ? pick(r, AWAY_NAMES) : pick(r, FAN_NAMES), start.x, start.y, {
     npc: newNpc("fan", "fan", { seat, hasTicket: true, team: away ? 1 : 0 }), speed: 1.5, radius: 0.4, money: Math.round(rndRange(r, 10, 80)),
   });

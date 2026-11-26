@@ -29,6 +29,11 @@ export interface Npc {
   sitting: boolean;
   bubble: { text: string; until: number } | null;
   nextBark: number;
+  /** A mounted officer (drawn on the horse). */
+  mounted?: boolean;
+  /** Standing about with others: the middle of the group, and what they're doing (chat, drink, smoke, cheer, idle). */
+  group?: { x: number; y: number };
+  act?: "chat" | "drink" | "smoke" | "cheer" | "idle";
   /** Rubbernecking a fight until this tick; `filming` if they've got their phone out. */
   gawk?: { until: number; x: number; y: number; filming: boolean };
   // Security.
@@ -138,6 +143,8 @@ export interface StadiumState {
   doorPass: Id | null;
   /** One-off things that have happened. */
   flags: Record<string, number>;
+  /** Cars going by on the ring road. */
+  traffic?: import("./traffic").Car[];
   /** Detained in the security office until this tick (0 if not). */
   detainedUntil: number;
   /** The police have been sent for. */

@@ -15,6 +15,7 @@ import { createBus, driveBus, installBus, stepBus, stepBusSanctions } from "./bu
 import { installKickoff, stepKickoff } from "./kickoff";
 import { installKnife, stepArmed } from "./knife";
 import { installGloryHole } from "./gloryhole";
+import { stepTraffic } from "./traffic";
 import { installReactions, installRules, SHOPS, stepRules } from "./rules";
 import { isSecurity, stepDetention, stepSecurity } from "./security";
 import type { StadiumState } from "./state";
@@ -105,7 +106,8 @@ export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: 
   staff("patrol", "steward", "Steward Denise", VENUE.patrolLoop[3], W);
   staff("corridor", "steward", "Steward Brian", SPOTS.corridorPost, S);
   staff("chief", "steward", "Head of Security", SPOTS.chiefDesk, N);
-  staff("police", "police", "PC Hargreaves", VENUE.policeSpots[0], S);
+  // PC Hargreaves is on horseback.
+  staff("police", "police", "PC Hargreaves", VENUE.policeSpots[0], S).npc!.mounted = true;
   staff("police", "police", "PC Okafor", VENUE.policeSpots[3], S);
   if (campaign.notoriety >= 2) staff("police", "police", "PC Sharma", { x: SPOTS.turnstiles[1].x + 3, y: 47 }, S);
   staff("barman", "catering", "Landlord", SPOTS.pubBarman, S, { shop: "pub" });
@@ -270,6 +272,7 @@ export function stepGame(g: Game): void {
   stepDog(w);
   stepKit(w);
   stepKickoff(w);
+  stepTraffic(w);
   stepArmed(w);
   stepRules(w);
   stepTipoffs(w);

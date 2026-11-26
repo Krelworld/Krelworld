@@ -384,3 +384,24 @@ street.
 
 Behind and close-up cameras for moments only: the tunnel walk-out, a pitch-invasion run-in, and a
 close-up on a big knockout. Driving already has one.
+
+## Alive
+
+The street was a stage set: people stood like statues between walks and nothing else moved.
+Now:
+- **People do things.** Fans and locals hang about in groups (up to five, facing each other),
+  and each is doing something: drinking (and dropping their empties), smoking, chatting (with
+  voiced chatter), cheering, or just breathing. PixelLab animations for every body: idle, drink,
+  smoke, chat, cheer; stewards and police talk into their radios now and then.
+- **Traffic.** Cars on the ring road, driving on the left: black cabs, a white van, hatchbacks,
+  a police car (lights going once the police are called). They stop for anyone in the road and
+  honk if you stand there. Arriving fans now come off the far pavement and cross through it.
+- **A mounted officer.** PC Hargreaves is on a horse.
+- **Small life.** Pigeons pecking round the litter that scatter when anyone comes near; smoke
+  from the burger van; drizzle rings in the puddles; breath steaming in the cold; a crisp packet
+  blowing across the approach.
+- **The stands.** The seated crowd puts its arms up for goals (their own side), near misses and
+  attacks at their end, and a few at random; photographers behind the goals fire their flashes
+  when anyone shoots.
+- **Moments.** Letterbox, a push-in and slow motion for a big knockout ("SPARKO"), walking out of
+  the tunnel, and running onto the pitch while the game's on.

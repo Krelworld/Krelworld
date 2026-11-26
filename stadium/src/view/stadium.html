@@ -32,6 +32,12 @@
   }
   #app { position: relative; width: 100%; height: 100%; overflow: hidden; }
   #game { position: absolute; inset: 0; }
+  /* Cinematic moments: letterbox bars slide in. */
+  .lb { position: absolute; left: 0; right: 0; height: 0; background: #000; z-index: 3; transition: height 0.35s ease; pointer-events: none; }
+  #lbTop { top: 0; } #lbBot { bottom: 0; }
+  body.cine .lb { height: 11vh; }
+  #cineCap { position: absolute; left: 50%; bottom: 3vh; transform: translateX(-50%); z-index: 4; color: #fff; font: 800 22px/1 var(--display); letter-spacing: 0.08em; text-transform: uppercase; opacity: 0; transition: opacity 0.3s; pointer-events: none; text-shadow: 0 2px 0 #000; }
+  body.cine #cineCap { opacity: 1; }
   #hurt { position: absolute; inset: 0; pointer-events: none; z-index: 1; opacity: 0; box-shadow: inset 0 0 120px 40px rgba(170, 0, 0, 0.75); }
   #hurt.on { animation: hurt 0.45s ease-out; }
   @keyframes hurt { 0% { opacity: 1; } 100% { opacity: 0; } }
@@ -111,7 +117,7 @@
   #fade { position: absolute; inset: 0; z-index: 5; background: #000; opacity: 0; pointer-events: none; transition: opacity .35s; }
   #fade.on { opacity: 1; }
 
-  #speed { left: 50%; transform: translateX(-50%); top: 92px; display: flex; gap: 2px; padding: 2px; background: var(--night); }
+  #speed { right: max(12px, env(safe-area-inset-right)); top: 92px; display: flex; gap: 2px; padding: 2px; background: var(--night); }
   #speed button { min-height: 36px; font-size: 15px; }
   #hint { left: 50%; transform: translateX(-50%); top: 92px; padding: 7px 14px; font: 700 16px/1.2 var(--display); color: var(--bugink); background: var(--bug); max-width: 80vw; pointer-events: none; text-align: center; text-wrap: balance; }
 
@@ -229,6 +235,7 @@
   </div>
 
   <div id="hurt"></div>
+  <div class="lb" id="lbTop"></div><div class="lb" id="lbBot"></div><div id="cineCap"></div>
   <div id="stall" hidden>
     <canvas id="stallCv" width="400" height="240"></canvas>
     <div id="stallCap" hidden></div>

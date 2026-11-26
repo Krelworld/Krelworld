@@ -9,10 +9,13 @@ import EXTRAS from "../../assets/art/extras.json";
 export const EXTRA: Record<string, string[]> = EXTRAS as Record<string, string[]>;
 
 export const CELL = 88;
-export const BASES = ["fan", "steward", "england", "portugal", "referee", "fanbare", "lad", "woman", "oldboy", "police", "suit", "bigman"] as const;
+export const BASES = ["fan", "steward", "england", "portugal", "referee", "fanbare", "lad", "woman", "oldboy", "police", "suit", "bigman", "horse"] as const;
 export type Base = (typeof BASES)[number];
 /** Pixel rows (within a cell) of the figure's feet and the top of the head. */
 export const FEET = 73, HEAD = 13;
+/** Cell size and foot row per base (the mounted officer needs a bigger cell). */
+export const cellOf = (b: string) => (b === "horse" ? 128 : CELL);
+export const feetOf = (b: string) => (b === "horse" ? 108 : FEET);
 
 /** Which of the 8 directions a facing angle (radians, y down) is closest to. Sheet order: S, SE, E, NE, N, NW, W, SW. */
 export function dirIndex(a: number): number {
@@ -72,7 +75,7 @@ function classify(base: Base, r: number, g: number, b: number, y: number, lying 
     case "fanbare":
       if (y > 53 && y <= 66 && h > 190 && h < 250 && l > 0.08) return "legs";
       return null;
-    case "oldboy": case "police": case "suit": case "bigman":
+    case "oldboy": case "police": case "suit": case "bigman": case "horse":
       return null;
     case "fan":
     case "england": {
@@ -108,7 +111,7 @@ const REF: Record<Base, Partial<Record<keyof Recolour, number>>> = {
   fanbare: { legs: 0.5, skin: 0.62 },
   lad: { shirt: 0.92, trim: 0.15, skin: 0.7 },
   woman: { shirt: 0.92, trim: 0.15, skin: 0.72 },
-  oldboy: { skin: 0.7 }, police: { skin: 0.7 }, suit: { skin: 0.7 }, bigman: { skin: 0.7 },
+  oldboy: { skin: 0.7 }, police: { skin: 0.7 }, suit: { skin: 0.7 }, bigman: { skin: 0.7 }, horse: {},
 };
 
 export class SpriteBank {
@@ -161,7 +164,7 @@ export class SpriteBank {
       if (!this.scene.textures.exists(`${base}-${sheet}-src`)) continue;
       const tkey = `${key}-${sheet}`;
       if (this.scene.textures.exists(tkey)) this.scene.textures.remove(tkey);
-      this.scene.textures.addSpriteSheet(tkey, this.paint(base, sheet, rc) as unknown as HTMLImageElement, { frameWidth: CELL, frameHeight: CELL });
+      this.scene.textures.addSpriteSheet(tkey, this.paint(base, sheet, rc) as unknown as HTMLImageElement, { frameWidth: cellOf(base), frameHeight: cellOf(base) });
     }
     this.made.add(key);
     return key;
@@ -172,12 +175,17 @@ export class SpriteBank {
   crowdAtlas(key: string, rows: (Recolour & { base?: Base })[]): void {
     const SEAT = 52;
     const cv = document.createElement("canvas");
-    cv.width = CELL * 4; cv.height = SEAT * rows.length;
+    // Eight frames a row: sitting facing S, E, N, W, then the same with arms up (from the cheer animation).
+    cv.width = CELL * 8; cv.height = SEAT * rows.length;
     const cx = cv.getContext("2d")!;
     rows.forEach((rc, r) => {
       const { base = "fan", ...col } = rc;
-      const src = this.paint(this.has(base) ? base : "fan", "rot", col);
+      const b = this.has(base) ? base : "fan";
+      const src = this.paint(b, "rot", col);
       [0, 2, 4, 6].forEach((cell, f) => cx.drawImage(src, cell * CELL, 0, CELL, SEAT, f * CELL, r * SEAT, CELL, SEAT));
+      const up = this.scene.textures.exists(`${b}-cheer-src`) ? this.paint(b, "cheer", col) : src;
+      const n = Math.max(1, Math.round(up.width / CELL)), fr = up === src ? 0 : Math.min(3, n - 1);
+      [0, 2, 4, 6].forEach((dir, f) => cx.drawImage(up, (up === src ? dir : fr) * CELL, up === src ? 0 : dir * CELL, CELL, SEAT, (4 + f) * CELL, r * SEAT, CELL, SEAT));
     });
     if (this.scene.textures.exists(key)) this.scene.textures.remove(key);
     this.scene.textures.addSpriteSheet(key, cv as unknown as HTMLImageElement, { frameWidth: CELL, frameHeight: SEAT });

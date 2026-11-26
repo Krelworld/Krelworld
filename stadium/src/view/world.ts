@@ -5,6 +5,7 @@ import Phaser from "phaser";
 import type { Venue } from "../stadium/layout";
 import type { BuildingSpec } from "./build";
 import { repaintSign } from "./build";
+import EIGHT from "../../assets/world/eight.json";
 
 export const KIT_KEYS = ["barrier", "bench", "bigscreen", "bin", "bollard", "burgervan", "cone", "crates", "door_pub", "door_shop", "door_steel", "flowerbox",
   "lamppost", "litter", "merchstall", "pallets", "phonebox", "policevan", "portaloo", "programmes", "puddle", "staffdoor", "ticketbooth", "turnstile",
@@ -36,6 +37,8 @@ export class WorldArt {
     for (const k of KIT_KEYS) scene.load.image(`k-${k}-src`, `kit/${k}.png`);
     scene.load.spritesheet("w-coach8", "world/coach-8.png", { frameWidth: 160, frameHeight: 160 });
     scene.load.spritesheet("w-lorry8", "world/lorry-8.png", { frameWidth: 128, frameHeight: 128 });
+    // Cars for the ring road, 168 px frames at 1:1.
+    for (const k of EIGHT) if (k !== "coach" && k !== "lorry") scene.load.spritesheet(`w-${k}8`, `world/${k}-8.png`, { frameWidth: 168, frameHeight: 168 });
   }
 
   img(k: string): HTMLImageElement | null {

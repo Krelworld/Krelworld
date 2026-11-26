@@ -1,6 +1,7 @@
 import { build } from "esbuild";
 import { copyFileSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 
+writeFileSync("assets/world/eight.json", JSON.stringify(readdirSync("assets/world").filter((f) => f.endsWith("-8.png")).map((f) => f.replace("-8.png", ""))));
 // Which extra animation sheets exist for each character base (fan-punch.png and so on).
 {
   const extras = {};
@@ -43,7 +44,8 @@ for (const t of ["street", "pitch"]) copyFileSync(`assets/art/tiles-${t}.png`, `
 mkdirSync("dist/stadium/icons", { recursive: true });
 for (const f of readdirSync("assets/icons")) if (f.endsWith(".png")) copyFileSync(`assets/icons/${f}`, `dist/stadium/icons/${f}`);
 mkdirSync("dist/stadium/world", { recursive: true });
-for (const f of ["coach-8.png", "lorry-8.png"]) copyFileSync(`assets/world/${f}`, `dist/stadium/world/${f}`);
+for (const f of readdirSync("assets/world")) if (f.endsWith("-8.png")) copyFileSync(`assets/world/${f}`, `dist/stadium/world/${f}`);
+writeFileSync("assets/world/eight.json", JSON.stringify(readdirSync("assets/world").filter((f) => f.endsWith("-8.png")).map((f) => f.replace("-8.png", ""))));
 for (const d of ["kit", "tiles", "scenes"]) {
   mkdirSync(`dist/stadium/${d}`, { recursive: true });
   for (const f of readdirSync(`assets/${d}`)) if (f.endsWith(".png")) copyFileSync(`assets/${d}/${f}`, `dist/stadium/${d}/${f}`);

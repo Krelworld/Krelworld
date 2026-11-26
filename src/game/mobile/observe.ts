@@ -205,9 +205,19 @@ export function targetRect(game: Phaser.Game, d: ModeDecision): { tap: Rect; cor
 
 /** The player's figure on the page (CSS px), for keeping ACTION off it. Null when the scene has no player to read. */
 export function playerRect(game: Phaser.Game, d: Pick<ModeDecision, "scene" | "mode">): Rect | null {
-  if (d.mode !== "walk" || !d.scene) return null;
+  const fight = (d.mode === "combat" || d.mode === "side") && d.scene === "Dungeon";
+  if ((d.mode !== "walk" && !fight) || !d.scene) return null;
   const sc = game.scene.getScene(d.scene) as unknown as Bag | null;
   if (!sc) return null;
+  // (a fight: the Dungeon's player sprite; thumb-feel round, the idle stick sat on the player at a side room's start)
+  if (fight) {
+    const spr = (sc.player as Bag | undefined)?.spr as (Phaser.GameObjects.Components.GetBounds & { visible?: boolean }) | undefined;
+    if (!spr || typeof spr.getBounds !== "function" || spr.visible === false) return null;
+    const b = spr.getBounds();
+    const a = toPage(game, sc as unknown as Phaser.Scene, b.x, b.y);
+    const z = toPage(game, sc as unknown as Phaser.Scene, b.right, b.bottom);
+    return a && z ? { x: a.x, y: a.y, w: z.x - a.x, h: z.y - a.y } : null;
+  }
   const owner = (d.scene === "Kreddle" ? ((sc.raid as Bag) ?? (sc.rout as Bag) ?? sc) : sc) as Bag;
   const who = (owner.me ?? owner.av ?? sc.me ?? sc.av) as (Phaser.GameObjects.Components.GetBounds & { active?: boolean; visible?: boolean }) | undefined;
   if (!who || typeof who.getBounds !== "function" || who.visible === false) return null;

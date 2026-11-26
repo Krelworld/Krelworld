@@ -29,6 +29,8 @@ export const FIRE_AUTO = "Shoots by itself at enemies in range. Hold to fire any
 export const FIRE_MANUAL = "Hold to shoot: it aims for you. Slide your thumb to aim by hand";
 
 const PAUSE: PictureItem = { at: { control: "pause" }, word: "II", line: "Pause (and this menu)" };
+/** The pocket (thumb-feel round): the fart, a fizzy bongo and the SanMik change, full size, only when they can be used. */
+const POCKET: PictureItem = { at: { slot: "pocketFart" }, word: "💨 🍺", line: "Your fart and fizzy bongos pop up here when you can use them" };
 
 /** What each kind of screen has, in plain words (one line per control). */
 export const PICTURE: Record<PictureTab, PictureItem[]> = {
@@ -44,17 +46,19 @@ export const PICTURE: Record<PictureTab, PictureItem[]> = {
     { at: { slot: "up" }, word: "SPECIAL", line: "Your lad's special move. Pops up once you've enough Krezz for it" },
     { at: { slot: "left" }, word: "SWAP", line: "Shows up with a second gun: tap for the next one, hold to pick one" },
     { at: { slot: "ready" }, word: "READY", line: "Pops up when WONK!, GOLD or IBS! is ready: tap it" },
-    { at: { slot: "heal" }, word: "HEAL", line: "Pops up when you're low: drink some juice" },
+    { at: { slot: "heal" }, word: "HEAL", line: "Pops up when you're hurt: drink some juice (red when you're low)" },
+    POCKET,
     { at: { control: "c-chip" }, word: "GUN", line: "Your gun and its ammo. Tap: next gun" },
     PAUSE,
   ],
   side: [
     { at: { zone: true }, word: "RUN", line: "Drag left or right to run. Hold it down to drop through a platform" },
-    { at: { slot: "prime" }, word: "JUMP", line: "Tap for a hop, hold for a big jump, tap again in the air to double jump" },
+    { at: { slot: "prime" }, word: "JUMP", line: "Tap to jump, hold it for the highest jump, tap again in the air to double jump" },
     { at: { slot: "left" }, word: "FIRE", line: "Hold to shoot (with auto-fire on it shoots by itself)" },
     { at: { slot: "upLeft" }, word: "DODGE", line: "Dash out of trouble" },
     { at: { slot: "up" }, word: "SPECIAL", line: "Your lad's special move. Pops up once you've enough Krezz" },
     { at: { slot: "ready" }, word: "READY", line: "Pops up when a big move is ready" },
+    POCKET,
     { at: { control: "c-chip" }, word: "GUN", line: "Tap for the next gun, hold to pick one" },
     PAUSE,
   ],

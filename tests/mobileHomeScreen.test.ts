@@ -87,9 +87,12 @@ describe("Add to Home Screen guide: which steps", () => {
     }
   });
 
-  it("iPhone Safari: Share (in the top bar; the bars may need a tap), Add to Home Screen, Add, open it from the Home Screen", () => {
+  it("iPhone Safari: the page button then Share (in the top bar; the bars may need a tap), View More then Add to Home Screen, Add, open it from the Home Screen", () => {
     const c = guideContent("ios-safari", ctx);
-    expect(c.steps.map((s) => s.icon)).toEqual(["share", "addHome", "addWord", "app"]);
+    expect(c.steps.map((s) => s.icon)).toEqual(["pageMenu", "addHome", "addWord", "app"]);
+    // the user's own iPhone: the page button (a jigsaw piece) left of the address bar, Share, View More, Add to Home Screen
+    expect(c.steps[0].title).toMatch(/page button.*Share/);
+    expect(c.steps[1].title).toMatch(/View More.*Add to Home Screen/);
     // top bar when sideways, bottom bar when upright (Safari moves it)
     expect(c.steps[0].sub).toMatch(/\{top\|bottom\} bar/);
     expect(c.steps[0].sub).toMatch(/Tap the \{top\|bottom\} edge/);

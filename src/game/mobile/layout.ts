@@ -102,6 +102,14 @@ export const SLOTS = {
   heal: { corner: "br", in: 118, up: 204, size: 56 },
   /** ACTION in combat rooms (only with a prompt). */
   combatAction: { corner: "br", in: 212, up: 104, size: 56 },
+  /**
+   * The fight's pocket (thumb-feel round, the user: "the specials, when they do activate, are tiny to press"): the
+   * fart, the fizzy bongo and the SanMik change, each a full-size button in its own fixed place at the cluster's
+   * upper left, shown only while it can be used (they were 32 px chips under the health bars, top left).
+   */
+  pocketFart: { corner: "br", in: 206, up: 186, size: 60 },
+  pocketBongo: { corner: "br", in: 206, up: 266, size: 60 },
+  pocketSanmik: { corner: "br", in: 286, up: 226, size: 60 },
   /** Walk mode's one extra (SANMIK when playing as Mikey): straight above ACTION. */
   walkExtra: { corner: "br", in: 52, up: 150, size: 56 },
   pause: { corner: "tr", in: 26, down: 32, size: 52, mirror: false },
@@ -230,6 +238,12 @@ export function followBase(base: { x: number; y: number }, finger: { x: number; 
   if (d <= travel) return base;
   const k = (d - travel) / d;
   return { x: base.x + dx * k, y: base.y + dy * k };
+}
+
+/** A stick base's centre kept inside the stick zone (a "follows" stick dragged past its edge stops at it). */
+export function keepInZone(p: { x: number; y: number }, zone: Rect): { x: number; y: number } {
+  if (zone.w <= 0 || zone.h <= 0) return p;
+  return { x: clamp(p.x, zone.x, zone.x + zone.w), y: clamp(p.y, zone.y, zone.y + zone.h) };
 }
 
 /** Where the faint idle stick sits (a hint of where to put the thumb), mirrored for left-handed play. */

@@ -163,9 +163,13 @@ export function specialWanted(krezz: number, cost: number, banned: boolean): boo
   return !banned && specialFill(krezz, cost) >= 1;
 }
 
-/** The juice chip only while a drink would do something, and never beside HEAL (one ability, one button: P11). */
-export function juiceChipWanted(hp: number, max: number, bottles: number, healUp: boolean): boolean {
-  return !healUp && bottles > 0 && hp < max;
+/**
+ * HEAL is on screen while a drink would do something (hurt, with juice, healing allowed): one button for the one
+ * ability, full size on the right (thumb-feel round: the small 🍼 chip top left is gone). Under HEAL_BELOW it is the
+ * urgent one (healWanted: it pulses the first times and turns red).
+ */
+export function healShown(hp: number, max: number, bottles: number, blocked = false): boolean {
+  return !blocked && bottles > 0 && max > 0 && hp < max;
 }
 
 // ------------------------------------------------------------------ the rules (replacing stage 1's dungeon row)

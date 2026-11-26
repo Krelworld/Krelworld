@@ -216,3 +216,10 @@ To resume: `Workflow({scriptPath: "<script>", resumeFromRunId: "wf_574a5950-314"
 - Combined branch `pub` (pub-wt) = s3-tap fd33d21c + donut 0c7f61ba + aim f338e373 -> 7aa05c29, tsc clean. Full check pub2 (port 5720, mobile/work/pub2) running.
 - Plan: if pub2 passes, push pub to live (superset). If only pub1 passes, push s3-tap first.
 - Script: mobile/work/fullcheck.sh <wt> <port> <logdir>.
+- 12:16 PUBLISHED pub 7aa05c29 to live (combined). pub2 ALT smoke still running as post-check. pub1 stopped.
+
+## 15:10 UTC
+- LIVE = 8b337a45: stages 1-3 complete (+ aim all-round ffd23e5c, Shezleigh voice 1f12b3a6, s3-wave2 8b337a45). Alt build triggered.
+- Child session still doing branches cut-flashbacks (204e0f0, fingerprints pending) and music-gaps; merge + publish them when reported (re-record baselines in one separate commit only if differences are that feature).
+- STAGE 4 workflow wf_27552fbe-01e (task wrd6hk2ic), script mobile/work/s4.js, worktree s4-wt branch s4. QA x3 -> fix -> gate (up to 3 rounds). On pass: push s4 to live, trigger alt build.
+- Cleaned merged worktrees (disk was 1 GB free; now 8 GB).

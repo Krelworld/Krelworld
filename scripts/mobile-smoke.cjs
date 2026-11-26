@@ -2625,97 +2625,6 @@ async function combat(browser) {
       if (killed) break;
     }
     check("auto-fire kills a test enemy in range without a thumb on FIRE (M1)", victim !== null && killed, { victim });
-    // ---- Settings > Firing (the auto-fire audit): LIGHT fires at a slower pace, STILL only while you stand still
-    const dummy = await ph.ev(() => {
-      const d = window.__krel.game.scene.getScene("Dungeon");
-      const p = d.player;
-      const kind = (d.room.waves && d.room.waves[0] && d.room.waves[0][0] && d.room.waves[0][0][0]) || "drongle";
-      const e = d.spawnEnemy(kind, p.x + 150, p.y - 20, { noDrops: true });
-      if (!e) return null;
-      for (const o of d.enemies) if (o !== e && !o.dead) o.setPosition(p.x - 900, p.y - 900);
-      e.hp = e.maxHp = 1e6;
-      window.__afDummy = e;
-      return e.uid;
-    });
-    // count shots over a stretch of game time (the dummy pinned in front, never dying)
-    const shotsFor = (ms) =>
-      ph.ev(
-        (ms) =>
-          new Promise((res) => {
-            const d = window.__krel.game.scene.getScene("Dungeon");
-            const t0 = d.time.now;
-            let last = d.player.attackAnimUntil;
-            let n = 0;
-            let auto = 0;
-            let frames = 0;
-            const tick = () => {
-              const e = window.__afDummy;
-              if (e && !e.dead) e.body.reset(d.player.x + 150, d.player.y - 20);
-              frames++;
-              if (window.__krelMobile.combat.snapshot().autoShooting) auto++;
-              if (d.player.attackAnimUntil !== last) {
-                last = d.player.attackAnimUntil;
-                n++;
-              }
-              if (d.time.now - t0 >= ms) {
-                d.events.off("postupdate", tick);
-                res({ n, auto: auto / Math.max(1, frames) });
-              } else return;
-            };
-            d.events.on("postupdate", tick);
-          }),
-        ms,
-      );
-    let fullRate = null;
-    let lightRate = null;
-    if (dummy !== null) {
-      await ph.ev(() => window.__krelMobile.settings.set({ autoFire: true, firing: "auto" }));
-      await sleep(300);
-      // (game time: a loaded machine runs few, long frames; 6 s gives enough shots to compare)
-      fullRate = await shotsFor(6000);
-      await ph.ev(() => window.__krelMobile.settings.set({ firing: "light" }));
-      await sleep(300);
-      lightRate = await shotsFor(6000);
-    }
-    const ratio = fullRate && lightRate && fullRate.n ? lightRate.n / fullRate.n : 0;
-    check("Firing LIGHT: auto-fire shoots at about 60% of AUTO's pace at the same enemy, no thumb on FIRE", fullRate && fullRate.n >= 8 && ratio > 0.4 && ratio < 0.8, { fullRate, lightRate, ratio });
-    // LIGHT: a held FIRE goes at the gun's full pace
-    {
-      const fire = await ctlOf("c-fire");
-      const [fx, fy] = mid(fire);
-      await ph.touch("touchStart", [{ x: fx, y: fy, id: 7 }]);
-      const heldRate = await shotsFor(2500);
-      await ph.touch("touchEnd", []);
-      check("Firing LIGHT: holding FIRE fires at the full pace", fullRate && heldRate.n >= fullRate.n * 0.85, { fullRate, heldRate });
-    }
-    // STILL: nothing while the stick is pushed, shooting again once it rests
-    await ph.ev(() => window.__krelMobile.settings.set({ firing: "still" }));
-    await sleep(300);
-    await ph.touch("touchStart", [{ x: 120, y: 260, id: 1 }]);
-    for (let i = 1; i <= 6; i++) {
-      await ph.touch("touchMove", [{ x: 120 + i * 9, y: 260, id: 1 }]);
-      await sleep(30);
-    }
-    const moving = await shotsFor(900);
-    await ph.touch("touchEnd", []);
-    await sleep(250);
-    const resting = await shotsFor(1200);
-    check("Firing STILL: no auto-fire while you move, auto-fire once you stand still", moving.auto === 0 && resting.auto > 0.5 && resting.n > 0, { moving, resting });
-    // HOLD: never by itself
-    await ph.ev(() => window.__krelMobile.settings.set({ firing: "hold" }));
-    await sleep(300);
-    const hold = await shotsFor(1200);
-    check("Firing HOLD: no shots without a thumb on FIRE", hold.n === 0 && hold.auto === 0, hold);
-    await ph.ev(() => {
-      window.__krelMobile.settings.set({ autoFire: true, firing: "auto" });
-      const e = window.__afDummy;
-      // (gone without a kill: the meters it filled are emptied, so the READY checks below start from nothing)
-      if (e && !e.dead) window.__krel.game.scene.getScene("Dungeon").damageEnemy(e, 1e9, { noWonk: true, label: "" });
-      window.__afDummy = null;
-      window.__krel.G.rt.wonk = 0;
-      window.__krel.G.rt.fart = 0;
-    });
-    await sleep(300);
     // ---- FIRE by hand (auto-fire off): hold fires, slide aims, the stream carries on 200 ms after lifting
     await ph.ev(() => window.__krelMobile.settings.set({ autoFire: false }));
     await sleep(300);
@@ -3112,7 +3021,99 @@ async function combat(browser) {
     await page.setViewportSize({ width: 844, height: 390 });
     await ph.ev(() => window.__krelMobile.setInsets({ top: 0, right: 47, bottom: 21, left: 47 }));
     await sleep(800);
-    check("boss: no page errors", errors.length === 0, errors.slice(0, 3));
+    // ---- Settings > Firing (the auto-fire audit, ga-02), in a fresh room so nothing here leaks into the checks above:
+    // LIGHT fires at a slower pace, STILL only while you stand still, HOLD never by itself
+    check("Firing: a fresh room for the firing styles (Wildern, chapter 1, the Fart Blaster)", await toFight(ph, "wildern", 1, 1), await ph.mode());
+    const dummy = await ph.ev(() => {
+      const d = window.__krel.game.scene.getScene("Dungeon");
+      const p = d.player;
+      const kind = (d.room.waves && d.room.waves[0] && d.room.waves[0][0] && d.room.waves[0][0][0]) || "supply_teacher";
+      const e = d.spawnEnemy(kind, p.x + 150, p.y - 20, { noDrops: true });
+      if (!e) return null;
+      // (everything else goes quietly: only the dummy is there to shoot)
+      for (const o of [...d.enemies]) if (o !== e && !o.dead) d.damageEnemy(o, 1e9, { noWonk: true, label: "" });
+      e.hp = e.maxHp = 1e6;
+      window.__afDummy = e;
+      return e.uid;
+    });
+    // shots and auto-fire frames over a stretch of game time, the dummy pinned in front of the player and in plain view
+    const shotsFor = (ms) =>
+      ph.ev(
+        (ms) =>
+          new Promise((res) => {
+            const d = window.__krel.game.scene.getScene("Dungeon");
+            const t0 = d.time.now;
+            let last = d.player.attackAnimUntil;
+            let n = 0;
+            let auto = 0;
+            let wish = 0;
+            let frames = 0;
+            const tick = () => {
+              const e = window.__afDummy;
+              if (e && !e.dead) {
+                e.body.reset(d.player.x + 150, d.player.y - 20);
+                e.setAlpha(1).setVisible(true);
+              }
+              window.__krel.G.rt.wonk = 0;
+              frames++;
+              const c = window.__krelMobile.combat.snapshot();
+              if (c.autoShooting) auto++;
+              if (c.autoFiring) wish++;
+              if (d.player.attackAnimUntil !== last) {
+                last = d.player.attackAnimUntil;
+                n++;
+              }
+              if (d.time.now - t0 >= ms) {
+                d.events.off("postupdate", tick);
+                res({ n, auto: +(auto / Math.max(1, frames)).toFixed(2), wish: +(wish / Math.max(1, frames)).toFixed(2), frames });
+              }
+            };
+            d.events.on("postupdate", tick);
+          }),
+        ms,
+      );
+    let fullRate = null;
+    let lightRate = null;
+    if (dummy !== null) {
+      await ph.ev(() => window.__krelMobile.settings.set({ autoFire: true, firing: "auto" }));
+      await sleep(300);
+      // (game time: a loaded machine runs few, long frames)
+      fullRate = await shotsFor(6000);
+      await ph.ev(() => window.__krelMobile.settings.set({ firing: "light" }));
+      await sleep(300);
+      lightRate = await shotsFor(6000);
+    }
+    const ratio = fullRate && lightRate && fullRate.n ? lightRate.n / fullRate.n : 0;
+    check("Firing LIGHT: auto-fire shoots at about 60% of AUTO's pace at the same enemy, no thumb on FIRE", !!fullRate && fullRate.n >= 8 && ratio > 0.4 && ratio < 0.8, { fullRate, lightRate, ratio });
+    {
+      const fire = await ctlOf("c-fire");
+      const [fx, fy] = mid(fire);
+      await ph.touch("touchStart", [{ x: fx, y: fy, id: 7 }]);
+      const heldRate = await shotsFor(6000);
+      await ph.touch("touchEnd", []);
+      check("Firing LIGHT: holding FIRE fires at the full pace", !!fullRate && heldRate.n >= fullRate.n * 0.85, { fullRate, heldRate });
+    }
+    await ph.ev(() => window.__krelMobile.settings.set({ firing: "still" }));
+    await sleep(300);
+    await ph.touch("touchStart", [{ x: 120, y: 260, id: 1 }]);
+    for (let i = 1; i <= 6; i++) {
+      await ph.touch("touchMove", [{ x: 120 + i * 9, y: 260, id: 1 }]);
+      await sleep(30);
+    }
+    const moving = await shotsFor(1500);
+    await ph.touch("touchEnd", []);
+    await sleep(300);
+    const resting = await shotsFor(2500);
+    check("Firing STILL: no auto-fire while you move, auto-fire once you stand still", moving.auto === 0 && moving.wish > 0.5 && resting.auto > 0.5 && resting.n > 0, { moving, resting });
+    await ph.ev(() => window.__krelMobile.settings.set({ firing: "hold" }));
+    await sleep(300);
+    const hold = await shotsFor(2000);
+    check("Firing HOLD: no shots without a thumb on FIRE", hold.n === 0 && hold.auto === 0, hold);
+    await ph.ev(() => {
+      window.__krelMobile.settings.set({ autoFire: true, firing: "auto" });
+      window.__afDummy = null;
+    });
+    check("boss and firing styles: no page errors", errors.length === 0, errors.slice(0, 3));
   } finally {
     await ctx.close();
   }

@@ -70,7 +70,9 @@ elif cmd == "state":
 elif cmd == "anim":
     name, anim, action = sys.argv[2], sys.argv[3], sys.argv[4]
     frames = int(sys.argv[5]) if len(sys.argv) > 5 else None
-    body = {"character_id": ids()[name], "animation_name": anim, "directions": DIRS}
+    # ONLY=south animates just the one direction (a TV close-up only ever faces the camera).
+    dirs = os.environ["ONLY"].split(",") if os.environ.get("ONLY") else DIRS
+    body = {"character_id": ids()[name], "animation_name": anim, "directions": dirs}
     if action in ("walking", "running", "full sprinting"): body.update({"mode": "v3", "template_action": action})
     elif action in TEMPLATES: body.update({"mode": "pixminimax", "template_action": action}); frames = frames and max(4, round(frames / 4) * 4)
     else: body.update({"mode": "v3", "action_description": action})
@@ -100,13 +102,14 @@ elif cmd == "sheets":
     sheet = Image.new("RGBA", (W * 8, Hh))
     for i, f in enumerate(rot): sheet.paste(f, (i * W + (W - f.width) // 2, (Hh - f.height) // 2))
     if not (len(sys.argv) > 4 and sys.argv[4] == "anims"): sheet.save(os.path.join(ART, f"{prefix}-rot.png")); print("rot", W, Hh)
+    rows = os.environ["ONLY"].split(",") if os.environ.get("ONLY") else DIRS
     for a in c.get("animations", []):
         by = {d["direction"]: d["frames"] for d in a["directions"]}
-        if not all(d in by for d in DIRS): print("skip incomplete", a["display_name"], sorted(by)); continue
+        if not all(d in by for d in rows): print("skip incomplete", a["display_name"], sorted(by)); continue
         if len(sys.argv) > 4 and sys.argv[4] == "anims" and a["display_name"] in ("walk",): continue
         n = max(len(v) for v in by.values())
-        out = Image.new("RGBA", (W * n, Hh * 8))
-        for r_, d in enumerate(DIRS):
+        out = Image.new("RGBA", (W * n, Hh * len(rows)))
+        for r_, d in enumerate(rows):
             for i, u in enumerate(by[d]):
                 f = img(u)
                 out.paste(f, (i * W + (W - f.width) // 2, r_ * Hh + (Hh - f.height) // 2))

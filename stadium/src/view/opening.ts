@@ -6,6 +6,10 @@ import Phaser from "phaser";
 import { BRANDS, NewsChrome } from "./newschrome";
 
 const W = 960, H = 540;
+/** Where the desk and the microphones start in the TV sets (picture rows, of 224), and where the
+ *  presenters stand and how big. Set by looking at the pictures. */
+const DESK = { studio: 129, presser: 158 };
+const PRES = { studio: { feet: 0.89, scale: 2.6 }, presser: { feet: 1.02, scale: 2.8 } };
 const ROOM_SCALE = 1.8, ROOM_X = (W - 400 * ROOM_SCALE) / 2;
 const R = (x: number, y: number) => ({ x: ROOM_X + x * ROOM_SCALE, y: y * ROOM_SCALE });
 const LINES = ["n1", "n2", "s1", "s2", "s3", "n3", "g1", "g2", "k1", "k2", "k3", "g3", "w1", "g4", "w2", "g5", "w3", "k4", "k5", "k6", "g6"];
@@ -23,7 +27,8 @@ class Person {
     this.dir = dir;
   }
   has(anim: string) { return this.sc.textures.exists(`${this.base}-${anim}`); }
-  face(d: number) { this.dir = d; this.sp.stop(); this.sp.setTexture(`${this.base}-rot`, d); }
+  /** Turn to a direction and stand there breathing (or just stand, if there's no idle). */
+  face(d: number) { this.dir = d; if (this.has("idle")) { this.play("idle", true, 6); return; } this.sp.stop(); this.sp.setTexture(`${this.base}-rot`, d); }
   /** Play an animation in the current direction; falls back to standing still if there isn't one. */
   play(anim: string, loop = true, fps = 9) {
     if (!this.has(anim)) { this.face(this.dir); return; }
@@ -52,7 +57,10 @@ class OpeningScene extends Phaser.Scene {
   init(d: { done: () => void }) { this.done = d.done; }
 
   preload() {
-    for (const k of ["tv_studio", "tv_presser", "tv_fans", "room"]) this.load.image(k, `scenes/${k}.png`);
+    for (const k of ["tv_studio", "tv_presser", "tv_fans", "room", "tv_studio_bg", "tv_presser_bg", "tv_pub_bg", "tv_studio_front", "tv_presser_front"]) this.load.image(k, `scenes/${k}.png`);
+    // The newsreader and the manager: camera-facing talking sheets, 128 px cells, one row.
+    for (const b of ["penelope", "scronson"]) for (const a of ["rot", "talk", "talk2"]) this.load.spritesheet(`${b}-${a}`, `art/${b}-${a}.png`, { frameWidth: 128, frameHeight: 128 });
+    for (const b of ["lad", "woman"]) for (const a of ["rot", "cheer"]) this.load.spritesheet(`${b}-${a}`, `art/${b}-${a}.png`, { frameWidth: 88, frameHeight: 88 });
     for (const k of LINES) this.load.audio(`op_${k}`, `audio/op_${k}.mp3`);
     for (const k of SFX) this.load.audio(`op_${k}`, `audio/op_${k}.mp3`);
     this.load.audio("kaching", "audio/kaching.mp3");
@@ -107,6 +115,44 @@ class OpeningScene extends Phaser.Scene {
     const t = this.add.text(x, y, text, { fontFamily: '"Silkscreen", monospace', fontSize: "34px", color: colour, stroke: "#000000", strokeThickness: 6 }).setOrigin(0.5).setDepth(2500);
     this.tweens.add({ targets: t, y: y - 60, alpha: 0, duration: 1600, delay: 500, onComplete: () => t.destroy() });
   }
+  /** Someone on the telly: the camera-facing frames, scaled up, cut off at the desk. Talks while told to. */
+  onTelly(base: string, x: number, y: number, scale: number, deskY: number) {
+    if (!this.textures.exists(`${base}-rot`)) return null;
+    const sp = this.add.sprite(x, y, `${base}-rot`, 0).setOrigin(0.5, 1).setScale(scale).setDepth(5);
+    // Crop at the desk: only what's above deskY (screen) shows.
+    const top = y - 128 * scale, keep = Math.max(1, (deskY - top) / scale);
+    sp.setCrop(0, 0, 128, Math.min(128, keep));
+    let k = 0;
+    const talk = (on: boolean) => {
+      if (!on) { sp.stop(); sp.setFrame(0); return; }
+      const a = ["talk", "talk2"][k++ % 2];
+      if (!this.textures.exists(`${base}-${a}`)) return;
+      const key = `${base}-${a}-tv`;
+      if (!this.anims.exists(key)) this.anims.create({ key, frames: this.anims.generateFrameNumbers(`${base}-${a}`, {}), frameRate: 8, repeat: -1 });
+      sp.play(key);
+    };
+    return { sp, talk };
+  }
+  /** A pub full of fans going mad: rows of cheering sprites, nearest biggest. */
+  crowd(): Phaser.GameObjects.Sprite[] {
+    const out: Phaser.GameObjects.Sprite[] = [], bases = ["fan", "lad", "woman", "fan", "lad"].filter((b) => this.textures.exists(`${b}-cheer`));
+    if (!bases.length) return out;
+    const rows = [{ y: 330, n: 9, s: 2.2 }, { y: 420, n: 8, s: 2.9 }, { y: 540, n: 6, s: 3.8 }];
+    let i = 0;
+    for (const r of rows) for (let k = 0; k < r.n; k++) {
+      const b = bases[i++ % bases.length], key = `${b}-cheer-S`;
+      if (!this.anims.exists(key)) {
+        const n = Math.floor(this.textures.get(`${b}-cheer`).getSourceImage().width / 88);
+        this.anims.create({ key, frames: this.anims.generateFrameNumbers(`${b}-cheer`, { start: 0, end: n - 1 }), frameRate: 10, repeat: -1, yoyo: true });
+      }
+      const x = (k + 0.5) * (W / r.n) + (Math.random() - 0.5) * 50;
+      const sp = this.add.sprite(x, r.y + (Math.random() - 0.5) * 14, `${b}-cheer`, 0).setOrigin(0.5, 0.82).setScale(r.s).setDepth(3 + r.y / 100);
+      sp.play({ key, startFrame: Math.floor(Math.random() * 6) });
+      sp.anims.timeScale = 0.8 + Math.random() * 0.6;
+      out.push(sp);
+    }
+    return out;
+  }
   finish() {
     if (this.finished) return;
     this.finished = true;
@@ -122,7 +168,11 @@ class OpeningScene extends Phaser.Scene {
 
   async telly() {
     // ===== The telly =====
-    const pic = this.add.image(W / 2, H / 2, "tv_studio").setScale(W / 400).setDepth(1);
+    const live = this.textures.exists("tv_studio_bg") && this.textures.exists("penelope-rot");
+    const pic = this.add.image(W / 2, H / 2, live ? "tv_studio_bg" : "tv_studio").setScale(W / 400).setDepth(1);
+    // The desk, in front of her: the bottom of the studio picture drawn again over the presenter.
+    const desk = live ? this.add.image(W / 2, H / 2, "tv_studio_front").setScale(W / 400).setDepth(6) : null;
+    const pen = live ? this.onTelly("penelope", W / 2, H * PRES.studio.feet, PRES.studio.scale, (DESK.studio * W) / 400) : null;
     const chrome = new NewsChrome(this, { SX: 0, SY: 0, SW: W, SH: H }, BRANDS.krunch, 10);
     const scan = this.add.graphics().setDepth(50);
     for (let y = 0; y < H; y += 3) scan.fillStyle(0x000000, 0.12).fillRect(0, y, W, 1);
@@ -131,21 +181,36 @@ class OpeningScene extends Phaser.Scene {
     chrome.bug(); chrome.live("London");
     chrome.headline("England reach the World Cup quarter-finals");
     chrome.ticker(["Nation celebrates", "Pubs run dry in Basildon", "Man arrested for kissing a police horse", "Weather: grey", "Scronson Flabbergast: 'football is a game of football'"]);
-    this.tweens.add({ targets: pic, scale: (W / 400) * 1.06, duration: 9000 });
     chrome.strap("Penelope Gristle", "Krunch News", 4200);
+    pen?.talk(true);
     await this.say("n1", "Good evening. Scenes of jubilation across the country tonight, as England have reached the quarter-finals of the World Cup.", null);
+    pen?.talk(false); await this.wait(250); pen?.talk(true);
     await this.say("n2", "England's new manager, Scronson Flabbergast, spoke to Krunch News earlier.", null);
+    pen?.talk(false); pen?.sp.setVisible(false); desk?.setVisible(false);
+
     this.mark("presser");
-    pic.setTexture("tv_presser").setScale(W / 400);
-    this.tweens.add({ targets: pic, scale: (W / 400) * 1.05, duration: 12000 });
+    const live2 = this.textures.exists("tv_presser_bg") && this.textures.exists("scronson-rot");
+    pic.setTexture(live2 ? "tv_presser_bg" : "tv_presser").setScale(W / 400);
+    const mics = live2 ? this.add.image(W / 2, H / 2, "tv_presser_front").setScale(W / 400).setDepth(6) : null;
+    const scron = live2 ? this.onTelly("scronson", W / 2, H * PRES.presser.feet, PRES.presser.scale, (DESK.presser * W) / 400) : null;
+
     chrome.strap("Scronson Flabbergast", "England manager", 6000);
     const flash = this.time.addEvent({ delay: 900, loop: true, callback: () => { const f = this.add.rectangle(W / 2, H / 2, W, H, 0xffffff, 0.35).setDepth(40); this.tweens.add({ targets: f, alpha: 0, duration: 140, onComplete: () => f.destroy() }); } });
-    await this.say("s1", "Look. The key is to score goals.", null);
-    await this.say("s2", "Obviously the other lot will be trying to score goals as well. So we'll need to stop that.", null);
-    await this.say("s3", "The mentality we need is a footie mentality. We'll take it one game at a time. Then the next game.", null);
+    for (const [k, t] of [["s1", "Look. The key is to score goals."], ["s2", "Obviously the other lot will be trying to score goals as well. So we'll need to stop that."], ["s3", "The mentality we need is a footie mentality. We'll take it one game at a time. Then the next game."]] as const) {
+      scron?.talk(true);
+      await this.say(k, t, null);
+      scron?.talk(false);
+      await this.wait(200);
+    }
     flash.remove();
+    scron?.sp.setVisible(false); mics?.setVisible(false);
+
     this.mark("fans0");
-    pic.setTexture("tv_fans").setScale(W / 400);
+    const live3 = this.textures.exists("tv_pub_bg") && this.textures.exists("fan-cheer");
+    pic.setTexture(live3 ? "tv_pub_bg" : "tv_fans").setScale(W / 400);
+    const fans = live3 ? this.crowd() : [];
+    // Beer going up in the air.
+    const beer = live3 ? this.time.addEvent({ delay: 120, loop: true, callback: () => { const d = this.add.rectangle(Math.random() * W, 300 + Math.random() * 120, 5, 7, 0xf2c94c, 0.9).setDepth(8); this.tweens.add({ targets: d, y: d.y - 80 - Math.random() * 80, x: d.x + (Math.random() - 0.5) * 60, alpha: 0, duration: 700, ease: "Quad.out", onComplete: () => d.destroy() }); } }) : null;
     this.mark("fans1");
     this.sfx("pubcheer", 0.9);
     this.tweens.add({ targets: pic, x: { from: W / 2 - 6, to: W / 2 + 6 }, duration: 90, yoyo: true, repeat: 20 });
@@ -181,6 +246,8 @@ class OpeningScene extends Phaser.Scene {
     fizz.remove();
     // Hide the telly rather than tearing it down mid-tween.
     this.tweens.killTweensOf(pic);
+    beer?.remove();
+    for (const f of fans) { f.stop(); f.setVisible(false); }
     for (const o of [pic, crack, noise, scan]) o.setVisible(false);
     chrome.setVisible(false);
     this.cameras.main.setBackgroundColor("#000000");
@@ -197,6 +264,11 @@ class OpeningScene extends Phaser.Scene {
     for (let i = 0; i < 9; i++) { const a = (i / 9) * Math.PI * 2; tvg.lineBetween(tv.x, tv.y, tv.x + Math.cos(a) * 60, tv.y + Math.sin(a) * 34); }
     this.time.addEvent({ delay: 300, loop: true, callback: () => { const s = this.add.rectangle(tv.x + (Math.random() - 0.5) * 70, tv.y + (Math.random() - 0.5) * 30, 4, 4, 0xfff3a0).setDepth(91); this.tweens.add({ targets: s, y: s.y + 40, alpha: 0, duration: 500, onComplete: () => s.destroy() }); } });
     this.mark("room-img");
+    // The room breathes: a dodgy bulb, and fag smoke off the ashtray.
+    const dim = this.add.rectangle(W / 2, H / 2, W, H, 0x000000, 0.08).setDepth(1500);
+    this.time.addEvent({ delay: 90, loop: true, callback: () => dim.setFillStyle(0x000000, Math.random() < 0.06 ? 0.3 : 0.06 + Math.random() * 0.05) });
+    const ash = R(232, 186);
+    this.time.addEvent({ delay: 420, loop: true, callback: () => { const p = this.add.circle(ash.x + (Math.random() - 0.5) * 6, ash.y, 4 + Math.random() * 3, 0xd8d8d8, 0.35).setDepth(1400); this.tweens.add({ targets: p, y: p.y - 70, x: p.x + (Math.random() - 0.5) * 30, scale: 2.2, alpha: 0, duration: 2200, onComplete: () => p.destroy() }); } });
     const grozz = new Person(this, "fan", 215, 150, DIR.N);
     this.mark("room-grozz");
     const jr = new Person(this, "grozzyjr", 126, 140, DIR.E);
@@ -215,12 +287,12 @@ class OpeningScene extends Phaser.Scene {
     grozz.face(DIR.S); grozz.play(grozz.has("rage") ? "rage" : "cheer");
     await this.say("g1", "Fucking FIFA! They're gonna fucking rig it again! They hate us! They hate the English lions!", grozz);
     await this.say("g2", "Well it's time someone fucking did something!", grozz);
-    grozz.face(DIR.S);
+    grozz.face(DIR.W);
     await this.say("k1", "Me want iPad!", jr, { gap: 60 });
     await this.say("k2", "No! Me want iPad!", scr, { gap: 60 });
     await this.say("k3", "Meeeee! Me want it!", jr, { gap: 60 });
     await grozz.walk(144, 168, 90);
-    grozz.face(DIR.N);
+    grozz.face(DIR.N); grozz.play(grozz.has("rage") ? "rage" : "cheer");
     await this.say("g3", "I'll fucking show you whose iPad it is!", grozz);
     this.mark("snap");
     fight.remove();
@@ -241,11 +313,13 @@ class OpeningScene extends Phaser.Scene {
     shez.face(DIR.W); shez.play("shout");
     grozz.face(DIR.E);
     await this.say("w1", "Grozz! What the fuck have you done?! That was off Cash Converters!", shez);
+    shez.face(DIR.W);
     grozz.play(grozz.has("rage") ? "rage" : "cheer");
     await this.say("g4", "Shut your fucking mouth and get me a fucking drink! It's time for me to finally do something to fucking change history! I could be the chosen one! Watch how you fucking talk to me!", grozz);
     grozz.face(DIR.E);
     shez.play("shout");
     await this.say("w2", "Change history? You can't even afford a fucking ticket, you fat useless lump!", shez);
+    shez.face(DIR.W);
     await grozz.walk(270, 138, 90);
     grozz.face(DIR.E);
     await this.say("g5", "Then I'll take your fucking benefit money. Which I deserve anyway, for being a good dad.", grozz);

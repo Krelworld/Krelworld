@@ -362,6 +362,12 @@ class OpeningScene extends Phaser.Scene {
 }
 
 /** Play the opening over the page. Calls back when it's over or skipped. */
+function lowRateContext(): AudioContext | undefined {
+  const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+  if (!Ctx || location.search.includes("mute")) return undefined;
+  try { return new Ctx({ sampleRate: 24000 }); } catch { return undefined; }
+}
+
 export function playOpening(done: () => void): void {
   const host = document.createElement("div");
   host.id = "opening";
@@ -400,7 +406,8 @@ export function playOpening(done: () => void): void {
     type: location.search.includes("opcanvas") ? Phaser.CANVAS : Phaser.AUTO, parent: holder, backgroundColor: "#000000", pixelArt: true,
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH, width: W, height: H },
     scene: [],
-    audio: { disableWebAudio: false, noAudio: location.search.includes("mute") },
+    // A 24 kHz sound context: half the memory for the film's voices, and nobody can tell.
+    audio: { disableWebAudio: false, noAudio: location.search.includes("mute"), context: lowRateContext() },
   });
   game.scene.add("opening", OpeningScene, true, { done: end }); };
 }

@@ -3,6 +3,7 @@
 // barman and disguise, and one steward can be police. A workable stopgap until the full
 // 48px cast is generated.
 import Phaser from "phaser";
+import { assetURL } from "./packs";
 import EXTRAS from "../../assets/art/extras.json";
 
 /** Extra animation sheets each base has (punch, hit, fall, ...): one row per direction, frames across. */
@@ -118,25 +119,102 @@ export class SpriteBank {
   private made = new Set<string>();
   constructor(private scene: Phaser.Scene) {}
 
+  /** Sheets loaded up front (through Phaser): standing, walking, and the cheer the crowd atlas needs.
+   *  The other animation sheets are big (8 directions of frames each) and most are never seen in a
+   *  given match, so they're fetched and recoloured only when someone first does that thing. Loading
+   *  and recolouring the lot up front came to over 700 MB of pictures: enough to crash a phone. */
+  static readonly EAGER = ["rot", "walk", "cheer"];
+
   static preload(scene: Phaser.Scene): void {
     scene.load.image("tiles-street", "art/tiles-street.png");
     scene.load.image("tiles-pitch", "art/tiles-pitch.png");
     for (const k of BASES) {
       if (!(EXTRA[k] ?? []).includes("rot")) continue;
       scene.load.image(`${k}-rot-src`, `art/${k}-rot.png`);
-      if ((EXTRA[k] ?? []).includes("walk")) scene.load.image(`${k}-walk-src`, `art/${k}-walk.png`);
-      for (const x of EXTRA[k] ?? []) if (x !== "rot" && x !== "walk") scene.load.image(`${k}-${x}-src`, `art/${k}-${x}.png`);
+      for (const x of EXTRA[k] ?? []) if (x !== "rot" && SpriteBank.EAGER.includes(x)) scene.load.image(`${k}-${x}-src`, `art/${k}-${x}.png`);
     }
   }
 
+  /** Lazily loaded source sheets: an image once it has arrived, "wait" while it's on its way. */
+  private lazy = new Map<string, HTMLImageElement | "wait" | "none">();
+  /** What each variant key was made from, so its other sheets can be painted when wanted. */
+  private info = new Map<string, { base: Base; rc: Recolour }>();
+  /** Recolouring a sheet takes a few milliseconds: only a couple a frame, so nothing stutters. */
+  private budget = { frame: -1, left: 0 };
+
+  /** The source picture of one sheet of a base, or null if it isn't here (yet). */
+  private srcOf(base: Base, sheet: string): HTMLImageElement | HTMLCanvasElement | null {
+    const k = `${base}-${sheet}-src`;
+    if (this.scene.textures.exists(k)) return this.scene.textures.get(k).getSourceImage() as HTMLImageElement;
+    if (!(EXTRA[base] ?? []).includes(sheet)) return null;
+    const got = this.lazy.get(k);
+    if (got instanceof HTMLImageElement) return got;
+    if (got) return null;
+    this.lazy.set(k, "wait");
+    const img = new Image();
+    img.onload = () => this.lazy.set(k, img);
+    img.onerror = () => this.lazy.set(k, "none");
+    img.src = assetURL(`art/${base}-${sheet}.png`);
+    return null;
+  }
+
+  /** Is this sheet of a variant ready to draw? Fetches and paints it on first asking. */
+  /** `mine`: the player's own sheet, made even over the allowance (Grozz always gets his punch). */
+  sheetReady(key: string, sheet: string, mine = false): boolean {
+    const tkey = `${key}-${sheet}`;
+    const now = performance.now();
+    const have = this.painted.get(tkey);
+    if (have) { have.used = now; return true; }
+    if (this.scene.textures.exists(tkey)) return true;
+    const inf = this.info.get(key);
+    if (!inf) return false;
+    const src = this.srcOf(inf.base, sheet);
+    if (!src) return false;
+    const fr = this.scene.game.loop.frame;
+    if (this.budget.frame !== fr) this.budget = { frame: fr, left: 2 };
+    if (this.budget.left <= 0 && !mine) return false;
+    const bytes = src.width * src.height * 4;
+    // Over the memory allowance: let go of sheets nobody has used for a while, oldest first. If
+    // everything is in use, do without (the standing frame stands in) rather than grow.
+    if (this.paintedBytes + bytes > SpriteBank.LAZY_BYTES && !this.evict(now, bytes) && !mine) return false;
+    this.budget.left--;
+    const cv = this.paint(inf.base, sheet, inf.rc, src);
+    this.scene.textures.addSpriteSheet(tkey, cv as unknown as HTMLImageElement, { frameWidth: cellOf(inf.base), frameHeight: cellOf(inf.base) });
+    this.painted.set(tkey, { cv, bytes, used: now, rot: `${key}-rot` });
+    this.paintedBytes += bytes;
+    return true;
+  }
+
+  /** How much the on-demand sheets may take between them. */
+  static readonly LAZY_BYTES = 64e6;
+  private painted = new Map<string, { cv: HTMLCanvasElement; bytes: number; used: number; rot: string }>();
+  private paintedBytes = 0;
+
+  /** Free room for `need` more bytes by dropping sheets unused for two seconds. False if that's not enough. */
+  private evict(now: number, need: number): boolean {
+    const old = [...this.painted].filter(([, p]) => now - p.used > 2000).sort((a, b) => a[1].used - b[1].used);
+    for (const [tkey, p] of old) {
+      if (this.paintedBytes + need <= SpriteBank.LAZY_BYTES) break;
+      // Anything still showing it (off screen, say) goes back to standing first.
+      for (const o of this.scene.children.list) {
+        const sp = o as Phaser.GameObjects.Sprite;
+        if (sp.texture?.key === tkey) sp.setTexture(p.rot, 0);
+      }
+      this.scene.textures.remove(tkey);
+      p.cv.width = p.cv.height = 0; // hand the pixels back now (phones count canvas memory strictly)
+      this.painted.delete(tkey);
+      this.paintedBytes -= p.bytes;
+    }
+    return this.paintedBytes + need <= SpriteBank.LAZY_BYTES;
+  }
+
   /** Is this base's art here? */
-  has(base: Base): boolean { return this.scene.textures.exists(`${base}-rot-src`) && this.scene.textures.exists(`${base}-walk-src`); }
+  has(base: Base): boolean { return this.scene.textures.exists(`${base}-rot-src`) && !!this.srcOf(base, "walk"); }
 
   ready(): boolean { return this.scene.textures.exists("fan-rot-src") && this.scene.textures.get("fan-rot-src").key !== "__MISSING"; }
 
   /** A recoloured copy of one sheet of a base, as a canvas. */
-  private paint(base: Base, sheet: string, rc: Recolour): HTMLCanvasElement {
-    const src = this.scene.textures.get(`${base}-${sheet}-src`).getSourceImage() as HTMLImageElement | HTMLCanvasElement;
+  private paint(base: Base, sheet: string, rc: Recolour, src = this.srcOf(base, sheet)!): HTMLCanvasElement {
     const cv = document.createElement("canvas");
     cv.width = src.width; cv.height = src.height;
     const cx = cv.getContext("2d", { willReadFrequently: true })!;
@@ -155,12 +233,15 @@ export class SpriteBank {
     return cv;
   }
 
-  /** The key of a recoloured copy of a base (its `-rot` and `-walk` sheets), made on first use. */
+  /** The key of a recoloured copy of a base (its `-rot` and `-walk` sheets), made on first use.
+   *  Its other sheets are made by sheetReady(). */
   variant(base: Base, rc: Recolour = {}): string {
     const parts = Object.entries(rc).filter(([, v]) => v !== undefined).sort().map(([k, v]) => `${k}${(v as number).toString(16)}`);
     const key = parts.length ? `${base}~${parts.join("_")}` : base;
     if (this.made.has(key)) return key;
-    for (const sheet of new Set(["rot", "walk", ...(EXTRA[base] ?? [])])) {
+    this.info.set(key, { base, rc });
+    // Standing and walking now; the rest (fall, punch, drink...) when first wanted: see sheetReady().
+    for (const sheet of ["rot", "walk"]) {
       if (!this.scene.textures.exists(`${base}-${sheet}-src`)) continue;
       const tkey = `${key}-${sheet}`;
       if (this.scene.textures.exists(tkey)) this.scene.textures.remove(tkey);

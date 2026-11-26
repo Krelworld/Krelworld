@@ -267,16 +267,7 @@ class StadiumScene extends Phaser.Scene {
       : `${VENUE.ground}, against ${opp}. You have £${c.money}${kit.length ? ` and you've brought: ${kit.join(", ").toLowerCase()}` : ""}. ${notorietyText(c.notoriety)} This ground has metal detectors and face-recognition cameras at the turnstiles, and staff need a pass.${VENUE.features.penisDetector ? " And, following recent incidents, a penis detector." : ""}`;
     $("intro").hidden = false;
     this.started = false;
-    // The very first match of a session opens with the film (skippable; ?noopening for tools).
-    if (c.fixture === 0 && !this.openingPlayed && !location.search.includes("noopening")) {
-      this.openingPlayed = true;
-      $("intro").hidden = true;
-      // The ground waits, asleep, while the film plays (one game drawing at a time).
-      this.time.delayedCall(50, () => this.game.loop.sleep());
-      playOpening(() => { this.game.loop.wake(); $("intro").hidden = false; });
-    }
   }
-  openingPlayed = false;
 
   /** England are through: the news, then pack a bag for the next match. */
   continueTournament() {
@@ -747,7 +738,7 @@ class StadiumScene extends Phaser.Scene {
       const key = this.bank.variant(base, rc), cell = cellOf(base);
       const toMe = Math.atan2(pc.y - a.y, pc.x - a.x), di = dirIndex(Math.PI / 2 + (a.facing - toMe));
       const down = a.dead || a.downUntil > s.tick;
-      const fall = tex(`${key}-fall`), walk = tex(`${key}-walk`), moving = Math.hypot(a.vx, a.vy) > 0.4;
+      const fall = this.bank.sheetReady(key, "fall") ? tex(`${key}-fall`) : null, walk = tex(`${key}-walk`), moving = Math.hypot(a.vx, a.vy) > 0.4;
       let img = tex(`${key}-rot`)!, sx = di * cell, sy = 0;
       if (down && fall) { const n = Math.round(fall.width / cell); img = fall; sx = (n - 1) * cell; sy = di * cell; }
       else if (moving && walk) { const n = Math.round(walk.width / cell); img = walk; sx = (Math.floor(s.tick * 0.15) % n) * cell; sy = di * cell; }
@@ -1277,7 +1268,7 @@ class StadiumScene extends Phaser.Scene {
           let sp = this.spritePool.get("horse-entity");
           if (!sp) { sp = this.add.sprite(0, 0, `${key}-rot`, 0); this.spritePool.set("horse-entity", sp); }
           seenSprites.add("horse-entity");
-          const di = dirIndex(hs.facing), anim = hs.speed > 6 && this.textures.exists(`${key}-run`) ? "run" : hs.speed > 0.4 && this.textures.exists(`${key}-walk`) ? "walk" : this.textures.exists(`${key}-idle`) ? "idle" : null;
+          const di = dirIndex(hs.facing), anim = hs.speed > 6 && this.bank.sheetReady(key, "run") ? "run" : hs.speed > 0.4 && this.bank.sheetReady(key, "walk") ? "walk" : this.bank.sheetReady(key, "idle") ? "idle" : null;
           if (anim) { const n = this.frames(`${key}-${anim}`); sp.setTexture(`${key}-${anim}`, di * n + Math.floor(tick * (anim === "run" ? 0.25 : anim === "walk" ? 0.15 : 0.08)) % n); }
           else sp.setTexture(`${key}-rot`, di);
           sp.setOrigin(0.5, feetOf(base) / cellOf(base)).setPosition(Math.round(P.sx(hs.x, hs.y)), Math.round(P.sy(hs.x, hs.y))).setDepth(dep).setVisible(true).setAlpha(1).setAngle(0).setScale(1).setCrop().clearTint();
@@ -1840,7 +1831,7 @@ class StadiumScene extends Phaser.Scene {
       if (!this.canopy && this.textures.exists("k-canopy-src")) this.canopy = this.add.image(0, 0, "k-canopy-src").setOrigin(0.5, 1);
       this.canopy?.setVisible(true).setDepth(depth + 1).setPosition(x, Math.round(y - 2.1 * P.S)).setAngle(Math.sin(this.s.tick * 0.05) * 6);
     }
-    const now = performance.now(), has = (sheet: string) => this.textures.exists(`${key}-${sheet}`);
+    const now = performance.now(), has = (sheet: string) => this.bank.sheetReady(key, sheet, a.id === this.s.stadium!.pc);
     if (a.chute || a.roof) {
       // Hanging in the harness (or standing on the roof edge): upright, facing where he's headed.
       sp.setTexture(`${key}-rot`, a.chute ? 0 : 4).setAngle(a.chute ? Math.sin(tick * 0.05) * 6 : 0).setOrigin(0.5, feetOf(base) / cellOf(base)).setCrop().setPosition(x, y).clearTint();
@@ -2571,11 +2562,17 @@ const host = $("game");
     const f = document.getElementById("packfill"), tx = document.getElementById("packtxt");
     if (f) f.style.width = `${Math.round((d / t) * 100)}%`;
     if (tx) tx.textContent = `Loading… ${(d / 1e6).toFixed(1)} of ${(t / 1e6).toFixed(1)} MB`;
-  }).catch(() => {}).finally(() => { bar.remove(); startGame(); });
+  }).catch(() => {}).finally(() => {
+    bar.remove();
+    // The film first (skippable; ?noopening for tools), and only then the ground: building both at
+    // once, two pictures' worth of memory at the same time, was more than a phone would stand.
+    if (location.search.includes("noopening")) startGame();
+    else playOpening(startGame);
+  });
 }
 
 function startGame(): void {
-new Phaser.Game({
+const game = new Phaser.Game({
   type: Phaser.AUTO,
   parent: "game",
   backgroundColor: "#101412",
@@ -2584,6 +2581,19 @@ new Phaser.Game({
   scale: { mode: Phaser.Scale.NONE, width: Math.max(1, host.clientWidth * DPR), height: Math.max(1, host.clientHeight * DPR), zoom: 1 / DPR },
   scene: StadiumScene,
 });
+// If the phone takes the graphics away (it does that when memory runs short), say so and offer a
+// restart, rather than leaving a black screen behind the buttons.
+game.events.once(Phaser.Core.Events.READY, () => game.canvas.addEventListener("webglcontextlost", () => {
+  const d = document.createElement("div");
+  Object.assign(d.style, { position: "fixed", inset: "0", zIndex: "80", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "16px", background: "rgba(0,0,0,.88)", color: "#fff", font: "600 17px 'Pixelify Sans', sans-serif", textAlign: "center", padding: "0 max(16px, env(safe-area-inset-left, 0px))" });
+  d.innerHTML = `<div>Your phone ran out of graphics memory.</div>`;
+  const b = document.createElement("button");
+  b.textContent = "Reload ▸";
+  Object.assign(b.style, { font: '700 20px "Silkscreen", monospace', padding: "12px 24px", background: "#c8102e", color: "#fff", border: "3px solid #000" });
+  b.addEventListener("click", () => location.replace(location.pathname + "?noopening"));
+  d.appendChild(b);
+  document.body.appendChild(d);
+}));
 }
 
 // Keep the type checker honest about things only referenced in strings.

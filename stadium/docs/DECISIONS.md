@@ -606,3 +606,12 @@ or the other games. That repo only holds the built game (`site/`: the page, the 
 packs). To update it: `node build.mjs` in stadium/, then `tools/deploy-repo.sh <clone of
 Glory-Quest>`; the push redeploys the site in about a minute. The match intro card now starts
 hidden, so nothing stale shows while the packs download.
+
+## Phone memory (the iPhone crash)
+
+On an iPhone the hosted game crashed ("A problem repeatedly occurred") or came up with a black world. Measured in a phone-sized browser, the match was building 717 MB of pictures (540 MB of it recoloured canvases: every colour variant of every person got every animation sheet up front), with the opening film's game alive alongside it and about 130 MB of decoded sound. Now:
+- Only standing, walking and cheering sheets load and recolour up front. Every other animation sheet is fetched and recoloured the first time someone does that thing, at most two a frame, under a 64 MB allowance; sheets unused for two seconds are dropped, oldest first. Grozz's own always get made.
+- The film plays before the stadium is built, not alongside it.
+- Sound runs at 24 kHz, and spoken lines (tannoy, stewards, voices, Grozz) decode the first time they're played.
+- If the phone still takes the graphics away, a "Reload" prompt replaces the black screen.
+The match now starts at about 134 MB of pictures and levels off around 230 MB.

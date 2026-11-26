@@ -76,7 +76,8 @@ export class Audio {
     if (this.ctx) { if (this.ctx.state === "suspended") await this.ctx.resume(); return; }
     const Ctx = window.AudioContext || (window as any).webkitAudioContext;
     if (!Ctx) return;
-    this.ctx = new Ctx();
+    // 24 kHz is plenty for these sounds, and every decoded second costs half what it would at 48.
+    try { this.ctx = new Ctx({ sampleRate: 24000 }); } catch { this.ctx = new Ctx(); }
     this.master = this.ctx.createGain();
     this.master.gain.value = this.muted ? 0 : 0.9;
     this.master.connect(this.ctx.destination);
@@ -89,18 +90,30 @@ export class Audio {
     // Load the crowd first, the rest after.
     await this.load("crowd_loop");
     this.startCrowd();
-    await Promise.all(CLIPS.filter((c) => c !== "crowd_loop").map((c) => this.load(c)));
-    await Promise.all(Object.values(VOICES).flatMap((v) => [this.load(v), this.load(`${v}_f`)]));
-    await Promise.all(Object.values(PC_LINES).flat().map(([, c]) => this.load(c)));
+    // The effects now. Spoken lines (tannoy, stewards, voices, Grozz) decode the first time they're
+    // played: decoded sound is big, and on a phone memory is what runs out.
+    await Promise.all(CLIPS.filter((c) => c !== "crowd_loop" && !Audio.spoken(c)).map((c) => this.load(c)));
   }
 
-  private async load(name: string): Promise<void> {
-    if (!this.ctx || this.buffers.has(name)) return;
-    try {
-      const r = await fetch(`${this.base}${name}.mp3`);
-      const data = await r.arrayBuffer();
-      this.buffers.set(name, await this.ctx.decodeAudioData(data));
-    } catch { /* a missing sound is not worth crashing over */ }
+  private static spoken = (name: string) => /^(tannoy_|stw_|gh_|v_|pc_)/.test(name);
+
+  private loading = new Map<string, Promise<void>>();
+  private load(name: string): Promise<void> {
+    if (!this.ctx || this.buffers.has(name)) return Promise.resolve();
+    let p = this.loading.get(name);
+    if (!p) {
+      const ctx = this.ctx;
+      p = (async () => {
+        try {
+          const r = await fetch(`${this.base}${name}.mp3`);
+          if (!r.ok) return;
+          const data = await r.arrayBuffer();
+          this.buffers.set(name, await ctx.decodeAudioData(data));
+        } catch { /* a missing sound is not worth crashing over */ }
+      })();
+      this.loading.set(name, p);
+    }
+    return p;
   }
 
   private startCrowd(): void {
@@ -123,7 +136,13 @@ export class Audio {
   /** Play a clip. `muffle` (0..1) dulls it, as heard from outside the ground. */
   play(name: Clip, volume = 1, opts: { muffle?: number; rate?: number; minGap?: number } = {}): number {
     const b = this.buffers.get(name);
-    if (!this.ctx || !b || this.muted) return 0;
+    if (!this.ctx || this.muted) return 0;
+    if (!b) {
+      // Not decoded yet: decode it and play it then, unless that took too long to still make sense.
+      const ctx = this.ctx, asked = ctx.currentTime;
+      void this.load(name).then(() => { if (this.buffers.has(name) && ctx.currentTime - asked < 1.5) this.play(name, volume, opts); });
+      return 0;
+    }
     const now = this.ctx.currentTime;
     const gap = opts.minGap ?? 0.12;
     if (now - (this.lastPlayed.get(name) ?? -9) < gap) return 0;
@@ -148,9 +167,9 @@ export class Audio {
     if (!this.ctx) return;
     const now = this.ctx.currentTime;
     if (now < this.tannoyBusyUntil) return;
-    const chime = this.play("chime", volume * 0.6, { muffle });
     const voice = this.buffers.get(name);
-    if (!voice) return;
+    if (!voice) { void this.load(name).then(() => { if (this.buffers.has(name) && this.ctx!.currentTime - now < 2) this.tannoy(name, volume, muffle); }); return; }
+    const chime = this.play("chime", volume * 0.6, { muffle });
     this.tannoyBusyUntil = now + chime * 0.7 + voice.duration + 0.5;
     window.setTimeout(() => this.play(name, volume, { muffle }), Math.max(0, chime * 700));
   }

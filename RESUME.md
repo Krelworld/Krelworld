@@ -209,3 +209,10 @@ To resume: `Workflow({scriptPath: "<script>", resumeFromRunId: "wf_574a5950-314"
 - bundle-wt / branch `bundle` = mobile + donut (incl. game-adds 4b8355bd) + aim, tsc clean. Redo when game-adds gate (wwb7ethuw) finishes (it may add commits). Merge messages need the footer (redo with -m).
 - Still running: wave1 final gate (wc5mur9si), game-adds gate (wwb7ethuw). Child session for wave 2.
 - Publish order: wave1 (s3-tap + mobile) first, then bundle merged on top; full check ONCE per publish; re-record baselines only for all-version features (bike already 4b8355bd; check whether donut-room changed any fingerprint state).
+
+## 11:27 UTC
+- wave1 gate PASSED (s3-05-gate-round1.md). s3-tap merged with live -> fd33d21c. Full check pub1 (port 5700, mobile/work/pub1) running.
+- game-adds gate PASSED (ga-03-gate.md), head unchanged 4b8355bd.
+- Combined branch `pub` (pub-wt) = s3-tap fd33d21c + donut 0c7f61ba + aim f338e373 -> 7aa05c29, tsc clean. Full check pub2 (port 5720, mobile/work/pub2) running.
+- Plan: if pub2 passes, push pub to live (superset). If only pub1 passes, push s3-tap first.
+- Script: mobile/work/fullcheck.sh <wt> <port> <logdir>.

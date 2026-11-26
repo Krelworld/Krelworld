@@ -52,14 +52,6 @@ export const FRAGMAR_BRIEFING: MeetingScript = {
     bMax(ping("DRONGUS", "Your stream must be lagging a bit mate. The telly's a few seconds ahead of you")),
     bMax(ping("POLSON", "oh right I see")),
     bMax(dir("He stares at the pitch, waiting for the goal to arrive. He is literally at the match.", { fx: "emote:POLSON:⏳", cineAfter: "freeze|HE IS IN THE STADIUM." })),
-    // ---- the grinder
-    bMod(dir("FLASHBACK. Curry night at Drongus's. Polson is clearing his plate.", { fx: "flash:grinder" })),
-    bMod(dir("He scrapes the whole lot into the sink.", { fx: "emote:POLSON:🍛" })),
-    bMod(say("DRONGUS", "What the fuck are you doing Polson?")),
-    bMod(say("POLSON", "I'm tipping it into the grinder!")),
-    bMod(say("MIKEY", "There's no grinder.")),
-    bMod(say("POLSON", "…every house has a grinder?", { cineAfter: "freeze|NUMBER OF GRINDERS: 0" })),
-    bMod(dir("Not this one. Drongus and Mikey are on the floor.", { fx: "hop:MIKEY", cine: "sting|biglaugh", variants: { MIKEY: "Not this one. You and Drongus are on the floor." } })),
     // ---- the crisps
     bMax(dir("FLASHBACK. Polson's house. Mikey has cycled to the shop and bought crisps and chocolate for the two of them.", { fx: "flash:crisps", variants: { MIKEY: "FLASHBACK. Polson's house. You've cycled to the shop and bought crisps and chocolate for the two of you." } })),
     bMax(say("MIKEY", "Right. Just nipping to the loo.", { fx: "exit:MIKEY" })),
@@ -103,13 +95,6 @@ export const FRAGMAR_BRIEFING: MeetingScript = {
     bMax(say("POLSON", "Just to be sure 😅", { fx: "emote:POLSON:🔒" })),
     bMax(dir("He walks away. He gets as far as the corner. He comes back.", { fx: "hop:POLSON" })),
     bMax(dir("It is locked.", { cineAfter: "freeze|LOCK CHECKS: 3. LOCKED: 3." })),
-    // ---- same shoes
-    bMax(dir("FLASHBACK. Drongus is making polite small talk with another parent at the playground. Polson is here too.", { fx: "flash:shoes" })),
-    bMax(say("POLSON", "That bloke over there has the same shoes as me", { fx: "hop:POLSON" })),
-    bMax(say("DRONGUS", "…oh. Okay.")),
-    bMax(dir("Drongus carries on talking to the parent, who has no idea how to respond. Forty-five seconds pass.", { fx: "emote:FOLK1:😶" })),
-    bMax(say("POLSON", "But it would appear mine are in worse condition than that matey's", { fx: "emote:POLSON:👟", cineAfter: "sting|ss_sting_awkward;cut|ss_cut_drongus_stare|right|0x60a5fa|1300" })),
-    bMax(dir("The parent laughs politely, in a way that suggests utter bemusement.")),
     // ---- the 25 minute run
     bMax(dir("FLASHBACK. Jenko has been on at Polson about the gym all week.", { fx: "flash:gym" })),
     bMax(ping("FLENKY", "Gym today Polson?")),

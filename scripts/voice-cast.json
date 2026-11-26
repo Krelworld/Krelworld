@@ -50,7 +50,8 @@
     "NORTHERN BLOKE 2": "broad Lancashire accent",
     "NORTHERN BLOKE 3": "broad Yorkshire accent",
     "NORTHERN BLOKE 4": "broad Mancunian accent",
-    "ALL": "rowdy pub crowd, broad northern English accents"
+    "ALL": "rowdy pub crowd, broad northern English accents",
+    "SHEZLEIGH": "thick, broad, shrill cockney accent"
   },
   "pronounce": {
     "_doc": "How a word is said aloud (the on-screen text is unchanged). Lines containing it are re-recorded.",
@@ -206,7 +207,7 @@
     "PHIL": "0lIhjPT6U1R0oaM1uJsV",
     "PEGGY": "jc40Vr8eY5030W3AARu2",
     "MINTY": "DC31ZMdGsmzdy7R8ITXN",
-    "SHEZLEIGH": "xz3xl14a51ZhvzP6TZIp",
+    "SHEZLEIGH": "kgWsxvXCGMRaoCjfLKLy",
     "DONNA": "AGzIaZS67G9SQwS3IsYg",
     "BIG DEREK": "TNb9jznrWvBvbmENdSEP",
     "DESTINY": "STAmkZyQiIKJPTKyBs1H",
@@ -464,7 +465,7 @@
     "PHIL": "A gruff hard-man East End London pub landlord in his fifties with a cockney accent. Low and growly.",
     "PEGGY": "A fierce, brassy East End London landlady in her sixties with a cockney accent. Loud and bossy.",
     "MINTY": "A sweaty, timid middle-aged man with an East London accent. Strained and whimpering.",
-    "SHEZLEIGH": "A loud, brash young woman with a strong Essex accent. Sharp and impatient.",
+    "SHEZLEIGH": "A shrill, nasal, obnoxious young London woman with a thick, broad cockney accent. Screechy, grating and very loud, always half-shouting, high-pitched and piercing.",
     "BIG DEREK": "An enormous nightclub bouncer with a Brummie accent. Extremely deep, slow, rumbling bass voice, terse.",
     "DESTINY": "A sultry, confident female exotic dancer in her twenties with a South London accent. Smoky, teasing and unimpressed.",
     "CRYSTAL": "A sultry, breathy female exotic dancer in her twenties with a Liverpool accent. Playful and dry.",
@@ -636,7 +637,8 @@
     "SANMIK": "whiny, confrontational",
     "SANJEEV": "warmly",
     "CEO": "warm, confident",
-    "ADVISER": "nervous"
+    "ADVISER": "nervous",
+    "SHEZLEIGH": "shrill, screeching"
   },
   "female": [
     "DR LEIGH BRAMWELL",

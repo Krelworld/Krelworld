@@ -621,6 +621,10 @@ export class NewsDirector {
     switch (b.type) {
       case "titleCard":
         return this.title(b.text);
+      case "music":
+        // the show's own opening jingle has faded: the bed comes in under the desk (the beat's length is unchanged)
+        if (b.mode !== "start") this.bed();
+        return 0;
       case "shot":
         return this.shot(b.set);
       case "speaker":
@@ -657,7 +661,8 @@ export class NewsDirector {
     const brand = BRANDS[this.cfg.brand];
     if (t.toUpperCase() === brand.name) {
       this.started = true;
-      synth.play("news_ident", 1, 1);
+      // the recorded ident, unless the show opens on its own jingle (that stays as it is)
+      if (!synth.currentMusic()) synth.play("news_ident", 1, 1);
       const ms = this.chrome.ident();
       this.later(ms - 300, () => {
         this.bed();

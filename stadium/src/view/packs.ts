@@ -33,16 +33,17 @@ export function assetURL(path: string): string {
 
 /** Fetch the packs (if this build has them) and start answering requests from them. */
 export async function loadPacks(progress: (done: number, total: number) => void): Promise<void> {
-  let index: { packs: Record<string, number>; files: Record<string, [string, number, number, string]> };
+  let index: { packs: Record<string, number>; files: Record<string, [string, number, number, string]>; v?: string };
   try {
-    const r = await fetch("packs/index.json");
+    // Never a stale index: it's tiny, and it names the version of the packs to fetch.
+    const r = await fetch(`packs/index.json?t=${Date.now()}`, { cache: "no-store" });
     if (!r.ok) return;
     index = await r.json();
   } catch { return; }
   const total = Object.values(index.packs).reduce((a, b) => a + b, 0);
   let done = 0;
   await Promise.all(Object.keys(index.packs).map(async (name) => {
-    const r = await fetch(`packs/${name}.pack.mp3`);
+    const r = await fetch(`packs/${name}.pack.mp3${index.v ? `?v=${index.v}` : ""}`);
     if (!r.body) { const b = await r.arrayBuffer(); packs.set(name, b); done += b.byteLength; progress(done, total); return; }
     // Read in chunks so there's a progress bar on a slow phone connection.
     const reader = r.body.getReader(), chunks: Uint8Array[] = [];

@@ -2443,7 +2443,10 @@ class StadiumScene extends Phaser.Scene {
     // Buttons.
     if (s.tick % 6 === 0 || !this.opts.length) {
       this.opts = options(this.w, pc, this.picked);
-      const p = primary(this.opts);
+      // The hit button has the blows: the main button never repeats one of them (that's what doubled up "Take down Shaz").
+      const hitFirst = this.fightOpt() ?? this.opts.find((o) => o.action?.verb === "strike");
+      const blow = (o: Option) => o.action?.verb === "strike" || (o.action?.verb === "finish" && !!hitFirst);
+      const p = hitFirst && !pc.heldBy && !pc.hiddenIn ? this.opts.find((o) => o.priority > 0 && !blow(o)) ?? null : primary(this.opts);
       const act = $<HTMLButtonElement>("act");
       act.disabled = !p;
       act.hidden = !p;
@@ -2455,7 +2458,7 @@ class StadiumScene extends Phaser.Scene {
       thr.hidden = !canThrow;
       if (canThrow) thr.textContent = ta ? `Throw at ${personName(ta).replace(/ \(.*\)$/, "")}` : `Throw ${itemName(s.items[pc.hand!]).toLowerCase()}`;
       // In a fight, the hit button sticks to the one you're fighting (and goes to Stamp once he's down).
-      const hit = $("hit"), hitOpt = this.fightOpt() ?? this.opts.find((o) => o.action?.verb === "strike");
+      const hit = $("hit"), hitOpt = hitFirst;
       hit.hidden = !hitOpt || !!pc.heldBy || !!pc.hiddenIn;
       if (hitOpt) { hit.textContent = hitOpt.label.replace(/ \(.*\)$/, "").replace(/^(Punch|Stab) the /, "$1 the ").split(" ").slice(0, 3).join(" "); (this as any).hitOpt = hitOpt; }
       const betEl = $("betBtn");

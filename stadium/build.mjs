@@ -72,7 +72,13 @@ for (const d of ["kit", "tiles", "scenes"]) {
     writeFileSync(`dist/stadium/packs/${name}.pack.mp3`, Buffer.concat(parts));
     index.packs[name] = off;
   }
+  // A version stamp: the page asks for game.js?v=..., and the packs by the same stamp, so a phone never
+  // mixes a new game with old cached art (or the other way round).
+  const { createHash } = await import("node:crypto");
+  const ver = createHash("sha1").update(readFileSync("dist/stadium/game.js")).update(JSON.stringify(index)).digest("hex").slice(0, 10);
+  index.v = ver;
   writeFileSync("dist/stadium/packs/index.json", JSON.stringify(index));
+  for (const f of ["index.html", "local.html"]) writeFileSync(`dist/stadium/${f}`, readFileSync(`dist/stadium/${f}`, "utf8").replace('<script src="game.js"></script>', `<script src="game.js?v=${ver}"></script>`));
   console.log("packed", Object.keys(index.files).length, "files:", Object.entries(index.packs).map(([k, v]) => `${k} ${(v / 1e6).toFixed(1)}MB`).join(", "));
 }
 console.log("built dist/stadium");

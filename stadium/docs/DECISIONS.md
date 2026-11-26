@@ -671,3 +671,17 @@ So: tap someone and a ring of icon buttons opens round them, following them as t
 - **Combat** (looked at Arkham's freeflow, Sleeping Dogs, Assassin's Creed): the problem was that a blow knocks them out of reach, so the hit button vanished or jumped to someone else. Now a strike lunges you up to 3.2 m onto your man; the hit button sticks to whoever you're fighting for five seconds (and becomes Stamp once he's down); a tap while you're still recovering from a blow is kept and goes off as soon as you can.
 - **Cars**: kick any car (parked ones go off: alarm, flashing lights, stewards look over). Stand in the road till one stops, then drag the driver out (or the copper, out of a police car) and drive it: steer with the stick, push harder to go faster, pull back to brake. Walls crunch, people go under the wheels, the driver comes after you. Get out and leave it; get back in later.
 - **Scronson Flabbergast**: a new face: fat, greasy comb-over, double chin, food down his tracksuit, gormless. A new voice ("Pip Bumblebottom", a dopey village-idiot from the ElevenLabs library) with pauses and "erm"s.
+
+## Tactics without turning it into a strategy game
+
+From research (Desperados III, Shadow Tactics, Door Kickers, Hitman, MGSV, Splinter Cell Conviction, Mark of the Ninja, Hotline Miami, Superhot, Invisible Inc., Untitled Goose Game): the ones that stay kinetic make planning optional, short and one step deep (Mimimi deliberately capped Showdown at one queued action because more "would nearly change the genre"), turn being seen into a beat you can recover from (MGSV's reflex), and let you read the guards' minds (three clear states, a last-known-position ghost) instead of tracking hidden numbers. Door Kickers-style multi-step queues are clumsy on touch. So:
+- **The Gaffer's Eye**: while the tap-a-person ring is open the world runs at a fifth of the speed, on a meter (five seconds of it, refilling over fourteen) shown under the name, so you can't live in it.
+- **One order queued, never more**: if he's already walking over to do something, what you pick next goes after it ("Then: ..."). Move the stick and both are called off.
+- **"Oi! YOU!"**: when a steward first sees you do something, a beat of slow motion (1.3 s, shorter each time, not more than once every nine seconds), the hit button locks onto him, and he takes a second and a half to get his radio out: flatten him first and no backup comes ("NO BACKUP").
+- **Last known position**: during Evasion a pale ghost of you stands where they last saw you, and that's where they go and look, so you can double back. Searching stewards show a "?".
+- The main button never offers the same blow as the hit button (it doubled up "Take down Shaz").
+- The page now asks for game.js and the asset packs by a version stamp, so a phone can't mix a new game with old cached art (a screenshot showed the old buildings).
+
+- **To do**: an Untitled Goose Game-style list in the menu (get in, flatten a steward, ride the horse, nick a car, get on the pitch, set a dog on someone, stamp on a head, get slapped, nick the bus, parachute in, wear Lenny, lose a chase). It names the mischief, never how; each one ticks off with a strap and a chime when you do it.
+
+Not done yet, from the same research: a quicker retry from the checkpoint after an arrest.

@@ -27,7 +27,7 @@ import { installLech } from "./lech";
 import { driveCar, installCars } from "./cars";
 import { BIKE_SPEED, BIKE_SPRINT, installBike, stepBikes } from "./bike";
 import { installReactions, installRules, SHOPS, stepRules } from "./rules";
-import { isSecurity, stepDetention, stepHeat, stepSecurity } from "./security";
+import { isSecurity, stepDetention, stepHeat, stepRadio, stepSecurity } from "./security";
 import type { StadiumState } from "./state";
 import { lorryHits, stepVehicle } from "./vehicles";
 
@@ -314,6 +314,7 @@ export function stepGame(g: Game): void {
   stepEntries(w);
   stepCoverups(w);
   stepBikes(w);
+  stepRadio(w);
   stepHeat(w);
   stepArmed(w);
   stepRules(w);

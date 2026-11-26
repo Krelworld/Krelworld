@@ -1297,3 +1297,25 @@ test("cars: stand in the road till one stops, drag the driver out, drive it, run
   assert.equal(pc.hiddenIn, undefined);
   assert.equal(st.myCar!.driving, false);
 });
+
+test("a steward who sees it reaches for his radio: flatten him in time and no backup comes", () => {
+  const g = createGame("radiostop");
+  const s = g.w.state, pc = pcOf(g), st = s.stadium!;
+  run(g, 20);
+  const isSec = (a: Actor) => ["turnstile", "doorguard", "gateguard", "pitchsteward", "patrol", "corridor", "chief", "police"].includes(a.npc?.job ?? "");
+  const stw = Object.values(s.actors).find((a) => a.npc?.job === "patrol")!;
+  const v = Object.values(s.actors).find((a) => a.npc?.job === "local" && !a.dead)!;
+  v.npc!.plan = [{ k: "wait", s: 120 }];
+  for (const a of Object.values(s.actors)) if (isSec(a) && a !== stw && Math.hypot(a.x - 76, a.y - 14) < 60) { a.x = -80; a.y = 90; }
+  v.x = 76; v.y = 14; v.facing = Math.PI; pc.x = 75; pc.y = 14;
+  stw.x = 80; stw.y = 14; stw.facing = Math.PI;
+  let spotted = false, radioed = false, stopped = false;
+  g.w.bus.on((e) => { if (e.type === "spotted") spotted = true; if (e.type === "radioed") radioed = true; if (e.type === "radio_stopped") stopped = true; });
+  dispatch(g.w, { verb: "strike", actor: pc.id, target: { k: "actor", id: v.id } });
+  assert.ok(spotted, "the moment he's seen");
+  assert.equal(st.pendingRadio?.length, 1);
+  // Before he gets it out: down he goes.
+  stw.effects.ko = s.tick + 60 * 60; stw.downUntil = stw.effects.ko;
+  run(g, 2);
+  assert.ok(stopped && !radioed, "no backup");
+});

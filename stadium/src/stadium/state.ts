@@ -150,6 +150,8 @@ export interface StadiumState {
   doorPass: Id | null;
   /** One-off things that have happened. */
   flags: Record<string, number>;
+  /** A steward getting his radio out: backup is called at `at`, unless he's flattened first. */
+  pendingRadio?: { by: string; target: string; x: number; y: number; severity: number; at: number }[];
   /** Bodies called in on the radio, and the crew sent to take them away. */
   coverups?: { body: string; crew: string[]; at: number; stage: number; by: string; from?: { x: number; y: number } }[];
   /** The police horse, once its officer is off it. */

@@ -127,15 +127,10 @@ export function crime(w: World, by: Actor, what: string, severity: number, victi
     if (isSecurity(wtn)) {
       alert(w, wtn, by, severity, 1.8);
       // A steward who saw it himself gets on the radio: his mates nearby come to where it happened.
+      // He reaches for his radio: a second and a half to flatten him before backup's on its way.
       if (!radioed && severity >= 2 && wtn.npc!.job !== "turnstile") {
         radioed = true;
-        let told = 0;
-        for (const id in s.actors) {
-          const g = s.actors[id];
-          if (g === wtn || !isSecurity(g) || g.downUntil > s.tick || Math.hypot(g.x - by.x, g.y - by.y) > RADIO_RANGE) continue;
-          alert(w, g, by, severity, 1.0); told++;
-        }
-        if (told) { say(w, wtn, "Control, I need backup!", 2.5); w.bus.emit({ type: "radioed", t: s.tick, by: wtn.id, x: by.x, y: by.y, n: told }); }
+        (st.pendingRadio ??= []).push({ by: wtn.id, target: by.id, x: by.x, y: by.y, severity, at: s.tick + 90 });
       }
     } else if (!shouted) {
       shouted = true;
@@ -175,8 +170,31 @@ function line(w: World, g: Actor, kind: keyof typeof STW_LINES): string {
 /** How far a shout carries, and a radio call. */
 const EARSHOT = 16, RADIO_RANGE = 38;
 
+/** Backup calls that were waiting on a steward getting his radio out: sent, unless he's been stopped. */
+export function stepRadio(w: World): void {
+  const s = w.state, st = s.stadium!;
+  if (!st.pendingRadio?.length) return;
+  for (const r of st.pendingRadio) {
+    if (s.tick < r.at) continue;
+    const wtn = s.actors[r.by], by = s.actors[r.target];
+    r.at = -1;
+    if (!wtn || !by || wtn.dead || wtn.downUntil > s.tick || wtn.hiddenIn) { w.bus.emit({ type: "radio_stopped", t: s.tick, by: r.by }); continue; }
+    let told = 0;
+    for (const id in s.actors) {
+      const g = s.actors[id];
+      if (g === wtn || !isSecurity(g) || g.downUntil > s.tick || Math.hypot(g.x - r.x, g.y - r.y) > RADIO_RANGE) continue;
+      alert(w, g, by, r.severity, 1.0); told++;
+    }
+    if (told) { say(w, wtn, "Control, I need backup!", 2.5); w.bus.emit({ type: "radioed", t: s.tick, by: wtn.id, x: r.x, y: r.y, n: told }); }
+  }
+  st.pendingRadio = st.pendingRadio.filter((r) => r.at >= 0);
+}
+
 export function alert(w: World, g: Actor, by: Actor, severity: number, sus: number): void {
   const n = g.npc!;
+  // Spotted doing something: the moment to react (the view slows time for it).
+  if (severity >= 1 && (n.mode === "routine" || n.mode === "watch" || n.mode === "search") && by.id === w.state.stadium!.pc && canSee(w, g, by, 26))
+    w.bus.emit({ type: "spotted", t: w.state.tick, by: g.id, who: by.id });
   n.sus[by.id] = Math.max(n.sus[by.id] ?? 0, sus);
   n.crime = Math.max(n.target === by.id ? n.crime : 0, severity);
   n.target = by.id;

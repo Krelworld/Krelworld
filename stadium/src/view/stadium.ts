@@ -334,6 +334,7 @@ class StadiumScene extends Phaser.Scene {
     const a = this.audio, s = this.s, pcId = s.stadium!.pc;
     const inside = this.hearsMatch(), muffle = inside ? 0 : 0.85, vol = inside ? 1 : 0.35;
     const near = (x: number, y: number, r = 25) => Math.max(0, 1 - this.distTo(x, y) / r);
+    this.tickFrom(e, pcId);
     switch (e.type) {
       case "fb_goal":
         if (e.team === 0) a.play("goal_roar", vol, { muffle, minGap: 2 });
@@ -418,6 +419,19 @@ class StadiumScene extends Phaser.Scene {
       case "car_in": case "car_out": a.play("car_door", 0.7); if (e.type === "car_out") this.audio.engineOn(false); break;
       case "car_crash": a.play("car_crash", e.hard ? 1 : 0.6, { minGap: 0.3 }); this.trauma = Math.min(1, this.trauma + (e.hard ? 0.6 : 0.3)); break;
       case "car_hit": { a.play("bodyfall", 0.9); a.play("punch", 0.7, { rate: 0.6 }); const who = s.actors[e.who]; if (who) { this.spray(who.x, who.y, 1, Math.random() - 0.5, Math.random() - 0.5, e.hard ? 30 : 14, 1.6); this.trauma = Math.min(1, this.trauma + 0.35); } break; }
+      case "spotted": {
+        // "Oi! YOU!": a beat of slow motion to deal with him before he gets his radio out. Shorter each time.
+        const now = performance.now(), g = s.actors[e.by];
+        if (!g || now < this.reflexReadyAt) break;
+        const dur = Math.max(450, 1300 - this.reflexUses * 220);
+        this.reflexUses++; this.reflexReadyAt = now + 9000; this.reflexUntil = now + dur;
+        this.fight = { id: g.id, until: now + 4000 };
+        a.play("heat_alert", 0.7, { minGap: 3 });
+        this.popup(g.x, g.y, "!", "#ff3b3b");
+        if (this.reflexUses <= 2) this.hint(`${personName(g)} saw that. Flatten him before he gets on the radio, or leg it.`);
+        break;
+      }
+      case "radio_stopped": if (s.actors[e.by]) this.popup(s.actors[e.by].x, s.actors[e.by].y, "NO BACKUP", "#7dffa8"); break;
       case "lunged": if (e.who === pcId) a.play("whoosh", 0.5, { rate: 1.2, minGap: 0.1 }); break;
       case "lech": if (e.by === pcId) this.bark("lech", 1, true); break;
       case "slapped": { a.play("punch", 0.6, { rate: 1.6 }); const who = s.actors[e.who]; if (who) { this.flashAt.set(e.who, performance.now()); this.trauma = Math.min(1, this.trauma + 0.2); } break; }
@@ -777,6 +791,12 @@ class StadiumScene extends Phaser.Scene {
     this.voiceUntil = now + (d > 0 ? d * 1000 + 150 : 1800);
   }
 
+  lkGhost: Phaser.GameObjects.Image | null = null;
+  eyeMeter = 1;
+  reflexUntil = 0; reflexUses = 0; reflexReadyAt = 0;
+  /** One order queued behind the one he's carrying out (the Desperados limit: never more than that). */
+  nextPursue: typeof this.pursue = null;
+
   /** Pushing at a door you can't get through: how you might. */
   gateHintAt = new Map<string, number>();
   doorHints() {
@@ -914,7 +934,12 @@ class StadiumScene extends Phaser.Scene {
     if (!st.ending) {
       this.applyInput();
       const ann = (this as any).announcer as Announcer;
-      const slow = performance.now() < this.slowUntil ? 0.3 : 1;
+      const now = performance.now(), dt = dms / 1000;
+      // The Gaffer's Eye: while the ring's open the world slows to a crawl, on a meter that drains
+      // while you look and fills back up when you don't (so you can't live in it).
+      const eye = !!this.ring && this.eyeMeter > 0;
+      this.eyeMeter = eye ? Math.max(0, this.eyeMeter - dt / 5) : Math.min(1, this.eyeMeter + dt / 14);
+      const slow = now < this.reflexUntil ? 0.22 : now < this.slowUntil ? 0.3 : eye ? 0.2 : 1;
       if (performance.now() >= this.hitStopUntil) this.stepper.advance((dms * slow) / 1000, () => { stepGame(this.game2); ann.tick(); this.applyInput(); }, 24);
     }
     if (st.ending && $("ending").hidden && !this.endingShown) { this.endingShown = true; this.showEnding(); }
@@ -1202,8 +1227,9 @@ class StadiumScene extends Phaser.Scene {
       [x, y] = [x * c - y * sn, x * sn + y * c];
     }
     l = Math.hypot(x, y);
-    // Steering yourself calls off a walk-over; otherwise the walk-over steers.
-    if (this.pursue && l > 0.12) { this.pursue = null; }
+    // Steering yourself calls off a walk-over (and what was queued after it); otherwise the walk-over steers.
+    if ((this.pursue || this.nextPursue) && l > 0.12) { this.pursue = null; this.nextPursue = null; }
+    if (!this.pursue && this.nextPursue) { this.pursue = this.nextPursue; this.nextPursue = null; }
     if (this.pursue && l <= 0.12) { this.stepPursue(); return; }
     const g = this.P.ground(x, y);
     const k2 = l > 1 ? 1 / l : 1;
@@ -1739,6 +1765,10 @@ class StadiumScene extends Phaser.Scene {
           ui.fillStyle(0xffffff, 1).fillRect(tx - u, ty - 8 * u, 2 * u, 4 * u).fillRect(tx - u, ty - 3 * u, 2 * u, 2 * u);
         } else if (n.target === pc.id && n.mode === "watch") {
           ui.lineStyle(2 * u, 0xf2c94c, 0.9).strokeCircle(tx, ty - 4 * u, 4 * u);
+        } else if (n.target === pc.id && n.mode === "search") {
+          // Looking for you: a "?" (they've lost you, for now).
+          ui.fillStyle(0x000000, 1).fillRect(tx - 4 * u, ty - 14 * u, 8 * u, 15 * u);
+          ui.fillStyle(0xf2c94c, 1).fillRect(tx - 2.5 * u, ty - 12.5 * u, 5 * u, 2 * u).fillRect(tx + 0.5 * u, ty - 10.5 * u, 2 * u, 3 * u).fillRect(tx - 1 * u, ty - 7.5 * u, 2 * u, 2 * u).fillRect(tx - 1 * u, ty - 3 * u, 2 * u, 2 * u);
         }
       }
     }
@@ -2428,11 +2458,27 @@ class StadiumScene extends Phaser.Scene {
     if (st.detainedUntil) { eye.hidden = false; eye.textContent = `Detained · ${Math.ceil((st.detainedUntil - s.tick) / 60)}s`; eye.classList.add("hot"); }
     if (st.flags.heatMode === 3 && !pc.heldBy) { eye.hidden = false; eye.textContent = "Out of sight: stay hidden"; eye.classList.remove("hot"); }
     if (s.tick % 2 === 0) this.drawRadar();
+    // Where they last saw you: a ghost of you there (Splinter Cell's last known position). They'll go
+    // and look; you can use that.
+    {
+      const lk = st.flags.heatMode === 3 ? Object.values(s.actors).filter((a) => a.npc?.target === pc.id && a.npc.lastSeen && ["approach", "chase", "search"].includes(a.npc.mode)).map((a) => a.npc!.lastSeen!).sort((p, q) => q.t - p.t)[0] : undefined;
+      const src = this.spritePool.get(pc.id);
+      if (lk && src && this.useSprites) {
+        if (!this.lkGhost) { this.lkGhost = this.add.image(0, 0, src.texture.key, src.frame.name); this.lkGhost.setTint(0xe8f0ff).setTintMode(Phaser.TintModes.FILL); }
+        this.lkGhost.setTexture(src.texture.key, src.frame.name).setOrigin(src.originX, src.originY).setScale(src.scaleX).setPosition(Math.round(this.P.sx(lk.x, lk.y)), Math.round(this.P.sy(lk.x, lk.y))).setDepth(1e5).setVisible(true)
+          .setAlpha(0.25 + 0.12 * Math.sin(performance.now() / 180));
+      } else this.lkGhost?.setVisible(false);
+    }
     if (this.buffered) {
       if (performance.now() - this.buffered.at > 450) this.buffered = null;
       else if (pc.downUntil <= s.tick) { const o = this.buffered.opt; this.buffered = null; this.run(o); }
     }
     if (s.tick % 10 === 0) this.doorHints();
+    if (s.tick % 30 === 0 && !pc.hiddenIn) {
+      if (VENUE.inside(pc.x, pc.y)) this.tick("in");
+      if (areaAt(pc.x, pc.y).id === "pitch") this.tick("pitch");
+      if (pc.worn.outer && s.items[pc.worn.outer]?.def === "mascot_suit") this.tick("lenny");
+    }
     this.placeRing();
     // The music follows how hot it is.
     if (s.tick % 20 === 0 && this.started && !st.ending) {
@@ -2677,7 +2723,8 @@ class StadiumScene extends Phaser.Scene {
     this.ring = { id, items: out, sub };
     const el = document.createElement("div"); el.id = "ring";
     const who = document.createElement("div"); who.className = "who";
-    who.textContent = `${personName(a)}${a.dead ? " · dead" : down ? " · out cold" : ""}`;
+    who.textContent = `${personName(a)}${a.dead ? " · dead" : down ? " · out cold" : ""}${this.pursue && !sub ? " · then…" : ""}`;
+    const meter = document.createElement("i"); meter.className = "eye"; who.appendChild(meter);
     el.appendChild(who);
     out.forEach((it, i) => {
       const b = document.createElement("button");
@@ -2699,7 +2746,7 @@ class StadiumScene extends Phaser.Scene {
         this.audio.play("tap", 0.6);
         if (it.kind === "back") { this.openPerson(id); return; }
         this.closeRing();
-        if (it.kind === "opt") { this.pursue = { id, kind: "opt", opt: it.opt, until: performance.now() + 15000, path: [], pathAt: 0 }; this.picked = id; return; }
+        if (it.kind === "opt") { this.setPursue({ id, kind: "opt", opt: it.opt, until: performance.now() + 15000, path: [], pathAt: 0 }); this.picked = id; return; }
         this.choosePerson({ id, kind: it.kind === "attack" ? this.smartAttack(a).kind : it.kind, item: it.kind === "attack" ? this.smartAttack(a).item : it.item, arg: it.arg });
       });
       b.addEventListener("pointercancel", () => clearTimeout(timer));
@@ -2763,13 +2810,23 @@ class StadiumScene extends Phaser.Scene {
       b.style.left = `${Math.round(x + Math.cos(ang) * rad)}px`; b.style.top = `${Math.round(y + Math.sin(ang) * rad)}px`;
     });
     const who = el.querySelector<HTMLElement>(".who")!;
+    const meter = who.querySelector<HTMLElement>(".eye");
+    if (meter) meter.style.width = `${Math.round(this.eyeMeter * 100)}%`;
     who.style.left = `${Math.round(x)}px`; who.style.top = `${Math.round(y - rad - 34)}px`;
+  }
+
+  /** Already on his way to do something: this one's next (and only this one). */
+  setPursue(p: NonNullable<typeof this.pursue>) {
+    if (this.pursue && this.pursue.id !== p.id && performance.now() < this.pursue.until) {
+      this.nextPursue = { ...p, until: p.until + 15000 };
+      this.hint(`Then: ${p.kind === "opt" ? p.opt?.label ?? "that" : p.kind} ${personName(this.s.actors[p.id])}.`);
+    } else { this.pursue = p; this.nextPursue = null; }
   }
 
   choosePerson(m: { kind: string; item?: string; arg?: string; id: string }) {
     if (m.kind === "throw") { this.picked = m.id; (this as any).throwAt = this.s.actors[m.id]; this.throwNow(); return; }
     if (m.kind === "bribe" && Math.hypot(this.s.actors[m.id].x - this.pc.x, this.s.actors[m.id].y - this.pc.y) < 2.2) { this.openBribe(m.id); return; }
-    this.pursue = { id: m.id, kind: m.kind, item: m.item, arg: m.arg, until: performance.now() + 15000, path: [], pathAt: 0 };
+    this.setPursue({ id: m.id, kind: m.kind, item: m.item, arg: m.arg, until: performance.now() + 15000, path: [], pathAt: 0 });
     this.picked = m.id;
   }
 
@@ -2942,10 +2999,47 @@ class StadiumScene extends Phaser.Scene {
     this.sheet("bag", `<h2>Bag</h2><p>£${pc.money} in cash. Pockets: ${pc.pockets.length} of 3.</p><div class="list">${rows || "<p>Nothing.</p>"}</div>`);
   }
 
+  /** The match-day to-do list (Untitled Goose Game's, for a hooligan): it names the mischief, not how. */
+  static readonly MAYHEM: { id: string; text: string }[] = [
+    { id: "in", text: "Get into the ground" }, { id: "ko_stw", text: "Flatten a steward" }, { id: "horse", text: "Ride the police horse" },
+    { id: "car", text: "Nick a car" }, { id: "pitch", text: "Get on the pitch" }, { id: "dog", text: "Set a dog on someone" },
+    { id: "splat", text: "Stamp on someone's head" }, { id: "slap", text: "Get slapped" }, { id: "bus", text: "Nick the team bus" },
+    { id: "chute", text: "Parachute into the stadium" }, { id: "lenny", text: "Wear Lenny the Lion" }, { id: "evade", text: "Lose the stewards after a chase" },
+  ];
+  mayhemDone = new Set<string>();
+  /** The to-do list ticks itself, from what happens. */
+  tickFrom(e: any, pcId: string) {
+    const s = this.s, SEC = ["turnstile", "doorguard", "gateguard", "pitchsteward", "patrol", "corridor", "chief"];
+    if (e.type === "knockout" && e.by === pcId && SEC.includes(s.actors[e.who]?.npc?.job ?? "")) this.tick("ko_stw");
+    else if (e.type === "mounted" && (e.who === pcId || e.by === pcId)) this.tick("horse");
+    else if (e.type === "carjacked" && e.by === pcId) this.tick("car");
+    else if (e.type === "dog_sicced") this.tick("dog");
+    else if (e.type === "slapped" && e.who === pcId) this.tick("slap");
+    else if (e.type === "bus_stolen" && e.by === pcId) this.tick("bus");
+    else if (e.type === "chute_land") this.tick("chute");
+    else if (e.type === "evaded") this.tick("evade");
+    else if (e.type === "headsplat" && e.by === pcId) this.tick("splat");
+  }
+  tick(id: string) {
+    if (this.mayhemDone.has(id)) return;
+    const m = StadiumScene.MAYHEM.find((x) => x.id === id);
+    if (!m) return;
+    this.mayhemDone.add(id);
+    this.audio.play("chime", 0.6, { rate: 1.3 });
+    this.toastTick(`✓ ${m.text}`);
+  }
+  toastTick(text: string) {
+    const el = document.createElement("div");
+    el.className = "ticked"; el.textContent = text;
+    $("app").appendChild(el);
+    setTimeout(() => el.remove(), 2600);
+  }
+
   openMenu() {
     const cps = this.game2.checkpoints;
     this.sheet("menu", `<h2>Paused</h2><p>Go back to a checkpoint. Everything since then is undone, and the match will not play out the same way.</p>
       <div class="list">${cps.map((c) => `<button data-cp="${c.id}">${esc(c.label)}</button>`).join("")}<button data-new="1">Start a new match day</button><button data-mute="1">${this.audio.muted ? "Sound: off" : "Sound: on"}</button></div>
+      <h2>To do (${this.mayhemDone.size}/${StadiumScene.MAYHEM.length})</h2><div class="log">${StadiumScene.MAYHEM.map((m) => `<p>${this.mayhemDone.has(m.id) ? "<b>✓</b> <s>" + esc(m.text) + "</s>" : "☐ " + esc(m.text)}</p>`).join("")}</div>
       <h2>Ways in you've heard about</h2><div class="log">${LEADS.filter((l) => this.s.stadium!.flags[`lead_${l.id}`]).map((l) => `<p><b>${esc(l.title)}</b> ${esc(l.how)}</p>`).join("") || "<p>Nothing yet. Talk to people: locals, staff, the man at the shed.</p>"}</div>
       <h2>What you've heard</h2><div class="log">${this.log.slice(-12).reverse().map((l) => `<p><b>${esc(l.src)}</b> ${esc(l.text)}</p>`).join("") || "<p>Nothing yet.</p>"}</div>`);
     this.setSpeed(0);

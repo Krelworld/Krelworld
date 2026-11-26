@@ -100,6 +100,11 @@
   #ring .rb.charging { box-shadow: 0 0 0 4px var(--bug), 0 3px 0 rgba(0,0,0,.45); }
   #ring .who { position: absolute; transform: translate(-50%, -100%); padding: 3px 8px; font: 800 12px/1 var(--display); letter-spacing: .06em; text-transform: uppercase;
     background: var(--bug); color: var(--bugink); border: 2px solid #000; white-space: nowrap; pointer-events: none; }
+  #ring .who .eye { position: absolute; left: 0; bottom: -5px; height: 3px; background: #7dffa8; box-shadow: 0 1px 0 #000; transition: width .1s linear; }
+  /* A to-do ticked off: a quick strap that slides in and out. */
+  .ticked { position: fixed; left: 50%; top: 38%; transform: translateX(-50%); z-index: 80; padding: 8px 14px; font: 800 16px/1 var(--display); letter-spacing: .05em; text-transform: uppercase;
+    background: #7dffa8; color: #0b1220; border: 3px solid #000; box-shadow: 0 4px 0 rgba(0,0,0,.4); pointer-events: none; animation: tickin 2.6s ease-out both; }
+  @keyframes tickin { 0% { opacity: 0; transform: translate(-50%, 12px) scale(.9); } 10% { opacity: 1; transform: translate(-50%, 0) scale(1.05); } 18% { transform: translate(-50%, 0) scale(1); } 85% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -10px); } }
   @keyframes pop { from { transform: scale(.4); opacity: 0; } to { transform: none; opacity: 1; } }
   /* The radar (stewards near you and where they're looking) and how hot it is for you. */
   #radarBox { right: max(10px, env(safe-area-inset-right, 0px)); top: 118px; display: flex; flex-direction: column; align-items: center; gap: 4px; pointer-events: none; }

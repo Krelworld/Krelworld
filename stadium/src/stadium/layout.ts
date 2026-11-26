@@ -157,18 +157,15 @@ const QF_WALLS: Wall[] = [
   wall(-18.5, 61.5, -3.5, 62, 3, 0x6a5a4a, 0x8a7a6a),
   wall(-18.5, 62, -18, 72.5, 3, 0x6a5a4a, 0x8a7a6a), wall(-4, 62, -3.5, 72.5, 3, 0x6a5a4a, 0x8a7a6a),
   wall(-18.5, 72, -14.6, 72.5, 3, 0x6a5a4a, 0x8a7a6a), wall(-10.6, 72, -3.5, 72.5, 3, 0x6a5a4a, 0x8a7a6a),
-  wall(-16, 68.6, -6, 69.4, 1.1, 0x5a4a30, 0x7a6a50),
   wall(7.5, 61.5, 22.5, 62, 3, 0x4d5640, 0x6d7660),
   wall(7.5, 62, 8, 72.5, 3, 0x4d5640, 0x6d7660), wall(22, 62, 22.5, 72.5, 3, 0x4d5640, 0x6d7660),
   wall(7.5, 72, 13, 72.5, 3, 0x4d5640, 0x6d7660), wall(17, 72, 22.5, 72.5, 3, 0x4d5640, 0x6d7660),
-  wall(10, 68.6, 20, 69.4, 1.1, 0x5a4a30, 0x7a6a50),
   // The team hotel: doors onto the forecourt.
   wall(74, -40.5, 92, -40, 6, 0x6a5a70, 0x8a7a90), wall(73.5, -40.5, 74, -14, 6, 0x6a5a70, 0x8a7a90),
   wall(74, -14.5, 80, -14, 6, 0x6a5a70, 0x8a7a90), wall(84, -14.5, 92, -14, 6, 0x6a5a70, 0x8a7a90),
   // Bookmaker's, door at the bottom; counter across the back. And a betting kiosk on the concourse.
   wall(27.5, 61.5, 44.5, 62, 3.2, 0x4a3d60, 0x6a5d80), wall(27.5, 62, 28, 72.5, 3.2, 0x4a3d60, 0x6a5d80), wall(44, 62, 44.5, 72.5, 3.2, 0x4a3d60, 0x6a5d80),
   wall(27.5, 72, 34, 72.5, 3.2, 0x4a3d60, 0x6a5d80), wall(38, 72, 44.5, 72.5, 3.2, 0x4a3d60, 0x6a5d80),
-  wall(30, 64.6, 42, 65.4, 1.1, 0x5a4a30, 0x7a6a50),
   wall(26, 41.6, 34, 42.4, 1.1, 0x4a3d60, 0x6a5d80),
   // Stewards' cabin, door on the west side facing the service road.
   wall(76, 50, 88, 50.5, 2.8, CABIN, 0x8a9a7a), wall(76, 57.5, 88, 58, 2.8, CABIN, 0x8a9a7a),
@@ -195,15 +192,30 @@ export const QF_FURNITURE: Furniture[] = [
   f("pubtable", -58, 73.5, 1.5, 0.8, true, "pub"), f("pubtable", -58, 78, 1.5, 0.8, true, "pub"), f("pubtable", -53.5, 78.6, 1.5, 0.8, true, "pub"),
   f("pooltable", -51, 72.6, 2.6, 1.4, true, "pub"), f("fruitmachine", -36, 64.4, 1, 0.6, true, "pub", 2),
   f("pubtv", -36.2, 75.2, 1.8, 0.5, false, "pub"), f("pumps", -47.5, 67.25, 2.2, 0.3, false, "pub"), f("pumps", -40.5, 67.25, 2.2, 0.3, false, "pub"),
-  // Second Hand Rose: rails along the walls. Army surplus: shelving. The bookie's: screens by the door.
-  f("clothesrail", -16.6, 66, 1.6, 0.4, true, "charity"), f("clothesrail", -5.4, 66, 1.6, 0.4, true, "charity"), f("clothesrail", -16.6, 71.6, 1.6, 0.4, true, "charity"),
+  // The shops: a counter at the back with the shopkeeper behind it (you're served across it), and a
+  // shop floor in front worth browsing. Second Hand Rose: rails, a mannequin in somebody's nan's
+  // frock, a table of tat, a bookcase of VHS. Army surplus: shelving, camo on a rail, ammo tins, a
+  // dummy in a gas mask. The bookie's: two windows behind glass, slip stands, screens by the door.
+  f("shopcounter", -11, 65.4, 2.8, 0.9, true, "charity"),
+  f("clothesrail", -16.6, 67.4, 1.6, 0.4, true, "charity"), f("clothesrail", -16.6, 70.4, 1.6, 0.4, true, "charity"), f("clothesrail", -5.4, 67.4, 1.6, 0.4, true, "charity"),
+  f("bookcase", -16.8, 63.6, 1.4, 0.5, true, "charity", 2), f("bookcase", -4.9, 63.6, 1.4, 0.5, true, "charity", 2), f("mannequin", -7.6, 64.4, 0.5, 0.4, true, "charity", 2),
+  f("brictable", -6.2, 70.6, 1.8, 0.7, true, "charity"),
+  f("armycounter", 15, 65.4, 2.8, 0.9, true, "surplus"),
   f("shelves", 9.4, 64.4, 1.5, 0.6, true, "surplus"), f("shelves", 20.6, 64.4, 1.5, 0.6, true, "surplus"), f("shelves", 20.6, 71.6, 1.5, 0.6, true, "surplus"),
+  f("camorack", 9.6, 68.2, 1.7, 0.5, true, "surplus"), f("ammoboxes", 20.4, 68.2, 1.2, 0.7, true, "surplus"), f("camomannequin", 10.2, 71.4, 0.5, 0.4, true, "surplus", 2), f("ammoboxes", 18.4, 71.5, 1.2, 0.7, true, "surplus"),
+  f("betcounter", 34.2, 65.6, 3.4, 0.9, true, "bookies"), f("betcounter", 37.8, 65.6, 3.4, 0.9, true, "bookies"),
+  f("betstand", 30.4, 67.8, 0.7, 0.5, true, "bookies"), f("betstand", 41.6, 67.8, 0.7, 0.5, true, "bookies"),
+  f("fruitmachine", 28.8, 64.6, 1, 0.6, true, "bookies", 2), f("fruitmachine", 43.2, 64.6, 1, 0.6, true, "bookies", 2),
   f("betscreens", 30.6, 70.9, 2, 0.5, true, "bookies", 2), f("betscreens", 41.4, 70.9, 2, 0.5, true, "bookies", 2),
+  // The team hotel lobby: reception, sofas, palms, the kit bags waiting for the coach.
+  f("sofa", 77.6, -31, 2.4, 0.9, true, "hotel"), f("sofa", 77.6, -22.6, 2.4, 0.9, true, "hotel"),
+  f("bigplant", 74.9, -38.6, 0.8, 0.6, true, "hotel", 2), f("bigplant", 91, -38.6, 0.8, 0.6, true, "hotel", 2), f("bigplant", 79, -15.2, 0.8, 0.6, true, "hotel", 2),
+  f("luggage", 86.5, -17.4, 1.2, 0.7, true, "hotel"), f("luggage", 89.6, -17.4, 1.2, 0.7, true, "hotel"), f("bigplant", 85, -15.2, 0.8, 0.6, true, "hotel", 2),
   // Behind the scenes: the kitchen, dressing rooms, the security office, the stewards' cabin, hotel reception.
   f("kitchen", -37.5, -58.4, 2.8, 1.2, true, "kitchen", 2), f("kitchen", -31, -58.4, 2.8, 1.2, true, "kitchen", 2),
   f("lockers", -21, -59.6, 2.6, 0.8, true, "dress_home", 2), f("lockers", -13, -59.6, 2.6, 0.8, true, "dress_home", 2), f("kitbench", -17, -51.2, 2.8, 0.6, false, "dress_home"),
   f("lockers", 13, -59.6, 2.6, 0.8, true, "dress_away", 2), f("lockers", 21, -59.6, 2.6, 0.8, true, "dress_away", 2), f("kitbench", 17, -51.2, 2.8, 0.6, false, "dress_away"),
-  f("desk", 33, -56.4, 1.9, 0.6, false, "security"), f("desk", 83, 51.6, 1.9, 0.6, false, "cabin"), f("desk", 87.5, -27, 1.9, 0.6, true, "hotel"),
+  f("desk", 33, -56.4, 1.9, 0.6, false, "security"), f("desk", 83, 51.6, 1.9, 0.6, false, "cabin"), f("reception", 87.8, -27, 3.6, 1, true, "hotel"),
   // Pitchside: the dugouts either side of the tunnel, TV cameras, the groundsman's cart.
   f("dugout", -7.5, -26.2, 4.2, 1.2, true), f("dugout", 7.5, -26.2, 4.2, 1.2, true),
   f("tvcamera", -18, 25.6, 0.8, 0.5, false), f("tvcamera", 18, 25.6, 0.8, 0.5, false), f("tvcamera", 37.8, -6, 0.8, 0.5, false),
@@ -283,8 +295,8 @@ const QF_SPOTS = {
   merchCounter: { x: -21, y: 49 },
   cabinHook: { x: 86, y: 54 },
   bookie: { x: 36, y: 63.3 },
-  charity: { x: -11, y: 67.2 },
-  surplus: { x: 15, y: 67.2 },
+  charity: { x: -11, y: 63.7 },
+  surplus: { x: 15, y: 63.7 },
   bookieCounter: { x: 36, y: 66.6 },
   kiosk: { x: 30, y: 43.2 },
   kioskCounter: { x: 30, y: 40.8 },

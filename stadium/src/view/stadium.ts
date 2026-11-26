@@ -821,9 +821,31 @@ class StadiumScene extends Phaser.Scene {
     const f = $("fade");
     f.classList.add("door", "on");
     this.audio.play("op_door" as Clip, 0.35, { minGap: 0.5 });
+    // What the place sounds like as the door goes: the bell on its spring over a shop door, the
+    // bookie's electronic chime, the bell on the hotel desk, the pub's roar. And its name, in its
+    // own colours off the sign, so you know where you've walked into (Stardew's shop entrances, the
+    // location card in Yakuza).
+    const b = id ? this.blds.find((x) => x.id === id) : undefined;
+    if (b) {
+      const snd: Record<string, Clip> = { charity: "shop_bell", surplus: "shop_bell", bookies: "door_chime", hotel: "desk_bell", pub: "pub_bed" };
+      if (snd[b.id]) setTimeout(() => this.audio.play(snd[b.id], b.id === "pub" ? 0.5 : 0.7, { minGap: 2 }), 90);
+      if (b.id === "pub") this.nextPub = performance.now() + 14500;
+      this.roomCard(b);
+    }
     setTimeout(() => { this.roomSnap = true; this.roomShown = this.roomId; }, 120);
     setTimeout(() => { f.classList.remove("on"); setTimeout(() => f.classList.remove("door"), 250); }, 170);
   }
+  /** The place's name across the top as you walk in, in the colours of the sign over its door. */
+  roomCard(b: BuildingSpec): void {
+    if (!b.sign) return;
+    const el = $("roomCard"), hex = (c: number) => `#${c.toString(16).padStart(6, "0")}`;
+    const sub: Record<string, string> = { charity: "Charity shop · open", surplus: "Army surplus · cash only", bookies: "Bookmaker · bets taken", hotel: "Team hotel · staff and players only", pub: "Free house", cabin: "Stewards only" };
+    el.innerHTML = `<b>${esc(b.sign.text)}</b>${sub[b.id] ? `<small>${esc(sub[b.id])}</small>` : ""}`;
+    el.style.background = hex(b.sign.bg); el.style.color = hex(b.sign.fg);
+    el.hidden = false; el.classList.remove("in"); void el.offsetWidth; el.classList.add("in");
+    clearTimeout(this.cardTimer); this.cardTimer = window.setTimeout(() => { el.hidden = true; }, 2300);
+  }
+  cardTimer = 0;
   /** Black out everything but the room you're in (its floor and the painted back wall above it). */
   drawRoomMask(room: BuildingSpec | undefined) {
     if (!this.roomMask) this.roomMask = this.add.graphics().setDepth(9.9e6);
@@ -2944,7 +2966,7 @@ class StadiumScene extends Phaser.Scene {
     if (!opt || !this.started) return;
     if (opt.sheet?.kind === "scope") { this.enterScope(); return; }
     if (opt.sheet?.kind === "phone") { this.openPhone(); return; }
-    if (opt.sheet) { const k = opt.sheet.kind; k === "shop" ? this.openShop(opt.sheet.who) : k === "bet" ? this.openBet() : k === "report" ? this.openReport() : k === "loot" ? this.openLoot(opt.sheet.who) : this.openBribe(opt.sheet.who); return; }
+    if (opt.sheet) { const k = opt.sheet.kind; k === "shop" ? this.openShop(opt.sheet.who, true) : k === "bet" ? (this.greet(opt.sheet.who), this.openBet()) : k === "report" ? this.openReport() : k === "loot" ? this.openLoot(opt.sheet.who) : this.openBribe(opt.sheet.who); return; }
     if (opt.action) {
       const before = this.pc.seated;
       const r = dispatch(this.w, opt.action);
@@ -3125,8 +3147,10 @@ class StadiumScene extends Phaser.Scene {
       for (const it of mine) if (hasProp(it, "weapon")) out.push({ label: hasProp(it, "sharp") ? "Stab" : it.def === "bottle" || it.def === "pint_glass" ? "Glass" : it.def === "chair" ? "Chair" : itemName(it).split(" ").slice(-1)[0], icon: ico(it.def), kind: "weapon", item: it.id });
       out.push({ label: "Back", icon: "", glyph: "‹", kind: "back" });
     } else if (!down) {
-      out.push({ label: "Attack", icon: act("attack"), kind: "attack", main: true });
-      if (n && n.job !== "player" && n.job !== "official") out.push({ label: "Talk", icon: act("talk"), kind: "talk" });
+      // A shopkeeper's first thing is the shop (whatever they've got to tell you, they tell you over
+      // the counter), so Buy is the big button and there's no separate Talk.
+      out.push({ label: "Attack", icon: act("attack"), kind: "attack", main: !n?.shop });
+      if (n && n.job !== "player" && n.job !== "official" && !n.shop) out.push({ label: "Talk", icon: act("talk"), kind: "talk" });
       if (n && n.job !== "player" && n.job !== "official" && !n.shop) out.push({ label: "Pickpocket", icon: act("pickpocket"), kind: "pickpocket" });
       const why = bribeWhy(this.w, pc, a);
       if (pc.money > 0 && why) out.push({ label: why === "snitch" ? "Pay off" : why === "ticket" ? "Buy ticket" : "Bribe", icon: act("money"), kind: "bribe" });
@@ -3139,7 +3163,11 @@ class StadiumScene extends Phaser.Scene {
     }
     // Everything else you could do to them (the dog, a ticket to show, something to give or plant,
     // a shop, a bet, an arrest): worked out as if you were stood next to them.
-    if (!sub) for (const o of this.optionsFor(a)) out.push(o);
+    if (!sub) for (const o of this.optionsFor(a)) {
+      if (n?.shop && !down && (o.label === "Buy" || o.label === "Bet")) { out.unshift({ ...o, main: !out.some((x) => x.main && x.kind === "opt") }); continue; }
+      out.push(o);
+    }
+    if (n?.shop && !down && !out.some((x) => x.main)) out[0].main = true;
     this.closeRing();
     this.ring = { id, items: out, sub };
     const el = document.createElement("div"); el.id = "ring";
@@ -3293,7 +3321,7 @@ class StadiumScene extends Phaser.Scene {
     // An action from the ring's extras: do it as soon as it's possible from where you stand.
     if (p.kind === "opt" && p.opt) {
       const o = p.opt;
-      let can = !!o.sheet && Math.hypot(t.x - pc.x, t.y - pc.y) < 2.4;
+      let can = !!o.sheet && Math.hypot(t.x - pc.x, t.y - pc.y) < (t.npc?.shop ? 3.6 : 2.4);
       if (o.action) { const { verb, ...rest } = o.action; can = possibleVerbs(this.w, rest).includes(verb); }
       if (can) { pc.moveX = pc.moveY = 0; this.pursue = null; this.run(o); return; }
     }
@@ -3329,6 +3357,8 @@ class StadiumScene extends Phaser.Scene {
     // Where to stand: next to them, or right behind them for a takedown. Close in but in front:
     // circle round him rather than walking into his face.
     let gx = sneak ? t.x - Math.cos(t.facing) * 0.75 : t.x, gy = sneak ? t.y - Math.sin(t.facing) * 0.75 : t.y;
+    // Someone behind a counter: you're served from the customer's side, not round the back.
+    if (t.npc?.shop && t.npc.post && !sneak) { const fc = t.npc.face ?? t.facing; gx = t.npc.post.x + Math.cos(fc) * 2.9; gy = t.npc.post.y + Math.sin(fc) * 2.9; }
     if (sneak && d < 2.4 && !behind) {
       const at = Math.atan2(pc.y - t.y, pc.x - t.x), want = t.facing + Math.PI;
       const turn = Math.atan2(Math.sin(want - at), Math.cos(want - at));
@@ -3354,13 +3384,29 @@ class StadiumScene extends Phaser.Scene {
     this.sheet("more", html);
   }
 
-  openShop(who: string) {
+  /** Served: the shopkeeper says their piece as you come to the counter (gossip, a tip, the patter),
+   *  the line that a Talk button used to be for. It goes in the shop window as well as over their head. */
+  keeperLine: { who: string; text: string } | null = null;
+  greet(who?: string): void {
+    const a = who ? this.s.actors[who] : undefined;
+    if (!a?.npc?.lines?.length || !this.pc) { this.keeperLine = null; return; }
+    const r = dispatch(this.w, { verb: "talk", actor: this.pc.id, target: { k: "actor", id: a.id } });
+    const text = r.ok ? a.npc.bubble?.text : undefined;
+    this.keeperLine = text ? { who: a.id, text } : null;
+  }
+  keeperHtml(who?: string): string {
+    const k = this.keeperLine, a = k ? this.s.actors[k.who] : undefined;
+    if (!k || !a || (who && k.who !== who)) return "";
+    return `<p class="keeper${isHint(k.text) ? " tip" : ""}"><b>${esc(personName(a))}</b>“${esc(k.text)}”</p>`;
+  }
+  openShop(who: string, greet = false) {
+    if (greet) this.greet(who);
     const seller = this.s.actors[who], shop = SHOPS[seller.npc!.shop!];
     const rows = Object.entries(shop.stock).map(([def, price]) => {
       const poor = this.pc.money < price;
       return `<button class="ware${poor ? " poor" : ""}" data-buy="${def}" data-who="${who}" data-price="${price}">${icon(def)}<span class="nm">${esc(ITEM_DEFS[def].name)}</span><span class="pr">£${price}</span></button>`;
     }).join("");
-    this.sheet("shop", `<h2>${esc(shop.name)}</h2><p class="purse">You have <b>£${this.pc.money}</b></p><div class="wares">${rows}</div>`);
+    this.sheet("shop", `<h2>${esc(shop.name)}</h2>${this.keeperHtml(who)}<p class="purse">You have <b>£${this.pc.money}</b> · tap something to buy it</p><div class="wares">${rows}</div>`);
   }
 
   /** A purchase: the till, the money going down, the thing flying into your bag. */
@@ -3405,7 +3451,7 @@ class StadiumScene extends Phaser.Scene {
     if (!book) { this.sheet("bet", `<h2>Betting</h2><p>Betting is suspended.</p>${slipHtml}`); return; }
     const stakes = [10, 20, 50, 100].filter((x) => x <= pc.money);
     const rows = book.map((p) => `<div class="item"><b>${esc(p.label)} <span class="odds">${p.odds.toFixed(2)}</span></b><div class="row">${stakes.map((st) => `<button data-bet="${p.market}:${p.pick}" data-amt="${st}">£${st}</button>`).join("") || "<span class='slip'>No money.</span>"}</div></div>`).join("");
-    this.sheet("bet", `<h2>${where === "phone" ? "Betting app" : "Bookmaker"}</h2><p>You have £${pc.money}. Settled on the official result only.</p><div class="list">${rows}</div>${slipHtml}`);
+    this.sheet("bet", `<h2>${where === "phone" ? "Betting app" : "Bookmaker"}</h2>${where === "phone" ? "" : this.keeperHtml()}<p>You have £${pc.money}. Settled on the official result only.</p><div class="list">${rows}</div>${slipHtml}`);
   }
 
   /** Who would you like the police to search? Their players by name, and anyone you can see. */

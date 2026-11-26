@@ -1,0 +1,86 @@
+{
+ "shopcounter": {
+  "description": "an old wooden shop counter with a chunky vintage cash register, a charity collection tin, a bowl of sweets and a little bell on top, front panel of dark varnished wood",
+  "w": 128,
+  "h": 72,
+  "view": "high top-down"
+ },
+ "armycounter": {
+  "description": "an army surplus shop counter made of olive green ammunition crates with a glass display top showing combat knives, compasses and dog tags, an old cash register on top",
+  "w": 128,
+  "h": 72,
+  "view": "high top-down"
+ },
+ "betcounter": {
+  "description": "a betting shop counter with a thick glass security screen, slip trays and a small till, purple laminate front with a gold stripe, two tall stools in front",
+  "w": 192,
+  "h": 80,
+  "view": "high top-down"
+ },
+ "reception": {
+  "description": "a smart hotel reception desk in polished dark wood and cream marble top, a brass bell, a computer monitor and a small vase of white flowers",
+  "w": 144,
+  "h": 80,
+  "view": "high top-down"
+ },
+ "mannequin": {
+  "description": "a shop mannequin wearing a frumpy floral dress, a straw hat and a fake pearl necklace, standing on a round stand",
+  "w": 36,
+  "h": 72,
+  "view": "high top-down"
+ },
+ "camomannequin": {
+  "description": "a shop mannequin in full camouflage combat gear with a black gas mask and a green helmet, standing on a round stand",
+  "w": 36,
+  "h": 72,
+  "view": "high top-down"
+ },
+ "brictable": {
+  "description": "a wooden trestle table piled with charity shop bric-a-brac: mismatched crockery, a lamp with a tassel shade, porcelain dogs, board games and a stack of old VHS tapes, handwritten price labels",
+  "w": 72,
+  "h": 56,
+  "view": "high top-down"
+ },
+ "bookcase": {
+  "description": "a tall wooden bookcase crammed with old paperbacks, VHS tapes, jigsaw puzzles and a stuffed toy, seen from the front",
+  "w": 56,
+  "h": 80,
+  "view": "high top-down"
+ },
+ "camorack": {
+  "description": "a metal clothes rack hung with camouflage jackets, olive army trousers and a black bomber jacket, with combat boots lined up underneath",
+  "w": 72,
+  "h": 68,
+  "view": "high top-down"
+ },
+ "ammoboxes": {
+  "description": "a stack of olive green military ammo tins and a wooden crate stencilled with white letters, a coiled rope on top",
+  "w": 56,
+  "h": 48,
+  "view": "high top-down"
+ },
+ "betstand": {
+  "description": "a betting shop slip stand: a tall narrow counter with racks of blank betting slips and small blue pens on chains, a little bin of screwed up losing slips underneath",
+  "w": 48,
+  "h": 56,
+  "view": "high top-down"
+ },
+ "sofa": {
+  "description": "a hotel lobby sofa in dark green leather with brass studs, two cushions, a low glass coffee table in front with football magazines",
+  "w": 96,
+  "h": 56,
+  "view": "high top-down"
+ },
+ "bigplant": {
+  "description": "a tall potted indoor palm plant in a glossy black pot, hotel lobby decoration",
+  "w": 40,
+  "h": 72,
+  "view": "high top-down"
+ },
+ "luggage": {
+  "description": "a brass hotel luggage trolley loaded with football team kit bags and silver suitcases",
+  "w": 56,
+  "h": 64,
+  "view": "high top-down"
+ }
+}

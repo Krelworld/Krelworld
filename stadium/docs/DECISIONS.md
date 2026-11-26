@@ -788,3 +788,34 @@ A screenshot of the pub showed six speech bubbles, three rows of HUD (the speed 
   - **Talk:** one sob story per detention; a 30% chance he lets you go if the police haven't been called, and a put-down otherwise.
   - **Get up:** back to the office top down, to try it the hard way (the door, the walkie, or him).
 - **The office itself stays top down,** because people walk in and out of it and you can break into it. The scene is only for the moment you're sat still facing one man. The world carries on underneath, so the clock is real.
+
+## Shops: served across the counter, fuller floors, a bell on the door
+
+**Shopkeepers lead with Buy.** Tap a shopkeeper and the big button is Buy (Bet at the bookie's), with Attack beside it. Talk is gone for them.
+- **What they'd have told you, they tell you over the counter.** Opening the shop has them say their next line, which shows at the top of the shop window as well as over their head.
+  - It counts as overheard, so a lead or a fix registers as before.
+  - A line that points at something is edged in yellow.
+- **The gossip is now worth hearing:**
+  - Rose: chef's whites get you into any kitchen.
+  - Sarge: the stand roof and a brick; the stink cans clear a stand.
+  - Lionel: their keeper likes a bet (the keeper-bribe fix).
+  - The landlord already had the keeper's bet.
+- **Why:** Talk to a shopkeeper was a second button for the same visit. Most games fold it into the shop screen (Stardew's shopkeepers greet you in the shop window; RPG merchants say their piece as the menu opens).
+
+**Served from the customer's side.** The counters moved to the back of each shop, with the shopkeeper behind and the shop floor in front.
+- Tapping Buy walks you to the front of the counter, not round behind it.
+- The shop opens from up to 3.6 m away.
+
+**Fuller interiors.** New PixelLab props:
+- **Charity shop:** a counter with a till, bookcases, a mannequin in a frock, a table of tat, rails.
+- **Army surplus:** an ammo-crate counter with a glass top, camo on a rail, ammo tins, a dummy in a gas mask.
+- **Bookie's:** two counters behind glass with stools, slip stands, fixed-odds machines.
+- **Team hotel lobby:** a reception desk, sofas, palms, luggage trolleys.
+
+**Walking in.** As the door goes, each building plays its own sound and shows a name card in the colours of its sign, for a couple of seconds (a location card, as in Yakuza or Hitman).
+- **Sounds** (synthesised):
+  - the shop bell on its spring;
+  - the bookie's electronic chime;
+  - the bell on the hotel desk;
+  - the pub's noise.
+- **Shop prices** are now red BUY £n buttons; what you can't afford reads NEED £n.

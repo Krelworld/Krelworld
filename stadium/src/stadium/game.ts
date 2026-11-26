@@ -132,9 +132,9 @@ export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: 
   staff("barman", "catering", "Barmaid", SPOTS.barSman, N, { shop: "bar" });
   staff("seller", "none", "Ticket office", SPOTS.ticketSeller, S, { shop: "ticket" });
   staff("seller", "none", "Stallholder", SPOTS.merchSeller, S, { shop: "merch" });
-  staff("seller", "none", "Rose", SPOTS.charity, S, { shop: "charity", lines: ["All proceeds to the donkey sanctuary.", "Chef's whites came in this morning. Fits a big lad."] });
-  staff("seller", "none", "Sarge", SPOTS.surplus, S, { shop: "surplus", lines: ["Flares are for boats. Officially.", "Cash only. No questions."] });
-  staff("seller", "none", "Lucky Lionel", SPOTS.bookie, S, { shop: "bookies", lines: ["England? Brave. I like it.", "Odds change when the score does, sunshine.", "No refunds on acts of God. Or acts of you."] });
+  staff("seller", "none", "Rose", SPOTS.charity, S, { shop: "charity", lines: ["Chef's whites came in this morning. Fits a big lad. Nobody stops a man in whites in a kitchen.", "All proceeds to the donkey sanctuary.", "Lovely frock on the dummy, that. Big sizes in the back."] });
+  staff("seller", "none", "Sarge", SPOTS.surplus, S, { shop: "surplus", lines: ["Sold a ladder to a fella last week. Said the stand roof's the best seat in the house. Up there with a brick, you'd be king.", "Them stink cans are army grade. Clears a room. Clears a stand.", "Flares are for boats. Officially.", "Cash only. No questions."] });
+  staff("seller", "none", "Lucky Lionel", SPOTS.bookie, S, { shop: "bookies", lines: ["Their keeper likes a bet. Had a monkey on with me last week, on his own lot to lose.", "England? Brave. I like it.", "Odds change when the score does, sunshine.", "No refunds on acts of God. Or acts of you."] });
   staff("seller", "none", "Kiosk", SPOTS.kiosk, N, { shop: "bookies", lines: ["Bets close fifteen seconds after a goal.", "Next goal's the one everyone wants."] });
   staff("cleaner", "cleaner", "Cleaner", VENUE.cleanerSpots[0], E);
   staff("cook", "catering", "Cook", SPOTS.kitchenSpot, S);

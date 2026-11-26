@@ -31,6 +31,8 @@ export interface Recolour {
   legs?: number;
   vest?: number;
   skin?: number;
+  /** Trousers off (the fat fan with no shirt): everything from the waist to the ankles goes this skin tone. */
+  naked?: number;
 }
 
 const rgb = (c: number) => [(c >> 16) & 255, (c >> 8) & 255, c & 255];
@@ -228,8 +230,19 @@ export class SpriteBank {
       for (let i = 0; i < d.length; i += 4) {
         if (d[i + 3] < 100) continue;
         const p = i / 4, y = Math.floor(p / W) % CELL;
-        const part = classify(base, d[i], d[i + 1], d[i + 2], y, sheet === "fall" && Math.floor((p % W) / CELL) >= 4);
-        if (!part || rc[part] === undefined) continue;
+        const lyingNow = sheet === "fall" && Math.floor((p % W) / CELL) >= 4;
+        if (rc.naked !== undefined && base === "fanbare" && !lyingNow && y > 52 && y <= 66) {
+          // Not skin already, and not the black outline: paint it pink.
+          const [, , l] = hsl(d[i], d[i + 1], d[i + 2]);
+          if (classify(base, d[i], d[i + 1], d[i + 2], y) !== "skin" && l > 0.1) {
+            // A flat-ish pink: the trousers' own folds only faintly, so no camouflage pattern shows through.
+            const k = Math.max(0.7, Math.min(1.12, 0.92 + (lum(d[i], d[i + 1], d[i + 2]) - 0.4) * 0.45)), [r0, g0, b0] = rgb(rc.naked);
+            d[i] = Math.min(255, r0 * k); d[i + 1] = Math.min(255, g0 * k); d[i + 2] = Math.min(255, b0 * k);
+            continue;
+          }
+        }
+        const part = classify(base, d[i], d[i + 1], d[i + 2], y, lyingNow);
+        if (!part || part === "naked" || rc[part] === undefined) continue;
         shadeTo(d, i, rc[part]!, REF[base][part] ?? 0.6);
       }
       cx.putImageData(img, 0, 0);

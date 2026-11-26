@@ -220,6 +220,10 @@ export const QF_FURNITURE: Furniture[] = [
   f("tvpost", -26, 39.3, 0.5, 0.4, true, undefined, 2.5), f("tvpost", 22, 39.3, 0.5, 0.4, true, undefined, 2.5),
   f("tvpost", -53, -10, 0.5, 0.4, true, undefined, 2.5), f("tvpost", 53, 10, 0.5, 0.4, true, undefined, 2.5),
   f("condiments", -54.6, 14, 0.6, 0.4, true), f("condiments", 54.6, -14, 0.6, 0.4, true),
+  // Concourse life: a programme seller, bins, litter, a sandwich board.
+  f("programmes", 33, 39.9, 1.8, 0.8, true), f("bin", -28.6, 39.1, 0.6, 0.6, true), f("bin", 27.2, 39.1, 0.6, 0.6, true), f("bin", -53.8, 20, 0.6, 0.6, true), f("bin", 53.8, -20, 0.6, 0.6, true),
+  f("litter", -10, 43.2, 1, 0.6, false), f("chippaper", 17.5, 42.7, 0.8, 0.5, false), f("litter", -44, 42.5, 1, 0.6, false), f("chippaper", -53, -18, 0.8, 0.5, false),
+  f("aboard", 37.5, 42.8, 0.8, 0.4, true),
   f("sinks", 7, 39.6, 0.7, 0.4, false, "toilet_s"), f("sinks", 8.1, 39.6, 0.7, 0.4, false, "toilet_s"), f("sinks", 9.2, 39.6, 0.7, 0.4, false, "toilet_s"),
   f("urinal", 11.6, 39.7, 3.2, 0.6, true, "toilet_s"),
   // The dressing rooms: shirts on pegs, the physio's table, an ice bath, the tactics board, boots,

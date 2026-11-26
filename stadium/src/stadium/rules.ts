@@ -16,11 +16,13 @@ import { sendOff } from "../football/authority";
 import { endPeriod } from "../football/match";
 import { beginRestart } from "../football/restarts";
 import { areaAt, SPOTS, TURNSTILES, VENUE, WALLS } from "./layout";
-import { say } from "./npc";
+import { FAN_POOL, say, STAFF_LINES } from "./npc";
 import { alert, crime, isSecurity, struggle, witnessesOf } from "./security";
 import { cargoOpen } from "./vehicles";
 import { holdOpen } from "./bus";
 import { hearLead } from "./entries";
+import { bribeSnitch, snitchOf } from "./witness";
+import { banter, fresh, talkTo } from "./chatter";
 import { startDetector } from "./detector";
 
 export const SHOPS: Record<string, { name: string; stock: Record<string, number> }> = {
@@ -32,6 +34,7 @@ export const SHOPS: Record<string, { name: string; stock: Record<string, number>
   charity: { name: "Second Hand Rose", stock: { flat_cap: 6, sunglasses: 5, moustache: 3, wig: 9, long_wig: 12, dress: 15, tracksuit: 12, chef_whites: 18, overalls: 15 } },
   tout: { name: "Dodgy Del", stock: { ticket: 45 } },
   surplus: { name: "Army & Navy Surplus", stock: { balaclava: 10, hammer: 14, flare: 20, knife: 25 } },
+  dealer: { name: "Spliff Ricky", stock: { powder: 30, laxative: 12, burner: 25 } },
 };
 
 const near = (a: Actor, b: { x: number; y: number }, r: number) => Math.hypot(a.x - b.x, a.y - b.y) <= r;
@@ -94,8 +97,12 @@ export function installRules(): void {
 
   registerVerb("talk", {
     check: (w, act, actor) => { const t = targetActor(w, act); return t?.npc && near(actor, t, 3.6) ? null : "nobody to talk to"; },
-    perform: (w, act) => {
+    perform: (w, act, actor) => {
       const t = targetActor(w, act)!, n = t.npc!;
+      // Fans and locals: a proper exchange. Anyone with their own story (the dog's owner, say) tells it first.
+      const own = n.lines?.length && n.lines !== STAFF_LINES.local && n.lines !== FAN_POOL && (n.said ?? 0) < n.lines.length;
+      if ((n.job === "fan" || n.job === "local") && !n.shop && !own) { talkTo(w, actor, t); n.nextBark = w.state.tick + 300; return; }
+      if (own && (n.job === "fan" || n.job === "local")) { const line = n.lines![(n.said = (n.said ?? 0) + 1) - 1]; say(w, t, line, 5); hearLead(w, line); return; }
       if (n.lines?.length) {
         // Each local has their own bit of gossip; staff go through theirs in turn.
         const k = n.job === "fan" || n.job === "local" ? [...t.id].reduce((h, c) => h * 31 + c.charCodeAt(0), 7) >>> 0 : (n.said = (n.said ?? 0) + 1) - 1;
@@ -138,12 +145,12 @@ export function installRules(): void {
         crime(w, actor, "pickpocketing", 1, t);
         return;
       }
-      const tickets = t.pockets.filter((id) => s.items[id].def === "ticket" || s.items[id].def === "staff_pass");
+      const tickets = t.pockets.filter((id) => s.items[id].def === "ticket" || s.items[id].def === "staff_pass" || s.items[id].def === "warrant_card");
       if (tickets.length && (!t.money || chance(r, 0.6))) {
         const it = s.items[tickets[0]];
         if (canPocket(actor, it)) moveItem(s, it.id, { k: "pocket", a: actor.id }); else moveItem(s, it.id, { k: "hand", a: actor.id });
         if (t.npc) t.npc.hasTicket = false;
-        w.bus.emit({ type: "stole", t: s.tick, by: actor.id, from: t.id, what: it.def === "staff_pass" ? "staff pass" : "ticket" });
+        w.bus.emit({ type: "stole", t: s.tick, by: actor.id, from: t.id, what: it.def === "staff_pass" ? "staff pass" : it.def === "warrant_card" ? "warrant card" : "ticket" });
       } else {
         const cash = Math.max(5, Math.round(t.money * rndRange(r, 0.5, 1)));
         t.money = Math.max(0, t.money - cash); actor.money += cash;
@@ -385,6 +392,12 @@ function bribe(w: World, by: Actor, t: Actor, amount: number): void {
   }
   const n = t.npc;
   if (!n) return;
+  // A grass on his way to a steward: cheap to shut up.
+  if (snitchOf(w, t.id)) {
+    const res = bribeSnitch(w, t, amount);
+    if (res.ok) accept(res.line); else say(w, t, res.line, 3);
+    return;
+  }
   if (isSecurity(t)) {
     if (n.job === "police") return refuse("Bribing a police officer. That's a new one.", 3);
     const need = n.job === "chief" ? 50 : 20;
@@ -509,6 +522,12 @@ function turnstileCheck(w: World, act: Action): void {
   if (n.mode !== "routine" && n.mode !== "watch") return;
   const g = turnstileNear(t) ?? turnstileNear(by);
   if (!g?.gate) return;
+  if (it.def === "warrant_card") {
+    // Flash it, don't let them read it.
+    if (ap.faceHidden) return void say(w, t, "Even the Old Bill take their masks off, mate.");
+    st.gates[g.gate] = { until: s.tick + 60 * 4, for: by.id };
+    return void say(w, t, "Oh. Sorry, officer. Go on through.");
+  }
   if (it.def === "press_pass") {
     // The press: no ticket, no pat-down, no questions. Unless you're in a mask.
     if (ap.faceHidden) return void say(w, t, "Press or not, mask off.");
@@ -650,7 +669,8 @@ export function stepRules(w: World): void {
       const a = s.actors[id], n = a.npc;
       if (!n?.lines?.length || n.mode !== "routine" || n.bubble || tick < n.nextBark || a.hiddenIn) continue;
       if (!near(a, pc, 7) || !chance(r, 0.25)) continue;
-      say(w, a, pick(r, n.lines), 5);
+      if ((n.job === "fan" || n.job === "local") && !n.shop) banter(w, a);
+      else say(w, a, fresh(w, n.lines, a), 5);
       n.nextBark = tick + 60 * 40;
       st.flags.nextBark = tick + 60 * 9;
       break;

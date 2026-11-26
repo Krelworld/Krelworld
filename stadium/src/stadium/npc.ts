@@ -1,4 +1,5 @@
 // People with routines of their own. They carry on whether or not the player is watching.
+import { banter } from "./chatter";
 import { appearance } from "../core/identity";
 import { chance, pick, rnd, rndRange } from "../core/rng";
 import { DT, type Actor, type Role } from "../core/types";
@@ -27,7 +28,7 @@ let pathBudget = 0;
 export function resetPathBudget(): void { pathBudget = 8; }
 
 export function say(w: World, a: Actor, text: string, seconds = 3.5): void {
-  if (!a.npc) return;
+  if (!a.npc || typeof text !== "string" || !text) return;
   a.npc.bubble = { text, until: w.state.tick + Math.round(seconds * 60) };
   w.bus.emit({ type: "say", t: w.state.tick, by: a.id, text });
 }
@@ -86,7 +87,11 @@ function runPlan(w: World, a: Actor): void {
       else if (n.group && Math.hypot(n.group.x - a.x, n.group.y - a.y) > 0.3) {
         a.facing = Math.atan2(n.group.y - a.y, n.group.x - a.x);
         // Now and then someone in a group says something.
-        if (n.act === "chat" && tick > n.nextBark && (tick + a.id.length * 97) % 600 === 0 && chance(w.state.rng.world, 0.35)) { say(w, a, pick(w.state.rng.world, CHAT)); n.nextBark = tick + 60 * 20; }
+        if (n.act === "chat" && tick > n.nextBark && (tick + a.id.length * 97) % 600 === 0 && chance(w.state.rng.world, 0.35)) {
+          const pc = w.state.actors[w.state.stadium!.pc];
+          if (pc && Math.hypot(pc.x - a.x, pc.y - a.y) < 18) banter(w, a);
+          n.nextBark = tick + 60 * 20;
+        }
       }
       if (!n.waitUntil) n.waitUntil = tick + Math.round(t.s * 60);
       if (tick >= n.waitUntil) { n.waitUntil = 0; n.plan.shift(); }
@@ -115,9 +120,7 @@ function clearSpot(w: World, areaId: string, pad: number): { x: number; y: numbe
   return p;
 }
 
-const CHAT = ["Two-nil England. Easy.", "Whose round is it?", "My missus thinks I'm at work.", "Ten pints and a kebab, that's the plan.", "I've got a good feeling about today.",
-  "Did you see the price of a pint in there?", "Penalties. It's always bloody penalties.", "It's coming home!", "Their keeper's a clown.", "I'm not even drunk yet.",
-  "Ref's a wrong'un, I can tell.", "We go again, lads."];
+
 
 /** Hang about in an area: join a group already standing there if there's room, or start one. */
 function hangOut(w: World, a: Actor, areaId: string, seconds: number): void {
@@ -372,7 +375,7 @@ export function spawnFan(w: World, away: boolean, seated: boolean): Actor {
   return a;
 }
 
-const FAN_POOL = [
+export const FAN_POOL = [
   "Their number 10's the only one who can play. Take him out and they've got nothing.",
   "Ref's from Belgium. You know what that means.",
   "I've had nine pints and I can still see better than the linesman.",

@@ -8,6 +8,8 @@ import { registerVerb } from "../core/verbs";
 import { findPath } from "./nav";
 import { say, spawnStaff } from "./npc";
 import { incapacitated } from "./combat";
+import { isSecurity } from "./security";
+import { SPOTS, VENUE } from "./layout";
 
 const RANGE = 12;
 const CREW = ["Steward Mick", "Steward Dougie", "Steward Tel", "Steward Carl"];
@@ -34,15 +36,45 @@ function crewStart(bx: number, by: number): { x: number; y: number } {
   return { x, y };
 }
 
+/** Somewhere well away from you to send them: the far side of the ground, or the street. */
+function decoySpot(w: World, pc: Actor): { x: number; y: number; name: string } {
+  const inside = VENUE.inside(pc.x, pc.y);
+  const opts = (inside
+    ? [{ ...SPOTS.barS, name: "the concourse bar" }, { ...SPOTS.tunnelTop, name: "the tunnel" }, { ...SPOTS.kitchenSpot, name: "the kitchens" }, { ...SPOTS.chiefDesk, name: "the control room" }]
+    : [{ ...SPOTS.pubBar, name: "the pub" }, { ...SPOTS.policeVan, name: "the police van" }, { ...SPOTS.busPark, name: "the coach park" }, { ...SPOTS.tout, name: "the plaza" }]);
+  return opts.reduce((b, o) => (Math.hypot(o.x - pc.x, o.y - pc.y) > Math.hypot(b.x - pc.x, b.y - pc.y) ? o : b));
+}
+
+const DECOY_GAP = 60 * 75;
+
 export function installCoverup(): void {
   registerVerb("radio", {
     check: (w, act, actor) => {
       if (!hasRadio(w, actor)) return "no radio";
-      const t = act.target?.k === "actor" ? w.state.actors[act.target.id] : undefined;
+      if (act.arg === "decoy") return (w.state.stadium!.flags.decoyAt ?? -1e9) + DECOY_GAP > w.state.tick ? "control are still sorting out the last one" : null;
+      const t = act.target?.k === "actor" ? w.state.actors[act.target.id] : act.arg === "cover" ? reportable(w, actor)[0] : undefined;
       return t && reportable(w, actor).includes(t) ? null : "nobody to report";
     },
     perform: (w, act, actor) => {
-      const s = w.state, st = s.stadium!, t = s.actors[(act.target as { id: string }).id];
+      const s = w.state, st = s.stadium!;
+      if (act.arg === "decoy") {
+        // "All units: fight at the bar." Every steward in range drops what they're doing and goes.
+        const n = (st.flags.decoys = (st.flags.decoys ?? 0) + 1);
+        st.flags.decoyAt = s.tick;
+        const to = decoySpot(w, actor);
+        let sent = 0;
+        for (const id in s.actors) {
+          const g = s.actors[id];
+          if (!g.npc || !isSecurity(g) || g.npc.job === "police" || g.dead || g.downUntil > s.tick || g.hiddenIn || Math.hypot(g.x - actor.x, g.y - actor.y) > 40) continue;
+          if (n >= 3) { g.npc.sus[actor.id] = Math.max(g.npc.sus[actor.id] ?? 0, 1); continue; }
+          if (g.npc.mode !== "routine" && g.npc.mode !== "watch") continue;
+          g.npc.plan = [{ k: "go", x: to.x + (sent % 3) - 1, y: to.y + Math.floor(sent / 3) * 0.8, run: true }, { k: "wait", s: 25 }];
+          sent++;
+        }
+        w.bus.emit({ type: "radio_decoy", t: s.tick, by: actor.id, to: to.name, sent, rumbled: n >= 3 });
+        return;
+      }
+      const t = act.target?.k === "actor" ? s.actors[act.target.id] : reportable(w, actor)[0];
       // Reported: nobody who stumbles on him now raises the alarm.
       st.flags[`found_${t.id}`] = 1;
       (st.coverups ??= []).push({ body: t.id, crew: [], at: s.tick + 60 * 5, stage: 0, by: actor.id });

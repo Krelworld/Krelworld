@@ -163,6 +163,19 @@ export class Audio {
     return b.duration;
   }
 
+  /** Play a clip you can cut off (a phone call hung up mid-sentence). Loads it first if need be. */
+  async playCut(name: Clip, volume = 1): Promise<{ dur: number; stop: () => void }> {
+    if (!this.ctx || this.muted) return { dur: 0, stop: () => {} };
+    if (!this.buffers.has(name)) await this.load(name);
+    const b = this.buffers.get(name);
+    if (!b || !this.ctx) return { dur: 0, stop: () => {} };
+    const src = this.ctx.createBufferSource(), g = this.ctx.createGain();
+    src.buffer = b; g.gain.value = volume;
+    src.connect(g).connect(this.master);
+    src.start();
+    return { dur: b.duration, stop: () => { try { src.stop(); } catch { /* already done */ } } };
+  }
+
   // ---------- Music ----------
   /** Under everything: matchday, then the chase or the hiding when it comes to that. Decoded one or
    *  two at a time (a decoded minute of music is big). */

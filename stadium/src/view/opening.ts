@@ -77,8 +77,11 @@ class OpeningScene extends Phaser.Scene {
 
   create() {
     this.cameras.main.setBackgroundColor("#000000");
+    // Tap anywhere: on to the next line (ignored for a moment after each one starts, so a double tap doesn't eat two).
+    this.input.on("pointerdown", () => this.next());
     void this.run();
   }
+  next() { if (this.nextLine && performance.now() - this.lineAt > 180) this.nextLine(); }
 
   // ---------- helpers ----------
   mark(m: string) { (window as unknown as { __op?: string }).__op = m; if (location.search.includes("trace")) console.warn("op", m, Math.round(performance.now())); }
@@ -109,15 +112,24 @@ class OpeningScene extends Phaser.Scene {
   }
   sfx(k: string, vol = 1) { if (this.cache.audio.exists(`op_${k}`) || this.cache.audio.exists(k)) this.sound.play(this.cache.audio.exists(`op_${k}`) ? `op_${k}` : k, { volume: vol }); }
   /** A voiced line, with a bubble over whoever says it (or a subtitle on the telly). Resolves when it's said. */
+  /** Tap to cut the current line short (Krelworld's next-line), once it's been up a moment. */
+  nextLine: (() => void) | null = null;
+  lineAt = 0;
+  /** A shade quicker than the voices were recorded. */
+  static readonly RATE = 1.07;
   say(k: string, text: string, who: Person | null, opts: { gap?: number; sub?: boolean } = {}): Promise<void> {
-    const snd = this.cache.audio.exists(`op_${k}`) ? this.sound.add(`op_${k}`) : null;
+    const snd = this.cache.audio.exists(`op_${k}`) ? this.sound.add(`op_${k}`, { rate: OpeningScene.RATE }) : null;
     const objs: Phaser.GameObjects.GameObject[] = [];
     if (who) objs.push(...this.bubble(who, text));
     else objs.push(...this.subtitle(text));
     return new Promise((res) => {
-      const end = () => { objs.forEach((o) => o.destroy()); res(); };
-      if (snd) { snd.once("complete", () => this.time.delayedCall(opts.gap ?? 150, end)); snd.play(); }
-      else this.time.delayedCall(900 + text.length * 55, end);
+      let done = false;
+      const end = () => { if (done) return; done = true; if (this.nextLine === skip) this.nextLine = null; objs.forEach((o) => o.destroy()); res(); };
+      const skip = () => { if (snd?.isPlaying) snd.stop(); end(); };
+      this.nextLine = skip; this.lineAt = performance.now();
+      const gap = Math.round((opts.gap ?? 150) * 0.6);
+      if (snd) { snd.once("complete", () => this.time.delayedCall(gap, end)); snd.play(); }
+      else this.time.delayedCall(800 + text.length * 48, end);
     });
   }
   bubble(p: Person, text: string) {
@@ -518,7 +530,8 @@ export function playOpening(done: () => void): void {
   const skip = document.createElement("button");
   skip.textContent = "Skip ▸";
   skip.className = "skip";
-  Object.assign(skip.style, { position: "absolute", right: "max(12px, env(safe-area-inset-right, 0px))", bottom: "max(12px, env(safe-area-inset-bottom, 0px))", zIndex: "2", font: '700 16px "Silkscreen", monospace', padding: "10px 16px", background: "#14213d", color: "#fff", border: "2px solid #000", boxShadow: "inset -3px -3px 0 rgba(0,0,0,.4), inset 3px 3px 0 rgba(255,255,255,.15)" });
+  const BTN = { position: "absolute", bottom: "max(12px, env(safe-area-inset-bottom, 0px))", zIndex: "2", font: '700 16px "Silkscreen", monospace', padding: "10px 16px", background: "#14213d", color: "#fff", border: "2px solid #000", boxShadow: "inset -3px -3px 0 rgba(0,0,0,.4), inset 3px 3px 0 rgba(255,255,255,.15)" };
+  Object.assign(skip.style, BTN, { right: "max(12px, env(safe-area-inset-right, 0px))" });
   host.appendChild(skip);
   document.body.appendChild(host);
   let over = false;
@@ -530,6 +543,13 @@ export function playOpening(done: () => void): void {
     done();
   };
   skip.addEventListener("click", end);
+  // Next line, beside it (a tap on the film does the same).
+  const nxt = document.createElement("button");
+  nxt.textContent = "Next ▸";
+  Object.assign(nxt.style, BTN, { left: "max(12px, env(safe-area-inset-left, 0px))", background: "#2a2a2a" });
+  nxt.addEventListener("click", () => (game?.scene.getScene("opening") as OpeningScene | undefined)?.next());
+  host.appendChild(nxt);
+  skip.textContent = "Skip film ▸▸";
   // A title card with a Play button first: phones only allow sound after a tap.
   const card = document.createElement("div");
   Object.assign(card.style, { position: "absolute", inset: "0", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "18px", background: "radial-gradient(circle at 50% 40%, #2a0d10, #000 70%)", zIndex: "1" });

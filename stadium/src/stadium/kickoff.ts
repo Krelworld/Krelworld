@@ -14,7 +14,7 @@ export const MAX_DELAYS = 6;
 /** Fewer than this many able players and a team cannot take the field. */
 const MIN_PLAYERS = 7;
 
-export type DelayReason = "late" | "referee" | "pitch" | "alarm" | "safety";
+export type DelayReason = "late" | "referee" | "pitch" | "alarm" | "safety" | "bomb";
 
 /** How sharp the stewards are: 0 normal, up to 5 after a terrible afternoon. */
 export function securityLevel(w: World): number {
@@ -54,6 +54,7 @@ function pitchClear(w: World): boolean {
 export function holdUp(w: World): DelayReason | null {
   const s = w.state, st = s.stadium!, m = s.match!, f = st.flags;
   if (alarmRinging(w)) return "alarm";
+  if ((f.bombUntil ?? 0) > s.tick) return "bomb";
   if (f.breachAt && !f.breachInspected) return "safety";
   if (teamStatus(w, 0).missing >= 3 || teamStatus(w, 1).missing >= 3) return "late";
   // A team whose coach has crashed get a few minutes to pull themselves together.
@@ -74,6 +75,8 @@ export function stepKickoff(w: World): void {
   if (alarmRinging(w)) {
     if (m.phase === "live" || m.phase === "restart") { if (!m.halted) haltPlay(w, "alarm"); }
   } else if (m.halted === "alarm") resumePlay(w);
+  // A bomb threat stops it until the sweep's done.
+  if (m.halted === "bomb" && (f.bombUntil ?? 0) <= tick) { resumePlay(w); w.bus.emit({ type: "bomb_clear", t: tick }); }
 
   if (m.phase !== "pre" || st.ending) return;
   if (m.phaseUntil - tick > 2) return;

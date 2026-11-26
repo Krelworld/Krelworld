@@ -159,8 +159,17 @@ export function stepTipoffs(w: World): void {
       else if (t.id === st.pc) { st.ending = { kind: "arrested", title: "Arrested", text: `The police found ${defOf(found).name.toLowerCase()} on you.` }; }
       else if (t.npc) { t.npc.plan = [{ k: "go", x: SPOTS.ejectPoint.x, y: SPOTS.ejectPoint.y + 6 }, { k: "despawn" }]; t.npc.post = undefined; t.npc.job = "local"; t.npc.mode = "routine"; }
     } else {
-      say(w, cop, "Nothing on him. Somebody's wasting police time.", 4);
+      say(w, cop, isSecurity(t) && t.npc?.job !== "police" ? "We've had a report about you, sir. Come with me a minute." : "Nothing on him. Somebody's wasting police time.", 4);
       w.bus.emit({ type: "tipoff_clean", t: tick, who: t.id });
+      // A steward who's been grassed up gets taken aside: his door's unguarded while they have their chat.
+      if (isSecurity(t) && t.npc && t.npc.job !== "police" && !t.npc.target) {
+        const back = t.npc.post ?? { x: t.x, y: t.y };
+        const aside = { x: SPOTS.policeVan.x, y: SPOTS.policeVan.y - 1.5 };
+        t.npc.plan = [{ k: "go", x: aside.x, y: aside.y }, { k: "wait", s: 40 }, { k: "go", x: back.x, y: back.y }];
+        cop.npc!.plan = [{ k: "go", x: aside.x + 0.9, y: aside.y }, { k: "wait", s: 40 }];
+        w.bus.emit({ type: "guard_aside", t: tick, who: t.id });
+        continue;
+      }
       if (by) { cop.npc!.sus[by.id] = Math.max(cop.npc!.sus[by.id] ?? 0, 0.7); st.flags.falseTips = (st.flags.falseTips ?? 0) + 1; if (st.flags.falseTips >= 2) crime(w, by, "wasting police time", 1); }
     }
     cop.npc!.plan = [{ k: "go", ...(cop.npc!.post ?? SPOTS.ejectPoint) }];

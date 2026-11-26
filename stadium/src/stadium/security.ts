@@ -1,4 +1,5 @@
 // What stewards and police notice, how suspicious they get, and what they do about it.
+import { maybeSnitch } from "./witness";
 import { appearance, looksPermitted } from "../core/identity";
 import { defOf, hasProp, moveItem } from "../core/items";
 import { chance } from "../core/rng";
@@ -133,13 +134,15 @@ export function crime(w: World, by: Actor, what: string, severity: number, victi
         (st.pendingRadio ??= []).push({ by: wtn.id, target: by.id, x: by.x, y: by.y, severity, at: s.tick + 90 });
       }
     } else if (!shouted) {
+      // Only security within earshot come running: close, and not through a wall.
+      const heard = Object.values(s.actors).filter((g) => { const d = Math.hypot(g.x - wtn.x, g.y - wtn.y); return isSecurity(g) && g.downUntil <= s.tick && (d < 7 || (d < EARSHOT && lineOfSight(g.x, g.y, wtn.x, wtn.y))); });
+      if (!heard.length) {
+        // Nobody to shout to: he might go and find one (or cheer, or look away).
+        if (by.id === st.pc && maybeSnitch(w, wtn, by, what, severity, victim)) { shouted = true; n.nextBark = s.tick + 300; continue; }
+      }
       shouted = true;
       say(w, wtn, severity >= 2 ? "Oi! Somebody stop him!" : "Oi! Did you see that?");
-      // Only security within earshot come running: close, and not through a wall.
-      for (const id in s.actors) {
-        const g = s.actors[id], d = Math.hypot(g.x - wtn.x, g.y - wtn.y);
-        if (isSecurity(g) && (d < 7 || (d < EARSHOT && lineOfSight(g.x, g.y, wtn.x, wtn.y)))) alert(w, g, by, severity, 1.1);
-      }
+      for (const g of heard) alert(w, g, by, severity, 1.1);
     }
     n.nextBark = s.tick + 300;
   }

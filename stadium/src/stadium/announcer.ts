@@ -168,6 +168,7 @@ export class Announcer {
           referee: ["Ladies and gentlemen, kick-off has been briefly delayed while the referee receives attention.", "delay_ref"],
           pitch: ["Kick-off will be delayed until the pitch has been cleared.", "delay_pitch"],
           alarm: ["Kick-off has been delayed while the alarm is investigated.", ""],
+          bomb: ["Ladies and gentlemen, due to a security alert, kick-off has been delayed. Please remain in your seats.", ""],
           safety: ["Kick-off has been delayed while engineers inspect damage to the stadium.", "delay_safety"],
         };
         const [text, key] = again ? ["Ladies and gentlemen, we apologise. Kick-off has been delayed again.", "delay_again"] : T[e.reason] ?? T.late;
@@ -181,6 +182,15 @@ export class Announcer {
         break;
       case "forfeit":
         this.out({ t: e.t, text: e.team === "ENG" ? "Ladies and gentlemen, England have failed to take the field. The match has been awarded to the visitors." : "Ladies and gentlemen, the visiting team have failed to take the field. The match has been awarded to England.", src: "tannoy", big: true, key: e.team === "ENG" ? undefined : "forfeit" });
+        break;
+      case "bomb_threat":
+        if (!e.pre) {
+          this.out({ t: e.t, text: "Ladies and gentlemen, play has been suspended due to a security alert. Please remain calm and stay where you are.", src: "tannoy", big: true });
+          this.out({ t: e.t, text: "The referee's taken the players off. Stewards are looking under the seats. One of them is eating what he found.", src: "commentary", big: false });
+        }
+        break;
+      case "bomb_clear":
+        this.out({ t: e.t, text: "Ladies and gentlemen, the alert is over. Play will resume. Thank you for your patience.", src: "tannoy", big: false });
         break;
       case "fire_alarm":
         this.out({ t: e.t, text: "Ladies and gentlemen, please do not be alarmed. Remain where you are while the alarm is investigated.", src: "tannoy", big: true, key: e.n <= 2 ? "alarm" : undefined });

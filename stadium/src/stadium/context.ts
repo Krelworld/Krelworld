@@ -5,6 +5,8 @@ import { sharpInHand } from "./knife";
 import { fromBehind, hidingPlaceNear, incapacitated, knockedOut } from "./combat";
 import { hasRadio, reportable } from "./coverup";
 import { isWoman } from "./lech";
+import { snitchOf } from "./witness";
+import { isSecurity } from "./security";
 import { carsNear } from "./cars";
 import { horseNear, mountedOfficer, riding } from "./horse";
 import { atCellar, atGrate, atScaffold } from "./routes";
@@ -25,7 +27,7 @@ export interface Option {
   priority: number;
   action?: Action;
   /** Opens a sheet instead of acting straight away. */
-  sheet?: { kind: "shop" | "bribe" | "bet" | "report" | "loot"; who: string };
+  sheet?: { kind: "shop" | "bribe" | "bet" | "report" | "loot" | "phone"; who: string };
 }
 
 const lc = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
@@ -133,12 +135,18 @@ export function options(w: World, pc: Actor, picked?: string | null): Option[] {
     if (n?.job === "turnstile") {
       const ticket = [pc.hand, ...pc.pockets].find((id) => id && s.items[id].def === "ticket");
       if (ticket) push(`Show your ticket to ${name}`, 82 - d, { verb: "show", ...base, item: ticket, target: { k: "actor", id: a.id } });
+      for (const [def, label] of [["press_pass", "Show your press pass"], ["warrant_card", "Flash the warrant card"]] as const) {
+        const c = [pc.hand, ...pc.pockets].find((id) => id && s.items[id].def === def);
+        if (c) push(`${label} to ${name}`, 83 - d, { verb: "show", ...base, item: c, target: { k: "actor", id: a.id } });
+      }
       push(`"He's a service dog. For my autism."`, 84 - d, { verb: "servicedog", ...base, target: { k: "actor", id: a.id } });
       push(`Flash the vest: "I'm working"`, 86 - d, { verb: "colleague", ...base, target: { k: "actor", id: a.id } });
     }
     if (n && isWoman(a)) push(`Leer at ${name}`, 2, { verb: "lech", ...base, target: { k: "actor", id: a.id } });
     if (n && n.job !== "player" && n.job !== "official") push(`Talk to ${name}`, (n.job === "fan" ? 12 : n.job === "local" ? 25 : 40) - d, { verb: "talk", ...base, target: { k: "actor", id: a.id } });
-    if (pc.money > 0 && d < 2.2) out.push({ label: `Offer ${name} money`, priority: 5, sheet: { kind: "bribe", who: a.id } });
+    const why = bribeWhy(w, pc, a);
+    if (pc.money > 0 && d < 2.2 && why) out.push({ label: why === "snitch" ? `Pay ${name} to keep quiet` : why === "ticket" ? `Buy ${name}'s ticket` : `Offer ${name} money`, priority: why === "snitch" ? 60 : 5, sheet: { kind: "bribe", who: a.id } });
+    if (snitchOf(w, a.id)) push(`Lean on ${name}: "You saw nothing"`, 58 - d, { verb: "threaten", ...base, target: { k: "actor", id: a.id } });
     if (n && n.job !== "player" && n.job !== "official" && !n.shop) push(`Pickpocket ${name}`, 6, { verb: "pickpocket", ...base, target: { k: "actor", id: a.id } });
     if (hand && d < 1.7) push(`Give ${lc(itemName(hand))} to ${name}`, 3, { verb: "give", ...base, item: hand.id, target: { k: "actor", id: a.id } });
     for (const sid of [pc.hand, ...pc.pockets]) {
@@ -244,6 +252,19 @@ export function primary(opts: Option[]): Option | null {
 }
 
 /** What the bag sheet offers for one item. */
+/** Whether money means anything to this person, and why: a grass to shut up, a fan's spare ticket, a steward, a player or the referee. */
+export function bribeWhy(w: World, pc: Actor, a: Actor): "snitch" | "ticket" | "staff" | "player" | "referee" | null {
+  const s = w.state, n = a.npc;
+  if (a.dead || a.downUntil > s.tick) return null;
+  if (snitchOf(w, a.id)) return "snitch";
+  if (a.fb) return a.fb.team === 1 ? "player" : null;
+  if (a.off) return a.off.job === "referee" ? "referee" : null;
+  if (!n) return null;
+  if (isSecurity(a) && n.job !== "police") return "staff";
+  if (n.job === "fan" && n.hasTicket && !n.shop && ![pc.hand, ...pc.pockets].some((id) => id && s.items[id]?.def === "ticket")) return "ticket";
+  return null;
+}
+
 export function itemOptions(w: World, pc: Actor, it: Item): Option[] {
   const base = { actor: pc.id, item: it.id };
   const out: Option[] = [];
@@ -255,6 +276,13 @@ export function itemOptions(w: World, pc: Actor, it: Item): Option[] {
   if (it.loc.k === "worn") add("Take off", "remove");
   add(def.props.includes("food") ? "Eat" : def.props.includes("liquid") ? "Drink" : "Take", "consume");
   add("Drop", "drop");
+  // The walkie, from the bag: call in a body near you, or send the stewards somewhere else.
+  if (it.def === "radio" && it.loc.k !== "ground") {
+    const cover = { verb: "radio", actor: pc.id, arg: "cover" }, decoy = { verb: "radio", actor: pc.id, arg: "decoy" };
+    if (possibleVerbs(w, { actor: pc.id, arg: "cover" }).includes("radio")) out.unshift({ label: "Radio: \"I've had to deal with one\"", priority: 1, action: cover });
+    if (possibleVerbs(w, { actor: pc.id, arg: "decoy" }).includes("radio")) out.unshift({ label: "Radio: \"Trouble, all units\"", priority: 1, action: decoy });
+  }
+  if (it.def === "burner") out.unshift({ label: "Make a call", priority: 1, sheet: { kind: "phone", who: "burner" } });
   return out;
 }
 

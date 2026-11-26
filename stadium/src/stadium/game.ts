@@ -24,6 +24,11 @@ import { installDetector } from "./detector";
 import { installCoverup, stepCoverups } from "./coverup";
 import { FEMALE_LOCALS } from "./npc";
 import { installLech } from "./lech";
+import { stepChat } from "./chatter";
+import { installWitness, stepSnitches } from "./witness";
+import { installPhone, stepPhone } from "./phone";
+import { installNaked, stepNaked } from "./naked";
+import { noteKnockout, spawnScenarios, stepScenarios } from "./scenarios";
 import { driveCar, installCars } from "./cars";
 import { BIKE_SPEED, BIKE_SPRINT, installBike, stepBikes } from "./bike";
 import { installReactions, installRules, SHOPS, stepRules } from "./rules";
@@ -48,7 +53,7 @@ export const HALF_SECONDS = 450;
 export const HALFTIME_SECONDS = 150;
 
 export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: Campaign = newCampaign()): Game {
-  if (!rulesInstalled) { installRules(); installBetting(); installPolice(); installBus(); installDog(); installKickoff(); installKnife(); installGloryHole(); installCombat(); installHorse(); installRoutes(); installEntries(); installDetector(); installCoverup(); installBike(); installLech(); installCars(); rulesInstalled = true; }
+  if (!rulesInstalled) { installRules(); installBetting(); installPolice(); installBus(); installDog(); installKickoff(); installKnife(); installGloryHole(); installCombat(); installHorse(); installRoutes(); installEntries(); installDetector(); installCoverup(); installBike(); installLech(); installCars(); installWitness(); installPhone(); installNaked(); rulesInstalled = true; }
   setVenue(venueId);
   const oppKey = VENUE.opp;
   const opp = TEAMS[oppKey];
@@ -144,7 +149,10 @@ export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: 
   // Old Reg the groundsman, at his shed. His wrench is lying about nearby.
   staff("groundsman", "none", "Old Reg", SPOTS.shed, E);
   spawnItem(s, "wrench", { k: "ground", x: SPOTS.shed.x + 1.4, y: SPOTS.shed.y + 2.4 });
+  // Somebody's old pay-as-you-go, dropped behind the pub bins.
+  spawnItem(s, "burner", { k: "ground", x: SPOTS.pubYard.x + 2.2, y: SPOTS.pubYard.y + 1.6 });
   spawnEntries(w, staff);
+  spawnScenarios(w);
   // Things to hit people with: empties on the pub tables and round the bins, chairs in the pub,
   // pint glasses on the concourse bar, and the corner flags.
   const mx = (x: number) => (VENUE.id === "sf" ? -x : x);
@@ -201,6 +209,7 @@ export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: 
 
   createDog(w);
   installReactions(w);
+  w.bus.on((e) => { if (e.type === "knockout") noteKnockout(w, e.who, e.by); });
   installSettlement(w);
   const g: Game = { w, checkpoints: [], opp: oppKey, venue: venueId, campaign };
   saveCheckpoint(g, "arrival", "Arrival outside the ground");
@@ -313,6 +322,11 @@ export function stepGame(g: Game): void {
   stepCombat(w);
   stepEntries(w);
   stepCoverups(w);
+  stepChat(w);
+  stepSnitches(w);
+  stepPhone(w);
+  stepNaked(w);
+  stepScenarios(w);
   stepBikes(w);
   stepRadio(w);
   stepHeat(w);

@@ -73,6 +73,9 @@ export interface Npc {
   goInAt?: number;
   /** Things this person might say when someone is near. */
   lines?: string[];
+  /** Times you've talked to them, and what they've said (so they don't repeat it). */
+  talked?: number;
+  heard?: string[];
 }
 
 export interface Vehicle {
@@ -160,6 +163,18 @@ export interface StadiumState {
   traffic?: import("./traffic").Car[];
   /** The car you've nicked (driving it, or left where you got out). */
   myCar?: import("./cars").MyCar;
+  /** Lines said lately, anywhere (nobody repeats them for a while). */
+  recent?: string[];
+  /** The second half of an exchange, waiting its turn. */
+  chatQ?: { by: string; text: string; at: number }[];
+  /** Witnesses on their way to grass you up. */
+  snitches?: import("./witness").Snitch[];
+  /** The people in the hidden stories. */
+  scenarioIds?: { len: string; stag: string[]; mick?: string; dave: string };
+  /** Somebody with something to tell you, the next time you talk to them (hidden scenarios). */
+  scenarioTalk?: Record<string, [string, string][]>;
+  /** The phone: who you can ring, who's on the way, and whether a call's being traced. */
+  phone?: import("./phone").PhoneState;
   /** Detained in the security office until this tick (0 if not). */
   detainedUntil: number;
   /** The police have been sent for. */

@@ -586,3 +586,14 @@ button first, so phones allow the sound; Skip at any point; `?noopening` turns i
   his barks, Shezleigh); the kids are adult takes pitched up with ffmpeg. New PixelLab characters
   for Shezleigh and the two kids, with shouting, crying, punching and tug-of-war animations.
 - The ground waits asleep underneath while it plays, so only one game draws at a time.
+
+## Asset packs
+
+The published game had grown past the artifact host's file limit (512 files a version). The
+assets can't be hosted on GitHub instead: the artifact's security policy only lets the page load
+pictures and sounds from its own files. So the build now packs every picture and sound into three
+bundles (art, audio, the rest; about 17 MB in all) with an index. The game fetches them at
+start-up behind a progress bar and answers its own requests from memory: Phaser's loader (XHR),
+the sound loader (fetch) and the HTML icons (blob URLs). The published page is now six files, so
+there's no limit to worry about. Loose files still exist for local development. The bundles are
+named .pack.mp3 only because the host serves a fixed list of file types; they're raw bytes.

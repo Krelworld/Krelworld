@@ -42,7 +42,7 @@ export async function loadPacks(progress: (done: number, total: number) => void)
   const total = Object.values(index.packs).reduce((a, b) => a + b, 0);
   let done = 0;
   await Promise.all(Object.keys(index.packs).map(async (name) => {
-    const r = await fetch(`packs/${name}.bin`);
+    const r = await fetch(`packs/${name}.pack.mp3`);
     if (!r.body) { const b = await r.arrayBuffer(); packs.set(name, b); done += b.byteLength; progress(done, total); return; }
     // Read in chunks so there's a progress bar on a slow phone connection.
     const reader = r.body.getReader(), chunks: Uint8Array[] = [];

@@ -68,7 +68,8 @@ for (const d of ["kit", "tiles", "scenes"]) {
       index.files[`${d}/${f}`] = [name, off, b.length, MIME[ext]];
       parts.push(b); off += b.length;
     }
-    writeFileSync(`dist/stadium/packs/${name}.bin`, Buffer.concat(parts));
+    // Served as .mp3: the host only serves known types, and the game reads these as raw bytes anyway.
+    writeFileSync(`dist/stadium/packs/${name}.pack.mp3`, Buffer.concat(parts));
     index.packs[name] = off;
   }
   writeFileSync("dist/stadium/packs/index.json", JSON.stringify(index));

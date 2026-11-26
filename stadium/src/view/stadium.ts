@@ -36,6 +36,7 @@ import { Fx } from "./fx";
 import { FirstPerson, type FpSprite } from "./fp";
 import { holeState, inCubicle, knifeOn } from "../stadium/gloryhole";
 import { incapacitated, knockedOut, lootable } from "../stadium/combat";
+import { LEADS } from "../stadium/entries";
 import { CAP, ensureFloor, ensureMaterials, facade, floodlight, matOf, adBoard, banner, pixelText as pixelTextOn, PPM, roof, TILE_FILES, type BuildingSpec } from "./build";
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -61,7 +62,7 @@ interface TickerLine { text: string; src: string; big: boolean }
 
 /** A PixelLab picture of an item, if there is one. */
 const ICONS = new Set(["pint", "pie", "knife", "whistle", "ticket", "wallet", "laxative", "powder", "shirt_eng", "shirt_por", "shirt_bra", "shirt_arg", "police_uniform", "kit_eng", "kit_opp",
-  "staff_pass", "hivis", "ref_kit", "police_hat", "mask", "flat_cap", "sunglasses", "moustache", "tracksuit", "chef_whites", "overalls", "balaclava", "hammer", "flare", "betslip", "face", "hands", "censored_bar", "wrench", "kit_card"]);
+  "staff_pass", "hivis", "ref_kit", "police_hat", "mask", "flat_cap", "sunglasses", "moustache", "tracksuit", "chef_whites", "overalls", "balaclava", "hammer", "flare", "betslip", "face", "hands", "censored_bar", "wrench", "kit_card", "parachute", "mascot_suit", "press_pass"]);
 const icon = (def: string) => (ICONS.has(def) ? `<img class="ico" src="icons/${def}.png" alt="" onerror="this.remove()">` : `<span class="ico none"></span>`);
 
 /** The main button's words: short enough for a thumb. The full sentence is still in More. */
@@ -367,7 +368,8 @@ class StadiumScene extends Phaser.Scene {
       case "fire_alarm": a.play("fire_alarm", 0.4 + near(e.x, e.y, 50) * 0.6); break;
       case "gunshot": a.play("gunshot", 0.5 + near(e.x, e.y, 60) * 0.5, { minGap: 0.15 }); this.flash = { x: e.x, y: e.y, until: s.tick + 5 }; break;
       case "killed": {
-        a.play("scream", 0.3 + near(e.x, e.y, 30) * 0.7, { minGap: 1 }); a.play("stab", 0.9);
+        if (e.fall) { a.play("fall_scream", 1); setTimeout(() => { a.play("splat", 1); a.play("bodyfall", 1); }, 1300); this.trauma = 1; }
+        else { a.play("scream", 0.3 + near(e.x, e.y, 30) * 0.7, { minGap: 1 }); a.play("stab", 0.9); }
         const who = s.actors[e.who], by = e.by ? s.actors[e.by] : null;
         if (who) {
           const dx = by ? who.x - by.x : 0, dy = by ? who.y - by.y : 1, l = Math.hypot(dx, dy) || 1;
@@ -396,6 +398,11 @@ class StadiumScene extends Phaser.Scene {
       case "unseated": a.play("whinny", 1); a.play("bodyfall", 0.9); this.popup(e.x, e.y, "UNSEATED!", "#ff4d5e"); break;
       case "mounted": a.play("whinny", 0.8); if (e.by === pcId) this.startCine(1600, { zoomAdd: 0, caption: "Tally ho" }); break;
       case "horse_jump": a.play("whinny", 0.4, { minGap: 2 }); break;
+      case "roof": if (e.by === pcId && e.up) { a.play("ladder", 1); this.startCine(2400, { zoomAdd: 0, caption: "The roof of the South Stand" }); } else if (e.by === pcId) a.play("ladder", 0.7); break;
+      case "chute_open": if (e.by === pcId) { a.play("chute", 1); this.startCine(3000, { zoomAdd: 0, slow: 900, caption: "Geronimo" }); } break;
+      case "chute_land": { a.play("goal_roar", 0.8); a.play("bodyfall", 0.7); this.popup(e.x, e.y, "TOUCHDOWN", "#f2c94c"); this.trauma = Math.min(1, this.trauma + 0.4); break; }
+      case "lead": this.toast("lead", e.title, "New lead"); a.play("chime", 0.6); break;
+      case "hamper_ride": if (e.by === pcId) { const f = $("fade"); f.classList.add("on"); setTimeout(() => f.classList.remove("on"), 700); this.startCine(2000, { zoomAdd: 1, caption: "Wheeled into the kit room" }); } break;
       case "crawled": case "roof_run": case "stretchered": {
         if ((e.by ?? e.who) !== pcId) break;
         // The long way round: a fade to black, the sound of it, and a caption.
@@ -769,6 +776,14 @@ class StadiumScene extends Phaser.Scene {
   cine: { until: number; focus: { x: number; y: number } | null; lead: { x: number; y: number } | null; zoomAdd: number } | null = null;
   cineDone = new Set<string>();
   wasInDoor = false;
+  canopy: Phaser.GameObjects.Image | null = null;
+  /** How far above the ground someone is drawn, in metres. */
+  liftOf(a: Actor): number {
+    // Kept within a screen of the ground (the camera follows your feet): the shadow tells the height.
+    if (a.roof) return 5;
+    if (a.chute) { const c = a.chute, k = Math.min(1, (this.s.tick - c.t0) / (c.t1 - c.t0)); return 8 * (1 - k * k); }
+    return 0;
+  }
   choking = new Map<string, number>();
   startCine(ms: number, opts: { focus?: { x: number; y: number }; lead?: { x: number; y: number }; zoomAdd?: number; slow?: number; caption?: string }): void {
     const now = performance.now();
@@ -1222,7 +1237,8 @@ class StadiumScene extends Phaser.Scene {
       if (!a.seated) sh.fillStyle(0x000000, 0.28).fillEllipse(gx, gy, Wd * 2.2, Wd * 0.9 * (P.standing ? 1 : 2));
       if (st2.ring) sh.lineStyle(3, st2.ring, 1).strokeEllipse(gx, gy, Wd * 2.9, Wd * (P.standing ? 1.25 : 2.9));
       seenSprites.add(a.id);
-      things.push({ d: a.y, draw: () => {}, spr: (depth) => this.placeSprite(a, st2, shiver, moving, depth) });
+      // Up on the stand roof, or floating down under a canopy: drawn above everything.
+      things.push({ d: this.liftOf(a) > 0 ? 1e5 + a.y : a.y, draw: () => {}, spr: (depth) => this.placeSprite(a, st2, shiver, moving, depth) });
       // Out cold: little stars going round; the dead lie still in their own blood.
       if (knockedOut(this.w, a) && !a.dead) things.push({ d: a.y + 0.0003, draw: () => {
         const cx = P.sx(a.x, a.y), cy = P.sy(a.x, a.y, 0.7), t = tick * 0.08 + Math.abs(hash(a.id)) % 7;
@@ -1281,6 +1297,7 @@ class StadiumScene extends Phaser.Scene {
     }
     g = nextLayer();
     for (const [id, sp] of this.spritePool) if (!seenSprites.has(id)) sp.setVisible(false);
+    if (this.canopy && !this.pc?.chute) this.canopy.setVisible(false);
     // Behind a wall, roof or van: your outline drawn through it, so you never lose yourself.
     {
       const me = pc && this.spritePool.get(pc.id);
@@ -1457,6 +1474,8 @@ class StadiumScene extends Phaser.Scene {
       else if (this.cine?.lead) { tx = P.sx(pc.x + this.cine.lead.x, pc.y + this.cine.lead.y); ty = P.sy(pc.x + this.cine.lead.x, pc.y + this.cine.lead.y) - P.S; }
     }
     else { tx = 0; ty = 0; }
+    // Up high: frame both you and your shadow on the ground.
+    if (pc) ty -= (this.liftOf(pc) + (pc.chute ? 3 : 0)) * P.S * 0.75;
     const k = 1 - Math.pow(0.004, Math.min(dms, 100) / 1000);
     this.camX += (tx - this.camX) * k; this.camY += (ty - this.camY) * k;
     const zt = this.targetZoom();
@@ -1664,6 +1683,8 @@ class StadiumScene extends Phaser.Scene {
     if (job === "police" && a.npc?.mounted && this.bank.has("horse")) return { base: "horse", rc: {}, h: 2.6 };
     if (job === "police") return { base: "police", rc: {}, h: 1.85 };
     if (job === "armed") return { base: "steward", rc: { vest: 0x2a2d33, legs: 0x1a1a1a }, h: 1.85 };
+    // Lenny the Lion, or whoever's in his costume now.
+    if ((job === "mascot" || (a.worn.outer && s.items[a.worn.outer]?.def === "mascot_suit")) && this.bank.has("mascot")) return { base: "mascot", rc: {}, h: 1.95 };
     // Everyone else is built on the fat fan, in their own colours.
     const outer = a.worn.outer ? defOf(s.items[a.worn.outer]) : undefined;
     const inner = a.worn.inner ? defOf(s.items[a.worn.inner]) : undefined;
@@ -1718,9 +1739,22 @@ class StadiumScene extends Phaser.Scene {
     const di = dirIndex(a.facing);
     // 1:1 in the standing view (the figures are drawn at about 32 px to the metre already).
     const scale = P.standing && P.S === PPM ? 1 : (h * P.KZ * P.S) / (FEET - HEAD) * (P.standing ? 1 : 0.7);
-    const x = Math.round(P.sx(a.x + shiver, a.y)), y = Math.round(P.sy(a.x, a.y));
+    const lift = this.liftOf(a);
+    const x = Math.round(P.sx(a.x + shiver, a.y)), y = Math.round(P.sy(a.x, a.y, lift));
+    // In the air, nothing in the world is in front of you (the crowd included).
+    if (lift > 0) depth = 1e6;
     sp.setVisible(true).setDepth(depth).setScale(scale).setAlpha(st2.alpha ?? 1);
+    if (a.chute) {
+      // The canopy above, swaying.
+      if (!this.canopy && this.textures.exists("k-canopy-src")) this.canopy = this.add.image(0, 0, "k-canopy-src").setOrigin(0.5, 1);
+      this.canopy?.setVisible(true).setDepth(depth + 1).setPosition(x, Math.round(y - 2.1 * P.S)).setAngle(Math.sin(this.s.tick * 0.05) * 6);
+    }
     const now = performance.now(), has = (sheet: string) => this.textures.exists(`${key}-${sheet}`);
+    if (a.chute || a.roof) {
+      // Hanging in the harness (or standing on the roof edge): upright, facing where he's headed.
+      sp.setTexture(`${key}-rot`, a.chute ? 0 : 4).setAngle(a.chute ? Math.sin(tick * 0.05) * 6 : 0).setOrigin(0.5, feetOf(base) / cellOf(base)).setCrop().setPosition(x, y).clearTint();
+      return;
+    }
     const flashing = now - (this.flashAt.get(a.id) ?? -1e9) < 70;
     // Thrown back by a blow: the recoil pose (or a tilt), white for an instant, then the fall.
     if (a.knock && !a.dead) {
@@ -2186,6 +2220,7 @@ class StadiumScene extends Phaser.Scene {
     const cps = this.game2.checkpoints;
     this.sheet("menu", `<h2>Paused</h2><p>Go back to a checkpoint. Everything since then is undone, and the match will not play out the same way.</p>
       <div class="list">${cps.map((c) => `<button data-cp="${c.id}">${esc(c.label)}</button>`).join("")}<button data-new="1">Start a new match day</button><button data-mute="1">${this.audio.muted ? "Sound: off" : "Sound: on"}</button></div>
+      <h2>Ways in you've heard about</h2><div class="log">${LEADS.filter((l) => this.s.stadium!.flags[`lead_${l.id}`]).map((l) => `<p><b>${esc(l.title)}</b> ${esc(l.how)}</p>`).join("") || "<p>Nothing yet. Talk to people: locals, staff, the man at the shed.</p>"}</div>
       <h2>What you've heard</h2><div class="log">${this.log.slice(-12).reverse().map((l) => `<p><b>${esc(l.src)}</b> ${esc(l.text)}</p>`).join("") || "<p>Nothing yet.</p>"}</div>`);
     this.setSpeed(0);
   }

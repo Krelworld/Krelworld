@@ -243,7 +243,7 @@ function routine(w: World, a: Actor): void {
     case "kitman": {
       // Wally the kit man: a pint in the pub, out the back along the alley, in through the players'
       // entrance with his swipe card, sorts the kit, and round again. Follow him, or lift the card.
-      const pubSpot = { x: SPOTS.pubBarman.x + rndRange(r, -2, 2), y: SPOTS.pubBarman.y + 2.2 };
+      const pubSpot = { x: SPOTS.pubBarman.x + rndRange(r, -2, 2), y: SPOTS.pubBarman.y + 3.6 };
       const legs: Task[][] = [
         [{ k: "go", ...pubSpot }, { k: "say", text: "Usual, please. Quick one." }, { k: "wait", s: rndRange(r, 20, 35) }],
         [{ k: "go", x: SPOTS.playersDoor.x - 1.2, y: SPOTS.playersDoor.y + 2 }, { k: "go", ...SPOTS.playersDoor }, { k: "go", ...SPOTS.kitRoom }],
@@ -251,6 +251,26 @@ function routine(w: World, a: Actor): void {
         [{ k: "go", ...SPOTS.playersDoor }, { k: "go", x: SPOTS.playersDoor.x - 1.2, y: SPOTS.playersDoor.y + 6 }],
       ];
       later(...legs[n.stage++ % legs.length]);
+      return;
+    }
+    case "mascot": {
+      // Lenny the Lion: a fag in the alley with his head off until just before kick-off, then in
+      // through the players' entrance and out of the tunnel to wave at the crowd along the touchline.
+      if (n.stage === 0 && t < KICKOFF_AT - 100) {
+        later({ k: "go", ...SPOTS.mascotSmoke }, { k: "wait", s: Math.min(20, Math.max(1, KICKOFF_AT - 100 - t)) });
+        n.act = "smoke";
+        return;
+      }
+      if (n.stage === 0) {
+        n.stage = 1;
+        later({ k: "go", x: SPOTS.playersDoor.x - 1.2, y: SPOTS.playersDoor.y + 2 }, { k: "go", ...SPOTS.playersDoor }, { k: "go", ...SPOTS.kitRoom },
+          { k: "go", ...SPOTS.tunnelBottom }, { k: "go", ...SPOTS.tunnelTop });
+        return;
+      }
+      const spots = [{ x: -20, y: 26.6 }, { x: 0, y: 26.6 }, { x: 20, y: 26.6 }, { x: 38.6, y: 12 }, { x: 38.6, y: -12 }, { x: 24, y: -26.8 }, { x: -24, y: -26.8 }, { x: -38.6, y: -12 }, { x: -38.6, y: 12 }];
+      const p = spots[n.stage++ % spots.length];
+      later({ k: "go", x: VENUE.id === "sf" ? -p.x : p.x, y: p.y }, { k: "wait", s: rndRange(r, 8, 18) });
+      n.act = "cheer";
       return;
     }
     default:
@@ -361,6 +381,8 @@ export const STAFF_LINES: Partial<Record<Job, string[]>> = {
     "Lost my ticket in here once. Someone had it off me in the queue.",
     "The steward on the staff door's always out the back having a fag.",
     "Can't get a ticket for love nor money. Watching it on the telly.",
+    "Lenny the Lion has a fag round the back of the stand every match. Head off and everything. Ruined my childhood.",
+    "My mate got knocked spark out in the West End last season. Woke up next to the dressing rooms.",
   ],
   barman: ["Their goalkeeper was in here last night. Put two hundred quid on himself to concede.", "What can I get you?"],
   seller: ["Tickets, sixty quid. Cash.", "Shirts, scarves, masks."],
@@ -378,7 +400,7 @@ export const STAFF_LINES: Partial<Record<Job, string[]>> = {
   chief: ["What do you want?"],
   kitman: ["Can't stop, the gaffer wants the kit ironed.", "Swipe card's the only way in the back. Don't even think about it.", "Hamper's full of dirty socks. Nobody looks in there."],
   groundsman: ["Off my grass.", "Drain runs from the pub cellar right under the dressing rooms. Old Victorian brick. Rats the size of dogs.", "Left me wrench somewhere. Hatch in the pub cellar's seized solid."],
-  press: ["Can I get a quick word for the cameras?", "We're live in five, keep it clean."],
+  press: ["Can I get a quick word for the cameras?", "Lost my press pass here last season. That thing gets you through any turnstile.", "We're live in five, keep it clean."],
 };
 
 export function spawnStaff(w: World, job: Job, role: Role, name: string, x: number, y: number, extra: Partial<Npc> = {}, look: Partial<Actor> = {}): Actor {

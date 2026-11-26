@@ -10,7 +10,7 @@ import EIGHT from "../../assets/world/eight.json";
 export const KIT_KEYS = ["barrier", "bench", "bigscreen", "bin", "bollard", "burgervan", "cone", "crates", "door_pub", "door_shop", "door_steel", "flowerbox",
   "lamppost", "litter", "merchstall", "pallets", "phonebox", "policevan", "portaloo", "programmes", "puddle", "staffdoor", "ticketbooth", "turnstile",
   "pubtable", "fruitmachine", "pooltable", "pubtv", "pumps", "clothesrail", "shelves", "betscreens", "tree", "statue", "binbags", "aboard", "desk", "kitbench", "kitchen", "lockers", "dugout", "tvcamera", "stretcher", "cart",
-  "shed", "skip", "parkedcar", "hamper", "medbed", "grate", "hatch", "scaffold", "piestand", "obtruck", "horsebox"] as const;
+  "shed", "skip", "parkedcar", "hamper", "medbed", "grate", "hatch", "scaffold", "piestand", "obtruck", "horsebox", "ladder", "kitbag", "canopy"] as const;
 export type KitKey = (typeof KIT_KEYS)[number];
 /** Eight-way pictures (S, SE, E, NE, N, NW, W, SW in a row) for things that turn. */
 export const WORLD_8 = ["coach", "lorry"] as const;

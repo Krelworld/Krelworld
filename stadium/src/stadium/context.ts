@@ -5,6 +5,7 @@ import { sharpInHand } from "./knife";
 import { fromBehind, hidingPlaceNear, incapacitated, knockedOut } from "./combat";
 import { horseNear, mountedOfficer, riding } from "./horse";
 import { atCellar, atGrate, atScaffold } from "./routes";
+import { atLadder, hasChute } from "./entries";
 const hasItem = (s: { items: Record<string, Item> }, a: Actor, def: string) => [a.hand, ...a.pockets].some((id) => id && s.items[id]?.def === def);
 import { appearance } from "../core/identity";
 import { defOf, hasProp } from "../core/items";
@@ -42,6 +43,13 @@ export function options(w: World, pc: Actor, picked?: string | null): Option[] {
   const bus = s.stadium!.vehicles.bus;
   if (bus?.drivenBy === pc.id) return [{ label: "Get out of the bus", priority: 100, action: { verb: "getout", ...base } }];
   if (pc.hiddenIn) return [{ label: "Climb out", priority: 100, action: { verb: "unhide", ...base } }];
+  if (pc.chute) return [];
+  if (pc.roof) {
+    // On the roof of the South Stand, the wind in your face, the whole ground below you.
+    const roof: Option[] = [{ label: "Climb back down", priority: 80, action: { verb: "ladder", ...base } }];
+    roof.push(hasChute(w, pc) ? { label: "Jump, and pull the cord", priority: 100, action: { verb: "jump", ...base } } : { label: "Jump (no parachute)", priority: 50, action: { verb: "jump", ...base } });
+    return roof;
+  }
   if (pc.seated) out.push({ label: "Stand up", priority: 90, action: { verb: "stand", ...base } });
 
   const hand = pc.hand ? s.items[pc.hand] : undefined;
@@ -58,9 +66,9 @@ export function options(w: World, pc: Actor, picked?: string | null): Option[] {
     if (d > 2.6) continue;
     const def = defOf(it);
     if (def.size !== "huge") push(`Pick up ${lc(def.name)}`, 70 - d, { verb: "take", ...base, item: it.id });
-    if (hasProp(it, "container") && it.def !== "locker" && it.def !== "police_box" && it.def !== "bus_cab") {
+    if (hasProp(it, "container") && it.def !== "locker" && it.def !== "police_box" && it.def !== "bus_cab" && it.def !== "kitbag") {
       const v = Object.values(s.stadium!.vehicles).find((vv) => vv.cargo === it.id);
-      const label = it.def === "bus_hold" ? "Hide in the bus's luggage hold" : `Hide in the back of the ${VENUE.delivery.name}`;
+      const label = it.def === "bus_hold" ? "Hide in the bus's luggage hold" : it.def === "laundry" || it.def === "kit_hamper" ? "Climb into the laundry hamper" : `Hide in the back of the ${VENUE.delivery.name}`;
       push(label, 72 - d, { verb: "hide", ...base, target: { k: "item", id: it.id } });
       void v;
     }
@@ -68,7 +76,7 @@ export function options(w: World, pc: Actor, picked?: string | null): Option[] {
     if (hasProp(it, "container") && d < 2.6) {
       for (const id2 in s.items) {
         const inner = s.items[id2];
-        if (inner.loc.k === "in" && inner.loc.c === it.id) push(`Take ${lc(defOf(inner).name)} from the ${it.def === "locker" ? "locker" : it.def === "police_box" ? "police van" : "box"}`, 55 - d, { verb: "takeout", ...base, item: inner.id });
+        if (inner.loc.k === "in" && inner.loc.c === it.id) push(`Take ${lc(defOf(inner).name)} from the ${it.def === "locker" ? "locker" : it.def === "police_box" ? "police van" : it.def === "kitbag" ? "kit bag" : it.def === "kit_hamper" || it.def === "laundry" ? "hamper" : "box"}`, 55 - d, { verb: "takeout", ...base, item: inner.id });
       }
     }
     if (hasProp(it, "spikable")) {
@@ -125,6 +133,7 @@ export function options(w: World, pc: Actor, picked?: string | null): Option[] {
   if (atCellar(pc)) push(hasItem(s, pc, "wrench") || s.stadium!.flags.hatchOpen ? "Down the cellar and into the drain" : "Prise open the cellar hatch (needs a wrench)", 66, { verb: "drain", ...base });
   if (atGrate(pc)) push("Back down the drain", 40, { verb: "drain", ...base });
   if (atScaffold(pc)) push("Climb the scaffold onto the roof", 64, { verb: "scaffold", ...base });
+  if (atLadder(pc)) push("Climb the maintenance ladder", 64, { verb: "ladder", ...base });
 
   // The police horse.
   if (riding(w, pc)) push("Get off the horse", 60, { verb: "dismount", ...base });

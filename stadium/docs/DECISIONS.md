@@ -468,3 +468,33 @@ West End. Ways into the dressing rooms, besides the ones already there:
 Also new on the approach: Dodgy Del the ticket tout (cheaper than the office; real tickets out of
 his own pocket, and your money goes in it, so he's worth robbing), a TV reporter and cameraman,
 the outside-broadcast truck, a horsebox, a pie stand and parked cars.
+
+## More ways in, the Hitman way
+
+Hitman's levels work because every way in is a person with a routine, a thing they carry, or a
+place they leave something, and somebody nearby will tell you about it ("mission stories",
+about half a dozen per level). Disguises are social: each outfit gets you somewhere, and a few
+people see through it. We copied the grammar, not the content:
+
+- **The stand roof and a parachute.** A maintenance ladder runs up the back of the South Stand.
+  At the top: climb down, or jump. Para Steve is in the car park for the half-time display jump;
+  his kit bag, with the chute in it, is on the floor by his van. With it you float down over the
+  crowd onto the pitch (a crime, and the stewards come for you, but you're in). Without it you
+  die, and it's the end of the day: "Fan dies in fall from stand roof".
+- **Lenny the Lion.** The mascot smokes in the service alley before kick-off, then goes in
+  through the players' entrance and out of the tunnel to wave along the touchline. Knock him out
+  in the alley, take the costume: it covers your face, and a mascot belongs pitchside and in the
+  tunnel. (A new PixelLab character: walk, wave, smoke.)
+- **The press pass.** The TV reporter carries one. It gets you through a turnstile with no ticket
+  and no pat-down.
+- **The laundry hamper.** By the players' entrance. Get in, and when Wally the kit man next
+  goes in he wheels it into the kit room with you inside.
+- **Leads.** Talking to people turns up what they know: Old Reg about the drain, Wally about his
+  card and the hamper, the cameraman about the scaffold, Steve about the ladder and his chute,
+  the reporter about the pass, locals about Lenny, the beer lorry, the smoking steward and the
+  stretcher, Del about his tickets. Each one pops up as "New lead" and is listed in the menu
+  under "Ways in you've heard about". Nothing is forced: every route works whether or not you've
+  heard of it.
+
+Locals now each have their own bit of gossip (it used to be the same first line from all of
+them), and staff go through theirs in turn without upsetting their routines.

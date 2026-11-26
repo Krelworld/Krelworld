@@ -18,6 +18,7 @@ import { say } from "./npc";
 import { alert, crime, isSecurity, struggle, witnessesOf } from "./security";
 import { cargoOpen } from "./vehicles";
 import { holdOpen } from "./bus";
+import { hearLead } from "./entries";
 
 export const SHOPS: Record<string, { name: string; stock: Record<string, number> }> = {
   ticket: { name: "Ticket office", stock: { ticket: 60 } },
@@ -84,8 +85,13 @@ export function installRules(): void {
     check: (w, act, actor) => { const t = targetActor(w, act); return t?.npc && near(actor, t, 3.6) ? null : "nobody to talk to"; },
     perform: (w, act) => {
       const t = targetActor(w, act)!, n = t.npc!;
-      if (n.lines?.length) { say(w, t, n.lines[n.stage % n.lines.length] ?? n.lines[0], 5); n.stage = n.job === "fan" || n.job === "local" ? n.stage : n.stage + 1; }
-      else say(w, t, "What?");
+      if (n.lines?.length) {
+        // Each local has their own bit of gossip; staff go through theirs in turn.
+        const k = n.job === "fan" || n.job === "local" ? [...t.id].reduce((h, c) => h * 31 + c.charCodeAt(0), 7) >>> 0 : (n.said = (n.said ?? 0) + 1) - 1;
+        const line = n.lines[k % n.lines.length] ?? n.lines[0];
+        say(w, t, line, 5);
+        hearLead(w, line);
+      } else say(w, t, "What?");
       if (n.job === "fan" || n.job === "local") n.nextBark = w.state.tick + 120;
     },
   });
@@ -460,6 +466,12 @@ function turnstileCheck(w: World, act: Action): void {
   if (n.mode !== "routine" && n.mode !== "watch") return;
   const g = turnstileNear(t) ?? turnstileNear(by);
   if (!g?.gate) return;
+  if (it.def === "press_pass") {
+    // The press: no ticket, no pat-down, no questions. Unless you're in a mask.
+    if (ap.faceHidden) return void say(w, t, "Press or not, mask off.");
+    st.gates[g.gate] = { until: s.tick + 60 * 4, for: by.id };
+    return void say(w, t, "Press? Go on through, mate.");
+  }
   if (it.def !== "ticket") return void say(w, t, "That's not a ticket, is it?");
   if (st.dog?.state === "led" && !st.flags.serviceDog) return void say(w, t, "No dogs. Not even that one. Especially not that one.");
   if (it.void) { n.sus[by.id] = Math.max(n.sus[by.id] ?? 0, 0.6); return void say(w, t, "This ticket's been cancelled. Hop it."); }

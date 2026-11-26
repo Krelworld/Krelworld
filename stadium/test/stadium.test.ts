@@ -795,7 +795,8 @@ test("drop the knife and stand still for armed police and you're arrested instea
   run(g, 42);
   pc.effects.bloody = s.tick + 6000;
   const o = find(g, (a) => a.npc?.job === "armed");
-  run(g, 10, () => { pc.x = o.x + 5; pc.y = o.y; pc.moveX = pc.moveY = 0; });
+  // Stand where he's looking.
+  run(g, 10, () => { pc.x = o.x + Math.cos(o.facing) * 5; pc.y = o.y + Math.sin(o.facing) * 5; pc.moveX = pc.moveY = 0; });
   assert.equal(st.ending?.kind, "arrested");
 });
 
@@ -928,4 +929,84 @@ test("pull the officer off his horse, ride it, and trample people", () => {
   run(g, 1.5, () => { pc.moveX = 1; pc.moveY = 0; });
   assert.ok(st.horse!.x > 5, "galloping");
   assert.ok(v.downUntil > s.tick, "flattened");
+});
+
+test("up the ladder: with Para Steve's chute you land on the pitch, without it you die", () => {
+  const g = createGame("chute");
+  const pc = pcOf(g), s = g.w.state;
+  run(g, 2);
+  // Steve's bag has the chute in it.
+  const bag = Object.values(s.items).find((i) => i.def === "kitbag")!;
+  const chute = Object.values(s.items).find((i) => i.def === "parachute")!;
+  assert.deepEqual(chute.loc, { k: "in", c: bag.id });
+  pc.x = SPOTS.ladder.x; pc.y = SPOTS.ladder.y;
+  spawnItem(s, "parachute", { k: "pocket", a: pc.id });
+  assert.equal(dispatch(g.w, { verb: "ladder", actor: pc.id }).ok, true);
+  assert.equal(pc.roof, true);
+  assert.equal(dispatch(g.w, { verb: "jump", actor: pc.id }).ok, true);
+  run(g, 8);
+  assert.ok(!pc.dead);
+  assert.equal(areaAt(pc.x, pc.y).pitch, true);
+
+  const g2 = createGame("splat");
+  const pc2 = pcOf(g2);
+  run(g2, 2);
+  pc2.x = SPOTS.ladder.x; pc2.y = SPOTS.ladder.y;
+  assert.equal(dispatch(g2.w, { verb: "ladder", actor: pc2.id }).ok, true);
+  assert.equal(dispatch(g2.w, { verb: "jump", actor: pc2.id }).ok, true);
+  assert.equal(pc2.dead, true);
+  assert.equal(g2.w.state.stadium!.ending?.kind, "fell");
+});
+
+test("the reporter's press pass gets you through a turnstile without a ticket", () => {
+  const g = createGame("press");
+  const pc = pcOf(g);
+  run(g, 2);
+  const pass = spawnItem(g.w.state, "press_pass", { k: "hand", a: pc.id });
+  walk(g, 0, 46.3, 20);
+  const steward = find(g, (a) => a.npc?.job === "turnstile" && Math.abs(a.x) < 1);
+  assert.equal(dispatch(g.w, { verb: "show", actor: pc.id, item: pass.id, target: { k: "actor", id: steward.id } }).ok, true);
+  walk(g, 0, 40, 10);
+  assert.equal(areaAt(pc.x, pc.y).id, "concourse_s");
+});
+
+test("talking to Old Reg turns up a lead about the drain", () => {
+  const g = createGame("lead");
+  const pc = pcOf(g);
+  run(g, 2);
+  const reg = find(g, (a) => a.name === "Old Reg");
+  pc.x = reg.x + 1; pc.y = reg.y;
+  for (let i = 0; i < 3; i++) dispatch(g.w, { verb: "talk", actor: pc.id, target: { k: "actor", id: reg.id } });
+  assert.ok(g.w.state.stadium!.flags.lead_drain);
+});
+
+test("in the laundry hamper, Wally wheels you into the kit room", () => {
+  const g = createGame("hamper");
+  const pc = pcOf(g), s = g.w.state;
+  const hamper = Object.values(s.items).find((i) => i.def === "laundry")!;
+  pc.x = SPOTS.hamperOut.x + 1; pc.y = SPOTS.hamperOut.y;
+  assert.equal(dispatch(g.w, { verb: "hide", actor: pc.id, target: { k: "item", id: hamper.id } }).ok, true);
+  let rode = false;
+  g.w.bus.on((e) => { if (e.type === "hamper_ride") rode = true; });
+  run(g, 240, () => { if (rode) return; });
+  assert.equal(rode, true);
+  assert.equal(dispatch(g.w, { verb: "unhide", actor: pc.id }).ok, true);
+  assert.equal(areaAt(pc.x, pc.y).id, "kitroom");
+});
+
+test("Lenny the Lion smokes in the alley, then goes pitchside; his costume hides your face", () => {
+  const g = createGame("mascot");
+  const pc = pcOf(g), s = g.w.state;
+  run(g, 20);
+  const lenny = find(g, (a) => a.npc?.job === "mascot");
+  assert.equal(areaAt(lenny.x, lenny.y).id, "alley");
+  const suit = Object.values(s.items).find((i) => i.def === "mascot_suit")!;
+  assert.deepEqual(suit.loc, { k: "worn", a: lenny.id, slot: "outer" });
+  // Into the costume: face hidden, a mascot.
+  const g2 = createGame("mascot2");
+  const pc2 = pcOf(g2);
+  spawnItem(g2.w.state, "mascot_suit", { k: "worn", a: pc2.id, slot: "outer" });
+  const ap = appearance(g2.w.state, pc2);
+  assert.equal(ap.role, "mascot"); assert.equal(ap.faceHidden, true);
+  void pc;
 });

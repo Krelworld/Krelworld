@@ -15,7 +15,7 @@ export type Prop =
 export type WearSlot = "head" | "face" | "outer" | "inner" | "body";
 export type Role =
   | "fan" | "steward" | "police" | "cleaner" | "catering" | "medic" | "broadcaster"
-  | "footballer" | "referee" | "vip" | "none";
+  | "footballer" | "referee" | "vip" | "mascot" | "none";
 
 export interface ItemDef {
   id: string;
@@ -102,6 +102,10 @@ export interface Actor {
   looted?: boolean;
   /** Dragging this body along. */
   dragging?: Id;
+  /** Up the maintenance ladder, on the stand roof. */
+  roof?: boolean;
+  /** Coming down under a parachute: from, to, and when. */
+  chute?: { x0: number; y0: number; x1: number; y1: number; t0: number; t1: number };
   /** Thrown back by a blow: metres per second along the ground, until a tick (slows as it goes). */
   knock?: { vx: number; vy: number; from: number; until: number };
   /** Active effects with the tick they wear off, e.g. { drunk: 5400 }. */

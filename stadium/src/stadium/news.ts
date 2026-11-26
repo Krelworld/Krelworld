@@ -20,6 +20,7 @@ export function newsReport(w: World): Bulletin {
   if (f.forfeit === 1) headline = `England through after ${opp} "fail to turn up"`;
   else if (f.forfeit === 2) headline = `England go out without kicking a ball`;
   else if (st.ending?.kind === "shot") headline = `Man shot dead by police at ${VENUE.round}`;
+  else if (st.ending?.kind === "fell") headline = `Fan dies in fall from stand roof at ${VENUE.round}`;
   else if (f.killings) headline = `${f.killings === 1 ? "Death" : `${f.killings} deaths`} at England ${VENUE.round}`;
   else if (st.ending?.kind === "arrested") headline = `England supporter arrested at ${VENUE.round}`;
   else if (m.winner === 0) headline = f.refLax || f.impostorRulings || mine.some((i) => i.severity >= 2) ? `England through amid "unprecedented" scenes` : `England beat ${opp} to reach the ${VENUE.id === "qf" ? "semi-final" : "final"}`;

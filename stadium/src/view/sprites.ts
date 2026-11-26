@@ -9,7 +9,7 @@ import EXTRAS from "../../assets/art/extras.json";
 export const EXTRA: Record<string, string[]> = EXTRAS as Record<string, string[]>;
 
 export const CELL = 88;
-export const BASES = ["fan", "steward", "england", "portugal", "referee", "fanbare", "lad", "woman", "oldboy", "police", "suit", "bigman", "horse", "horsefree", "horsefan"] as const;
+export const BASES = ["fan", "steward", "england", "portugal", "referee", "fanbare", "lad", "woman", "oldboy", "police", "suit", "bigman", "horse", "horsefree", "horsefan", "mascot"] as const;
 export type Base = (typeof BASES)[number];
 /** Pixel rows (within a cell) of the figure's feet and the top of the head. */
 export const FEET = 73, HEAD = 13;
@@ -55,7 +55,7 @@ function shadeTo(data: Uint8ClampedArray, i: number, to: number, ref: number): v
 function classify(base: Base, r: number, g: number, b: number, y: number, lying = false): keyof Recolour | null {
   const [h, s, l] = hsl(r, g, b);
   const skin = h >= 8 && h <= 40 && s > 0.35 && l > 0.35 && l < 0.85 && r > b + 40;
-  if (skin) return "skin";
+  if (skin && base !== "mascot") return "skin";
   if (lying) {
     // On the floor the body isn't in its usual rows: go by colour alone.
     if (base === "steward" || base === "police") return h > 45 && h < 75 && s > 0.35 && l > 0.25 ? "vest" : null;
@@ -75,7 +75,7 @@ function classify(base: Base, r: number, g: number, b: number, y: number, lying 
     case "fanbare":
       if (y > 53 && y <= 66 && h > 190 && h < 250 && l > 0.08) return "legs";
       return null;
-    case "oldboy": case "police": case "suit": case "bigman": case "horse": case "horsefree": case "horsefan":
+    case "oldboy": case "police": case "suit": case "bigman": case "horse": case "horsefree": case "horsefan": case "mascot":
       return null;
     case "fan":
     case "england": {
@@ -111,7 +111,7 @@ const REF: Record<Base, Partial<Record<keyof Recolour, number>>> = {
   fanbare: { legs: 0.5, skin: 0.62 },
   lad: { shirt: 0.92, trim: 0.15, skin: 0.7 },
   woman: { shirt: 0.92, trim: 0.15, skin: 0.72 },
-  oldboy: { skin: 0.7 }, police: { skin: 0.7 }, suit: { skin: 0.7 }, bigman: { skin: 0.7 }, horse: {}, horsefree: {}, horsefan: {},
+  oldboy: { skin: 0.7 }, police: { skin: 0.7 }, suit: { skin: 0.7 }, bigman: { skin: 0.7 }, horse: {}, horsefree: {}, horsefan: {}, mascot: {},
 };
 
 export class SpriteBank {

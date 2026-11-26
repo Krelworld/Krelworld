@@ -3,7 +3,7 @@ import type { Id, Role } from "../core/types";
 
 export type Job =
   | "dog" | "fan" | "local" | "turnstile" | "doorguard" | "gateguard" | "pitchsteward" | "patrol" | "corridor" | "chief"
-  | "police" | "barman" | "seller" | "cleaner" | "driver" | "worker" | "cook" | "player" | "official" | "armed" | "kitman" | "groundsman" | "press";
+  | "police" | "barman" | "seller" | "cleaner" | "driver" | "worker" | "cook" | "player" | "official" | "armed" | "kitman" | "groundsman" | "press" | "mascot" | "para";
 
 export type Task =
   | { k: "go"; x: number; y: number; run?: boolean }
@@ -16,6 +16,8 @@ export type Mode = "routine" | "watch" | "approach" | "chase" | "escort" | "sear
 
 export interface Npc {
   job: Job;
+  /** How many times you've talked to them (which of their lines comes next). */
+  said?: number;
   role: Role;
   team?: 0 | 1;
   post?: { x: number; y: number };
@@ -126,7 +128,7 @@ export interface Incident {
   seenBy: number;
 }
 
-export interface Ending { kind: "arrested" | "eliminated" | "through" | "hospital" | "shot"; title: string; text: string }
+export interface Ending { kind: "arrested" | "eliminated" | "through" | "hospital" | "shot" | "fell"; title: string; text: string }
 
 export interface StadiumState {
   pc: Id;

@@ -57,9 +57,9 @@ const QF_AREAS: Area[] = [
   { id: "corner_se", name: "South concourse", access: "ticket", floor: C.concourse, ...r(40, 27, 50, 38) },
   { id: "corner_nw", name: "West concourse", access: "ticket", floor: C.concourse, ...r(-50, -38, -40, -27) },
   { id: "corner_ne", name: "East concourse", access: "ticket", floor: C.concourse, ...r(40, -38, 50, -27) },
-  { id: "verge", name: "Pitchside", access: "pitch", roles: ["steward", "police", "medic", "footballer", "referee", "broadcaster"], floor: C.verge, pitch: true, ...r(-41, -28, 41, 28) },
+  { id: "verge", name: "Pitchside", access: "pitch", roles: ["steward", "police", "medic", "footballer", "referee", "broadcaster", "mascot"], floor: C.verge, pitch: true, ...r(-41, -28, 41, 28) },
   { id: "pitch", name: "The pitch", access: "pitch", roles: ["footballer", "referee"], floor: C.grass, pitch: true, ...r(-36, -23, 36, 23) },
-  { id: "tunnel", name: "Players' tunnel", access: "restricted", roles: ["steward", "police", "footballer", "referee", "medic"], floor: C.players, ...r(-2, -38, 2, -28) },
+  { id: "tunnel", name: "Players' tunnel", access: "restricted", roles: ["steward", "police", "footballer", "referee", "medic", "mascot"], floor: C.players, ...r(-2, -38, 2, -28) },
 
   // Behind the Main Stand: staff only.
   { id: "kitroom", name: "Kit room", access: "restricted", roles: ["footballer", "catering", "steward", "medic"], floor: 0x3e4a5a, ...r(-56, -61, -47, -50) },
@@ -214,9 +214,9 @@ export const QF_FURNITURE: Furniture[] = [
   f("medbed", -43.5, -57.8, 2.6, 1.1, true, "medical"),
   f("grate", -24, -58.4, 1, 1, false, "dress_home"), f("hatch", -60.5, 78.4, 1.3, 1, false, "pub"),
   // The approach and the car park: a scaffold on the corner, a pie stand, the TV truck, parked cars, the horsebox.
-  f("scaffold", 47.5, 46.4, 3.6, 1.2, true), f("piestand", -40, 54.5, 3.2, 1.6, true),
-  f("obtruck", 52, 66.5, 6.8, 2.6, true), f("horsebox", 40, 81, 6.2, 2.4, true),
-  f("parkedcar", 31, 73, 4.6, 1.8, true), f("parkedcar", 36.5, 77.6, 4.6, 1.8, true), f("parkedcar", 52, 77.6, 4.6, 1.8, true),
+  f("scaffold", 47.5, 46.4, 3.6, 1.2, true), f("ladder", -36, 45.4, 1, 0.3, false), f("kitbag", 57.8, 73.2, 1.4, 0.8, false), f("piestand", -40, 54.5, 3.2, 1.6, true),
+  f("obtruck", 33, 66.4, 6.8, 2.6, true), f("horsebox", 40, 81, 6.2, 2.4, true),
+  f("parkedcar", 31, 73, 4.6, 1.8, true), f("parkedcar", 36.5, 77.6, 4.6, 1.8, true), f("parkedcar", 57.2, 77.6, 4.6, 1.8, true),
   // The street: trees in grates along the approach, a statue, bin bags and pavement boards.
   ...[-45.5, -32.5, -19.5, 19.5, 32.5, 45.5].map((x) => f("tree", x, 59.4, 0.5, 0.5, true, undefined, 3)),
   f("statue", -44, 53.2, 1.3, 1.0, true, undefined, 3),
@@ -282,6 +282,12 @@ const QF_SPOTS = {
   reporter: { x: 8, y: 56.2 },
   cameraman: { x: 8, y: 59.6 },
   shed: { x: -63.2, y: 10.5 },
+  ladder: { x: -36, y: 45.8 },
+  para: { x: 56, y: 71.6 },
+  kitbag: { x: 57.8, y: 72.6 },
+  mascotSmoke: { x: -63, y: -40 },
+  hamperOut: { x: -60.5, y: -56.2 },
+  pitchSpot: { x: -14, y: 26.4 },
   alarmPoints: [{ x: -30, y: 43.6 }, { x: 36, y: 43.6 }, { x: -55.6, y: -12 }, { x: 55.6, y: 18 }, { x: -30, y: -47.6 }],
 };
 

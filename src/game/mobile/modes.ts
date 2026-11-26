@@ -123,7 +123,7 @@ export const SCENE_RULES: SceneRule[] = [
     name: "screens and overlays",
     match: (k) =>
       /^__p3d/.test(k) ||
-      keys("Boot", "Enter", "Title", "CharSelect", "Difficulty", "Banter", "ChapterSelect", "DebugSkip", "Menu", "Slots", "WeaponPick", "Dialogue", "Meeting", "Cutscene", "Vignette", "TV", "Archive", "KrazyFact", "Exile", "Ending", "Tutorial", "Lair", "RoofCutscene", "KrelCue")(k),
+      keys("Boot", "Enter", "Title", "CharSelect", "Difficulty", "Banter", "ChapterSelect", "DebugSkip", "Menu", "Slots", "WeaponPick", "Dialogue", "Meeting", "Cutscene", "Vignette", "TV", "Archive", "KrazyFact", "Exile", "Ending", "Tutorial", "Lair", "RoofCutscene", "KrelCue", "DonutToilet")(k),
     decide: () => ({ mode: "none" }),
   },
   {

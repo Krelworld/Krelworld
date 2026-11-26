@@ -16,7 +16,7 @@
   {
    "key": "Hub",
    "status": "PAUSED",
-   "count": {"top":568,"all":569,"hidden":8,"interactive":0},
+   "count": {"top":571,"all":572,"hidden":10,"interactive":0},
    "cam": {
     "x": 0,
     "y": 0,
@@ -34,7 +34,7 @@
     "enabled": true,
     "topOnly": true,
     "listeners": {"pointermove":1},
-    "keyboard": {"enabled":true,"keys":[9,27,37,38,39,40,65,68,69,74,83,87],"listeners":{}}
+    "keyboard": {"enabled":true,"keys":[9,27,37,38,39,40,65,68,69,74,83,87,90],"listeners":{}}
    },
    "timers": 9,
    "tweens": 153,
@@ -391,6 +391,7 @@
     {"t":"Sprite","x":2389,"y":1239,"w":19.8,"h":58.85,"o":[0.5,1],"s":[0.55,0.55],"d":1380,"a":0.45,"tint":"#d8d4e8","tex":"vfx_smokecol:4","anim":"vfx_smokecol"},
     {"t":"Image","x":1542,"y":1385,"w":55,"h":27,"o":[0.5,1],"d":1385,"tex":"hd_fence:__BASE"},
     {"t":"Image","x":1778,"y":1385,"w":88,"h":40,"o":[0.5,1],"d":1385,"tex":"hd_hedge:__BASE"},
+    {"t":"Sprite","x":606,"y":1392,"w":60,"h":60,"o":[0.5,1],"s":[0.938,0.938],"d":1392,"tex":"bike:3"},
     {"t":"Sprite","x":611.42,"y":1397.78,"w":57.81,"h":57.81,"s":[0.903,0.903],"d":1397.78,"tex":"spr_MIKEY:13"},
     {"t":"Image","x":1902.5,"y":1398,"w":58,"h":50,"o":[0.5,1],"d":1398,"tex":"hd_crates:__BASE"},
     {"t":"Image","x":2097.5,"y":1398,"w":32,"h":45,"o":[0.5,1],"d":1398,"tex":"hd_pot:__BASE"},
@@ -756,7 +757,7 @@
    "input": {"gameout":3,"gameover":3,"process":3},
    "textures": {}
   },
-  "textures": 2594,
+  "textures": 2595,
   "anims": 48
  },
  "dom": {

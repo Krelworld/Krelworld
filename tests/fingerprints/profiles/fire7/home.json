@@ -16,7 +16,7 @@
   {
    "key": "UI",
    "status": "RUNNING",
-   "count": {"top":19,"all":26,"hidden":10,"interactive":3},
+   "count": {"top":19,"all":28,"hidden":12,"interactive":3},
    "cam": {"x":0,"y":0,"w":960,"h":540,"scrollX":0,"scrollY":0,"zoom":[1,1],"bg":"0,0,0,0","roundPixels":true},
    "input": {
     "enabled": true,
@@ -36,7 +36,7 @@
     {"t":"Text","x":68,"y":6,"w":79,"h":14,"o":[0,0],"text":"FLENKY JENKY","font":"Krel Regular 12px","asked":"ui 13px bold","color":"#ffd23f","shadow":"1,1 #000 0"},
     {"t":"Text","x":68,"y":44,"w":0,"h":13,"o":[0,0],"text":"","font":"Krel Regular 11px","asked":"ui 12px","color":"#ffffff","lineSpacing":2,"shadow":"1,1 #000 0"},
     {"t":"Text","x":455,"y":6,"w":114,"h":13,"o":[0.5,0],"text":"CHAPTER 1 · KRELFORD","font":"Krel Regular 11px","asked":"ui 12px","color":"#c9c3e6","shadow":"1,1 #000 0"},
-    {"t":"Container","x":0,"y":0,"w":0,"h":0,"d":900,"n":7,"kids":[
+    {"t":"Container","x":0,"y":0,"w":0,"h":0,"d":900,"n":9,"kids":[
      {"t":"Arc","x":110,"y":430,"w":124,"h":124,"fill":"#ffffff 0.12","line":"#ffffff 0.35 2","r":62},
      {"t":"Arc","x":110,"y":430,"w":56,"h":56,"fill":"#ffffff 0.35","r":28},
      {"t":"Zone","x":0,"y":160,"w":420,"h":380,"o":[0,0],"hit":{"shape":"rect","x":0,"y":0,"w":420,"h":380}},
@@ -160,7 +160,7 @@
    "input": {"gameout":2,"gameover":2,"process":2},
    "textures": {}
   },
-  "textures": 2515,
+  "textures": 2517,
   "anims": 42
  },
  "dom": {

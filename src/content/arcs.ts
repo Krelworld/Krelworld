@@ -956,24 +956,6 @@ export const ARCS: Arc[] = [
         },
       },
       {
-        id: "lost_property",
-        text: "You've lost everything. Again. Find your stuff around Krelford.",
-        at: "FIELD",
-        step: {
-          kind: "collect",
-          label: "Your stuff",
-          pickup: [say("MIKEY", "YEEEE. Wot majik. Am a wizard.")],
-          spots: [
-            { x: 520, y: 1090, name: "passport" },
-            { x: 1600, y: 1020, name: "wallet" },
-            { x: 2240, y: 1090, name: "driving licence" },
-            { x: 460, y: 1480, name: "bike battery" },
-            { x: 1940, y: 1660, name: "spare bike battery" },
-            { x: 2520, y: 510, name: "headphone case (still lost, this is a different one)" },
-          ],
-        },
-      },
-      {
         id: "russian_hackers",
         text: "The Colonel won't let you back in. Phone some 'contacts' from the pub payphone.",
         at: "PUB",

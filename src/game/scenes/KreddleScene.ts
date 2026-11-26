@@ -13,6 +13,9 @@ import { TOUCH } from "../ui/TouchControls";
 import { GUNS } from "../../data/guns";
 import { dir, say } from "../../content/dsl";
 import { animateWalker } from "../gfx/HD";
+import { BikeRider } from "../gfx/Bike";
+import { bikeTip, bikeVelocity, canRide, reportBike, rideSpeed } from "../systems/bike";
+import { keysFor, prettyKey } from "../systems/keybinds";
 import { CHARACTERS, LADS } from "../../data/characters";
 import { DECOR } from "../../content/home";
 import { INSULT, KRUNCHERS, KRUNCHER_BOAST, LOCAL_CHAT, PRIZE, PRIZES, SHOVES, WELCOME_SPEECH } from "../../content/kreddle";
@@ -82,6 +85,9 @@ export class KreddleScene extends Phaser.Scene {
   private raid: KreddleRaid | null = null;
   /** Chapter 3: taking on Kreddle (entered with `{ rout: true }`): the krew get annihilated on the ordinary Strip. */
   private rout: KreddleRout | null = null;
+  /** Your bike (ridden over the bridge from town, or got on here: it's yours wherever you are outdoors). */
+  private bike: BikeRider | null = null;
+  private bikeV = { x: 0, y: 0 };
 
   constructor() {
     super("Kreddle");
@@ -101,6 +107,7 @@ export class KreddleScene extends Phaser.Scene {
     this.busy = false;
     this.raid = null;
     this.rout = null;
+    this.bike = null;
     if (data?.rout) {
       this.npcs = [];
       this.spots = [];
@@ -134,6 +141,11 @@ export class KreddleScene extends Phaser.Scene {
     this.me = this.add.sprite(110, 560, playerKey(this), 0).setScale(2).setDepth(560);
     bindSanmikToggle(this, { sprites: () => [this.me], can: () => !this.busy });
     this.me.setData("facing", "east");
+    this.bike = new BikeRider(this, null, Math.abs(this.me.scaleX) || 1);
+    this.bikeV = { x: 0, y: 0 };
+    // paused under anything (the Krezzcoin counter, a conversation): off the bike
+    this.events.off("pause", this.onBikePause);
+    this.events.on("pause", this.onBikePause);
     this.cameras.main.startFollow(this.me, true, 0.1, 0.1);
     this.prompt = this.add.text(0, 0, "", { fontFamily: FONT, fontSize: "13px", color: "#ffffff", backgroundColor: "#1a0b24dd", padding: { x: 6, y: 3 } }).setOrigin(0.5).setDepth(3000).setVisible(false);
     this.coinText = this.add.text(950, 10, "", { fontFamily: FONT, fontSize: "15px", color: "#ffd23f", fontStyle: "bold", stroke: "#000", strokeThickness: 4 }).setOrigin(1, 0).setScrollFactor(0).setDepth(4000);
@@ -408,6 +420,7 @@ export class KreddleScene extends Phaser.Scene {
     const dt = Math.min(delta, 50);
     this.coinText.setText(`💰 ${s.coins}   🎟 ${krokens(s)}`);
     this.updateNpcs(time, dt);
+    this.bikeControl();
     if (this.busy || this.panelRoot) {
       this.prompt.setVisible(false);
       animateWalker(this.me, 0, 0, false, time);
@@ -418,11 +431,25 @@ export class KreddleScene extends Phaser.Scene {
       return;
     }
     const mv = this.controls.move();
-    const sp = 230 * (dt / 1000);
-    this.me.x = Phaser.Math.Clamp(this.me.x + mv.x * sp, 30, W - 30);
-    this.me.y = Phaser.Math.Clamp(this.me.y + mv.y * sp, TOP, BOTTOM);
-    this.me.setDepth(this.me.y);
-    animateWalker(this.me, mv.x, mv.y, Math.hypot(mv.x, mv.y) > 0.1, time);
+    if (this.bike?.riding) {
+      // on the bike: faster, with a little pick-up and coast (the same edges of the Strip)
+      const top = rideSpeed(230);
+      const v = (this.bikeV = bikeVelocity(this.bikeV.x, this.bikeV.y, mv.x * top, mv.y * top, dt));
+      const nx = Phaser.Math.Clamp(this.me.x + (v.x * dt) / 1000, 30, W - 30);
+      const ny = Phaser.Math.Clamp(this.me.y + (v.y * dt) / 1000, TOP, BOTTOM);
+      if (nx !== this.me.x + (v.x * dt) / 1000) v.x = 0;
+      if (ny !== this.me.y + (v.y * dt) / 1000) v.y = 0;
+      this.me.setPosition(nx, ny);
+      this.me.setDepth(this.me.y);
+      this.bike.update(this.me, v.x, v.y, dt, time, mv);
+    } else {
+      const sp = 230 * (dt / 1000);
+      this.me.x = Phaser.Math.Clamp(this.me.x + mv.x * sp, 30, W - 30);
+      this.me.y = Phaser.Math.Clamp(this.me.y + mv.y * sp, TOP, BOTTOM);
+      this.me.setDepth(this.me.y);
+      animateWalker(this.me, mv.x, mv.y, Math.hypot(mv.x, mv.y) > 0.1, time);
+      this.bike?.update(this.me, 0, 0, dt, time);
+    }
     // what's in reach
     let best: { label: string; use: () => void; d: number } | null = null;
     for (const sp2 of this.spots) {
@@ -438,11 +465,41 @@ export class KreddleScene extends Phaser.Scene {
     }
     if (best) {
       this.prompt.setText(best.label).setPosition(this.me.x, this.me.y - 56).setVisible(true);
-      if (this.controls.interact()) best.use();
+      if (this.controls.interact()) {
+        // a machine, a counter or a chat: off the bike first
+        if (this.bike?.riding) this.bike.dismount(this.me);
+        best.use();
+      }
     } else {
       this.prompt.setVisible(false);
       this.controls.interact();
     }
+  }
+
+  private onBikePause = () => {
+    if (this.bike?.riding) this.bike.dismount(this.me);
+  };
+
+  /** Every frame: the bike key (or BIKE button) gets you on and off; a machine, a chat or a shove gets you off. */
+  private bikeControl() {
+    const bike = this.bike;
+    if (!bike) return;
+    const ok = canRide({ scene: "Kreddle", busy: this.busy || !!this.panelRoot, hidden: !this.me.visible });
+    const press = this.controls.bike();
+    if (!ok) {
+      if (bike.riding) bike.dismount(this.me);
+    } else if (press) {
+      if (bike.riding) bike.dismount(this.me);
+      else {
+        bike.mount(this.me);
+        this.bikeV = { x: 0, y: 0 };
+        if (!G.s.flags.bike_tip) {
+          G.s.flags.bike_tip = true;
+          G.emit("toast", bikeTip(prettyKey(keysFor("bike")[0] ?? "Z")));
+        }
+      }
+    }
+    reportBike("Kreddle", ok && bike.ok, bike.riding);
   }
 
   private updateNpcs(time: number, dt: number) {

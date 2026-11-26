@@ -66,6 +66,7 @@ main.ts ── boot.ts installMobile(game) ──► isMobile()? no → return (
 | `combatLogic.ts` | Pure: READY's order, HEAL's rule, tap / hold (`HoldTracker`), SPECIAL's word and fill, the Dungeon's two mode rows |
 | `combatWording.ts` | Pure: the fights' touch wording rows (the weapon picker's how-to line, the first dungeon's how-to-play rows, the finale's inject hint) |
 | `combatCss.ts` | The fight controls' CSS (its own `<style>`, phones only) |
+| `bike.ts` / `bikeLogic.ts` | The bike's RIDE / WALK button in the walking controls (town and the Kreddle Strip); its pure face and show rule |
 | `index.ts` | The phone chunk's `installMobile()`, `mobileLayer()`, `mobileShell()` and re-exports |
 
 ## Deciding phone mode
@@ -192,7 +193,7 @@ topmost running scene per rule):
 
 | Running scene | Mode | Pause | Live |
 |---|---|---|---|
-| Boot, Enter, Title, CharSelect, Difficulty, Banter, ChapterSelect, DebugSkip, Menu, Slots, WeaponPick, Dialogue, Meeting, Cutscene, Vignette, TV, Archive, KrazyFact, Exile, Ending, Tutorial, Lair, RoofCutscene, KrelCue, `__p3d*` | none | – | – |
+| Boot, Enter, Title, CharSelect, Difficulty, Banter, ChapterSelect, DebugSkip, Menu, Slots, WeaponPick, Dialogue, Meeting, Cutscene, Vignette, TV, Archive, KrazyFact, Exile, Ending, Tutorial, Lair, RoofCutscene, KrelCue, DonutToilet (the Job Centre toilet cutscene, scenes/side/donutToilet.ts), `__p3d*` | none | – | – |
 | Minigame, Whack, Drive, BeepBeep | tap | – (stage 3) | yes |
 | Pub, Pit, PitLoan, PolsonHome | none | – | – |
 | Finale with the Super Saiyan brawl running (stage 2 part 2, `brawl.ts`) | brawl: the phone stick (`"2d"`), PUNCH / BLOCK / VANISH / KICK / KI; the rush is a tap anywhere | – | yes |
@@ -816,6 +817,23 @@ press", "Is there a pause button?", "The joystick ... can slide all over the scr
   SKIP FIGHT). Not while a conversation, a scripted moment or the weapon picker is up (none pauses on a laptop either),
   not on menus (they are the pause), and not in the overlay minigames: none of them pauses on a laptop (Whack and
   RuneScape's Esc leaves); stage 3 looks at those.
+
+## The bike (game additions, all versions)
+
+The bike is ordinary game code (it is on laptops too): `systems/bike.ts` (the rules and numbers, and `BIKE`, the state
+the scene you ride in writes every frame), `gfx/Bike.ts` (the sprites round the rider), and small parts of
+`HubScene` / `KreddleScene` (ride, get off), `Controls.bike()` (the key Z, L3 on a pad, `TOUCH.edges` "bike"),
+`keybinds` / `padbinds` (the rebindable key; L3 as a fixed pad row), the tablets' canvas pad (a 🚲 button in town)
+and Synth (`bikebell`, `bikeoff`). On a phone, `bike.ts` here adds one control to walk mode:
+
+| Slot | Control | When | What it does (laptop key) |
+|---|---|---|---|
+| walkBike (60; in 148, up 44: left of ACTION on the thumb's resting line) | **RIDE** (a drawn bike, the word under it); **WALK** and lit red while riding | walk mode, while the scene says there is a bike to get on or off (`bikeAvailable()`: Hub and Kreddle, not busy, no cutscene, no street fight) | get on / off (Z) |
+
+It pulses until pressed once on the phone (`cueSeen("bike")`). The stick steers the bike; tapping a thing to use it
+gets you off first (any use does). The first-time tip ("Press Z to hop on your bike...") is a toast, reworded by the
+`bike-on` / `bike-off` rows of `TOUCH_WORDING`. The Controls picture's WALKING tab has a RIDE line. Smoke section:
+`bike`.
 
 ## Testing
 

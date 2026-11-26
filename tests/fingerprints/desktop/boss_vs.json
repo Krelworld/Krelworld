@@ -261,7 +261,7 @@
    "input": {"gameout":3,"gameover":3,"process":3},
    "textures": {}
   },
-  "textures": 2570,
+  "textures": 2571,
   "anims": 50
  },
  "dom": {

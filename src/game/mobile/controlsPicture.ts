@@ -37,6 +37,7 @@ export const PICTURE: Record<PictureTab, PictureItem[]> = {
   walk: [
     { at: { zone: true }, word: "MOVE", line: "Put your thumb down anywhere here and drag to walk" },
     { at: { slot: "prime" }, word: "TALK", line: "Shows up when you're next to something you can use (TALK, OPEN, USE...). Tap it, or tap that thing itself" },
+    { at: { slot: "walkBike" }, word: "RIDE", line: "Out in town: hop on your bike (much faster), tap again to walk" },
     PAUSE,
   ],
   fight: [

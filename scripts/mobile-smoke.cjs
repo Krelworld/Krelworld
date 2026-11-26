@@ -2891,7 +2891,7 @@ async function combat(browser) {
       const ahead = await aimFor(150, -20, 0);
       const behind = await aimFor(-150, 20, 0);
       const turned = await aimFor(-150, 20, Math.PI);
-      check("HOLD: the aim locks onto the enemy in front, not one behind you (aims ahead instead); turning toward it locks on", ahead.target === ahead.want && behind.target !== behind.want && (behind.target !== null || Math.abs(behind.aim) < 0.05) && turned.target === turned.want, { ahead, behind, turned });
+      check("HOLD: the aim locks onto an enemy you can see all round you, in front or behind", ahead.target === ahead.want && behind.target === behind.want && turned.target === turned.want, { ahead, behind, turned });
       const view = await ph.ev(() => {
         const d = window.__krel.game.scene.getScene("Dungeon");
         const v = d.cameras.main.worldView;

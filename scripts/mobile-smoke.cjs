@@ -2,7 +2,7 @@
 // PHONE MODE smoke test (Playwright, real touch events). Needs a running dev server.
 //
 //   npx vite --port 5202 --strictPort &
-//   node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,bike,dungeon,combat,side,brawl,together,review1,polish,platform,android,tapuse,scenes,desktop]
+//   node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,bike,dungeon,combat,side,brawl,together,review1,polish,platform,android,tapuse,scenes,s4,cluster,desktop]
 //
 // phone    iPhone 14 landscape (844x390, DPR 3, touch, mobile Safari UA). Boots by taps, starts a new game by taps,
 //          clears the welcome at home by taps, then checks: the idle stick and pause are up; a drag moves the player
@@ -115,7 +115,7 @@ const SHOTS = arg("--shots", "");
 // (the s4 section's parts, for a quicker look at one: --s4 posse,back,wonk,tv,...)
 const S4PART = (arg("--s4", "") || "").split(",").filter(Boolean);
 const s4part = (p) => !S4PART.length || S4PART.includes(p);
-const ONLY = (arg("--only", "phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,bike,dungeon,combat,side,brawl,together,review1,polish,platform,android,tapuse,tapfix,platfix,mix3,games,scenes,wave2,s4,desktop") || "").split(",").filter(Boolean);
+const ONLY = (arg("--only", "phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,bike,dungeon,combat,side,brawl,together,review1,polish,platform,android,tapuse,tapfix,platfix,mix3,games,scenes,wave2,s4,cluster,desktop") || "").split(",").filter(Boolean);
 const IOS_UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1";
 const IPHONE = { viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, userAgent: IOS_UA };
 const DESKTOP = { viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1, hasTouch: false, isMobile: false };
@@ -7078,6 +7078,125 @@ async function s4fix(browser) {
   }
 }
 
+// ------------------------------------------------------------------ the fight cluster hugs the right edge (s4b)
+
+/**
+ * The fight buttons, everything up at once (Mikey with his Krezz, a second gun, WONK full, fart charge, a bongo or
+ * low health with juice, a prompt), measured at the phone sizes the user plays on: every fight button's centre within
+ * 200 px (x the controls' scale) of the safe edge on the thumb's side, no two drawings on each other, pause and the
+ * weapon chip where they always are and clear, nothing over the HUD's texts; the same with Bigger text off,
+ * left-handed, and in a side room (JUMP). Buttons that stay up keep their place when others come and go.
+ */
+async function cluster(browser) {
+  console.log("CLUSTER (the fight buttons hug the thumb's edge: every one within 200 px, nothing overlapping, stable)");
+  const profiles = [
+    { tag: "iphone", profile: IPHONE, insets: { top: 0, right: 47, bottom: 21, left: 47 } },
+    { tag: "android", profile: { ...ANDROID, userAgent: UA.androidChrome }, insets: null },
+    { tag: "safari-bars", profile: { ...IPHONE, viewport: { width: 750, height: 340 } }, insets: null },
+    { tag: "bigphone", profile: { ...IPHONE, viewport: { width: 932, height: 430 } }, insets: { top: 0, right: 59, bottom: 21, left: 59 } },
+  ];
+  const FIGHT = /^c-(fire|sfire|jump|dodge|swap|special|ready|heal|action|bongo|fart|sanmik)$/;
+  for (const pr of profiles) {
+    const { ctx, ph, errors } = await phoneAtTitle(browser, pr.profile);
+    const where = `${pr.tag} ${pr.profile.viewport.width}x${pr.profile.viewport.height}`;
+    // everything up: the game's own state, held each frame (nothing is forced on the layer itself)
+    const loadOut = (o) =>
+      ph.ev(async (o) => {
+        const k = window.__krel;
+        const s = k.G.s;
+        const d = k.game.scene.getScene("Dungeon");
+        const st = await import("/src/game/systems/stats.ts");
+        const g = await import("/src/game/combat/Guns.ts");
+        for (const e of d.enemies || []) if (!e.dead && !e.isBoss) e.setPosition(-5000, -5000);
+        s.guns = s.guns || {};
+        for (const id of Object.keys(g.GUNS).filter((id) => id !== "chem_flamer").slice(0, 2)) s.guns[id] = Math.max(20, s.guns[id] || 0);
+        if (!s.gun) s.gun = Object.keys(s.guns)[0];
+        if (window.__clusterHold) clearInterval(window.__clusterHold);
+        const keep = () => {
+          s.krezz = st.maxKrezz(s);
+          s.bongos = 2;
+          s.bottles = o.heal ? 3 : 0;
+          s.hp = Math.round(st.maxHp(s) * (o.heal ? 0.3 : 1));
+          k.G.rt.fart = 55;
+          s.flags.sanmik_form = false;
+          if (d.player) {
+            d.player.wonk = o.ready ? 100 : 0;
+            d.player.iframesUntil = d.now() + 6000;
+          }
+        };
+        keep();
+        window.__clusterHold = setInterval(keep, 200);
+        // a prompt: ACTION
+        d.interactables = (d.interactables || []).filter((it) => !it.__cluster);
+        if (o.action && d.player) d.interactables.push({ __cluster: true, x: d.player.x, y: d.player.y, r: 99999, label: "Search", use() {} });
+      }, o);
+    const measure = async (name) => {
+      await sleep(1300);
+      const m = await measureScreen(ph);
+      const info = await ph.ev(async () => {
+        const L = await import("/src/game/mobile/layout.ts");
+        const S = await import("/src/game/mobile/settings.ts");
+        const sn = window.__krelMobile.snapshot();
+        const st = S.phoneSettings();
+        const vp = sn.viewport;
+        const side = Math.max(vp.insets.left, vp.insets.right, 0);
+        return { vp, side, scale: L.controlScale(vp.h, st.buttonSize), left: st.leftHanded };
+      });
+      const reach = 200 * info.scale + 0.5;
+      const fight = m.controls.filter((c) => FIGHT.test(c.id));
+      const far = fight
+        .map((c) => ({ id: c.id, from: Math.round(info.left ? c.face.x + c.face.w / 2 - info.side : info.vp.w - info.side - (c.face.x + c.face.w / 2)) }))
+        .filter((c) => c.from > reach);
+      const col = collisions(m);
+      const onHud = [];
+      for (const c of fight) for (const h of m.hud) if (overlap(c.face, h.r, 1)) onHud.push(`${c.id} on ${h.id}`);
+      const small = fight.filter((c) => Math.min(c.face.w, c.face.h) < 43.5).map((c) => `${c.id}:${Math.round(c.face.w)}`);
+      check(`cluster ${where} ${name}: every fight button within ${Math.round(reach)} px of the thumb's edge`, far.length === 0, far.length ? far : fight.map((c) => c.id));
+      check(`cluster ${where} ${name}: no button on another (pause and the weapon chip clear), none over the HUD's words, none under 44 px`, col.length === 0 && onHud.length === 0 && small.length === 0, [...col, ...onHud, ...small].slice(0, 8));
+      await ph.shot(`cluster-${pr.tag}-${name}`);
+      const at = {};
+      for (const c of m.controls) at[c.id] = [Math.round(c.face.x + c.face.w / 2), Math.round(c.face.y + c.face.h / 2)];
+      return { at, ids: m.controls.map((c) => c.id) };
+    };
+    try {
+      if (pr.insets) await ph.ev((i) => window.__krelMobile.setInsets(i), pr.insets);
+      await ph.ev(() => window.__krelMobile.combat.resetTeaching());
+      const ok = await toFight(ph, "wildern", 1, 2, "MIKEY");
+      check(`cluster ${where}: a top-down room as Mikey`, ok, await ph.mode());
+      await loadOut({ heal: true, ready: true, action: true });
+      const all = await measure("all-heal");
+      check(`cluster ${where}: everything is up (FIRE, DODGE, SWAP, SPECIAL, READY, HEAL, ACTION, FART, SANMIK)`, ["c-fire", "c-dodge", "c-swap", "c-special", "c-ready", "c-heal", "c-action", "c-fart", "c-sanmik"].every((id) => all.ids.includes(id)), all.ids);
+      await loadOut({ heal: false, ready: true, action: true });
+      const allB = await measure("all-bongo");
+      check(`cluster ${where}: BONGO up instead of HEAL`, allB.ids.includes("c-bongo") && !allB.ids.includes("c-heal"), allB.ids);
+      // stable: READY and ACTION go; nobody else moves
+      await loadOut({ heal: false, ready: false, action: false });
+      const fewer = await measure("fewer");
+      const moved = Object.keys(fewer.at).filter((id) => allB.at[id] && Math.hypot(fewer.at[id][0] - allB.at[id][0], fewer.at[id][1] - allB.at[id][1]) > 1);
+      check(`cluster ${where}: buttons keep their places when others go (READY, ACTION gone)`, moved.length === 0, { moved, before: allB.at, after: fewer.at });
+      await loadOut({ heal: true, ready: true, action: true });
+      await ph.ev(() => window.__krelMobile.settings.set({ readability: false }));
+      await measure("all-smalltext");
+      await ph.ev(() => window.__krelMobile.settings.set({ readability: true, leftHanded: true }));
+      await measure("all-lefthanded");
+      await ph.ev(() => window.__krelMobile.settings.set({ leftHanded: false }));
+      // a side room (JUMP in the corner, FIRE beside it)
+      const okS = await toFight(ph, "arena_sanmik", 1, 5, "MIKEY", "side:Dungeon");
+      check(`cluster ${where}: a side room as Mikey`, okS, await ph.mode());
+      await loadOut({ heal: true, ready: true, action: true });
+      const sd = await measure("side-all");
+      check(`cluster ${where} side: JUMP and FIRE up with the rest`, ["c-jump", "c-sfire", "c-dodge", "c-special", "c-heal"].every((id) => sd.ids.includes(id)), sd.ids);
+      await ph.ev(() => window.__krelMobile.settings.set({ leftHanded: true }));
+      await measure("side-lefthanded");
+      await ph.ev(() => window.__krelMobile.settings.set({ leftHanded: false }));
+      check(`cluster ${where}: no page errors`, errors.length === 0, errors.slice(0, 3));
+    } finally {
+      await ph.ev(() => window.__clusterHold && clearInterval(window.__clusterHold)).catch(() => {});
+      await ctx.close();
+    }
+  }
+}
+
 (async () => {
   const t0 = Date.now();
   let browser;
@@ -7118,6 +7237,7 @@ async function s4fix(browser) {
       ["scenes", scenesSection],
       ["wave2", wave2],
       ["s4", s4fix],
+      ["cluster", cluster],
       ["desktop", desktop],
     ]) {
       if (!ONLY.includes(id)) continue;

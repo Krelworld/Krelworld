@@ -35,7 +35,7 @@ import { registerModeController, type ModeContext, type TouchControl, type Touch
 import { ACQUIRE, AIM_TUNE, CONE_DEG, CONE_KEEP_DEG, MELEE_REACH, SLIDE_PX, aimPointFor, autoFireOk, inView, lineOfSight, pickTarget, snapAim, type AimTarget, type Pt, type WallRect } from "./aim";
 import { cueSeen, markCue } from "./cues";
 import { AutoPace, StillGate, DUNGEON_RULE, FIRE_GRACE_MS, HoldTracker, MashQueue, PICKER_RULE, READY, RELABEL_MS, TEACH_ROOMS, healShown, healWanted, readyAbility, spamGap, specialCost, specialWanted, specialWord, type ReadyId } from "./combatLogic";
-import { controlScale, MIN_CONTROL, safeRect, type Placed, type Rect } from "./layout";
+import { fightCluster, hudKeepOut, weaponChip, type FightRole, type Placed, type Rect } from "./layout";
 import { COMBAT_CSS, COMBAT_STYLE_ID } from "./combatCss";
 import { haptic } from "./haptics";
 import { SideMove } from "./side";
@@ -192,6 +192,26 @@ function saveTaught(t: Taught) {
 
 type CtlId = "fire" | "sfire" | "jump" | "dodge" | "swap" | "special" | "ready" | "heal" | "action" | "chip" | "bongo" | "fart" | "sanmik" | "close";
 
+/**
+ * Where each fight button lives in the cluster (layout.ts fightCluster, s4b): FIRE (top-down) and JUMP (side rooms)
+ * have the corner; SWAP (top-down) and FIRE (side rooms) the cell left of it; the rest their own homes.
+ */
+const ROLE: Partial<Record<CtlId, FightRole>> = {
+  fire: "prime",
+  jump: "prime",
+  swap: "second",
+  sfire: "second",
+  dodge: "dodge",
+  special: "special",
+  ready: "ready",
+  heal: "heal",
+  action: "action",
+  fart: "fart",
+  bongo: "bongo",
+  sanmik: "sanmik",
+};
+const CLUSTER_IDS = Object.keys(ROLE) as CtlId[];
+
 /** Everything the combat controls know right now (for the smoke test and ?mobilediag). */
 export interface CombatSnapshot {
   target: { id: AimTarget["id"]; kind: AimTarget["kind"]; x: number; y: number } | null;
@@ -265,7 +285,6 @@ export class CombatControls {
     if (this.mashQ.next(TOUCH.edges.has("burst"))) TOUCH.edges.add("burst");
   }
   private wasMash = false;
-  private fsWas = false;
   /** HEAL is in its urgent state (under 40%). */
   private healLow = false;
   private dodgeSeen = 0;
@@ -285,6 +304,7 @@ export class CombatControls {
     const fire = L.addControl({
       id: "c-fire",
       slot: "prime",
+      place: () => this.at("fire"),
       group: grp,
       toCorner: true,
       className: "kt-c kt-fire",
@@ -301,10 +321,11 @@ export class CombatControls {
     });
     // side-scrolling rooms (layout v2): JUMP is the big corner button, FIRE sits left of it (no slide-aim: facing +
     // auto-aim), DODGE and SPECIAL stay where they are in top-down rooms
-    const sfire = L.addControl({ id: "c-sfire", slot: "left", group: grp, className: "kt-c kt-fire", html: withWord(ICON.fire, "FIRE"), haptic: "tap", onDown: () => this.fireDown(), onUp: (_c, i) => this.fireUp(i.cancelled) });
+    const sfire = L.addControl({ id: "c-sfire", slot: "left", place: () => this.at("sfire"), group: grp, className: "kt-c kt-fire", html: withWord(ICON.fire, "FIRE"), haptic: "tap", onDown: () => this.fireDown(), onUp: (_c, i) => this.fireUp(i.cancelled) });
     const jump = L.addControl({
       id: "c-jump",
       slot: "prime",
+      place: () => this.at("jump"),
       group: grp,
       toCorner: true,
       className: "kt-c kt-jump",
@@ -314,7 +335,7 @@ export class CombatControls {
       onDown: () => this.side.press(dungeonOf(this.game) as never),
       onUp: () => this.side.release(dungeonOf(this.game) as never),
     });
-    const dodge = L.addControl({ id: "c-dodge", slot: "upLeft", group: grp, className: "kt-c kt-dodge", html: withWord(ICON.dodge, "DODGE"), haptic: "press", onDown: () => TOUCH.edges.add("dodge") });
+    const dodge = L.addControl({ id: "c-dodge", slot: "upLeft", place: () => this.at("dodge"), group: grp, className: "kt-c kt-dodge", html: withWord(ICON.dodge, "DODGE"), haptic: "press", onDown: () => TOUCH.edges.add("dodge") });
     const swapSpec = (id: string, slot: "left" | "prime", extra: object) => ({
       id,
       slot,
@@ -324,10 +345,11 @@ export class CombatControls {
       onUp: (c: TouchControl, i: { cancelled: boolean }) => this.swapUp(c, i.cancelled),
       ...extra,
     });
-    const swap = L.addControl(swapSpec("c-swap", "left", { group: grp, className: "kt-c kt-swap", html: withWord(ICON.swap, "SWAP") }));
+    const swap = L.addControl(swapSpec("c-swap", "left", { place: () => this.at("swap"), group: grp, className: "kt-c kt-swap", html: withWord(ICON.swap, "SWAP") }));
     const special = L.addControl({
       id: "c-special",
       slot: "up",
+      place: () => this.at("special"),
       group: grp,
       className: "kt-c kt-special",
       html: `<span class="kt-w">SPECIAL</span>`,
@@ -341,7 +363,7 @@ export class CombatControls {
     const ready = L.addControl({
       id: "c-ready",
       slot: "ready",
-      place: (l) => this.placeReady(l),
+      place: () => this.at("ready"),
       group: grp,
       className: "kt-c kt-ready",
       label: "WONK!",
@@ -351,14 +373,14 @@ export class CombatControls {
         if (id) TOUCH.edges.add(READY[id].edge);
       },
     });
-    const heal = L.addControl({ id: "c-heal", slot: "heal", group: grp, className: "kt-c kt-heal", html: withWord(ICON.heal, "HEAL"), haptic: "press", onDown: () => TOUCH.edges.add("bottle") });
-    const action = L.addControl({ id: "c-action", slot: "combatAction", group: grp, className: "kt-c kt-caction", label: "USE", haptic: "press", onDown: () => TOUCH.edges.add("interact") });
+    const heal = L.addControl({ id: "c-heal", slot: "heal", place: () => this.at("heal"), group: grp, className: "kt-c kt-heal", html: withWord(ICON.heal, "HEAL"), haptic: "press", onDown: () => TOUCH.edges.add("bottle") });
+    const action = L.addControl({ id: "c-action", slot: "combatAction", place: () => this.at("action"), group: grp, className: "kt-c kt-caction", label: "USE", haptic: "press", onDown: () => TOUCH.edges.add("interact") });
     const chip = L.addControl(
       swapSpec("c-chip", "left", { className: "kt-c kt-chip kt-wchip", html: "", place: (l: TouchLayer) => this.placeWeaponChip(l) }),
     );
-    // the pocket: full-size buttons in fixed places at the cluster's upper left, each only while it can be used
+    // the pocket: full-size buttons in the cluster's free cells nearest the edge, each only while it can be used
     const pocket = (id: string, kind: "bongo" | "fart" | "sanmik", slot: "pocketBongo" | "pocketFart" | "pocketSanmik", onDown: () => void) =>
-      L.addControl({ id, slot, group: grp, className: `kt-c kt-pocket kt-p-${kind}`, html: "", haptic: "press", onDown });
+      L.addControl({ id, slot, place: () => this.at(kind), group: grp, className: `kt-c kt-pocket kt-p-${kind}`, html: "", haptic: "press", onDown });
     const bongo = pocket("c-bongo", "bongo", "pocketBongo", () => TOUCH.edges.add("bongo"));
     const fart = pocket("c-fart", "fart", "pocketFart", () => TOUCH.edges.add("fart"));
     const sanmik = pocket("c-sanmik", "sanmik", "pocketSanmik", () => TOUCH.edges.add("sanmik"));
@@ -410,49 +432,84 @@ export class CombatControls {
 
   /** The weapon chip: top, 24 px left of pause (research M16 / layout v2), hit area up to the top edge. */
   private placeWeaponChip(l: TouchLayer): Placed | null {
-    const vp = l.viewport;
     const pause = l.slots?.pause;
-    if (!pause) return null;
-    const s = controlScale(vp.h, phoneSettings().buttonSize);
-    const w = Math.round(Math.max(120, 140 * s));
-    const h = Math.round(Math.max(44, 44 * s));
-    const right = pause.cx - pause.size / 2 - Math.max(16, 24 * s);
-    const top = Math.max(safeRect(vp).y, 0) + 6 * s;
-    const cx = right - w / 2;
-    const cy = top + h / 2;
-    return { cx, cy, size: h, w, h, hit: { x: cx - w / 2 - 10, y: 0, w: w + 20, h: cy + h / 2 + 10 } };
+    return pause ? weaponChip(l.viewport, phoneSettings(), pause) : null;
+  }
+
+  // ------------------------------------------------------------------ the cluster (s4b: it hugs the thumb's edge)
+
+  /** Where each cluster button goes now (fightCluster), and what it was worked out from. */
+  private cluster: Partial<Record<FightRole, Placed>> = {};
+  private clusterKey = "";
+
+  /** A cluster control's place now (null before the first layout: it keeps the slot's). */
+  private at(id: CtlId): Placed | null {
+    const role = ROLE[id];
+    return (role && this.cluster[role]) || null;
   }
 
   /**
-   * READY: its layout v2 slot, kept clear of what sits above it (pause; left-handed, the drink chips) and of SPECIAL
-   * below it. Only bites with big buttons (L) on short screens: it moves down and, if it must, shrinks (never under
-   * 52 px).
+   * What the cluster must leave alone, as page rects: right-handed, the touch areas of pause, the weapon chip and (on
+   * Android after leaving fullscreen) the offer under pause; left-handed, the HUD's top-left block (the face, name,
+   * bars, KREZZ / WONK and the status line under them), whose side the cluster is on then.
    */
-  private placeReady(l: TouchLayer): Placed | null {
-    const base = l.slots?.ready;
-    const sp = l.slots?.up;
-    const pause = l.slots?.pause;
-    if (!base || !sp || !pause) return base ?? null;
+  private keepOut(): Rect[] {
+    const l = this.layer;
+    const out: Rect[] = [];
+    if (!phoneSettings().leftHanded) {
+      const pz = l.control("pause")?.placed?.hit ?? l.slots?.pause?.hit;
+      if (pz) out.push(pz);
+      const chip = this.placeWeaponChip(l);
+      if (chip) out.push(chip.hit);
+      const fs = l.control("fullscreen");
+      if (fs?.shown && l.slots?.fullscreenFight) out.push(l.slots.fullscreenFight.hit);
+      return out;
+    }
+    const cb = this.game.scale.canvasBounds;
+    if (!(cb.width > 0)) return out;
+    out.push(...hudKeepOut({ x: cb.x, y: cb.y, w: cb.width, h: cb.height }));
+    // (a status line of more than one line: all of it)
+    try {
+      const t = (this.game.scene.getScene("UI") as unknown as { statT?: Phaser.GameObjects.Text }).statT;
+      if (t?.visible && t.active && t.text && t.text.includes("\n")) {
+        const b = t.getBounds();
+        const k = cb.width / 960;
+        out.push({ x: cb.x + b.x * k, y: cb.y + b.y * k, w: b.width * k, h: b.height * k });
+      }
+    } catch {
+      /* no UI scene */
+    }
+    return out;
+  }
+
+  /** Where a cluster button lives (the Controls picture): its home with every button up. */
+  home(role: FightRole): Placed | null {
+    const all: FightRole[] = ["second", "dodge", "special", "ready", "heal", "action", "fart", "bongo", "sanmik"];
+    return fightCluster(this.layer.viewport, phoneSettings(), all, this.keepOut())[role] ?? null;
+  }
+
+  /**
+   * Work the cluster out again for the buttons that are up (only when that or the screen changed: the homes are
+   * fixed, so this is a few cells' sums) and re-place what moved. A button under a thumb never moves.
+   */
+  private relayout(up: ReadonlySet<CtlId>) {
+    const l = this.layer;
     const st = phoneSettings();
-    let top = pause.cy + pause.size / 2;
-    // (Android: the offer to go back into fullscreen sits under pause in a fight; READY starts below it: F8)
-    const fs = l.control("fullscreen");
-    if (fs?.shown && l.slots?.fullscreenFight && !st.leftHanded) top = Math.max(top, l.slots.fullscreenFight.cy + l.slots.fullscreenFight.size / 2);
-    if (st.leftHanded) {
-      const cb = this.game.scale.canvasBounds;
-      const k = cb.width / 960;
-      top = cb.y + 61 * k + Math.max(30, 32 * controlScale(l.viewport.h, st.buttonSize));
+    const ko = this.keepOut();
+    const roles = new Set<FightRole>();
+    for (const id of up) {
+      const r = ROLE[id];
+      if (r && r !== "prime") roles.add(r);
     }
-    const minTop = top + 10;
-    const maxBottom = sp.cy - sp.size / 2 - 12;
-    let size = base.size;
-    let cy = base.cy;
-    if (cy - size / 2 < minTop) cy = minTop + size / 2;
-    if (cy + size / 2 > maxBottom) {
-      size = Math.max(MIN_CONTROL, Math.min(size, maxBottom - minTop));
-      cy = Math.max(minTop + size / 2, Math.min(cy, maxBottom - size / 2));
+    const vp = l.viewport;
+    const key = [vp.w, vp.h, vp.insets.top, vp.insets.right, vp.insets.bottom, vp.insets.left, st.leftHanded, st.buttonSize, [...roles].sort().join(","), ...ko.map((r) => `${Math.round(r.x / 4)},${Math.round(r.y / 4)},${Math.round(r.w / 4)},${Math.round(r.h / 4)}`)].join("|");
+    if (key === this.clusterKey) return;
+    this.clusterKey = key;
+    this.cluster = fightCluster(vp, st, roles, ko);
+    for (const id of CLUSTER_IDS) {
+      const c = this.c?.[id];
+      if (c && !c.pressed) c.place();
     }
-    return { cx: base.cx, cy, size, hit: base.hit };
   }
 
   // ------------------------------------------------------------------ SWAP (and the weapon chip): tap = next, hold = picker
@@ -835,6 +892,9 @@ export class CombatControls {
   layout() {
     // (the weapon chip follows pause: re-placed whenever the layer lays out)
     if (!this.c.chip.pressed) this.c.chip.place();
+    // (the cluster: worked out again for this screen, the buttons up now)
+    this.clusterKey = "";
+    this.relayout(new Set(CLUSTER_IDS.filter((id) => this.c[id].shown)));
   }
 
   frame(ctx: ModeContext) {
@@ -848,11 +908,10 @@ export class CombatControls {
     // wait it out instead of queueing presses for afterwards; the short hit-stops of a fight don't count)
     const frozen = !!dun && (dun.hitStopUntil ?? 0) - dun.now() > FROZEN_MS;
     const fight = !picker && !mash && !frozen && !!p && !p.dead;
-    const show = (id: CtlId, on: boolean, pop = false) => {
-      const c = this.c[id];
-      if (!on && c.pressed) return;
-      if (on !== c.shown) c.show(on, pop);
-    };
+    // (what should be up is gathered first; the cluster is worked out for it, then the buttons come and go: a button
+    // that pops in lands in its place at once)
+    const want = new Map<CtlId, [boolean, boolean]>();
+    const show = (id: CtlId, on: boolean, pop = false) => want.set(id, [on, pop]);
     // the mash overlay: the whole screen
     this.mash.classList.toggle("show", mash);
     if (mash) this.feedMash();
@@ -861,12 +920,6 @@ export class CombatControls {
     // (a tap in its last moment must not reach the fight as a WONK press: "WONK 0%")
     else if (this.wasMash) TOUCH.edges.delete("burst");
     this.wasMash = mash;
-    // (the fullscreen offer came or went: READY is placed again round it)
-    const fsOn = !!this.layer.control("fullscreen")?.shown;
-    if (fsOn !== this.fsWas) {
-      this.fsWas = fsOn;
-      this.c.ready?.place();
-    }
     // the room counts toward the first-fights captions once it's really a fight
     if (fight && dun && p && this.teachRoomCounted !== p && (dun.enemies?.length ?? 0) > 0) {
       this.teachRoomCounted = p;
@@ -928,7 +981,7 @@ export class CombatControls {
     this.healLow = hw;
     show("heal", hs, true);
     if (this.c.heal.el.classList.contains("low") !== hw) this.c.heal.el.classList.toggle("low", hw);
-    if (this.c.heal.shown) this.c.heal.setHtml(`${withWord(ICON.heal, "HEAL")}<span class="kt-n">${s.bottles}</span>`);
+    if (hs) this.c.heal.setHtml(`${withWord(ICON.heal, "HEAL")}<span class="kt-n">${s.bottles}</span>`);
     // SPECIAL: the lad's word, only while it would go (no dim "charging" bubble: the KREZZ bar up top shows the
     // charge); it pops in when it can, pulsing the first two times
     const spOk = this.specialOk(p, dun);
@@ -950,6 +1003,19 @@ export class CombatControls {
     // (Mikey ⇄ SanMik can't happen while golden: the game says no, so the chip isn't there)
     show("sanmik", fight && isMikey(s) && !sanmikForced(s) && !!dun && !!p && dun.now() >= p.superUntil, true);
     if (fight) this.pocketFaces(lv);
+    // ---- the cluster for what's up, then the buttons come and go (one under a thumb stays until it lifts)
+    const up = new Set<CtlId>();
+    for (const id of CLUSTER_IDS) {
+      const w = want.get(id);
+      const c = this.c[id];
+      if (w ? w[0] || c.pressed : c.shown) up.add(id);
+    }
+    this.relayout(up);
+    for (const [id, [on, pop]] of want) {
+      const c = this.c[id];
+      if (!on && c.pressed) continue;
+      if (on !== c.shown) c.show(on, pop);
+    }
     // ---- the first fights: each icon's name inside it (never a caption outside the button, so nothing can land on a
     // neighbour, the HUD or the home-indicator strip: N1); pulses the first time each matters
     for (const id of ["fire", "sfire", "jump", "dodge", "swap", "heal"] as const) if (this.c[id].el.classList.contains("taught") !== teaching) this.c[id].el.classList.toggle("taught", teaching);

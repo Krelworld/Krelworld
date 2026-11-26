@@ -30,6 +30,9 @@ const svg = (body: string, fill = false) =>
 export const ICONS = {
   /** iPhone Share: a box open at the top with an arrow up out of it. */
   share: svg(`<path d="M8.5 9.5H6.5v11h11v-11h-2"/><path d="M12 14.5V3"/><path d="M8.5 6.5 12 3l3.5 3.5"/>`),
+  /** Newer iPhone Safari's page button at the left of the address bar: a jigsaw piece over two lines (the user's own
+   *  iPhone: page button, then Share, then View More, then Add to Home Screen). */
+  pageMenu: svg(`<rect x="3" y="2.5" width="10" height="8" rx="1.4" fill="#fff" stroke="none"/><circle cx="14" cy="6.5" r="2.3" fill="#fff" stroke="none"/><circle cx="8" cy="11.2" r="2.1" fill="#fff" stroke="none"/><path d="M3.5 16.5h16M3.5 21h10"/>`),
   /** iPhone "Add to Home Screen": a rounded square with a plus. */
   addHome: svg(`<rect x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M12 8v8M8 12h8"/>`),
   /** Three dots in a row (•••). */
@@ -133,8 +136,8 @@ export function guideContent(v: GuideVariant, c: GuideContext): GuideContent {
         ...base,
         why: WHY_IOS,
         steps: [
-          { icon: "share", title: "Tap **Share**", sub: "In the {top|bottom} bar. No bar? Tap the {top|bottom} edge of the screen. No Share? Tap the page button at the left of the address bar (or •••), then **Share**." },
-          { ...addHome, sub: "Scroll down the list. Not there? Tap **View More** first." },
+          { icon: "pageMenu", title: "Tap the **page button**, then **Share**", sub: "Left of the address bar, in the {top|bottom} bar. No bar? Tap the {top|bottom} edge. Or tap **Share** if it's in the bar." },
+          { ...addHome, title: "Tap **View More**, then **Add to Home Screen**", sub: "View More is the last round button. Add to Home Screen is at the bottom." },
           add,
           OPEN,
         ],

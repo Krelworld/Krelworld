@@ -115,6 +115,8 @@ const SHOTS = arg("--shots", "");
 // (the s4 section's parts, for a quicker look at one: --s4 posse,back,wonk,tv,...)
 const S4PART = (arg("--s4", "") || "").split(",").filter(Boolean);
 const s4part = (p) => !S4PART.length || S4PART.includes(p);
+// (the cluster section's phones, for a quicker look at one: --cluster iphone,android,safari-bars,bigphone)
+const CLUSTERPART = (arg("--cluster", "") || "").split(",").filter(Boolean);
 const ONLY = (arg("--only", "phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,bike,dungeon,combat,side,brawl,together,review1,polish,platform,android,tapuse,tapfix,platfix,mix3,games,scenes,wave2,s4,cluster,desktop") || "").split(",").filter(Boolean);
 const IOS_UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1";
 const IPHONE = { viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, userAgent: IOS_UA };
@@ -7081,6 +7083,65 @@ async function s4fix(browser) {
 // ------------------------------------------------------------------ the fight cluster hugs the right edge (s4b)
 
 /**
+ * SPECIAL's feedback (s4b; the user tapped NUKE and "nothing happened"): the first time it shows, a toast says what it
+ * does; used, it stays up with a ring filling while it recharges; tapped then, "Recharging… Ns" floats up; tapped
+ * without the Krezz, "Not enough Krezz (needs 40)". The game's own rule is untouched (a press while it recharges does
+ * nothing in the game).
+ */
+async function specialFeedback(ph) {
+  const ctl = async (id) => (await ph.snap()).controls.find((c) => c.id === id);
+  const press = async (id, tid) => {
+    const c = await ctl(id);
+    const x = c.face.x + c.face.w / 2;
+    const y = c.face.y + c.face.h / 2;
+    await ph.touch("touchStart", [{ x, y, id: tid }]);
+    await sleep(80);
+    await ph.touch("touchEnd", []);
+  };
+  const P = () =>
+    ph.ev(() => {
+      const d = window.__krel.game.scene.getScene("Dungeon");
+      return { cd: d.player.specialCd, now: d.now(), krezz: window.__krel.G.s.krezz };
+    });
+  await ph.ev(() => {
+    const d = window.__krel.game.scene.getScene("Dungeon");
+    for (const e of d.enemies || []) if (!e.dead && !e.isBoss) e.setPosition(-5000, -5000);
+    window.__krel.G.s.krezz = 60;
+    d.player.iframesUntil = d.now() + 20000;
+  });
+  await sleep(900);
+  const tips = await ph.ev(() => window.__toastsSeen.filter((t) => t.title === "NUKE"));
+  check("special: the first time NUKE shows on this phone, a toast says what it does and what it costs (once)", tips.length === 1 && /^Nuclear Option: .*aiming.* 40 Krezz\.$/.test(tips[0].text), tips);
+  const p0 = await P();
+  await press("c-special", 61);
+  await sleep(400);
+  const p1 = await P();
+  const s1 = await ph.ev(() => ({ snap: window.__krelMobile.combat.snapshot(), cls: document.querySelector('.kt-btn[data-ctl="c-special"]').className, ring: (() => { const r = document.querySelector('.kt-btn[data-ctl="c-special"] .kt-cd'); return r ? getComputedStyle(r).display : null; })() }));
+  check("special: SPECIAL fires NUKE (40 Krezz), then stays up recharging with its ring filling", p1.cd > p0.cd && p1.krezz < p0.krezz - 30 && (await ctl("c-special")).shown && /\bcooling\b/.test(s1.cls) && s1.ring === "block" && s1.snap.specialCooling > 0.5, { p0, p1, cls: s1.cls, ring: s1.ring, cooling: s1.snap.specialCooling });
+  // tapped while it recharges, with Krezz enough: "Recharging…", and the game does nothing (its own rule)
+  await ph.ev(() => (window.__krel.G.s.krezz = 100));
+  await sleep(300);
+  await press("c-special", 62);
+  await sleep(250);
+  const p2 = await P();
+  const cue1 = await ph.ev(() => ({ cue: window.__krelMobile.combat.snapshot().specialCue, el: (document.querySelector(".kt-float.go span") || {}).textContent || null }));
+  check("special: tapped while recharging, \"Recharging… Ns\" floats up and nothing else happens (the game's rule)", /^Recharging… \d+s$/.test(cue1.cue || "") && cue1.el === cue1.cue && p2.cd === p1.cd && p2.krezz >= 99.5, { cue1, p2 });
+  await ph.shot("cluster-iphone-special-recharging");
+  // without the Krezz: "Not enough Krezz (needs 40)"
+  await ph.ev(() => (window.__krel.G.s.krezz = 10));
+  await sleep(300);
+  await press("c-special", 63);
+  await sleep(250);
+  const cue2 = await ph.ev(() => window.__krelMobile.combat.snapshot().specialCue);
+  check("special: tapped without the Krezz, \"Not enough Krezz (needs 40)\"", cue2 === "Not enough Krezz (needs 40)", cue2);
+  await ph.shot("cluster-iphone-special-krezz");
+  // once it has recharged without the Krezz: gone again (the calm screen)
+  const left = Math.max(0, p1.cd - (await P()).now);
+  await sleep(left + 900);
+  check("special: recharged but without the Krezz, SPECIAL goes (the calm screen)", !(await ctl("c-special")).shown, await ph.ev(() => window.__krelMobile.combat.snapshot().specialCooling));
+}
+
+/**
  * The fight buttons, everything up at once (Mikey with his Krezz, a second gun, WONK full, fart charge, a bongo or
  * low health with juice, a prompt), measured at the phone sizes the user plays on: every fight button's centre within
  * 200 px (x the controls' scale) of the safe edge on the thumb's side, no two drawings on each other, pause and the
@@ -7097,6 +7158,7 @@ async function cluster(browser) {
   ];
   const FIGHT = /^c-(fire|sfire|jump|dodge|swap|special|ready|heal|action|bongo|fart|sanmik)$/;
   for (const pr of profiles) {
+    if (CLUSTERPART.length && !CLUSTERPART.includes(pr.tag)) continue;
     const { ctx, ph, errors } = await phoneAtTitle(browser, pr.profile);
     const where = `${pr.tag} ${pr.profile.viewport.width}x${pr.profile.viewport.height}`;
     // everything up: the game's own state, held each frame (nothing is forced on the layer itself)
@@ -7161,8 +7223,13 @@ async function cluster(browser) {
     try {
       if (pr.insets) await ph.ev((i) => window.__krelMobile.setInsets(i), pr.insets);
       await ph.ev(() => window.__krelMobile.combat.resetTeaching());
+      await ph.ev(() => {
+        window.__toastsSeen = [];
+        window.__krel.G.on((ev, d) => ev === "toast" && d && window.__toastsSeen.push({ title: String(d.title), text: String(d.text) }));
+      });
       const ok = await toFight(ph, "wildern", 1, 2, "MIKEY");
       check(`cluster ${where}: a top-down room as Mikey`, ok, await ph.mode());
+      if (pr.tag === "iphone") await specialFeedback(ph);
       await loadOut({ heal: true, ready: true, action: true });
       const all = await measure("all-heal");
       check(`cluster ${where}: everything is up (FIRE, DODGE, SWAP, SPECIAL, READY, HEAL, ACTION, FART, SANMIK)`, ["c-fire", "c-dodge", "c-swap", "c-special", "c-ready", "c-heal", "c-action", "c-fart", "c-sanmik"].every((id) => all.ids.includes(id)), all.ids);

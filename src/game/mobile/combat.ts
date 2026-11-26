@@ -34,7 +34,7 @@ import { rightStick } from "./pad";
 import { registerModeController, type ModeContext, type TouchControl, type TouchLayer } from "./touchLayer";
 import { ACQUIRE, AIM_TUNE, CONE_DEG, CONE_KEEP_DEG, MELEE_REACH, SLIDE_PX, aimPointFor, autoFireOk, inView, lineOfSight, pickTarget, snapAim, type AimTarget, type Pt, type WallRect } from "./aim";
 import { cueSeen, markCue } from "./cues";
-import { AutoPace, StillGate, DUNGEON_RULE, FIRE_GRACE_MS, HoldTracker, MashQueue, PICKER_RULE, READY, RELABEL_MS, TEACH_ROOMS, healShown, healWanted, readyAbility, spamGap, specialCost, specialWanted, specialWord, type ReadyId } from "./combatLogic";
+import { AutoPace, StillGate, DUNGEON_RULE, FIRE_GRACE_MS, HoldTracker, MashQueue, PICKER_RULE, READY, RELABEL_MS, TEACH_ROOMS, healShown, healWanted, readyAbility, spamGap, specialCooling, specialCost, specialShown, specialTapCue, specialTip, specialWanted, specialWord, type ReadyId } from "./combatLogic";
 import { fightCluster, hudKeepOut, weaponChip, type FightRole, type Placed, type Rect } from "./layout";
 import { COMBAT_CSS, COMBAT_STYLE_ID } from "./combatCss";
 import { haptic } from "./haptics";
@@ -78,7 +78,7 @@ interface PlayerLike {
   dodgeUntil: number;
   iframesUntil: number;
   dead: boolean;
-  def: { signature?: { id: string; cost: number } };
+  def: { signature?: { id: string; name: string; desc: string; cost: number; cooldown: number } };
 }
 interface Breakable {
   kind: string;
@@ -228,8 +228,12 @@ export interface CombatSnapshot {
   fireHeld: boolean;
   ready: ReadyId | null;
   heal: boolean;
-  /** SPECIAL would go now (so it is on screen in a fight). */
+  /** SPECIAL would go now (enough Krezz, no decree; it is on screen in a fight then). */
   specialReady: boolean;
+  /** How much of SPECIAL's recharge is still to go (0..1): the sweep on it, and it stays up meanwhile (s4b). */
+  specialCooling: number;
+  /** The last floating word a tap on SPECIAL gave ("Recharging… 3s", "Not enough Krezz (needs 40)"), if any. */
+  specialCue: string | null;
   picker: boolean;
   mash: boolean;
   mashPresses: number;
@@ -354,9 +358,13 @@ export class CombatControls {
       className: "kt-c kt-special",
       html: `<span class="kt-w">SPECIAL</span>`,
       haptic: "press",
-      onDown: () => {
+      onDown: (c) => {
         TOUCH.edges.add("special");
         TOUCH.held.add("special");
+        // (the game ignores a press that can't go; the phone says why: s4b)
+        const st = this.specialState(dungeonOf(this.game)?.player, dungeonOf(this.game));
+        const cue = st && specialTapCue(st);
+        if (cue) this.floatCue(c, cue);
       },
       onUp: () => TOUCH.held.delete("special"),
     });
@@ -984,14 +992,22 @@ export class CombatControls {
     if (hs) this.c.heal.setHtml(`${withWord(ICON.heal, "HEAL")}<span class="kt-n">${s.bottles}</span>`);
     // SPECIAL: the lad's word, only while it would go (no dim "charging" bubble: the KREZZ bar up top shows the
     // charge); it pops in when it can, pulsing the first two times
-    const spOk = this.specialOk(p, dun);
+    const spSt = this.specialState(p, dun);
+    const spOk = !!spSt && spSt.ok;
+    const spUp = fight && !!spSt && specialShown(spOk, spSt.coolLeftMs, spSt.headbutt);
     if (spOk && !this.c.special.shown && this.teach.special < 2) {
       this.teach.special++;
       saveTaught(this.teach);
       this.pulseUntil.special = realNow() + 3000;
     }
-    show("special", fight && spOk, true);
-    if (fight && p) this.c.special.setHtml(`<span class="kt-w">${specialWord(sig?.id, p.headbuttMode)}</span>`);
+    show("special", spUp, true);
+    if (fight && p) this.c.special.setHtml(`<span class="kt-w">${specialWord(sig?.id, p.headbuttMode)}</span>${SWEEP}`);
+    // the first time this lad's special shows on this phone: what it does, in a few words (s4b)
+    if (spUp && spSt?.sig && !spSt.headbutt && !this.c.special.shown && !cueSeen(`special:${spSt.sig.id}`)) {
+      markCue(`special:${spSt.sig.id}`);
+      G.emit("toast", specialTip(specialWord(spSt.sig.id), spSt.sig, spSt.cost));
+    }
+    this.sweep(spSt, p);
     // ---- the chips
     show("chip", fight);
     if (fight) this.weaponChip();
@@ -1197,14 +1213,92 @@ export class CombatControls {
     return out;
   }
 
+  /**
+   * The lad's special right now, read the way the game reads it (Player.trySpecial: the signature's cost with the
+   * same discounts, the Player's specialCd, the decree's noSpecialUntil): would it go, and how long it still recharges.
+   */
+  private specialState(p: PlayerLike | undefined | null, dun: DungeonLike | null) {
+    if (!p || !dun) return null;
+    const sig = p.def?.signature;
+    const headbutt = !!p.headbuttMode;
+    if (!sig && !headbutt) return null;
+    const s = G.s;
+    const now = dun.now();
+    const cost = specialCost(sig?.cost ?? 0, s.player, s.flags, headbutt);
+    const banned = !headbutt && now < p.noSpecialUntil;
+    const cooldown = headbutt ? 700 : sig?.cooldown ?? 0;
+    const coolLeftMs = Math.max(0, (p.specialCd ?? 0) - now);
+    return { sig, headbutt, cost, banned, cooldown, coolLeftMs, krezz: s.krezz, ok: specialWanted(s.krezz, cost, banned), cooling: specialCooling(now, p.specialCd ?? 0, cooldown) };
+  }
+
   /** Would the lad's special go right now (enough Krezz, no decree against it)? */
   private specialOk(p: PlayerLike | undefined | null, dun: DungeonLike | null): boolean {
-    if (!p || !dun) return false;
-    const sig = p.def?.signature;
-    if (!sig && !p.headbuttMode) return false;
-    const s = G.s;
-    const cost = specialCost(sig?.cost ?? 0, s.player, s.flags, !!p.headbuttMode);
-    return specialWanted(s.krezz, cost, !p.headbuttMode && dun.now() < p.noSpecialUntil);
+    return !!this.specialState(p, dun)?.ok;
+  }
+
+  // the recharge sweep: a ring filling round SPECIAL (a CSS animation started once per recharge, in real time; put
+  // right again only if the game's clock drifts from it, as in SWAP's slow motion)
+  private sweepFor = -1;
+  private sweepEnd = 0;
+  private sweepEl: Element | null = null;
+  private wasCooling = false;
+  private lastCue: string | null = null;
+  private floatEl: HTMLDivElement | null = null;
+
+  private sweep(st: ReturnType<CombatControls["specialState"]>, p: PlayerLike | undefined) {
+    const c = this.c.special;
+    const cooling = !!st && !st.headbutt && st.coolLeftMs > 0 && c.shown;
+    if (c.el.classList.contains("cooling") !== cooling) c.el.classList.toggle("cooling", cooling);
+    if (!cooling || !st || !p) {
+      // (just recharged: a flash says it's ready again)
+      if (this.wasCooling && c.shown) this.flash(c);
+      this.wasCooling = false;
+      this.sweepFor = -1;
+      return;
+    }
+    this.wasCooling = true;
+    const ring = c.face.querySelector(".kt-cd circle") as SVGCircleElement | null;
+    if (!ring) return;
+    const end = realNow() + st.coolLeftMs;
+    if (p.specialCd === this.sweepFor && ring === this.sweepEl && Math.abs(end - this.sweepEnd) < 250) return;
+    this.sweepFor = p.specialCd;
+    this.sweepEl = ring;
+    this.sweepEnd = end;
+    const total = Math.max(st.cooldown, st.coolLeftMs);
+    ring.style.animation = "none";
+    void ring.getBoundingClientRect();
+    ring.style.animation = `kt-cd ${Math.round(total)}ms linear ${-Math.round(total - st.coolLeftMs)}ms forwards`;
+  }
+
+  /** A short word floating up from a button (pointer-events none, gone in about a second). */
+  private floatCue(c: TouchControl, text: string) {
+    this.lastCue = text;
+    let el = this.floatEl;
+    if (!el) {
+      el = document.createElement("div");
+      el.className = "kt-float";
+      el.innerHTML = "<span></span>";
+      this.layer.root.appendChild(el);
+      this.floatEl = el;
+    }
+    const span = el.firstChild as HTMLSpanElement;
+    span.textContent = text;
+    const f = c.faceRect;
+    const left = phoneSettings().leftHanded;
+    // (just above the button, toward the middle of the screen, kept on it)
+    el.classList.toggle("lh", left);
+    el.style.transform = left ? `translate(${Math.round(f.x)}px,${Math.round(f.y - 4)}px)` : `translate(${Math.round(f.x + f.w)}px,${Math.round(f.y - 4)}px)`;
+    el.classList.remove("go");
+    void el.offsetWidth;
+    el.classList.add("go");
+  }
+
+  private flash(c: TouchControl) {
+    try {
+      c.face.animate([{ filter: "brightness(1.9)", transform: "scale(1.06)" }, { filter: "brightness(1)", transform: "scale(1)" }], { duration: 160, easing: "ease-out" });
+    } catch {
+      /* no WAAPI */
+    }
   }
 
   /** For tests and ?mobilediag. */
@@ -1223,6 +1317,8 @@ export class CombatControls {
       ready: this.readyId,
       heal: this.c.heal.shown,
       specialReady: this.specialOk(dungeonOf(this.game)?.player, dungeonOf(this.game)),
+      specialCooling: this.specialState(dungeonOf(this.game)?.player, dungeonOf(this.game))?.cooling ?? 0,
+      specialCue: this.lastCue,
       picker: this.pickerOpen,
       mash: this.mash.classList.contains("show"),
       mashPresses: this.mashPresses,
@@ -1263,6 +1359,9 @@ const FIGHT_EDGES = ["dodge", "special", "bottle", "bongo", "fart", "burst", "tr
 function dropFightEdges() {
   for (const e of FIGHT_EDGES) TOUCH.edges.delete(e);
 }
+
+/** SPECIAL's recharge ring (s4b): drawn over the face, filling while it recharges (CSS `kt-cd`). */
+const SWEEP = `<svg class="kt-cd" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="46" pathLength="100"/></svg>`;
 
 const esc = (t: string) => t.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c] ?? c);
 

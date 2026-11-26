@@ -28,6 +28,21 @@ export const COMBAT_CSS = `
 .kt-swap .kt-face{border-color:rgba(103,232,249,calc(var(--kt-a) + .15))}
 .kt-special .kt-face{border-color:rgba(192,132,252,.85);background:rgba(120,60,180,.42);font-size:12px}
 .kt-special .kt-w{position:relative}
+/* SPECIAL recharging (s4b): the face dimmed, a ring filling round its edge until it can go again */
+.kt-c .kt-face svg.kt-cd{position:absolute;left:0;top:0;width:100%;height:100%;display:none;transform:rotate(-90deg);filter:none;pointer-events:none}
+.kt-special.cooling .kt-face svg.kt-cd{display:block}
+.kt-cd circle{fill:none;stroke:#f0e2ff;stroke-width:7;stroke-dasharray:100 100;stroke-dashoffset:100}
+@keyframes kt-cd{from{stroke-dashoffset:100}to{stroke-dashoffset:0}}
+.kt-special.cooling .kt-face{background:rgba(36,18,62,.62);border-color:rgba(192,132,252,.4)}
+.kt-special.cooling .kt-w{opacity:.6}
+/* a short word floating up from a button that was tapped but can't go ("Recharging… 3s", "Not enough Krezz") */
+.kt-float{position:absolute;left:0;top:0;width:0;height:0;pointer-events:none;display:none;z-index:3}
+.kt-float.go{display:block}
+.kt-float span{position:absolute;right:0;bottom:0;white-space:nowrap;font:800 13px/1.15 "Krel Bold",system-ui,-apple-system,sans-serif;letter-spacing:.3px;
+  color:#fff;background:rgba(10,6,20,.84);border:1.5px solid rgba(192,132,252,.9);border-radius:8px;padding:4px 8px;text-shadow:0 1px 2px #000;
+  animation:kt-float 1.3s ease-out forwards}
+.kt-float.lh span{right:auto;left:0}
+@keyframes kt-float{0%{opacity:0;transform:translateY(6px)}12%{opacity:1;transform:translateY(0)}70%{opacity:1}100%{opacity:0;transform:translateY(-16px)}}
 .kt-ready .kt-face{border-color:#ffd23f;background:rgba(255,190,40,.42);color:#fff;font-size:14px;
   box-shadow:0 0 0 2px rgba(0,0,0,.5),0 0 12px rgba(255,210,63,.55)}
 .kt-heal .kt-face{border-color:rgba(255,158,207,.85);background:rgba(120,20,70,.45)}

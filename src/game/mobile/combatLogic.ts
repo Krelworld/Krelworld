@@ -208,6 +208,73 @@ export function specialWanted(krezz: number, cost: number, banned: boolean): boo
   return !banned && specialFill(krezz, cost) >= 1;
 }
 
+// ------------------------------------------------------------------ SPECIAL's feedback (s4b)
+//
+// The user tapped NUKE (Mikey's Nuclear Option, 40 Krezz, 7 s cooldown) and "nothing happened"; they also didn't know
+// what it does. The game's rules are unchanged (Player.trySpecial ignores a press while it cools down); the phone
+// shows what is going on: a sweep filling round SPECIAL while it recharges (the button stays up for it), a short
+// floating word when it is tapped and can't go, and the first time a lad's special appears on this phone, a toast
+// saying what it does.
+
+/** How much of the special's recharge is still to go (0..1; 0 when it's ready). `cdUntil` is the Player's specialCd. */
+export function specialCooling(now: number, cdUntil: number, cooldown: number): number {
+  if (!(cooldown > 0) || !(cdUntil > now)) return 0;
+  return Math.min(1, (cdUntil - now) / cooldown);
+}
+
+/**
+ * SPECIAL is on screen while it would go (specialWanted), and also while it recharges after being used, so the sweep
+ * shows the wait and a tap can say why nothing happens. Never for HEADBUTT (its own short beat, nothing to explain).
+ */
+export function specialShown(ok: boolean, coolLeftMs: number, headbutt: boolean): boolean {
+  return ok || (!headbutt && coolLeftMs > 0);
+}
+
+/**
+ * The floating word when SPECIAL is tapped and won't go: not enough Krezz first (waiting won't fix that), then the
+ * recharge. Null when it will go, for HEADBUTT, or under a decree (the game says that one itself).
+ */
+export function specialTapCue(o: { krezz: number; cost: number; coolLeftMs: number; banned: boolean; headbutt: boolean }): string | null {
+  if (o.headbutt) return null;
+  if (o.krezz < o.cost) return `Not enough Krezz (needs ${o.cost})`;
+  if (o.coolLeftMs > 0) return `Recharging… ${Math.max(1, Math.ceil(o.coolLeftMs / 1000))}s`;
+  return null;
+}
+
+/** Touch wording for a special's description (UI text: "cursor" means nothing on a phone). */
+const TIP_WORDS: readonly [RegExp, string][] = [
+  [/\baround your cursor\b/gi, "where you're aiming"],
+  [/\byour cursor\b/gi, "where you're aiming"],
+  [/\bcursor\b/gi, "aim"],
+  [/\bclick\b/gi, "tap"],
+];
+/**
+ * The toast is kept to a glance: the description's first sentence, and the next ones only while what it says so far is
+ * under SPECIAL_TIP_SHORT characters ("Ground slam." says little on its own) and the whole stays within SPECIAL_TIP_CHARS.
+ */
+export const SPECIAL_TIP_CHARS = 92;
+export const SPECIAL_TIP_SHORT = 36;
+
+/**
+ * The one-time toast the first time a lad's special appears on this phone: its button word, then what it does in a
+ * few words from the character's own signature (name, the description's first sentence, or two when the first is
+ * very short) and its real cost.
+ * E.g. NUKE: "Nuclear Option: Carpet bomb the area where you're aiming. 40 Krezz."
+ */
+export function specialTip(word: string, sig: { name: string; desc: string }, cost: number): { title: string; text: string } {
+  let d = sig.desc.trim();
+  for (const [re, to] of TIP_WORDS) d = d.replace(re, to);
+  const sentences = d.match(/[^.!?]+[.!?]+/g) ?? [d];
+  let say = sentences[0].trim();
+  for (const s of sentences.slice(1)) {
+    if (say.length >= SPECIAL_TIP_SHORT || (say + " " + s.trim()).length > SPECIAL_TIP_CHARS) break;
+    say += " " + s.trim();
+  }
+  if (!/[.!?]$/.test(say)) say += ".";
+  const price = cost > 0 ? `${cost} Krezz.` : "No Krezz needed.";
+  return { title: word, text: `${sig.name}: ${say} ${price}` };
+}
+
 /**
  * HEAL is on screen while a drink would do something (hurt, with juice, healing allowed): one button for the one
  * ability, full size on the right (thumb-feel round: the small 🍼 chip top left is gone). Under HEAL_BELOW it is the

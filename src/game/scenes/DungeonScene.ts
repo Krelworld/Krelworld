@@ -432,7 +432,10 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
       s.flags.companion_used = true;
     }
     // playing as Mikey you ARE SanMik in the SanMikverse: just SanChz alongside you
-    this.bros = r.sanBros ? (G.s.player === "MIKEY" ? [new SanBrother(this, this.player, "SANCHZ")] : [new SanBrother(this, this.player, "SANMIK"), new SanBrother(this, this.player, "SANCHZ")]) : [];
+    // (the Job Centre: SanChz has been in the staff toilet for twenty minutes; he joins you after the donut scene)
+    const chzAway = r.exitFlag === "sm_donut" && !G.s.flags.sm_donut;
+    const broIds: ("SANMIK" | "SANCHZ")[] = !r.sanBros ? [] : G.s.player === "MIKEY" ? ["SANCHZ"] : ["SANMIK", "SANCHZ"];
+    this.bros = broIds.filter((id) => !(chzAway && id === "SANCHZ")).map((id) => new SanBrother(this, this.player, id));
     bindSanmikToggle(this, {
       sprites: () => [this.player?.spr],
       can: () => {
@@ -1297,6 +1300,8 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     this.graceUntil = this.now() + 1500;
     this.player.iframesUntil = Math.max(this.player.iframesUntil, this.now() + 1500);
     chz?.spr.setVisible(true);
+    // he comes out of the toilet with you and tags along from here
+    if (!chz && this.room?.sanBros) this.bros.push(new SanBrother(this, this.player, "SANCHZ"));
     G.s.flags.sm_donut = true;
     this.checkExit();
   }

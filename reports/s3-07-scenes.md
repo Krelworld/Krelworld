@@ -10,7 +10,7 @@ fields on boot.ts's `PhoneHooks`, three lines in `mobile/index.ts`. README secti
   SKIP SCENE; the advert / 3D epilogue skip pills; TV subtitles paged.
 - 39dcd0a7 The raid's / rout's FIRE as a layer control; drawbridge SKIP pill 44 px; how-to pages SKIP; STEER caption;
   smoke section `scenes`.
-- (README commit) the special scenes in the phone README.
+- 7b5bf537 the special scenes in the phone README (schemes, hooks, the aim comparison, modes table, smoke section).
 
 ## Which scheme each stationary gunner got, and why (the user's question)
 
@@ -91,8 +91,22 @@ no rule matches any character line, and that each reaches its line and keeps the
 Character lines in these scenes that mention a key: none found (DriveScene, BeepBeepScene, Drawbridge, TV, Finale, Lair,
 Citadel, Raid / Rout, Vignette, Ending searched).
 
-## Checks
-(filled in below when the full check finishes)
+## Checks (full check on 7b5bf537, own servers 5522 / ALT 5532; load average 20-38 on 4 CPUs, OOM kills seen)
+- (a) laptop fingerprint, both halves: **DESKTOP FINGERPRINT: OK** (shell..dungeon; boss..alt).
+- (b) touchlaptop, ipad, fire7 (front,newgame), androidtab (front,newgame,hub): **all OK**.
+- (c) `tests/desktopInvariants.test.ts` 19 / 19; `git diff 68584994 -- tests/desktopInvariants.test.ts tests/fingerprints index.html`: empty.
+- (d) `npx tsc --noEmit` clean; `npx vitest run` 47 files, 596 tests passed (12 new in tests/mobileScenes.test.ts).
+- (e) phone smoke, full: main 471 / 480, ALT 504 / 511. **Section `scenes`: 37 / 37 on both builds.** Every other
+  failure is in stage 1 / 2 / wave 1 sections and is a known load flake: the welcome-conversation timing (passed on
+  rerun), `wording` "Target crashed" (renderer killed; passed on ALT), combat SWAP tap / weapon chip tap / slide onto a
+  gun / HEAL / auto-fire timing, side coyote / quick-tap height / camera turn / P2, `polish` room load timeout,
+  `platform` crash, tap-to-use door walk. Reran once (`--only phone,wording,combat,side,polish,tapuse` main 222 / 226;
+  `--only phone,combat,side,platform,tapuse` ALT): the same family of timing checks fails again under the same load,
+  different ones each time. **Baseline proof:** the untouched base 68584994 (a temporary worktree, removed) run with
+  `--only combat,wording` at load 30 fails the same way (wording Target crashed, SWAP tap, slide onto a gun, weapon
+  chip tap: 44 / 48). This track's code does not run in the Dungeon (its rules match Drive / BeepBeep only, its walk
+  controller acts only in Kreddle's raid / rout, and its aim hook passes the fights' own answer straight through).
+  Logs: `/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/mobile/work/s3-scenes/full/`.
 
 ## Gaps / for the coordinator
 - Audio ("speech and sound effects are a little quiet on phones") was not in this track's role; not touched here.
@@ -104,3 +118,13 @@ Citadel, Raid / Rout, Vignette, Ending searched).
 - Rout (chapter 3) shares the raid's code path but was not driven by the smoke.
 - The aim comparison is a bot; a real-phone feel test of NORMAL vs STRONG belongs in stage 4.
 - DEFERRED.md's stage 2 items (P9, R8, R11, P10, P12, P14, P16, P4, R3) were not in this track's role.
+
+## Honest judgement (00-USER-PRIORITIES)
+- Night of Freedom: a first-timer gets "put your finger on the car" at once, and it is the fun part of the scene now;
+  ROCKET under the right thumb works with the aim finger still down. Unknown until a real phone: whether a thumb on
+  the car hides it too much (the crosshair and the tracers help; STRONG is the fallback).
+- Beep Beep: steer-left-thumb / pedals-right-thumb is the standard phone racer layout; BRAKE sits over the speedometer
+  dial (decoration). Feels right in emulation; a real thumb on the "x" stick should be checked for twitchiness
+  (digital steering, exactly as the laptop's keys).
+- Skips: every laptop skip key in this track now has a touch way out (finale, drawbridge, advert, how-to pages, 3D
+  epilogue); the telly's subtitles no longer cover the speaker.

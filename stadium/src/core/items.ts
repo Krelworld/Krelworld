@@ -25,6 +25,7 @@ export const ITEM_DEFS: Record<string, ItemDef> = Object.fromEntries(
     { id: "bus_hold", name: "Luggage hold of the team bus", props: ["container"], size: "huge" },
     { id: "bus_cab", name: "Team bus", props: ["container"], size: "huge" },
     { id: "police_box", name: "Kit box in the police van", props: ["container"], size: "huge", colour: 0x22305a },
+    { id: "bicycle", name: "Bicycle", props: ["rideable"], size: "huge", colour: 0xa02020 },
     { id: "radio", name: "Walkie-talkie", props: [], size: "small", colour: 0x222222 },
     { id: "staff_pass", name: "Staff pass on a lanyard", props: ["credential"], size: "small", colour: 0x3a7bd5 },
     { id: "hivis", name: "Hi-vis vest", props: ["wearable"], size: "large", slot: "outer", role: "steward", authority: 1, colour: 0xd9e021, colour2: 0x9aa31a },

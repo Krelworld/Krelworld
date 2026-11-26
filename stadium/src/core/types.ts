@@ -11,7 +11,7 @@ export const DT = 1 / TICK_HZ;
 export type Prop =
   | "sharp" | "throwable" | "liquid" | "consumable" | "food" | "alcohol" | "spikable"
   | "substance" | "wearable" | "weapon" | "metal" | "illicit" | "credential" | "container"
-  | "valuable" | "noisy" | "sinister" | "smoke" | "grisly" | "breakable";
+  | "valuable" | "noisy" | "sinister" | "smoke" | "grisly" | "breakable" | "rideable";
 export type WearSlot = "head" | "face" | "outer" | "inner" | "body";
 export type Role =
   | "fan" | "steward" | "police" | "cleaner" | "catering" | "medic" | "broadcaster"
@@ -70,6 +70,9 @@ export interface Item {
   of?: Id;
   /** A name of its own, e.g. "Steward Alan's face". */
   label?: string;
+  /** Which way it points (a bike), and whether it's lying on its side. */
+  facing?: number;
+  fallen?: boolean;
   /** A betting slip's terms and, once settled, its result. */
   bet?: { market: "winner" | "next" | "pen" | "red"; pick: string; stake: number; odds: number; at: number; result?: "won" | "lost" };
 }
@@ -106,6 +109,8 @@ export interface Actor {
   roof?: boolean;
   /** Coming down under a parachute: from, to, and when. */
   chute?: { x0: number; y0: number; x1: number; y1: number; t0: number; t1: number };
+  /** The bike he's riding (an item id). */
+  bike?: string;
   /** When his head was stamped flat (a tick), if it was. */
   splat?: number;
   /** Thrown back by a blow: metres per second along the ground, until a tick (slows as it goes). */

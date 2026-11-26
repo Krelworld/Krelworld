@@ -22,8 +22,9 @@ import { installRoutes } from "./routes";
 import { installEntries, spawnEntries, stepEntries } from "./entries";
 import { installDetector } from "./detector";
 import { installCoverup, stepCoverups } from "./coverup";
+import { BIKE_SPEED, BIKE_SPRINT, installBike, stepBikes } from "./bike";
 import { installReactions, installRules, SHOPS, stepRules } from "./rules";
-import { isSecurity, stepDetention, stepSecurity } from "./security";
+import { isSecurity, stepDetention, stepHeat, stepSecurity } from "./security";
 import type { StadiumState } from "./state";
 import { lorryHits, stepVehicle } from "./vehicles";
 
@@ -44,7 +45,7 @@ export const HALF_SECONDS = 450;
 export const HALFTIME_SECONDS = 150;
 
 export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: Campaign = newCampaign()): Game {
-  if (!rulesInstalled) { installRules(); installBetting(); installPolice(); installBus(); installDog(); installKickoff(); installKnife(); installGloryHole(); installCombat(); installHorse(); installRoutes(); installEntries(); installDetector(); installCoverup(); rulesInstalled = true; }
+  if (!rulesInstalled) { installRules(); installBetting(); installPolice(); installBus(); installDog(); installKickoff(); installKnife(); installGloryHole(); installCombat(); installHorse(); installRoutes(); installEntries(); installDetector(); installCoverup(); installBike(); rulesInstalled = true; }
   setVenue(venueId);
   const oppKey = VENUE.opp;
   const opp = TEAMS[oppKey];
@@ -276,6 +277,7 @@ export function stepGame(g: Game): void {
     if (f.stamina <= 0.02 && !f.winded) { f.winded = 1; g.w.bus.emit({ type: "winded", t: s.tick, who: pc.id }); }
     if (f.winded && f.stamina > 0.35) f.winded = 0;
     pc.speed = (run ? 6.4 : 4.4) * (wired ? 1.15 : 1) * (drunk ? 0.92 : 1) * (f.winded ? 0.75 : 1) * (pc.dragging ? 0.45 : 1);
+    if (pc.bike) pc.speed = (wantRun ? BIKE_SPRINT : BIKE_SPEED) * (drunk ? 0.85 : 1);
   }
   const reins = takeReins(w);
   stepWorld(w);
@@ -306,6 +308,8 @@ export function stepGame(g: Game): void {
   stepCombat(w);
   stepEntries(w);
   stepCoverups(w);
+  stepBikes(w);
+  stepHeat(w);
   stepArmed(w);
   stepRules(w);
   stepTipoffs(w);

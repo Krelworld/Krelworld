@@ -35,6 +35,7 @@ export const VERBS: Record<VerbId, VerbDef> = {
       if (!item) return "nothing to take";
       if (item.loc.k !== "ground") return "not lying around";
       if (!near(actor, item.loc.x, item.loc.y)) return "too far";
+      if (defOf(item).props.includes("rideable")) return "ride it, don't carry it";
       if (defOf(item).size === "huge") return "too big to carry";
       return null;
     },

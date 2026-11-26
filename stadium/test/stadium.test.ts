@@ -1206,3 +1206,65 @@ test("stamp on a man's head: it bursts, and he's dead", () => {
   // Once is enough.
   assert.equal(dispatch(g.w, { verb: "finish", actor: pc.id, target: { k: "actor", id: v.id } }).ok, false);
 });
+
+test("stewards: a punch nobody sees brings nobody; one a steward sees brings him; get out of sight and the countdown loses them", () => {
+  const g = createGame("heat");
+  const s = g.w.state, pc = pcOf(g);
+  run(g, 20);
+  const isSec = (a: Actor) => ["turnstile", "doorguard", "gateguard", "pitchsteward", "patrol", "corridor", "chief", "police"].includes(a.npc?.job ?? "");
+  const hunting = () => Object.values(s.actors).filter((a) => isSec(a) && a.npc!.target === pc.id && ["approach", "chase", "search"].includes(a.npc!.mode));
+  // Out the back of the hotel, nobody about: a local, and the player behind him.
+  const v = Object.values(s.actors).find((a) => a.npc?.job === "local" && !a.dead)!;
+  v.npc!.plan = [{ k: "wait", s: 120 }];
+  for (const a of Object.values(s.actors)) if (a !== pc && a !== v && Math.hypot(a.x - 84, a.y - 10) < 30) { a.x = -80; a.y = 90; }
+  v.x = 84; v.y = 10; v.facing = 0; pc.x = 83; pc.y = 10;
+  dispatch(g.w, { verb: "strike", actor: pc.id, target: { k: "actor", id: v.id }, arg: "takedown" });
+  run(g, 3);
+  assert.equal(hunting().length, 0, "nobody saw: nobody comes");
+  // Now a steward watches him do it.
+  const st = Object.values(s.actors).find((a) => a.npc?.job === "patrol")!;
+  const v2 = Object.values(s.actors).find((a) => a.npc?.job === "local" && !a.dead && a !== v)!;
+  v2.npc!.plan = [{ k: "wait", s: 120 }];
+  v2.x = 76; v2.y = 14; v2.facing = Math.PI; pc.x = 75; pc.y = 14; pc.downUntil = 0;
+  for (const a of Object.values(s.actors)) if (isSec(a) && a !== st && Math.hypot(a.x - 76, a.y - 14) < 40) { a.x = -80; a.y = 90; }
+  st.x = 84; st.y = 14; st.facing = Math.PI;
+  dispatch(g.w, { verb: "strike", actor: pc.id, target: { k: "actor", id: v2.id } });
+  run(g, 0.2);
+  assert.ok(hunting().includes(st), "the steward's after him");
+  assert.equal(s.stadium!.flags.heatMode, 4);
+  // Gone: somewhere he can't be seen, far off. The countdown starts, runs out, and they give up.
+  pc.x = -60; pc.y = 92;
+  run(g, 3);
+  assert.equal(s.stadium!.flags.heatMode, 3, "evasion");
+  assert.ok((s.stadium!.flags.evadeUntil ?? 0) > s.tick);
+  let evaded = false;
+  g.w.bus.on((e) => { if (e.type === "evaded") evaded = true; });
+  // (In a bin, so nobody else spots him either.)
+  pc.hiddenIn = "bin@test";
+  run(g, 30);
+  pc.hiddenIn = undefined;
+  assert.ok(evaded, "lost him");
+  assert.equal(hunting().length, 0);
+});
+
+test("a bike: get on and you outrun a steward; grabbed, you come off it", () => {
+  const g = createGame("bike");
+  const s = g.w.state, pc = pcOf(g);
+  run(g, 2);
+  const bike = Object.values(s.items).find((i) => i.def === "bicycle" && i.loc.k === "ground")!;
+  const l = bike.loc as { x: number; y: number };
+  pc.x = l.x + 1; pc.y = l.y;
+  assert.equal(dispatch(g.w, { verb: "take", actor: pc.id, item: bike.id }).ok, false, "you can't pocket a bike");
+  assert.equal(dispatch(g.w, { verb: "ride", actor: pc.id, item: bike.id }).ok, true);
+  // Pedal along the street for two seconds: much further than a sprint.
+  const x0 = pc.x, y0 = pc.y;
+  run(g, 2, () => { pc.moveX = 0; pc.moveY = -1; });
+  assert.ok(Math.hypot(pc.x - x0, pc.y - y0) > 15, `went ${Math.hypot(pc.x - x0, pc.y - y0).toFixed(1)} m`);
+  const bl = s.items[bike.id].loc as { x: number; y: number };
+  assert.ok(Math.hypot(bl.x - pc.x, bl.y - pc.y) < 0.1, "the bike comes too");
+  // Grabbed: off it.
+  pc.heldBy = Object.values(s.actors).find((a) => a.npc?.job === "patrol")!.id;
+  run(g, 0.1);
+  assert.equal(pc.bike, undefined);
+  assert.equal(s.items[bike.id].loc.k, "ground");
+});

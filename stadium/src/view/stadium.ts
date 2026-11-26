@@ -37,6 +37,8 @@ import { FirstPerson, type FpSprite } from "./fp";
 import { holeState, inCubicle, knifeOn } from "../stadium/gloryhole";
 import { incapacitated, knockedOut, lootable } from "../stadium/combat";
 import { hasRadio } from "../stadium/coverup";
+import { SECURITY_JOBS } from "../stadium/security";
+const isSecurityJob = (j: string) => SECURITY_JOBS.has(j);
 import { findPath } from "../stadium/nav";
 import { LEADS } from "../stadium/entries";
 import { playOpening } from "./opening";
@@ -388,6 +390,17 @@ class StadiumScene extends Phaser.Scene {
         }
         break;
       }
+      case "heat": {
+        // Spotted: a sting. Shaken them off: a breath out.
+        if (e.mode === 4 && (e.was ?? 0) < 3) a.play("heat_alert", 0.8, { minGap: 4 });
+        if (e.mode === 2 && e.was === 3) a.play("heat_clear", 0.8);
+        break;
+      }
+      case "bike_on": if (e.who === pcId) { a.play("tap", 1); a.play("chime", 0.4, { rate: 1.6 }); this.hint("On your bike. Get off with the button, or you'll come off if anyone grabs you."); } break;
+      case "bike_off": if (e.thrown) a.play("bodyfall", 0.8); a.play("weaponhit", 0.4, { rate: 0.8 }); break;
+      case "evaded": this.hint("Lost them. Keep your head down for a bit: they've got your description."); break;
+      case "evasion": this.hint("Out of sight. Stay hidden till the countdown runs out and they'll give up."); break;
+      case "radioed": a.play("radio_squelch", 0.3 + near(e.x, e.y, 40) * 0.5, { minGap: 2 }); break;
       case "headsplat": {
         // The head goes: a burst of blood every which way, bits, and a pool where it was.
         const who = s.actors[e.who];
@@ -849,6 +862,7 @@ class StadiumScene extends Phaser.Scene {
   liftOf(a: Actor): number {
     // Kept within a screen of the ground (the camera follows your feet): the shadow tells the height.
     if (a.roof) return 5;
+    if (a.bike) return 0.3; // up on the saddle
     if (a.chute) { const c = a.chute, k = Math.min(1, (this.s.tick - c.t0) / (c.t1 - c.t0)); return 8 * (1 - k * k); }
     return 0;
   }
@@ -1173,6 +1187,19 @@ class StadiumScene extends Phaser.Scene {
       if (it.def === "lorry_cargo" || (sprites && (it.def === "police_box" || it.def === "kitbag"))) continue;
       const def = defOf(it), x = l.x, y = l.y, z = l.k === "air" ? l.z : 0;
       if (!onScreen(x, y)) continue;
+      if (it.def === "bicycle") {
+        // Ridden: drawn with its rider. Parked (or dropped on its side): its picture.
+        if (Object.values(s.actors).some((a) => a.bike === id) || !this.textures.exists("w-bike8")) continue;
+        const nearB = pc && Math.hypot(pc.x - x, pc.y - y) < 2.6;
+        things.push({ d: y, draw: () => {}, spr: (dep) => {
+          let im = this.worldSprites.get(`item-${id}`);
+          if (!im) { im = this.add.image(0, 0, "w-bike8", 0).setOrigin(0.5, 0.72); this.worldSprites.set(`item-${id}`, im); }
+          this.worldSeen.add(`item-${id}`);
+          (im as Phaser.GameObjects.Image).setFrame(dirIndex(it.facing ?? 0)).setPosition(Math.round(P.sx(x, y)), Math.round(P.sy(x, y))).setDepth(dep).setVisible(true).setAlpha(1).setAngle(it.fallen ? 75 : 0).setScale(P.standing && P.S === PPM ? 1 : (P.S / PPM) * (P.standing ? 1 : 0.85));
+        } });
+        if (nearB) things.push({ d: y + 1e-4, draw: () => g.lineStyle(3, 0xf2c94c, 0.5 + 0.4 * Math.sin(tick * 0.15)).strokeCircle(P.sx(x, y), P.sy(x, y) - P.S * 0.3, P.S * 0.9) });
+        continue;
+      }
       const near = pc && Math.hypot(pc.x - x, pc.y - y) < 2.6;
       if (sprites && def.size !== "huge" && ICONS.has(it.def) && this.textures.exists(`ico-${it.def}`)) {
         // Its picture, half size (a 48 px icon is 0.75 m across), lying where it fell or flying.
@@ -1860,6 +1887,13 @@ class StadiumScene extends Phaser.Scene {
     const scale = P.standing && P.S === PPM ? 1 : (h * P.KZ * P.S) / (FEET - HEAD) * (P.standing ? 1 : 0.7);
     const lift = this.liftOf(a);
     const x = Math.round(P.sx(a.x + shiver, a.y)), y = Math.round(P.sy(a.x, a.y, lift));
+    // On a bike: the bike under him, pointing his way.
+    if (a.bike && this.textures.exists("w-bike8")) {
+      let bk = this.worldSprites.get(`bike-${a.id}`) as Phaser.GameObjects.Image | undefined;
+      if (!bk) { bk = this.add.image(0, 0, "w-bike8", 0).setOrigin(0.5, 0.72); this.worldSprites.set(`bike-${a.id}`, bk); }
+      this.worldSeen.add(`bike-${a.id}`);
+      bk.setFrame(dirIndex(a.facing)).setPosition(Math.round(P.sx(a.x, a.y)), Math.round(P.sy(a.x, a.y))).setDepth(depth - 0.001).setVisible(true).setAlpha(1).setAngle(0).setScale(P.standing && P.S === PPM ? 1 : (P.S / PPM) * (P.standing ? 1 : 0.85));
+    }
     // In the air, nothing in the world is in front of you (the crowd included).
     if (lift > 0) depth = 1e6;
     sp.setVisible(true).setDepth(depth).setScale(scale).setAlpha(st2.alpha ?? 1);
@@ -2128,6 +2162,8 @@ class StadiumScene extends Phaser.Scene {
     eye.textContent = worst >= 4 ? "Caught" : worst >= 3 ? "Being chased" : worst >= 2 ? "A steward is coming for you" : worst >= 1.5 ? "They are looking for you" : "Being watched";
     eye.classList.toggle("hot", worst >= 2);
     if (st.detainedUntil) { eye.hidden = false; eye.textContent = `Detained · ${Math.ceil((st.detainedUntil - s.tick) / 60)}s`; eye.classList.add("hot"); }
+    if (st.flags.heatMode === 3 && !pc.heldBy) { eye.hidden = false; eye.textContent = "Out of sight: stay hidden"; eye.classList.remove("hot"); }
+    if (s.tick % 2 === 0) this.drawRadar();
 
     // Buttons.
     if (s.tick % 6 === 0 || !this.opts.length) {
@@ -2234,6 +2270,65 @@ class StadiumScene extends Phaser.Scene {
     el.hidden = false;
   }
   closeSheet() { $("sheet").hidden = true; this.sheetKind = null; }
+
+  /** The radar: walls and stewards within 26 m, their eyelines, you in the middle. Under it, the heat. */
+  drawRadar() {
+    const box = $("radarBox"), pc = this.pc, s = this.s, st = s.stadium!;
+    const hide = !this.started || this.inCab() || !!this.fp?.on || !$("stall").hidden;
+    if (box.hidden !== hide) box.hidden = hide;
+    if (hide || !pc) return;
+    // Sit just under the top bar, whatever shape it has wrapped to.
+    const topB = $("top").getBoundingClientRect().bottom;
+    if (Math.abs(topB + 8 - (this.radarTop ?? 0)) > 1) { this.radarTop = topB + 8; box.style.top = `${this.radarTop}px`; }
+    const cv = $("radar") as HTMLCanvasElement, px = Math.round(96 * DPR);
+    if (cv.width !== px) { cv.width = cv.height = px; }
+    const c = cv.getContext("2d")!, R = px / 2, RANGE = 26, k = R / RANGE;
+    const mode = st.flags.heatMode ?? 0;
+    const sx = (x: number) => R + (x - pc.x) * k, sy = (y: number) => R + (y - pc.y) * k;
+    c.save();
+    c.clearRect(0, 0, px, px);
+    c.beginPath(); c.arc(R, R, R, 0, Math.PI * 2); c.clip();
+    c.fillStyle = mode === 4 ? "#3a0d10" : mode === 3 ? "#3a3008" : "#0d2418"; c.fillRect(0, 0, px, px);
+    // Rings.
+    c.strokeStyle = "rgba(160,255,190,0.12)"; c.lineWidth = DPR;
+    for (const r of [R / 3, (2 * R) / 3]) { c.beginPath(); c.arc(R, R, r, 0, Math.PI * 2); c.stroke(); }
+    // Walls.
+    c.fillStyle = "rgba(190,230,200,0.55)";
+    for (const wl of SOLID) {
+      if (wl.prop || wl.x > pc.x + RANGE || wl.x + wl.w < pc.x - RANGE || wl.y > pc.y + RANGE || wl.y + wl.h < pc.y - RANGE) continue;
+      c.fillRect(sx(wl.x), sy(wl.y), Math.max(DPR, wl.w * k), Math.max(DPR, wl.h * k));
+    }
+    // Stewards and police: a dot and a cone where they're looking, coloured by what they're up to.
+    for (const id in s.actors) {
+      const a = s.actors[id], n = a.npc;
+      if (!n || a.hiddenIn || a.dead || !(isSecurityJob(n.job) || n.job === "armed") || Math.abs(a.x - pc.x) > RANGE + 4 || Math.abs(a.y - pc.y) > RANGE + 4) continue;
+      const down = a.downUntil > s.tick;
+      const hot = n.target === pc.id && (n.mode === "chase" || n.mode === "approach" || n.mode === "escort");
+      const col = down ? "#777" : hot ? "#ff3b3b" : n.target === pc.id && n.mode !== "routine" ? "#ffd23f" : n.job === "police" || n.job === "armed" ? "#59a8ff" : "#7dffa8";
+      const x = sx(a.x), y = sy(a.y);
+      if (!down) {
+        const range = (n.job === "pitchsteward" || n.job === "police" ? 22 : 14) * k * 0.55;
+        c.fillStyle = col === "#ff3b3b" ? "rgba(255,59,59,0.28)" : col === "#ffd23f" ? "rgba(255,210,63,0.25)" : "rgba(125,255,168,0.16)";
+        c.beginPath(); c.moveTo(x, y); c.arc(x, y, range, a.facing - 0.6, a.facing + 0.6); c.closePath(); c.fill();
+      }
+      c.fillStyle = col; c.beginPath(); c.arc(x, y, 3.2 * DPR, 0, Math.PI * 2); c.fill();
+    }
+    // You.
+    c.translate(R, R); c.rotate(pc.facing);
+    c.fillStyle = "#ffffff"; c.beginPath(); c.moveTo(6 * DPR, 0); c.lineTo(-4 * DPR, 4 * DPR); c.lineTo(-4 * DPR, -4 * DPR); c.closePath(); c.fill();
+    c.restore();
+    // The heat: a label (with the countdown while you're out of sight) and five stars.
+    const lbl = $("heatLbl"), heat = st.flags.heat ?? 0;
+    const evade = st.flags.evadeUntil ? Math.max(0, (st.flags.evadeUntil - s.tick) / 60) : 0, caution = Math.max(0, ((st.flags.cautionUntil ?? 0) - s.tick) / 60);
+    const text = mode === 4 ? "Alert" : mode === 3 ? `Evasion ${evade.toFixed(1)}` : mode === 2 ? `Caution ${Math.ceil(caution)}` : mode === 1 ? "Noticed" : "";
+    if (lbl.textContent !== text) lbl.textContent = text;
+    const cls = mode === 4 ? "alert" : mode === 3 ? "evasion" : mode === 2 ? "caution" : "";
+    if (lbl.className !== cls) lbl.className = cls;
+    const stars = `<b>${"★".repeat(heat)}</b>${"★".repeat(5 - heat)}`;
+    if (this.starsHtml !== stars) { this.starsHtml = stars; $("stars").innerHTML = stars; }
+  }
+  radarTop?: number;
+  starsHtml = "";
 
   /** The person under a point on the ground (in metres), standing or down. */
   personAt(gx: number, gy: number): Actor | null {

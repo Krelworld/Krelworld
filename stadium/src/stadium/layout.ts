@@ -304,6 +304,8 @@ const QF_SPOTS = {
   kitbag: { x: 57.8, y: 72.6 },
   mascotSmoke: { x: -63, y: -40 },
   hamperOut: { x: -60.5, y: -56.2 },
+  bike1: { x: -58, y: -42 },
+  bike2: { x: 75, y: 60 },
   pitchSpot: { x: -14, y: 26.4 },
   alarmPoints: [{ x: -30, y: 43.6 }, { x: 36, y: 43.6 }, { x: -55.6, y: -12 }, { x: 55.6, y: 18 }, { x: -30, y: -47.6 }],
 };

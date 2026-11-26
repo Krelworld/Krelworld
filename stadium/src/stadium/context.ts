@@ -99,6 +99,14 @@ export function options(w: World, pc: Actor, picked?: string | null): Option[] {
     }
   }
 
+  // Bikes: on one, or one to get on.
+  if (pc.bike) push("Get off the bike", 3, { verb: "getoff", ...base });
+  else for (const it of Object.values(s.items)) {
+    if (it.def !== "bicycle" || it.loc.k !== "ground" || Math.hypot(it.loc.x - pc.x, it.loc.y - pc.y) > 1.9) continue;
+    push("Get on the bike", 46, { verb: "ride", ...base, item: it.id });
+    break;
+  }
+
   // People.
   const people = Object.values(s.actors)
     .filter((a) => a.id !== pc.id && !a.hiddenIn && !a.dead && !knockedOut(w, a) && a.npc?.job !== "dog" && (a.npc || a.fb || a.off) && (!a.fb || a.fb.status !== "gone"))

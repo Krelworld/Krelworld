@@ -12,7 +12,7 @@ const DESK = { studio: 129, presser: 158 };
 const PRES = { studio: { feet: 0.63, scale: 2.5 }, presser: { feet: 0.76, scale: 2.8 } };
 const ROOM_SCALE = 1.8, ROOM_X = (W - 400 * ROOM_SCALE) / 2;
 const R = (x: number, y: number) => ({ x: ROOM_X + x * ROOM_SCALE, y: y * ROOM_SCALE });
-const LINES = ["n1", "n2", "s1", "s2", "s3", "n3", "g1", "g2", "k1", "k2", "k3", "g3", "w1", "g4", "w2", "g5", "w3", "k4", "k5", "k6", "g6", "g7", "w4", "g8", "g9"];
+const LINES = ["n1", "n2", "s1", "s2", "s3", "n3", "g1", "g2", "k1", "k2", "k3", "g3", "w1", "g4", "w2", "g5", "w3", "k4", "k5", "k6", "k7", "k8", "g10", "g6", "g7", "w4", "g8", "g9"];
 const SFX = ["sting", "tvsmash", "snap", "wail", "door", "pubcheer", "crisps"];
 const CAST = ["fan", "shezleigh", "grozzyjr", "screnton"];
 const ANIMS = ["walk", "idle", "punch", "cheer", "rage", "snap", "throw", "shout", "cry", "tug"];
@@ -287,7 +287,7 @@ class OpeningScene extends Phaser.Scene {
     const tv = R(205, 62), tvg = this.add.graphics().setDepth(90);
     tvg.lineStyle(2, 0xffffff, 0.8);
     for (let i = 0; i < 9; i++) { const a = (i / 9) * Math.PI * 2; tvg.lineBetween(tv.x, tv.y, tv.x + Math.cos(a) * 60, tv.y + Math.sin(a) * 34); }
-    this.time.addEvent({ delay: 300, loop: true, callback: () => { const s = this.add.rectangle(tv.x + (Math.random() - 0.5) * 70, tv.y + (Math.random() - 0.5) * 30, 4, 4, 0xfff3a0).setDepth(91); this.tweens.add({ targets: s, y: s.y + 40, alpha: 0, duration: 500, onComplete: () => s.destroy() }); } });
+    const sparks = this.time.addEvent({ delay: 300, loop: true, callback: () => { const s = this.add.rectangle(tv.x + (Math.random() - 0.5) * 70, tv.y + (Math.random() - 0.5) * 30, 4, 4, 0xfff3a0).setDepth(91); this.tweens.add({ targets: s, y: s.y + 40, alpha: 0, duration: 500, onComplete: () => s.destroy() }); } });
     this.mark("room-img");
     // The room breathes: a dodgy bulb, and fag smoke off the ashtray.
     const dim = this.add.rectangle(W / 2, H / 2, W, H, 0x000000, 0.08).setDepth(1500);
@@ -362,10 +362,50 @@ class OpeningScene extends Phaser.Scene {
     await this.say("k4", "I'm hungry!", jr, { gap: 40 });
     await this.say("k5", "I'm hungrier! Give me the crisps!", scr, { gap: 40 });
     this.sfx("crisps");
-    await this.say("k6", "They're my crisps!", jr, { gap: 40 });
+    await this.say("k6", "They're my fucking crisps, you cunt!", jr, { gap: 40 });
+    await this.say("k7", "No they're MY fucking crisps, you fucking CUNT!", scr, { gap: 40 });
     this.tweens.killTweensOf(crisps);
     for (let i = 0; i < 24; i++) { const c = this.add.rectangle(crisps.x, crisps.y, 5, 4, 0xf2d06a).setDepth(301); this.tweens.add({ targets: c, x: c.x + (Math.random() - 0.5) * 160, y: c.y + Math.random() * 90 - 20, angle: Math.random() * 360, duration: 500 + Math.random() * 300, ease: "Quad.out" }); }
     crisps.destroy();
+    // And now they're at it: fists.
+    const brawl = this.time.addEvent({ delay: 260, loop: true, callback: () => {
+      const hitter = Math.random() < 0.5 ? jr : scr;
+      hitter.play("punch", false, 16);
+      if (this.cache.audio.exists("punch")) this.sound.play("punch", { volume: 0.35, rate: 1.3 + Math.random() * 0.3 });
+      this.tweens.add({ targets: (hitter === jr ? scr : jr).sp, x: { from: (hitter === jr ? scr : jr).sp.x, to: (hitter === jr ? scr : jr).sp.x + (hitter === jr ? 6 : -6) }, duration: 70, yoyo: true });
+    } });
+    await this.say("k8", "I'll fucking KILL you!", jr, { gap: 20 });
+    // That's it. The telly comes off the wall and goes across the room.
+    grozz.face(DIR.N);
+    await grozz.walk(205, 96, 150);
+    grozz.face(DIR.N); grozz.play(grozz.has("rage") ? "rage" : "punch", false, 14);
+    const outburst = this.say("g10", "I've fucking HAD IT! I've fucking HAD IT!", grozz, { gap: 0 });
+    await this.wait(500);
+    // Paint over where it hung (the wall behind, a bare bracket), and give him the set.
+    const wallAt = R(210.5, 59.5);
+    this.add.rectangle(wallAt.x, wallAt.y, 94 * ROOM_SCALE, 43 * ROOM_SCALE, 0x2d2216).setDepth(1);
+    const holes = this.add.graphics().setDepth(2);
+    holes.fillStyle(0x120c07, 1);
+    for (const [hx, hy] of [[-30, -12], [30, -12], [-30, 10], [30, 10]]) holes.fillRect(wallAt.x + hx, wallAt.y + hy, 6, 6);
+    holes.lineStyle(2, 0x120c07, 0.9).lineBetween(wallAt.x - 20, wallAt.y - 14, wallAt.x - 4, wallAt.y + 2).lineBetween(wallAt.x + 22, wallAt.y + 8, wallAt.x + 8, wallAt.y - 6);
+    tvg.setVisible(false); sparks.remove();
+    const set = this.add.container(grozz.sp.x, grozz.sp.y - 120).setDepth(1200);
+    set.add(this.add.rectangle(0, 0, 92, 54, 0x111111).setStrokeStyle(3, 0x2a2a2a));
+    const glassG = this.add.graphics(); glassG.lineStyle(2, 0xffffff, 0.7);
+    for (let i = 0; i < 7; i++) { const a = (i / 7) * Math.PI * 2; glassG.lineBetween(4, -4, 4 + Math.cos(a) * 40, -4 + Math.sin(a) * 22); }
+    set.add(glassG);
+    this.sfx("chair_smash", 0.5);
+    this.cameras.main.shake(200, 0.008);
+    await new Promise<void>((r) => this.tweens.add({ targets: set, y: set.y - 40, angle: -8, duration: 380, ease: "Quad.out", onComplete: () => r() }));
+    grozz.face(DIR.E); grozz.play("punch", false, 14);
+    const land = R(330, 210);
+    await new Promise<void>((r) => this.tweens.add({ targets: set, x: land.x, y: land.y, angle: 540, duration: 650, ease: "Quad.in", onComplete: () => r() }));
+    set.destroy();
+    this.smash(land, [0x111111, 0x2a2a2a, 0xc0c8d0, 0x88a0c0, 0xffffff], "wall_crash", true);
+    this.sfx("glass_smash", 1);
+    brawl.remove();
+    jr.face(DIR.S); jr.play("cry"); scr.face(DIR.S); scr.play("cry"); this.sfx("wail", 0.8);
+    await outburst;
     grozz.face(DIR.S);
     await this.say("g6", "Right. I've fucking had enough.", grozz);
     // And on the way out, he does the front room.

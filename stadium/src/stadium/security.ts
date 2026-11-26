@@ -109,22 +109,38 @@ export function crime(w: World, by: Actor, what: string, severity: number, victi
     severity: Math.min(1, 0.35 + severity * 0.25), until: s.tick + 60 * 300, what,
   });
   let shouted = false;
+  let radioed = false;
   for (const wtn of seen) {
     const n = wtn.npc!;
-    if (isSecurity(wtn)) alert(w, wtn, by, severity, 1.8);
-    else if (!shouted) {
+    if (isSecurity(wtn)) {
+      alert(w, wtn, by, severity, 1.8);
+      // A steward who saw it himself gets on the radio: his mates nearby come to where it happened.
+      if (!radioed && severity >= 2 && wtn.npc!.job !== "turnstile") {
+        radioed = true;
+        let told = 0;
+        for (const id in s.actors) {
+          const g = s.actors[id];
+          if (g === wtn || !isSecurity(g) || g.downUntil > s.tick || Math.hypot(g.x - by.x, g.y - by.y) > RADIO_RANGE) continue;
+          alert(w, g, by, severity, 1.0); told++;
+        }
+        if (told) { say(w, wtn, "Control, I need backup!", 2.5); w.bus.emit({ type: "radioed", t: s.tick, by: wtn.id, x: by.x, y: by.y, n: told }); }
+      }
+    } else if (!shouted) {
       shouted = true;
       say(w, wtn, severity >= 2 ? "Oi! Somebody stop him!" : "Oi! Did you see that?");
-      // Nearby security come running.
+      // Only security within earshot come running: close, and not through a wall.
       for (const id in s.actors) {
-        const g = s.actors[id];
-        if (isSecurity(g) && Math.hypot(g.x - wtn.x, g.y - wtn.y) < 24) alert(w, g, by, severity, 1.1);
+        const g = s.actors[id], d = Math.hypot(g.x - wtn.x, g.y - wtn.y);
+        if (isSecurity(g) && (d < 7 || (d < EARSHOT && lineOfSight(g.x, g.y, wtn.x, wtn.y)))) alert(w, g, by, severity, 1.1);
       }
     }
     n.nextBark = s.tick + 300;
   }
   return seen.length;
 }
+
+/** How far a shout carries, and a radio call. */
+const EARSHOT = 16, RADIO_RANGE = 38;
 
 export function alert(w: World, g: Actor, by: Actor, severity: number, sus: number): void {
   const n = g.npc!;
@@ -253,7 +269,8 @@ export function stepSecurity(w: World, g: Actor): void {
       if (t && canSee(w, g, t, 18) && sus > 0.6) return setMode(w, g, "chase");
       if (!n.goal) { const r = s.rng.world; goTo(g, n.lastSeen!.x + (r.a % 7) - 3, n.lastSeen!.y + (r.b % 7) - 3); }
       follow(w, g);
-      if (tick > n.modeUntil) { if (t) n.sus[t.id] = 0.4; say(w, g, "Lost him."); setMode(w, g, "routine"); }
+      // While they're hunting for him (the evasion countdown), they keep looking; stepHeat calls it off.
+      if (tick > Math.max(n.modeUntil, st.flags.evadeUntil ?? 0)) { if (t) n.sus[t.id] = 0.4; say(w, g, "Lost him."); setMode(w, g, "routine"); }
       return;
     }
     case "escort":
@@ -418,3 +435,54 @@ export function stepDetention(w: World): void {
   eject(w, chief ?? null, pc);
 }
 
+
+
+// ---------- Heat ----------
+/** How hot it is for him, MGS/GTA style. flags.heatMode: 0 clear, 1 noticed, 2 caution, 3 evasion,
+ *  4 alert. flags.heat: 0 to 5 stars. While they're after him and none of them can see him, a countdown
+ *  (flags.evadeUntil) runs; stay out of sight until it's done and they give up. */
+export function stepHeat(w: World): void {
+  const s = w.state, st = s.stadium!, tick = s.tick, pc = s.actors[st.pc];
+  if (!pc) return;
+  const after = Object.values(s.actors).filter((a) => isSecurity(a) && a.npc!.target === pc.id && a.downUntil <= tick);
+  const hunting = after.filter((a) => ["approach", "chase", "search"].includes(a.npc!.mode) && a.npc!.crime >= 1);
+  const holding = after.some((a) => a.npc!.mode === "escort") || !!pc.heldBy || !!st.detainedUntil;
+  const seen = hunting.some((a) => a.npc!.mode !== "search" && a.npc!.lastSeen && tick - a.npc!.lastSeen.t < 20);
+  const worst = Math.max(0, ...after.map((a) => a.npc!.crime));
+  const police = after.some((a) => a.npc!.job === "police" && a.npc!.mode !== "routine") || worst >= 3;
+  let mode = 0;
+  if (holding) { mode = 4; st.flags.evadeUntil = 0; }
+  else if (hunting.length && seen) { mode = 4; st.flags.evadeUntil = 0; }
+  else if (hunting.length) {
+    // Out of sight: they've got this long to find him.
+    if (!st.flags.evadeUntil) {
+      st.flags.evadeUntil = tick + 60 * (10 + 3 * Math.min(4, worst));
+      w.bus.emit({ type: "evasion", t: tick });
+    }
+    mode = 3;
+    for (const a of hunting) {
+      const n = a.npc!;
+      // The ones still running to where they last saw him carry on; then they comb the area.
+      if (n.mode === "search") n.modeUntil = Math.max(n.modeUntil, st.flags.evadeUntil);
+    }
+    if (tick >= st.flags.evadeUntil) {
+      for (const a of hunting) { const n = a.npc!; n.sus[pc.id] = 0.3; n.crime = 0; say(w, a, "Lost him."); n.mode = "routine"; n.target = null; n.intent = null; n.goal = null; n.path = []; n.plan = []; }
+      // His description fades, too: they're not sure it was him any more.
+      for (const wd of st.wanted) { wd.severity *= 0.5; wd.until = Math.min(wd.until, tick + 60 * 45); }
+      st.flags.evadeUntil = 0;
+      st.flags.cautionUntil = tick + 60 * 30;
+      w.bus.emit({ type: "evaded", t: tick });
+      mode = 2;
+    }
+  } else {
+    st.flags.evadeUntil = 0;
+    if ((st.flags.cautionUntil ?? 0) > tick) mode = 2;
+    else if (after.some((a) => a.npc!.mode !== "routine")) mode = 1;
+  }
+  let heat = mode === 4 ? 3 : mode === 3 ? 2 : mode;
+  if (mode >= 3 && police) heat++;
+  if (st.flags.armedAt && (mode >= 3 || s.tick - st.flags.armedAt < 60 * 120)) heat = 5;
+  if (mode !== st.flags.heatMode) w.bus.emit({ type: "heat", t: tick, mode, was: st.flags.heatMode ?? 0 });
+  st.flags.heatMode = mode;
+  st.flags.heat = Math.min(5, heat);
+}

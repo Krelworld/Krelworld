@@ -86,6 +86,17 @@
   #eye { padding: 5px 12px; font: 800 14px/1.1 var(--display); letter-spacing: 0.08em; text-transform: uppercase; color: var(--bugink); background: var(--bug); }
   #eye.hot { background: var(--red); color: var(--ink); animation: pulse 1s ease-in-out infinite; }
   @keyframes pulse { 50% { filter: brightness(1.35); } }
+  /* The radar (stewards near you and where they're looking) and how hot it is for you. */
+  #radarBox { right: max(10px, env(safe-area-inset-right, 0px)); top: 118px; display: flex; flex-direction: column; align-items: center; gap: 4px; pointer-events: none; }
+  #radar { width: 96px; height: 96px; border-radius: 50%; border: 3px solid #0b1220; box-shadow: 0 2px 0 rgba(0,0,0,.4); background: #0d2418; }
+  #heat { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  #heatLbl { padding: 3px 7px; font: 800 12px/1 var(--display); letter-spacing: 0.08em; text-transform: uppercase; background: var(--night); color: var(--ink); font-variant-numeric: tabular-nums; }
+  #heatLbl:empty { display: none; }
+  #heatLbl.alert { background: var(--red); animation: pulse .6s ease-in-out infinite; }
+  #heatLbl.evasion { background: var(--bug); color: var(--bugink); }
+  #heatLbl.caution { background: #d9822b; color: #111; }
+  #stars { font: 700 15px/1 var(--display); letter-spacing: 1px; color: #3a4252; text-shadow: 0 1px 0 #000; }
+  #stars b { color: #f2c94c; font-weight: 700; }
   #right { display: flex; gap: 6px; align-items: center; }
   #money { display: flex; align-items: center; height: 38px; padding: 0 12px; font: 800 18px/1 var(--display); font-variant-numeric: tabular-nums; color: var(--bug); }
 
@@ -267,6 +278,10 @@
     </div>
   </div>
 
+  <div id="radarBox" class="float" hidden>
+    <canvas id="radar" width="96" height="96" aria-label="Radar"></canvas>
+    <div id="heat"><span id="heatLbl"></span><span id="stars"></span></div>
+  </div>
   <div id="hurt"></div>
   <div class="lb" id="lbTop"></div><div class="lb" id="lbBot"></div><div id="cineCap"></div>
   <div id="stall" hidden>

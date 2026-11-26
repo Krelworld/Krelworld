@@ -13,6 +13,7 @@ import type { Actor } from "../core/types";
 import { moveItem, spawnItem } from "../core/items";
 import { registerVerb } from "../core/verbs";
 import type { World } from "../core/world";
+import { spawnBikes } from "./bike";
 import { KICKOFF_AT, SPOTS } from "./layout";
 import { say, secs } from "./npc";
 import { incapacitated } from "./combat";
@@ -223,5 +224,6 @@ export function spawnEntries(w: World, staff: (job: any, role: any, name: string
   if (rep) spawnItem(s, "press_pass", { k: "pocket", a: rep.id });
   // The laundry hamper by the players' entrance.
   spawnItem(s, "laundry", { k: "ground", x: sp().hamperOut.x, y: sp().hamperOut.y });
+  spawnBikes(w, sp());
   void W;
 }

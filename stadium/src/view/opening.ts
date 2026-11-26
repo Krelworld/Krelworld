@@ -9,7 +9,7 @@ const W = 960, H = 540;
 /** Where the desk and the microphones start in the TV sets (picture rows, of 224), and where the
  *  presenters stand and how big. Set by looking at the pictures. */
 const DESK = { studio: 129, presser: 158 };
-const PRES = { studio: { feet: 0.89, scale: 2.6 }, presser: { feet: 1.02, scale: 2.8 } };
+const PRES = { studio: { feet: 0.63, scale: 2.5 }, presser: { feet: 0.76, scale: 2.8 } };
 const ROOM_SCALE = 1.8, ROOM_X = (W - 400 * ROOM_SCALE) / 2;
 const R = (x: number, y: number) => ({ x: ROOM_X + x * ROOM_SCALE, y: y * ROOM_SCALE });
 const LINES = ["n1", "n2", "s1", "s2", "s3", "n3", "g1", "g2", "k1", "k2", "k3", "g3", "w1", "g4", "w2", "g5", "w3", "k4", "k5", "k6", "g6"];

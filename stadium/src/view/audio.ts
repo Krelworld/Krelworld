@@ -19,7 +19,10 @@ export const CLIPS = [
 /** Voiced lines (ElevenLabs stock British voices): what's said -> clip; a woman says the `_f` take. */
 import VOICES_JSON from "../../assets/audio/voices.json";
 export const VOICES: Record<string, string> = VOICES_JSON as Record<string, string>;
-export type Clip = (typeof CLIPS)[number] | `v_${string}`;
+/** The player's own voice: what he shouts when he hits, knocks out, robs, rides, jumps. */
+import PC_JSON from "../../assets/audio/pcvoices.json";
+export const PC_LINES: Record<string, [string, string][]> = PC_JSON as unknown as Record<string, [string, string][]>;
+export type Clip = (typeof CLIPS)[number] | `v_${string}` | `pc_${string}`;
 
 export class Audio {
   ctx: AudioContext | null = null;
@@ -86,6 +89,7 @@ export class Audio {
     this.startCrowd();
     await Promise.all(CLIPS.filter((c) => c !== "crowd_loop").map((c) => this.load(c)));
     await Promise.all(Object.values(VOICES).flatMap((v) => [this.load(v), this.load(`${v}_f`)]));
+    await Promise.all(Object.values(PC_LINES).flat().map(([, c]) => this.load(c)));
   }
 
   private async load(name: string): Promise<void> {

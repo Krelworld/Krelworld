@@ -27,7 +27,7 @@ import { BUS_LEN, BUS_WID, holdOpen } from "../stadium/bus";
 import { drawFigure, headTop, type FigureStyle } from "./figures";
 import { drawBall, drawGoalFrame, drawPitch } from "./pitchArt";
 import { Projection } from "./projection";
-import { Audio, VOICES, type Clip } from "./audio";
+import { Audio, PC_LINES, VOICES, type Clip } from "./audio";
 import { Drive3D, type DriveView } from "./drive3d";
 import { CELL, cellOf, dirIndex, FEET, feetOf, HEAD, SpriteBank, type Base, type Recolour } from "./sprites";
 import { buildings, placements, WorldArt, type Placement } from "./world";
@@ -349,7 +349,7 @@ class StadiumScene extends Phaser.Scene {
         // the camera jolts, the victim flashes white and flies back spraying blood.
         const by = s.actors[e.by], who = s.actors[e.who];
         if (!by || !who) break;
-        if (e.by === pcId) this.fp.punchAt = performance.now();
+        if (e.by === pcId) { this.fp.punchAt = performance.now(); if (e.horse) this.bark("horse", 0.5); else this.bark("strike", 0.6); }
         if (e.horse) { a.play("trample", 0.4 + near(who.x, who.y, 35) * 0.6, { minGap: 0.1 }); this.impact(e.by, e.who, e.dx, e.dy, 1.2, near(who.x, who.y, 35)); break; }
         const v = near(who.x, who.y, 35);
         a.play("whoosh", 0.25 + v * 0.5, { minGap: 0.05, rate: 0.9 + Math.random() * 0.25 });
@@ -368,7 +368,7 @@ class StadiumScene extends Phaser.Scene {
       case "fire_alarm": a.play("fire_alarm", 0.4 + near(e.x, e.y, 50) * 0.6); break;
       case "gunshot": a.play("gunshot", 0.5 + near(e.x, e.y, 60) * 0.5, { minGap: 0.15 }); this.flash = { x: e.x, y: e.y, until: s.tick + 5 }; break;
       case "killed": {
-        if (e.fall) { a.play("fall_scream", 1); setTimeout(() => { a.play("splat", 1); a.play("bodyfall", 1); }, 1300); this.trauma = 1; }
+        if (e.fall) { this.bark("fall", 1, true); setTimeout(() => { a.play("splat", 1); a.play("bodyfall", 1); }, 1300); this.trauma = 1; }
         else { a.play("scream", 0.3 + near(e.x, e.y, 30) * 0.7, { minGap: 1 }); a.play("stab", 0.9); }
         const who = s.actors[e.who], by = e.by ? s.actors[e.by] : null;
         if (who) {
@@ -391,15 +391,16 @@ class StadiumScene extends Phaser.Scene {
         const who = s.actors[e.who];
         if (who) { this.popup(who.x, who.y, e.quiet ? "TAKEDOWN" : "KO!", e.quiet ? "#f2c94c" : "#ff4d5e"); if (e.quiet) a.play("bodyfall", 0.6, { minGap: 0.1 }); }
         if (e.quiet && e.by) this.choking.set(e.by, performance.now() + 750);
+        if (e.by === pcId && e.who !== pcId) this.bark(e.quiet ? "takedown" : "ko", 1, true);
         if (e.who === pcId) this.say(`You're out cold. You come round${e.lost ? ` £${e.lost} lighter` : ""}.`, "", true);
         break;
       }
-      case "looted": { const who = s.actors[e.who]; if (who && e.money) { this.popup(who.x, who.y, `+£${e.money}`, "#f2c94c"); a.play("kaching", 0.7); } break; }
+      case "looted": { const who = s.actors[e.who]; if (who && e.money) { this.popup(who.x, who.y, `+£${e.money}`, "#f2c94c"); a.play("kaching", 0.7); } if (e.by === pcId) this.bark("loot", 0.7); break; }
       case "unseated": a.play("whinny", 1); a.play("bodyfall", 0.9); this.popup(e.x, e.y, "UNSEATED!", "#ff4d5e"); break;
-      case "mounted": a.play("whinny", 0.8); if (e.by === pcId) this.startCine(1600, { zoomAdd: 0, caption: "Tally ho" }); break;
+      case "mounted": a.play("whinny", 0.8); if (e.by === pcId) { this.startCine(1600, { zoomAdd: 0, caption: "Tally ho" }); setTimeout(() => this.bark("horse", 1, true), 500); } break;
       case "horse_jump": a.play("whinny", 0.4, { minGap: 2 }); break;
       case "roof": if (e.by === pcId && e.up) { a.play("ladder", 1); this.startCine(2400, { zoomAdd: 0, caption: "The roof of the South Stand" }); } else if (e.by === pcId) a.play("ladder", 0.7); break;
-      case "chute_open": if (e.by === pcId) { a.play("chute", 1); this.startCine(3000, { zoomAdd: 0, slow: 900, caption: "Geronimo" }); } break;
+      case "chute_open": if (e.by === pcId) { a.play("chute", 1); this.bark("chute", 1, true); this.startCine(3000, { zoomAdd: 0, slow: 900, caption: "Geronimo" }); } break;
       case "chute_land": { a.play("goal_roar", 0.8); a.play("bodyfall", 0.7); this.popup(e.x, e.y, "TOUCHDOWN", "#f2c94c"); this.trauma = Math.min(1, this.trauma + 0.4); break; }
       case "lead": this.toast("lead", e.title, "New lead"); a.play("chime", 0.6); break;
       case "hamper_ride": if (e.by === pcId) { const f = $("fade"); f.classList.add("on"); setTimeout(() => f.classList.remove("on"), 700); this.startCine(2000, { zoomAdd: 1, caption: "Wheeled into the kit room" }); } break;
@@ -776,6 +777,19 @@ class StadiumScene extends Phaser.Scene {
   cine: { until: number; focus: { x: number; y: number } | null; lead: { x: number; y: number } | null; zoomAdd: number } | null = null;
   cineDone = new Set<string>();
   wasInDoor = false;
+  pcLine: { text: string; until: number } | null = null;
+  lastBark = 0;
+  /** The player mouths off: a voiced line from one pool, with a bubble over his head. */
+  bark(kind: string, chance = 1, force = false): void {
+    const now = performance.now(), pool = PC_LINES[kind];
+    if (!pool?.length || (!force && (now - this.lastBark < 1400 || Math.random() > chance))) return;
+    let pickI = Math.floor(Math.random() * pool.length);
+    if (pool.length > 1 && this.pcLine && pool[pickI][0] === this.pcLine.text) pickI = (pickI + 1) % pool.length;
+    const [text, clip] = pool[pickI];
+    this.lastBark = now;
+    this.pcLine = { text, until: now + 1700 };
+    this.audio.play(clip as Clip, kind === "takedown" ? 0.7 : 1, { minGap: 0.2 });
+  }
   canopy: Phaser.GameObjects.Image | null = null;
   /** How far above the ground someone is drawn, in metres. */
   liftOf(a: Actor): number {
@@ -1439,7 +1453,8 @@ class StadiumScene extends Phaser.Scene {
     }
 
     // Speech bubbles near the player.
-    const talkers = Object.values(s.actors).filter((a) => a.npc?.bubble && !a.hiddenIn && onScreen(a.x, a.y)).slice(0, this.bubbles.length);
+    const pcTalk = this.pcLine && this.pcLine.until > performance.now() && pc && !pc.hiddenIn ? this.pcLine.text : null;
+    const talkers = [...(pcTalk ? [pc!] : []), ...Object.values(s.actors).filter((a) => a.npc?.bubble && !a.hiddenIn && onScreen(a.x, a.y))].slice(0, this.bubbles.length);
     if (!this.bubbleG) this.bubbleG = this.add.graphics().setDepth(1e7 + 0.5);
     const bg = this.bubbleG.clear(), zz = this.cameras.main.zoom, px = DPR / zz;
     this.bubbles.forEach((bt, i) => {
@@ -1447,8 +1462,9 @@ class StadiumScene extends Phaser.Scene {
       if (!a) { bt.setVisible(false); return; }
       // A comic bubble: same size on screen whatever the zoom, a black pixel outline and a tail.
       const tx = Math.round(P.sx(a.x, a.y)), ty = Math.round(headTop(P, a.x, a.y) - 10 * px);
-      bt.setVisible(true).setText(a.npc!.bubble!.text).setPosition(tx, ty).setScale(1 / zz);
-      const sec = a.npc!.mode !== "routine" && a.npc!.mode !== "escort";
+      const lift = this.liftOf(a) * P.S;
+      bt.setVisible(true).setText(a.npc ? a.npc.bubble!.text : pcTalk!).setPosition(tx, ty - lift).setScale(1 / zz);
+      const sec = !!a.npc && a.npc.mode !== "routine" && a.npc.mode !== "escort";
       const w2 = bt.displayWidth, h2 = bt.displayHeight, x0 = tx - w2 / 2, y0 = ty - h2;
       bg.fillStyle(0x000000, 1).fillRect(x0 - 2 * px, y0 - 2 * px, w2 + 4 * px, h2 + 4 * px).fillRect(x0, y0 - 4 * px, w2, h2 + 8 * px);
       bg.fillStyle(sec ? 0xffd166 : 0xf6f3ea, 1).fillRect(x0, y0, w2, h2).fillRect(x0 + 2 * px, y0 - 2 * px, w2 - 4 * px, h2 + 4 * px);

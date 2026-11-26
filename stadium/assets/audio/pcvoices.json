@@ -1,0 +1,108 @@
+{
+ "strike": [
+  [
+   "Cunt!",
+   "pc_cunt"
+  ],
+  [
+   "Fuckin' 'ave that!",
+   "pc_fuckin_ave_that"
+  ],
+  [
+   "Fucking cunt!",
+   "pc_fucking_cunt"
+  ],
+  [
+   "Suck on this!",
+   "pc_suck_on_this"
+  ],
+  [
+   "'Ave it!",
+   "pc_ave_it"
+  ],
+  [
+   "Come 'ere, you mug!",
+   "pc_come_ere_you_mug"
+  ],
+  [
+   "Taste that, you slag!",
+   "pc_taste_that_you_slag"
+  ],
+  [
+   "Go on then, you wanker!",
+   "pc_go_on_then_you_wanker"
+  ],
+  [
+   "Get in there, you cunt!",
+   "pc_get_in_there_you_cunt"
+  ],
+  [
+   "Do one!",
+   "pc_do_one"
+  ]
+ ],
+ "ko": [
+  [
+   "Night night, cunt.",
+   "pc_night_night_cunt"
+  ],
+  [
+   "Sparko! Fuckin' sparko!",
+   "pc_sparko_fuckin_sparko"
+  ],
+  [
+   "Stay down, you mug!",
+   "pc_stay_down_you_mug"
+  ],
+  [
+   "Who's next? Eh? Who's fuckin' next?",
+   "pc_who_s_next_eh_who_s_fuckin_n"
+  ]
+ ],
+ "takedown": [
+  [
+   "Shhh. Sleep tight, sunshine.",
+   "pc_shhh_sleep_tight_sunshine"
+  ],
+  [
+   "Night night, sweetheart.",
+   "pc_night_night_sweetheart"
+  ]
+ ],
+ "loot": [
+  [
+   "Lovely jubbly.",
+   "pc_lovely_jubbly"
+  ],
+  [
+   "Don't mind if I do.",
+   "pc_don_t_mind_if_i_do"
+  ],
+  [
+   "Cheers, mate.",
+   "pc_cheers_mate"
+  ]
+ ],
+ "horse": [
+  [
+   "Out the fuckin' way!",
+   "pc_out_the_fuckin_way"
+  ],
+  [
+   "Tally ho, you cunts!",
+   "pc_tally_ho_you_cunts"
+  ]
+ ],
+ "chute": [
+  [
+   "Geronimoooo!",
+   "pc_geronimoooo"
+  ]
+ ],
+ "fall": [
+  [
+   "Oh fuuuuuuck!",
+   "pc_oh_fuuuuuuck"
+  ]
+ ]
+}

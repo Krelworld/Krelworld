@@ -498,3 +498,16 @@ people see through it. We copied the grammar, not the content:
 
 Locals now each have their own bit of gossip (it used to be the same first line from all of
 them), and staff go through theirs in turn without upsetting their routines.
+
+## Mouth on him
+
+The player shouts now, in one gravelly London voice (ElevenLabs stock voice, eleven_v3 with
+accent and mood tags), with a speech bubble over his head:
+- swinging: "Cunt!", "Fuckin' 'ave that!", "Fucking cunt!", "Suck on this!", "'Ave it!" and more
+  (about every other punch, never more than one line every 1.4 s);
+- knocking someone out: "Night night, cunt.", "Sparko! Fuckin' sparko!"; a takedown from
+  behind is whispered: "Shhh. Sleep tight, sunshine.";
+- robbing the unconscious: "Lovely jubbly."; on the horse: "Out the fuckin' way!";
+- the parachute: "Geronimoooo!"; jumping without one: "Oh fuuuuuuck!"
+People who hit back now have voiced lines too ("You cunt!", "Come on then, you fat cunt!"),
+with a woman's take for women.

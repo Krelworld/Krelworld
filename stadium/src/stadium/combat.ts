@@ -193,7 +193,7 @@ export function stepCombat(w: World): void {
       const t = s.actors[n.retaliateOn ?? ""];
       n.retaliateAt = 0;
       if (t && a.downUntil <= tick && !incapacitated(w, a) && Math.hypot(t.x - a.x, t.y - a.y) < 2.2) {
-        say(w, a, pick(s.rng.world, ["Have some of that!", "You what?!", "Come on then!"]), 2);
+        say(w, a, pick(s.rng.world, ["Have some of that!", "You what?!", "Come on then!", "Fuckin' 'ave that!", "You cunt!", "Come on then, you fat cunt!"]), 2);
         a.facing = Math.atan2(t.y - a.y, t.x - a.x);
         hitPlayerBack(w, a, t);
       }

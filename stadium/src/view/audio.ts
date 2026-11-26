@@ -163,6 +163,44 @@ export class Audio {
     return b.duration;
   }
 
+  // ---------- Music ----------
+  /** Under everything: matchday, then the chase or the hiding when it comes to that. Decoded one or
+   *  two at a time (a decoded minute of music is big). */
+  private tune: { name: string; src: AudioBufferSourceNode; gain: GainNode } | null = null;
+  private tunes = new Map<string, AudioBuffer>();
+  private wantTune: string | null = null;
+  musicVol = 0.3;
+  async music(name: string | null, loop = true): Promise<void> {
+    if (!this.ctx || this.wantTune === name) return;
+    this.wantTune = name;
+    const ctx = this.ctx, old = this.tune;
+    if (old) {
+      old.gain.gain.cancelScheduledValues(ctx.currentTime);
+      old.gain.gain.setTargetAtTime(0, ctx.currentTime, 0.4);
+      old.src.stop(ctx.currentTime + 2);
+      this.tune = null;
+    }
+    if (!name) return;
+    let buf = this.tunes.get(name);
+    if (!buf) {
+      try {
+        const r = await fetch(`${this.base}${name}.mp3`);
+        buf = await ctx.decodeAudioData(await r.arrayBuffer());
+      } catch { return; }
+      // Keep the one we're leaving too (chase music comes and goes), drop anything older.
+      for (const k of [...this.tunes.keys()]) if (k !== name && k !== old?.name) this.tunes.delete(k);
+      this.tunes.set(name, buf);
+    }
+    if (this.wantTune !== name) return; // changed our mind while it loaded
+    const src = ctx.createBufferSource(), gain = ctx.createGain();
+    src.buffer = buf; src.loop = loop;
+    gain.gain.value = 0;
+    gain.gain.setTargetAtTime(this.musicVol, ctx.currentTime, 0.5);
+    src.connect(gain).connect(this.master);
+    src.start();
+    this.tune = { name, src, gain };
+  }
+
   /** The tannoy: a chime, then the voice. Announcements never talk over each other. */
   tannoy(name: Clip, volume = 0.9, muffle = 0): void {
     if (!this.ctx) return;

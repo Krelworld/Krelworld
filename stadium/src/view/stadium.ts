@@ -2164,6 +2164,11 @@ class StadiumScene extends Phaser.Scene {
     if (st.detainedUntil) { eye.hidden = false; eye.textContent = `Detained · ${Math.ceil((st.detainedUntil - s.tick) / 60)}s`; eye.classList.add("hot"); }
     if (st.flags.heatMode === 3 && !pc.heldBy) { eye.hidden = false; eye.textContent = "Out of sight: stay hidden"; eye.classList.remove("hot"); }
     if (s.tick % 2 === 0) this.drawRadar();
+    // The music follows how hot it is.
+    if (s.tick % 20 === 0 && this.started && !st.ending) {
+      const hm = st.flags.heatMode ?? 0;
+      void this.audio.music(hm === 4 ? "mus_chase" : hm === 3 ? "mus_evasion" : "mus_matchday");
+    }
 
     // Buttons.
     if (s.tick % 6 === 0 || !this.opts.length) {
@@ -2577,6 +2582,7 @@ class StadiumScene extends Phaser.Scene {
     for (const c of this.game2.checkpoints) { const b = document.createElement("button"); b.textContent = `Back to: ${c.label}`; b.dataset.cp = c.id; cps.appendChild(b); }
     const nb = document.createElement("button"); nb.textContent = "Restart the tournament"; nb.dataset.new = "1"; cps.appendChild(nb);
     $("ending").hidden = false;
+    void this.audio.music(e.kind === "through" ? "mus_win" : "mus_lose", false);
   }
 
   // ---------- Wiring ----------

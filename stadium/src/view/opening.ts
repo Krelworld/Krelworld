@@ -12,7 +12,7 @@ const DESK = { studio: 129, presser: 158 };
 const PRES = { studio: { feet: 0.63, scale: 2.5 }, presser: { feet: 0.76, scale: 2.8 } };
 const ROOM_SCALE = 1.8, ROOM_X = (W - 400 * ROOM_SCALE) / 2;
 const R = (x: number, y: number) => ({ x: ROOM_X + x * ROOM_SCALE, y: y * ROOM_SCALE });
-const LINES = ["n1", "n2", "s1", "s2", "s3", "n3", "g1", "g2", "k1", "k2", "k3", "g3", "w1", "g4", "w2", "g5", "w3", "k4", "k5", "k6", "k7", "k8", "g10", "g6", "g7", "w4", "g8", "g9"];
+const LINES = ["n1", "n2", "s1", "s2", "s3", "n3", "g1", "g2", "k1", "k2", "k3", "g3", "w1", "g4", "w2", "g5", "w3", "k4", "k5", "w5", "k6", "k7", "k8", "g10", "g6", "g7", "w4", "g8", "g9"];
 const SFX = ["sting", "tvsmash", "snap", "wail", "door", "pubcheer", "crisps"];
 const CAST = ["fan", "shezleigh", "grozzyjr", "screnton"];
 const ANIMS = ["walk", "idle", "punch", "cheer", "rage", "snap", "throw", "shout", "cry", "tug"];
@@ -64,7 +64,8 @@ class OpeningScene extends Phaser.Scene {
     for (const k of LINES) this.load.audio(`op_${k}`, `audio/op_${k}.mp3`);
     for (const k of SFX) this.load.audio(`op_${k}`, `audio/op_${k}.mp3`);
     this.load.audio("kaching", "audio/kaching.mp3");
-    for (const k of ["glass_smash", "chair_smash", "wall_crash", "punch"]) this.load.audio(k, `audio/${k}.mp3`);
+    for (const k of ["mus_news", "mus_home", "mus_title"]) this.load.audio(k, `audio/${k}.mp3`);
+    for (const k of ["glass_smash", "chair_smash", "wall_crash", "punch", "bodyfall"]) this.load.audio(k, `audio/${k}.mp3`);
     this.load.image("pint", "icons/pint_glass.png");
     for (const b of CAST) {
       this.load.spritesheet(`${b}-rot`, `art/${b}-rot.png`, { frameWidth: 88, frameHeight: 88 });
@@ -191,8 +192,22 @@ class OpeningScene extends Phaser.Scene {
     await this.room();
   }
 
+  /** One piece of music at a time, faded in and out. */
+  private tune: Phaser.Sound.BaseSound | null = null;
+  music(key: string | null, vol = 0.4, loop = true) {
+    const old = this.tune;
+    if (old) this.tweens.add({ targets: old, volume: 0, duration: 500, onComplete: () => old.destroy() });
+    this.tune = null;
+    if (!key || !this.cache.audio.exists(key)) return;
+    const t = this.sound.add(key, { loop, volume: 0 });
+    t.play();
+    this.tweens.add({ targets: t, volume: vol, duration: 600 });
+    this.tune = t;
+  }
+
   async telly() {
     // ===== The telly =====
+    this.music("mus_news", 0.45, false);
     const live = this.textures.exists("tv_studio_bg") && this.textures.exists("penelope-talk");
     const pic = this.add.image(W / 2, H / 2, live ? "tv_studio_bg" : "tv_studio").setScale(W / 400).setDepth(1);
     // The desk, in front of her: the bottom of the studio picture drawn again over the presenter.
@@ -246,6 +261,7 @@ class OpeningScene extends Phaser.Scene {
     const glass = this.add.image(W / 2 + 60, H + 80, "pint").setScale(1.5).setDepth(60);
     await new Promise<void>((r) => this.tweens.add({ targets: glass, x: W / 2 + 20, y: H / 2 - 20, scale: 9, angle: 220, duration: 520, ease: "Quad.in", onComplete: () => r() }));
     glass.destroy();
+    this.music(null);
     this.sfx("tvsmash");
     this.sound.stopByKey("op_pubcheer");
     const crack = this.add.graphics().setDepth(70);
@@ -283,6 +299,7 @@ class OpeningScene extends Phaser.Scene {
     this.mark("room");
     // ===== The front room =====
     this.add.image(ROOM_X, 0, "room").setOrigin(0).setScale(ROOM_SCALE).setDepth(0);
+    this.music("mus_home", 0.3);
     // The telly on the wall, smashed and sparking.
     const tv = R(205, 62), tvg = this.add.graphics().setDepth(90);
     tvg.lineStyle(2, 0xffffff, 0.8);
@@ -353,7 +370,30 @@ class OpeningScene extends Phaser.Scene {
     this.popup(grozz.sp.x, grozz.sp.y - 130, "+£40", "#f2c94c");
     await this.wait(500);
     shez.play("shout");
-    await this.say("w3", "That's me NAILS money! I'm getting me nails done Thursday! You fat... fucking... CUNT!", shez);
+    await this.say("w3", "That's me NAILS money! I'm 'aving me nails done Thursday! You fat... fucking... CUNT!", shez);
+    // That does it: he shoves her into the wall.
+    this.mark("shove");
+    await grozz.walk(shez.sp.x > R(300, 0).x ? 300 : 286, 137, 160);
+    grozz.face(DIR.E); grozz.play("punch", false, 16);
+    await this.wait(140);
+    const wallX = R(346, 0).x;
+    if (this.cache.audio.exists("punch")) this.sound.play("punch", { volume: 0.7, rate: 0.8 });
+    shez.face(DIR.W);
+    await new Promise<void>((r) => this.tweens.add({ targets: shez.sp, x: wallX, duration: 170, ease: "Quad.in", onComplete: () => r() }));
+    this.sfx("wall_crash", 0.7); this.sfx("bodyfall", 0.9);
+    this.cameras.main.shake(260, 0.014);
+    for (let i = 0; i < 14; i++) {
+      const d = this.add.rectangle(wallX + 6, shez.sp.y - 60 - Math.random() * 40, 3, 3, Math.random() < 0.5 ? 0xd8cbb0 : 0x7a6a55).setDepth(1300);
+      this.tweens.add({ targets: d, x: d.x - 10 - Math.random() * 40, y: shez.sp.y + Math.random() * 6, alpha: 0.2, duration: 500 + Math.random() * 300, ease: "Quad.in" });
+    }
+    const crack = this.add.graphics().setDepth(5);
+    crack.lineStyle(2, 0x120c07, 0.9);
+    for (let i = 0; i < 5; i++) { const a = Math.PI / 2 + (Math.random() - 0.5) * 2.4; crack.lineBetween(wallX + 8, shez.sp.y - 70, wallX + 8 + Math.cos(a) * 18, shez.sp.y - 70 + Math.sin(a) * 26); }
+    // She slides down the wall.
+    this.tweens.add({ targets: shez.sp, y: shez.sp.y + 8, x: wallX - 6, duration: 600, ease: "Quad.out" });
+    shez.play(shez.has("cry") ? "cry" : "shout");
+    jr.face(DIR.E); scr.face(DIR.E);
+    await this.say("w5", "OW! You fucking ANIMAL! I'm calling the Old Bill on you, Grozz!", shez);
     // The kids, and one packet of crisps between them.
     jr.face(DIR.E); scr.face(DIR.W);
     const crisps = this.add.rectangle(R(142, 132).x, R(142, 132).y, 16, 20, 0xc8102e).setStrokeStyle(2, 0xf2c94c).setDepth(300);
@@ -451,6 +491,8 @@ class OpeningScene extends Phaser.Scene {
     const black = this.add.rectangle(W / 2, H / 2, W, H, 0x000000, 0).setDepth(4000);
     await new Promise<void>((r) => this.tweens.add({ targets: black, fillAlpha: 1, duration: 700, onComplete: () => r() }));
     this.sound.stopAll();
+    this.tune = null;
+    this.music("mus_title", 0.6, false);
     const title = this.add.text(W / 2, H / 2 - 20, "KNOCKOUT DAY", { fontFamily: '"Silkscreen", monospace', fontSize: "64px", color: "#ffffff", stroke: "#c8102e", strokeThickness: 8 }).setOrigin(0.5).setDepth(4001).setAlpha(0);
     const sub = this.add.text(W / 2, H / 2 + 46, "Grozz is going to the match.", { fontFamily: '"Pixelify Sans", sans-serif', fontSize: "24px", color: "#f2c94c" }).setOrigin(0.5).setDepth(4001).setAlpha(0);
     this.tweens.add({ targets: [title, sub], alpha: 1, duration: 600 });

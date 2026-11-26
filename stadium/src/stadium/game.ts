@@ -223,6 +223,15 @@ export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: 
     if (e.type === "action" && e.action.actor === st.pc && ["wear", "remove", "strip", "dress"].includes(e.action.verb)) changedClothes(w, s.actors[st.pc]);
   });
   w.bus.on((e) => { if (e.type === "knockout") noteKnockout(w, e.who, e.by); });
+  // Flatten one of the stewards hunting you while they're searching and the search is shorter
+  // (Chinatown Wars: take out your pursuers to shake the heat).
+  w.bus.on((e) => {
+    if (e.type !== "knockout") return;
+    const v = s.actors[e.who], f = st.flags;
+    if (!v?.npc || !isSecurity(v) || v.npc.target !== st.pc || !f.evadeUntil || f.evadeUntil <= s.tick) return;
+    f.evadeUntil = Math.max(s.tick + 60, f.evadeUntil - 60 * 4);
+    w.bus.emit({ type: "heat_shed", t: s.tick, who: v.id });
+  });
   installSettlement(w);
   const g: Game = { w, checkpoints: [], opp: oppKey, venue: venueId, campaign };
   saveCheckpoint(g, "arrival", "Arrival outside the ground");

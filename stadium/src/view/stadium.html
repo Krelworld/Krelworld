@@ -187,6 +187,37 @@
   #swoop .skipsw { position: absolute; right: max(12px, env(safe-area-inset-right, 0px)); bottom: max(12px, env(safe-area-inset-bottom, 0px)); padding: 10px 12px; background: #14213d; color: #fff; border: 2px solid #000; font: 700 14px var(--display); }
   #swoop.out { animation: swoopOut .45s forwards; }
   @keyframes swoopOut { to { opacity: 0; } }
+  #track { max-width: min(330px, calc(100vw - 150px)); padding: 5px 10px; background: rgba(10,14,20,.88); border-left: 4px solid #f2c94c; font: 600 12px/1.25 var(--body); color: #f4efe0; }
+  #track b { font: 800 12px/1.2 var(--display); color: #f2c94c; letter-spacing: .03em; }
+  #track i { font-style: normal; color: #9fb0c0; margin-left: 6px; font: 700 11px var(--display); }
+  #track span { display: block; opacity: .9; }
+  #todo, #todo p, #todo i, #todo b { font-family: var(--body) !important; text-transform: none !important; letter-spacing: 0 !important; text-shadow: none !important; }
+  #todo { display: block; text-align: left; max-width: 190px; padding: 5px 8px 4px; background: #f3ecd6; color: #2a2418; border: 2px solid #000; box-shadow: 3px 3px 0 rgba(0,0,0,.45); transform: rotate(-1.2deg); font: 600 12px/1.25 var(--body); text-transform: none; min-height: 0; }
+  #todo b { display: block; font: 800 9px/1 var(--display) !important; letter-spacing: .12em; color: #8e1626; margin-bottom: 3px; }
+  #todo p { margin: 1px 0; font-size: 11.5px !important; line-height: 1.2; font-weight: 600; }
+  #todo i { font-style: normal; font-weight: 800; color: #1e5a1e; }
+  #todo[hidden], #track[hidden] { display: none; }
+  #instBtn.on { background: #f2c94c; color: #111; }
+  body.lefty #controls { right: auto; left: max(10px, env(safe-area-inset-left, 0px)); justify-items: start; }
+  body.lefty #lower { justify-content: flex-start; }
+  body.lefty #act { clip-path: polygon(12px 0, 100% 0, 100% 100%, 0 100%); }
+  .mini { position: absolute; inset: 0; z-index: 80; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,.35); }
+  .mini .box { width: min(340px, calc(100vw - 32px)); padding: 14px; background: #10151c; border: 3px solid #000; box-shadow: 0 0 0 2px #2a3340, 6px 6px 0 rgba(0,0,0,.6); text-align: center; color: #fff; }
+  .mini b { display: block; font: 800 20px/1 var(--display); letter-spacing: .05em; }
+  .mini small { display: block; margin: 6px 0 12px; font: 600 13px var(--body); color: #9fb0c0; }
+  .mini .bar { position: relative; height: 30px; background: #2a2f38; border: 2px solid #000; overflow: hidden; }
+  .mini .bar.hit { box-shadow: 0 0 0 3px #7dffa8; }
+  .mini .zone { position: absolute; top: 0; bottom: 0; background: #2f9e4a; }
+  .mini .needle { position: absolute; top: -2px; bottom: -2px; width: 4px; margin-left: -2px; background: #fff; box-shadow: 0 0 6px #fff; }
+  .mini .fill { position: absolute; left: 0; top: 0; bottom: 0; background: rgba(216,154,42,.75); }
+  .mini .row { display: flex; gap: 8px; margin-top: 12px; }
+  .mini .go { flex: 1; min-height: 64px; background: var(--red); font: 800 22px var(--display); }
+  .mini .sk { min-height: 64px; background: #2a3340; }
+  .mini.won .box { box-shadow: 0 0 0 3px #3fcf5c; } .mini.lost .box { box-shadow: 0 0 0 3px #e0303a; animation: shake .3s; }
+  .sheet button.trk { display: inline-block; min-height: 0; padding: 2px 7px; margin-left: 4px; font: 800 10px/1.4 var(--display); background: #2a3340; color: #f2c94c; border: 1px solid #f2c94c; vertical-align: middle; }
+  .sheet button.trk.on { background: #f2c94c; color: #111; }
+  #frontPage canvas.fp { display: block; width: 100%; max-width: 420px; margin: 10px auto; border: 3px solid #000; box-shadow: 4px 4px 0 rgba(0,0,0,.5); }
+  #frontPage .row { display: flex; justify-content: center; margin-bottom: 10px; }
   #roomCard b { display: block; font: 800 20px/1 var(--display); letter-spacing: .06em; }
   #roomCard small { display: block; margin-top: 4px; font: 600 12px/1 var(--body); opacity: .85; letter-spacing: .04em; }
   #roomCard.in { animation: cardIn 2.3s ease both; }
@@ -272,6 +303,11 @@
   @keyframes bar { to { height: 22px; } }
   .call.codec .st { margin: 0; font-size: 10px; }
   .call.codec .ln { text-align: left; color: #d8ffe2; border-top: 1px solid #1f5a2e; padding-top: 8px; }
+  .call.codec .ans { display: flex; gap: 8px; margin-top: 10px; }
+  .call.codec .ans button { flex: 1; min-height: 52px; font: 800 16px var(--display); }
+  .call.codec .ans .yes { background: #2f9e4a; animation: ansPulse .45s ease-in-out infinite alternate; }
+  @keyframes ansPulse { to { background: #4fd06a; box-shadow: 0 0 12px #4fd06a; } }
+  .call.codec .ans .no { background: #3a2a2a; }
   .call.codec.off .pane { filter: brightness(.2); }
   .call .ln b { display: block; font: 800 11px/1 var(--display); letter-spacing: .12em; text-transform: uppercase; color: #f2c94c; margin-bottom: 3px; }
   @keyframes callIn { from { opacity: 0; transform: translate(-50%, 8px); } to { opacity: 1; transform: translate(-50%, 0); } }
@@ -425,6 +461,8 @@
     <div id="status">
       <div id="where" class="panel">Outside the ground</div>
       <div id="eye" class="panel" hidden>Being watched</div>
+      <div id="track" class="panel" hidden></div>
+      <button id="todo" class="panel" hidden></button>
     </div>
     <div id="right">
       <div id="money" class="panel">£150</div>
@@ -462,6 +500,7 @@
     <div id="fightRow"><button id="hit" hidden>Punch</button><button id="throw" hidden>Throw</button></div>
     <div id="lower">
       <button id="betBtn" hidden>Bet</button>
+      <button id="instBtn" class="util">Instinct</button>
       <button id="moreBtn" class="util">More</button>
       <button id="phoneBtn" class="util">Phone</button>
       <button id="bagBtn" class="util">Bag</button>
@@ -510,6 +549,7 @@
       <p class="eyebrow"><span>Full time</span><span id="endScore"></span></p>
       <h1 id="endTitle">Full-time</h1>
       <p id="endText"></p>
+      <div id="frontPage"></div>
       <div class="news">
         <div class="newsbar"><span>Evening News</span><span id="newsTime">22:00</span></div>
         <h2 id="newsHead"></h2>

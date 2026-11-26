@@ -949,3 +949,63 @@ It plays when you go in, not when you leave, and once per building per 20 second
 - **To-do item:** it's on the list now, "Flatten a bloke who gets handsy" (£15).
 
 **Detained in a frock:** the head of security is patronising instead of bored ("Shouldn't you be at home, love? Who's doing the tea?", "Football's a man's game, darling"). His replies to your sob story change to match, including when he lets you go: "Off you pop. And leave the football to the men, eh?"
+
+## Round: guidance, the notepad, Instinct, touch beats, calls, unlocks, the front page
+
+The research pass (Hitman's guidance, the Goose's to-do list, Chinatown Wars' touch design, Apple and Android control guidelines) turned into these, all optional and none of them a tutorial.
+
+**Track a lead (Hitman's tracked mission stories).**
+- **Choosing:** in the pause menu, every fix and every way of doing it you've heard about, and every way into the ground, has a Track button. One at a time; tap again to stop.
+- **On screen:**
+  - a gold line under the objective with the lead's name, its distance and what to do;
+  - a gold star over the place, person or thing it needs;
+  - when that's off screen, the star sits at the edge pointing the way.
+- **Finishing:** it ticks itself off when the fix is done, or when you're in the ground for a way in.
+
+**The notepad (the Goose's to-do list, kept to hand).**
+- **The list:** a little paper note under the objective with the two nearest jobs and what they pay. "Nearest" is worked out from where each job happens: the ladders, the bus park, the horse, the bricks.
+- **Tapping it** opens the full list.
+- **Feats unlock kit to bring next time** (Hitman's mastery). Examples: the streak unlocks the long wig, a roof the brick, a stink bomb a fart can, flattening a steward the hi-vis, getting handsy blokes off you the dress.
+  - They're saved in the browser and appear in the stash at the next match day's kit screen.
+
+**Instinct (hold the button, or I).**
+- **The view:** the world dims and every steward's and copper's eyeline is drawn on the ground (red if they're after you).
+- **Highlights:**
+  - useful things on the floor glow yellow (bricks, cans, passes, the cooler, the urn);
+  - ladders, hatches and the scaffold glow green;
+  - their number 10, their keeper and the ref are ringed red and named;
+  - the people with a hook (Del, Wally, Mad Mick, the reporter) are blue, and Ronson's marked.
+- **Searching:** while they're searching for you, the radar shows the zone they're combing as a pulsing dashed ring (GTA's search area). Get outside it.
+- **Shedding heat:** flatten one of the stewards who's hunting you and the search gets four seconds shorter (Chinatown Wars: take out your pursuers to lose the heat).
+
+**Touch beats for the fiddly jobs (Chinatown Wars' under-ten-second mini-games).**
+- **The four:**
+  - **Pickpocketing:** tap in the green. Win and it's a clean dip that nearly always works; fumble and he catches your hand in his pocket.
+  - **Hotwiring:** two taps. Fail and the alarm goes off.
+  - **The cellar bolt:** jimmy it.
+  - **Spiking a drink:** hold to pour, let go in the band. Fail and it's down your front.
+- **Rules:**
+  - The world waits while you do one.
+  - Skip does the job at the normal odds.
+  - They can be switched off in the menu.
+
+**Touch polish:**
+- **Throwing:** whatever you're holding shows a dotted arc to its target, higher the further it goes.
+- **Framing:** on a phone held upright, Grozz is framed a little above centre, clear of the buttons.
+- **Vibration** on hits (yours and theirs), knockouts, purchases and payouts. Android only, because iPhone browsers don't support it. It can be switched off.
+- **Left-handed layout:** a menu option puts the buttons on the left.
+- **Holding the big button** (on anything but a punch) opens the list of everything else you could do there.
+
+**Incoming calls (codec).**
+- **Shezleigh** rings once you've done something big in front of a crowd ("You're on the fucking telly!"). If you're in a frock: "Why are you on the news in a fucking DRESS?!"
+- **Kev** rings at half-time with a whisper about whichever fix you haven't heard of yet (the keeper, then the ref, then their number 10). Answering it counts as overhearing it. If you've heard them all, he's just seen you on the big screen.
+- **Ricky** rings a couple of minutes in with his number.
+- **Answering:** you answer or ignore. Ignored calls ring off.
+
+**The front page.** At full time, a Krunch News front page:
+- your headline;
+- a photo of the moment it ended;
+- fixes sorted, things done, cash earned, incidents;
+- a Grozz rating out of five.
+
+Share it from your phone's share menu, or save it as a picture.

@@ -20,6 +20,7 @@ import { findPath } from "./nav";
 import { say, spawnStaff } from "./npc";
 import { alert, crime, isSecurity } from "./security";
 import { incapacitated, land } from "./combat";
+import { overhear as overheard } from "./fixes";
 import { raiseSecurity } from "./kickoff";
 import { SPOTS, VENUE } from "./layout";
 
@@ -60,6 +61,15 @@ function arrivalPoint(x: number, y: number, from: { x: number; y: number }): { x
 }
 
 export function installPhone(): void {
+  // Somebody rings you. Kev's half-time whisper counts as overheard; Ricky leaves you his number.
+  registerVerb("callin", {
+    check: (_w, act) => (act.arg ? null : "nobody"),
+    perform: (w, act) => {
+      const st = w.state.stadium!, [who, ...rest] = (act.arg ?? "").split("|"), text = rest.join("|");
+      if (who === "ricky" && !st.flags.contact_dealer) { st.flags.contact_dealer = w.state.tick || 1; w.bus.emit({ type: "contact", t: w.state.tick, id: "dealer" }); }
+      if (text) overheard(w, text);
+    },
+  });
   registerVerb("call", {
     check: (w, act, actor) => {
       const st = w.state.stadium!, [who, arg] = (act.arg ?? "").split(":") as [Contact | "bomb", string?];

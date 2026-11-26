@@ -37,6 +37,8 @@ import { drawBall, drawGoalFrame, drawPitch } from "./pitchArt";
 import { Projection } from "./projection";
 import { Audio, PC_LINES, VOICES, type Clip } from "./audio";
 import { Doorway } from "./doorway";
+import { playMini, type MiniKind } from "./minigame";
+import { instinctMarks, todoSpot, trackTarget, type Tracked } from "./guide";
 import { inDrag as inDragSim } from "../stadium/drag";
 import STW_JSON from "../../assets/audio/stwlines.json";
 const STW_VOICE = STW_JSON as Record<string, string>;
@@ -223,6 +225,8 @@ class StadiumScene extends Phaser.Scene {
   }
 
   newGame(campaign: Campaign = newCampaign()) {
+    // Everything you've unlocked is in the stash to choose from.
+    for (const d of StadiumScene.unlocked()) if (ITEM_DEFS[d] && !campaign.stash.includes(d)) campaign.stash.push(d);
     this.game2 = createGame(`day${Date.now() % 100000}`, FIXTURES[campaign.fixture] ?? "qf", campaign);
     this.introFor(campaign);
     this.d3?.buildCrowd(this.s.match!.teams[1]);
@@ -252,6 +256,7 @@ class StadiumScene extends Phaser.Scene {
       if (e.type === "fb_goal") { this.crowdJump = 120 * (e.team === 0 ? 1 : -1); this.crowdUpUntil = performance.now() + 6000; this.crowdUpSide = e.team === 0 ? "home" : "away"; }
       if (e.type === "fb_miss" || e.type === "fb_woodwork") { this.crowdUpUntil = performance.now() + 1400; this.crowdUpSide = "all"; }
       this.newsEvents(e);
+      this.callTriggers(e);
       if (e.type === "stole") this.hint(e.what === "ticket" ? "You lifted a ticket." : `You lifted £${e.amount}.`);
       if (e.type === "ejected" && e.who === this.s.stadium!.pc) this.hint(e.taken.length ? `Thrown out. They took your ${e.taken.join(", ")}.` : "Thrown out. They'll know your face now.");
       // Frogmarched: fade to black first; the move happens in the dark; the camera's already there when it lifts.
@@ -892,7 +897,7 @@ class StadiumScene extends Phaser.Scene {
     host.classList.add("go");
     this.audio.play("whoosh" as Clip, 0.6);
     const P = this.P, cam = this.cameras.main, rect = this.game.canvas.getBoundingClientRect(), css = rect.width / cam.width;
-    const pc = this.pc, endW = { x: P.sx(pc.x, pc.y), y: P.sy(pc.x, pc.y) - P.S }, mid = { x: P.sx(0, 0), y: P.sy(0, 0) };
+    const pc = this.pc, endW = { x: P.sx(pc.x, pc.y), y: P.sy(pc.x, pc.y) - P.S + (cam.height > cam.width * 1.2 ? (cam.height / this.targetZoom()) * 0.07 : 0) }, mid = { x: P.sx(0, 0), y: P.sy(0, 0) };
     const toMap = (p: { x: number; y: number }) => ({ x: (p.x - shot.wx0) * shot.k, y: (p.y - shot.wy0) * shot.k });
     const A = toMap(mid), B = toMap({ x: P.sx(-30, 30), y: P.sy(-30, 30) }), C = toMap(endW);
     const sEnd = (this.targetZoom() * css) / shot.k, sStart = Math.min(window.innerWidth / shot.img.width, window.innerHeight / shot.img.height) * 1.1;
@@ -920,6 +925,37 @@ class StadiumScene extends Phaser.Scene {
     void stage;
   }
 
+  /** The lead or fix you've chosen to follow (Hitman's tracked mission story). Optional, one at a time. */
+  tracked: Tracked | null = null;
+  trackT: ReturnType<typeof trackTarget> = null;
+  todoAt = 0;
+  /** Holding Instinct: what you can use, who matters, where they're looking. */
+  instinct = false;
+  instLabels: Phaser.GameObjects.Text[] = [];
+  /** The HUD bits that guide without nagging: the tracked line and the notepad of nearby jobs. */
+  updateGuides() {
+    const pc = this.pc, now = performance.now();
+    const tEl = $("track");
+    this.trackT = this.tracked ? trackTarget(this.w, this.tracked) : null;
+    if (this.tracked && this.trackT?.done) { this.toastTick(`✓ ${this.trackT.label}`); this.tracked = null; this.trackT = null; }
+    if (this.trackT) {
+      const d = Math.round(Math.hypot(this.trackT.x - pc.x, this.trackT.y - pc.y)), short = this.trackT.text.length > 64 ? this.trackT.text.slice(0, 62).replace(/\s+\S*$/, "") + "…" : this.trackT.text;
+      const html = `<b>★ ${esc(this.trackT.label)}</b> <i>${d} m</i><span>${esc(short)}</span>`;
+      if (tEl.innerHTML !== html) tEl.innerHTML = html;
+      tEl.hidden = false;
+    } else if (!tEl.hidden) tEl.hidden = true;
+    // The notepad: two jobs, nearest first (those with a place), with what they pay. Once a second.
+    if (now - this.todoAt < 1000) return;
+    this.todoAt = now;
+    // Ricky rings, a couple of minutes in, if you haven't got his number.
+    if (!this.incoming.ricky && !knows(this.w, "dealer") && this.s.tick > 60 * 140 && !pc.heldBy) void this.incomingCall("ricky", "Spliff Ricky", "ricky", [["r", "Alright, it's Ricky. Gaz gave me your number. Laxatives, burners, a bit of gear. Ring me. Don't say my name.", "v_in_ricky"], ["g", "What?", "v_ph_gwhat"]], "number");
+    const open = StadiumScene.MAYHEM.filter((m) => !this.mayhemDone.has(m.id));
+    const ranked = open.map((m, i) => { const sp = todoSpot(this.w, m.id); return { m, d: sp ? Math.hypot(sp.x - pc.x, sp.y - pc.y) : 999 + i }; }).sort((a, b) => a.d - b.d).slice(0, 2);
+    const nEl = $("todo");
+    const html = ranked.length ? `<b>TO DO</b>${ranked.map((r) => `<p>☐ ${esc(r.m.text)} <i>£${REWARDS[r.m.id] ?? 0}</i></p>`).join("")}` : "<b>ALL DONE</b><p>Legend.</p>";
+    if (nEl.innerHTML !== html) nEl.innerHTML = html;
+    nEl.hidden = !this.started || !!this.fp?.on || this.inCab();
+  }
   /** One-off view hints. */
   flags: Record<string, number> = {};
   doorway = new Doorway();
@@ -2156,6 +2192,12 @@ class StadiumScene extends Phaser.Scene {
         const tx = P.sx(tgt.x, tgt.y), ty = P.sy(tgt.x, tgt.y) - (P.standing ? 0.9 * P.KZ * P.S : 0);
         ui.lineStyle(2 * u, 0xf2c94c, 0.9).strokeCircle(tx, ty, P.S * 0.9);
         ui.lineBetween(tx - P.S * 1.2, ty, tx - P.S * 0.6, ty).lineBetween(tx + P.S * 0.6, ty, tx + P.S * 1.2, ty);
+        // The arc it'll fly: a dotted lob from his hand (higher the further it goes).
+        const fx = P.sx(pc.x, pc.y), fy = P.sy(pc.x, pc.y) - 1.3 * P.KZ * P.S, dd = Math.hypot(tgt.x - pc.x, tgt.y - pc.y), hgt = Math.min(5, 0.8 + dd * 0.22) * P.S;
+        for (let i = 1; i < 14; i++) {
+          const t2 = i / 14, dx2 = fx + (tx - fx) * t2, dy2 = fy + (ty - fy) * t2 - Math.sin(Math.PI * t2) * hgt;
+          ui.fillStyle(0xf2c94c, 0.35 + 0.5 * (1 - Math.abs(t2 - 0.5))).fillCircle(dx2, dy2, P.S * 0.09);
+        }
       }
       const hx = P.sx(pc.x, pc.y), hy = headTop(P, pc.x, pc.y, 1.75) - 4 * u;
       ui.fillStyle(0xd7263d, 1).fillTriangle(hx - 5 * u, hy - 8 * u, hx + 5 * u, hy - 8 * u, hx, hy);
@@ -2230,7 +2272,51 @@ class StadiumScene extends Phaser.Scene {
         ui.fillStyle(0x000000, 0.5).fillCircle(ex, ey, r * 1.1);
         ui.fillStyle(col, pulse).fillTriangle(pts[0].x, pts[0].y, pts[1].x, pts[1].y, pts[2].x, pts[2].y);
       }
+      // The tracked lead: a gold star over it on screen, or one at the edge pointing the way.
+      const tt = this.trackT;
+      if (tt) {
+        const ax = P.sx(tt.x, tt.y), ay = P.sy(tt.x, tt.y) - P.S * 2.4, r = 9 * u2, bob = Math.sin(tick * 0.12) * 3 * u2;
+        const on = ax > v.x + pad && ax < v.right - pad && ay > v.y + padT && ay < v.bottom - padB;
+        const ex = on ? ax : Phaser.Math.Clamp(ax, v.x + pad, v.right - pad), ey = on ? ay + bob : Phaser.Math.Clamp(ay, v.y + padT, v.bottom - padB);
+        const star = (x: number, y: number, rr: number) => { const pts: Phaser.Math.Vector2[] = []; for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + (i * Math.PI) / 5, q = i % 2 ? rr * 0.45 : rr; pts.push(new Phaser.Math.Vector2(x + Math.cos(a) * q, y + Math.sin(a) * q)); } return pts; };
+        ui.fillStyle(0x000000, 0.55).fillCircle(ex, ey, r * 1.35);
+        ui.fillStyle(0xf2c94c, 1).fillPoints(star(ex, ey, r), true);
+        if (!on) { const ang = Math.atan2(ay - ey, ax - ex); ui.fillStyle(0xf2c94c, 0.9).fillTriangle(ex + Math.cos(ang) * r * 2.1, ey + Math.sin(ang) * r * 2.1, ex + Math.cos(ang + 0.5) * r * 1.4, ey + Math.sin(ang + 0.5) * r * 1.4, ex + Math.cos(ang - 0.5) * r * 1.4, ey + Math.sin(ang - 0.5) * r * 1.4); }
+      }
     }
+    // Instinct (held): the world dims; useful things glow yellow, the fix targets red, the people
+    // with a hook blue; every steward's eyeline is drawn on the ground.
+    let instI = 0;
+    if (this.instinct && pc) {
+      const u3 = DPR / cam.zoom;
+      const v = cam.worldView;
+      ui.fillStyle(0x05070c, 0.55).fillRect(v.x - 20, v.y - 20, v.width + 40, v.height + 40);
+      for (const id in s.actors) {
+        const a = s.actors[id], n = a.npc;
+        if (!n || a.dead || a.hiddenIn || a.downUntil > tick || !(isSecurityJob(n.job) || n.job === "armed" || n.job === "police")) continue;
+        const ax = P.sx(a.x, a.y), ay = P.sy(a.x, a.y);
+        if (ax < v.x - 400 || ax > v.right + 400 || ay < v.y - 400 || ay > v.bottom + 400) continue;
+        const R2 = (n.job === "pitchsteward" || n.job === "police" ? 16 : 11) * P.S, hot = n.target === pc.id && n.mode !== "routine";
+        ui.fillStyle(hot ? 0xff3b3b : 0xffe08a, hot ? 0.22 : 0.13);
+        ui.beginPath(); ui.moveTo(ax, ay);
+        for (let k2 = 0; k2 <= 12; k2++) { const an = a.facing - 0.95 + (1.9 * k2) / 12; ui.lineTo(ax + Math.cos(an) * R2, ay + Math.sin(an) * R2 * (P.standing ? P.K : 1)); }
+        ui.closePath(); ui.fillPath();
+      }
+      for (const mk of instinctMarks(this.w)) {
+        const x = P.sx(mk.x, mk.y), y = P.sy(mk.x, mk.y) - (mk.z ?? 0.4) * P.S;
+        if (x < v.x || x > v.right || y < v.y || y > v.bottom) continue;
+        const pulse = 0.6 + 0.4 * Math.sin(tick * 0.15);
+        ui.lineStyle(2.5 * u3, mk.col, pulse).strokeCircle(x, y, P.S * 0.55);
+        ui.fillStyle(mk.col, 0.25 * pulse).fillCircle(x, y, P.S * 0.55);
+        if (mk.label) {
+          let t = this.instLabels[instI];
+          if (!t) { t = this.add.text(0, 0, "", { fontFamily: '"Silkscreen", monospace', fontSize: "11px", color: "#ffffff", stroke: "#000000", strokeThickness: 4 }).setOrigin(0.5, 1).setDepth(9.5e6); this.instLabels.push(t); }
+          t.setText(mk.label).setPosition(Math.round(x), Math.round(y - P.S * 0.7)).setScale(u3 * 1.4).setVisible(true).setColor(`#${mk.col.toString(16).padStart(6, "0")}`);
+          instI++;
+        }
+      }
+    }
+    for (let i = instI; i < this.instLabels.length; i++) this.instLabels[i].setVisible(false);
 
     // Speech bubbles near the player.
     const pcTalk = this.pcLine && this.pcLine.until > performance.now() && pc && !pc.hiddenIn ? this.pcLine.text : null;
@@ -2313,6 +2399,8 @@ class StadiumScene extends Phaser.Scene {
       else if (this.cine?.lead) { tx = P.sx(pc.x + this.cine.lead.x, pc.y + this.cine.lead.y); ty = P.sy(pc.x + this.cine.lead.x, pc.y + this.cine.lead.y) - P.S; }
     }
     else { tx = 0; ty = 0; }
+    // On a phone held upright, frame him a little above centre, clear of the buttons at the bottom.
+    if (pc && !pc.seated && !this.roomShown && cam.height > cam.width * 1.2) ty += (cam.height / cam.zoom) * 0.07;
     // Up high: frame both you and your shadow on the ground.
     if (pc) ty -= (this.liftOf(pc) + (pc.chute ? 3 : 0)) * P.S * 0.75;
     // Indoors (Stardew's and Zelda's rooms): through the door is a fade, then the room on its own,
@@ -3005,6 +3093,7 @@ class StadiumScene extends Phaser.Scene {
     // Like Hitman's and MGS's area names: up when it changes, then out of the way (a warning stays).
     wEl.hidden = !where;
     wEl.classList.toggle("bad", bad && !pc.hiddenIn);
+    this.updateGuides();
     // One indicator for all of security: the worst attention you are getting.
     let worst = 0;
     for (const id in s.actors) {
@@ -3157,8 +3246,42 @@ class StadiumScene extends Phaser.Scene {
   }
 
   // ---------- Actions ----------
+  /** A buzz in the hand (Android phones; iPhones' browsers don't do it), for hits, buys, knockouts. */
+  buzzOn = (() => { try { return localStorage.getItem("kd-buzz") !== "0"; } catch { return true; } })();
+  buzz(ms: number | number[]) { if (!this.buzzOn) return; try { navigator.vibrate?.(ms); } catch { /* not supported */ } }
+  /** Mini-games on (a menu switch; remembered). */
+  miniOn = (() => { try { return localStorage.getItem("kd-mini") !== "0"; } catch { return true; } })();
+  miniBusy = false;
+  miniFor(a: Action): MiniKind | null {
+    if (a.verb === "pickpocket") return "pocket";
+    if (a.verb === "carjack") return "hotwire";
+    if (a.verb === "drain" && !this.s.stadium!.flags.hatchOpen) return "jimmy";
+    if (a.verb === "use" && a.target?.k === "item" && ["cooler_home", "cooler_away", "tea_urn"].includes(this.s.items[a.target.id]?.def)) return "pour";
+    return null;
+  }
   run(opt: Option | null) {
     if (!opt || !this.started) return;
+    // The fiddly jobs are a quick touch beat first (if it would work at all).
+    if (opt.action && this.miniOn && !(opt as { mini?: boolean }).mini && !this.miniBusy) {
+      const kind = this.miniFor(opt.action);
+      const { verb, ...rest } = opt.action;
+      if (kind && possibleVerbs(this.w, rest).includes(verb)) {
+        this.miniBusy = true;
+        const was = this.speed || 1; this.setSpeed(0); this.closeRing();
+        void playMini(kind, (c, v) => this.audio.play(c as Clip, v ?? 1)).then((res) => {
+          this.miniBusy = false; this.setSpeed(was);
+          if (res === "fail") {
+            this.buzz(80);
+            if (kind === "pocket") { this.run({ ...opt, action: { ...opt.action!, arg: "botch" }, mini: true } as Option); return; }
+            if (kind === "hotwire") { this.audio.play("car_alarm" as Clip, 0.7); this.hint("Wrong wires. The alarm's going off. Have another go."); return; }
+            this.hint(kind === "pour" ? "You've poured half of it down your front. Steady hands. Again." : "The bolt won't shift. Have another go.");
+            return;
+          }
+          this.run({ ...opt, action: res === "win" && kind === "pocket" ? { ...opt.action!, arg: "clean" } : opt.action, mini: true } as Option);
+        });
+        return;
+      }
+    }
     if (opt.sheet?.kind === "scope") { this.enterScope(); return; }
     if (opt.sheet?.kind === "phone") { this.openPhone(); return; }
     if (opt.sheet) { const k = opt.sheet.kind; k === "shop" ? this.openShop(opt.sheet.who, true) : k === "bet" ? (this.greet(opt.sheet.who), this.openBet()) : k === "report" ? this.openReport() : k === "loot" ? this.openLoot(opt.sheet.who) : this.openBribe(opt.sheet.who); return; }
@@ -3302,6 +3425,17 @@ class StadiumScene extends Phaser.Scene {
         c.beginPath(); c.moveTo(x, y); c.arc(x, y, range, a.facing - 0.6, a.facing + 0.6); c.closePath(); c.fill();
       }
       c.fillStyle = col; c.beginPath(); c.arc(x, y, 3.2 * DPR, 0, Math.PI * 2); c.fill();
+    }
+    // Out of sight and they're searching: the zone they're combing, a pulsing ring round where they
+    // last saw you (GTA's search area). Get outside it and stay out.
+    if (mode === 3) {
+      const seen = Object.values(s.actors).map((a) => a.npc?.target === pc.id ? a.npc.lastSeen : undefined).filter((q): q is { x: number; y: number; t: number } => !!q);
+      if (seen.length) {
+        const lx = seen.reduce((t, q) => t + q.x, 0) / seen.length, ly = seen.reduce((t, q) => t + q.y, 0) / seen.length, pulse = 0.5 + 0.5 * Math.sin(performance.now() / 180);
+        c.strokeStyle = `rgba(255,210,63,${0.5 + 0.4 * pulse})`; c.lineWidth = 2 * DPR; c.setLineDash([4 * DPR, 3 * DPR]);
+        c.beginPath(); c.arc(sx(lx), sy(ly), 9 * k, 0, Math.PI * 2); c.stroke(); c.setLineDash([]);
+        c.fillStyle = `rgba(255,210,63,${0.08 + 0.06 * pulse})`; c.fill();
+      }
     }
     // You.
     c.translate(R, R); c.rotate(pc.facing);
@@ -3627,7 +3761,7 @@ class StadiumScene extends Phaser.Scene {
 
   /** A purchase: the till, the money going down, the thing flying into your bag. */
   bought(btn: HTMLElement, def: string, price: number): void {
-    this.audio.play("kaching", 1);
+    this.audio.play("kaching", 1); this.buzz(25);
     setTimeout(() => this.audio.play("bag", 0.8), 260);
     const money = $("money");
     money.classList.remove("spent"); void money.offsetWidth; money.classList.add("spent");
@@ -3894,6 +4028,64 @@ class StadiumScene extends Phaser.Scene {
     await wait(700); el.remove(); this.callOn = false;
   }
   pendingCallText = "";
+  /** Somebody rings him (MGS's codec calls in): it buzzes, you answer or let it ring off. */
+  incoming: Record<string, number> = {};
+  async incomingCall(key: string, name: string, face: string, lines: [string, string, string][], tip = "") {
+    if (this.incoming[key] || this.callOn || !this.started || this.s.stadium!.ending || this.s.stadium!.detainedUntil) return;
+    this.incoming[key] = performance.now();
+    const el = this.codec(name, face, "incoming");
+    el.querySelector(".st")!.textContent = "INCOMING CALL";
+    const btns = document.createElement("div"); btns.className = "ans";
+    btns.innerHTML = `<button class="yes">Answer</button><button class="no">Ignore</button>`;
+    el.appendChild(btns);
+    this.buzz([60, 80, 60]);
+    const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+    const ring = await this.audio.playCut("v_ph_ring", 0.45);
+    const answered = await new Promise<boolean>((res) => {
+      const t = setTimeout(() => res(false), 7000);
+      btns.querySelector(".yes")!.addEventListener("click", () => { clearTimeout(t); res(true); });
+      btns.querySelector(".no")!.addEventListener("click", () => { clearTimeout(t); res(false); });
+    });
+    ring.stop(); btns.remove();
+    if (!answered) { el.querySelector(".st")!.textContent = "MISSED CALL"; el.classList.add("off"); await wait(600); el.remove(); this.callOn = false; return; }
+    el.querySelector(".st")!.textContent = "CONNECTED";
+    if (tip) dispatch(this.w, { verb: "callin", actor: this.pc.id, arg: `${key.startsWith("ricky") ? "ricky" : key}|${tip}` });
+    for (const [who, text, clip] of lines) {
+      el.querySelector(".ln")!.innerHTML = `<b>${who === "g" ? "Grozz" : esc(name)}</b> ${esc(text)}`;
+      this.codecTalk(el, who === "g" ? "l" : "r");
+      const p = clip ? await this.audio.playCut(clip as Clip, 1) : { dur: 0 };
+      await wait(Math.max(1200, p.dur * 1000 + 250));
+    }
+    this.codecTalk(el, null); this.audio.play("v_ph_hangup" as Clip, 0.5);
+    el.querySelector(".st")!.textContent = "CALL ENDED"; el.classList.add("off");
+    await wait(600); el.remove(); this.callOn = false;
+  }
+  /** Who rings when: Shezleigh once you've been seen doing something big, Kev at half-time with a
+   *  whisper about a fix you haven't heard of, Ricky early on with his number. */
+  callTriggers(e: any) {
+    const s = this.s, st = s.stadium!, pcId = st.pc, m = s.match!;
+    const later = (ms: number, f: () => void) => setTimeout(f, ms);
+    if (e.type === "incident" && e.by === pcId && e.severity >= 2 && e.seen >= 3 && !this.incoming.shez) {
+      const frock = inDragSim(this.w, this.pc);
+      later(9000, () => void this.incomingCall("shez", "Shezleigh", "shez", [
+        ["r", frock ? "Why are you on the news in a fucking DRESS?! Is that MY dress?! You fat—" : "Grozz! You're on the fucking telly! Me mum's seen it! The whole street's seen it! You fat embarrassing—", frock ? "v_in_shez_dress" : "v_in_shez_tv"],
+        ["g", "Can't talk. Busy saving England.", "v_ph_gbusy"],
+      ]));
+    }
+    if (e.type === "fb_period_end" && e.period === 1) {
+      if (this.incoming.kev) return;
+      const f = st.flags, pickFix = !f.fix_keeper ? "keeper" : !f.fix_ref ? "ref" : !f.fix_star ? "star" : null;
+      const L: Record<string, [string, string]> = {
+        keeper: ["Kev here. Half-time. Word is their keeper likes a bet. Bung him a ton and he might let one in. Just saying.", "v_in_kev_keeper"],
+        ref: ["Kev. The ref has his tea at half-time from the urn in the corridor. Two sugars. I'm not saying nothing.", "v_in_kev_ref"],
+        star: ["Kev. Their number ten. Take him out and they've got nothing. That's all I'm saying.", "v_in_kev_star"],
+        cheer: ["Kev! I've just seen you on the big screen! You absolute nutter! Keep going, son!", "v_in_kev_cheer"],
+      };
+      const [text, clip] = L[pickFix ?? "cheer"];
+      later(2500, () => void this.incomingCall("kev", "Kev", "kev", [["g", "What?", "v_ph_gwhat"], ["r", text, clip], ["g", "Nice one, Kev.", "v_ph_gnice"]], pickFix ? text : ""));
+    }
+  }
+  rickyChecked = false;
   /** Shezleigh picks up. He says something unforgivable. She starts. He hangs up. */
   async wifeCall() {
     const el = this.codec("Shezleigh", "shez");
@@ -3939,6 +4131,9 @@ class StadiumScene extends Phaser.Scene {
       case "groped": if (e.who === pcId) { this.bark("groped", 1, true); if (!this.flags.gropeHint) { this.flags.gropeHint = 1; this.hint("He's got his hands on you. Flatten him: nobody's going to call that assault."); } } break;
       case "leered": if (e.who === pcId && e.advance && !this.flags.leerHint) { this.flags.leerHint = 1; this.hint("That one's coming over. If he lays a finger on you, he's fair game."); } break;
       case "self_defence": if (e.by === pcId) { this.hint("Self-defence. Nobody's arguing with that."); this.tick("creep"); } break;
+      case "struck": if (e.by === pcId) this.buzz(e.heavy || e.weapon ? 35 : 18); else if (e.who === pcId) this.buzz([30, 40, 30]); break;
+      case "knockout": if (e.by === pcId) this.buzz(70); break;
+      case "payout": if (this.started) this.buzz([20, 30, 20]); break;
       case "fruit": if (e.by === pcId) this.fruitSpin(e.reels, e.win); break;
       case "ticket_scanned": if (e.who === pcId) this.scanCard(e.ok); if (e.ok) this.gateFlash[e.gate] = performance.now() + 4500; break;
       case "pc_say": this.pcLine = { text: e.text, until: performance.now() + 2600 }; break;
@@ -3978,6 +4173,12 @@ class StadiumScene extends Phaser.Scene {
     { id: "rifle", text: "Take a shot from a long way off" }, { id: "creep", text: "Flatten a bloke who gets handsy" },
   ];
   mayhemDone = new Set<string>();
+  /** Feats that unlock a starting item for the next match day. */
+  static readonly UNLOCKS: Record<string, string> = {
+    streak: "long_wig", roof: "brick", stench: "fart_can", bomb: "burner", ko_stw: "hivis", evade: "sunglasses", horse: "flat_cap",
+    lenny: "mask", car: "wrench", creep: "dress", bus: "radio", secret: "moustache", window: "hammer", dog: "balaclava",
+  };
+  static unlocked(): string[] { try { return JSON.parse(localStorage.getItem("kd-unlocks") ?? "[]"); } catch { return []; } }
   /** The to-do list ticks itself, from what happens. */
   tickFrom(e: any, pcId: string) {
     const s = this.s, SEC = ["turnstile", "doorguard", "gateguard", "pitchsteward", "patrol", "corridor", "chief"];
@@ -3997,6 +4198,12 @@ class StadiumScene extends Phaser.Scene {
     if (!m) return;
     this.mayhemDone.add(id);
     this.audio.play("chime", 0.6, { rate: 1.3 });
+    // Some feats unlock kit to bring next time (Hitman's mastery: doing it once earns a head start).
+    const un = StadiumScene.UNLOCKS[id];
+    if (un) {
+      const got = StadiumScene.unlocked();
+      if (!got.includes(un)) { got.push(un); try { localStorage.setItem("kd-unlocks", JSON.stringify(got)); } catch { /* */ } setTimeout(() => this.toastTick(`🔓 Next match you can bring: ${ITEM_DEFS[un]?.name ?? un}`), 1400); }
+    }
     // It pays: cash on the nail, through the sim so it's saved and replayed like everything else.
     const r = dispatch(this.w, { verb: "payout", actor: this.pc.id, arg: id });
     this.toastTick(`✓ ${m.text}${r.ok ? `  +£${REWARDS[id]}` : ""}`);
@@ -4012,10 +4219,10 @@ class StadiumScene extends Phaser.Scene {
   openMenu() {
     const cps = this.game2.checkpoints;
     this.sheet("menu", `<h2>Paused</h2><p>Go back to a checkpoint. Everything since then is undone, and the match will not play out the same way.</p>
-      <div class="list">${cps.map((c) => `<button data-cp="${c.id}">${esc(c.label)}</button>`).join("")}<button data-new="1">Start a new match day</button><button data-mute="1">${this.audio.muted ? "Sound: off" : "Sound: on"}</button><button data-zoom="1">Zoom: ${esc(this.zoomLabel())}</button><button data-fp="1">${this.fp.on ? "Back to the overhead view" : "First-person view"}</button></div>
+      <div class="list">${cps.map((c) => `<button data-cp="${c.id}">${esc(c.label)}</button>`).join("")}<button data-new="1">Start a new match day</button><button data-mute="1">${this.audio.muted ? "Sound: off" : "Sound: on"}</button><button data-mini="1">Mini-games: ${this.miniOn ? "on" : "off"}</button><button data-buzz="1">Vibration: ${this.buzzOn ? "on" : "off"}</button><button data-lefty="1">Buttons: ${document.body.classList.contains("lefty") ? "left hand" : "right hand"}</button><button data-zoom="1">Zoom: ${esc(this.zoomLabel())}</button><button data-fp="1">${this.fp.on ? "Back to the overhead view" : "First-person view"}</button></div>
       <h2>Fixes (${fixesDone(this.w)}/${FIXES.length})</h2><div class="log">${this.fixesHtml()}</div>
       <h2>To do (${this.mayhemDone.size}/${StadiumScene.MAYHEM.length})</h2><div class="log">${StadiumScene.MAYHEM.map((m) => `<p>${this.mayhemDone.has(m.id) ? "<b>✓</b> <s>" + esc(m.text) + "</s>" : "☐ " + esc(m.text)} <span class="pay">£${REWARDS[m.id] ?? 0}</span></p>`).join("")}</div>
-      <h2>Ways in you've heard about</h2><div class="log">${LEADS.filter((l) => this.s.stadium!.flags[`lead_${l.id}`]).map((l) => `<p><b>${esc(l.title)}</b> ${esc(l.how)}</p>`).join("") || "<p>Nothing yet. Talk to people: locals, staff, the man at the shed.</p>"}</div>
+      <h2>Ways in you've heard about</h2><div class="log">${LEADS.filter((l) => this.s.stadium!.flags[`lead_${l.id}`]).map((l) => `<p><b>${esc(l.title)}</b> ${esc(l.how)} ${this.s.stadium!.admitted ? "" : `<button class="trk${this.tracked?.kind === "lead" && this.tracked.id === l.id ? " on" : ""}" data-track="lead:${l.id}">${this.tracked?.kind === "lead" && this.tracked.id === l.id ? "Tracking" : "Track"}</button>`}</p>`).join("") || "<p>Nothing yet. Talk to people: locals, staff, the man at the shed.</p>"}</div>
       <h2>What you've heard</h2><div class="log">${this.log.slice(-12).reverse().map((l) => `<p><b>${esc(l.src)}</b> ${esc(l.text)}</p>`).join("") || "<p>Nothing yet.</p>"}</div>`);
     this.setSpeed(0);
   }
@@ -4027,7 +4234,8 @@ class StadiumScene extends Phaser.Scene {
     if (!known.length) return "<p>Nothing yet. Their best player, their keeper, the referee: someone round here will know something. Listen.</p>";
     return known.map((fx) => {
       const done = !!f[`fixdone_${fx.id}`], ways = fx.ways.filter((wy) => f[`fixw_${fx.id}_${wy.id}`]);
-      return `<p>${done ? "<b>✓</b> <s>" : "☐ <b>"}${esc(fx.title(this.w))}${done ? "</s>" : "</b>"}</p>${ways.map((wy) => `<p class="way">· ${esc(wy.text)}</p>`).join("") || (done ? "" : `<p class="way">· Nobody's said how. Keep listening, or find your own way.</p>`)}`;
+      const trk = (way: string) => (done ? "" : ` <button class="trk${this.tracked?.kind === "fix" && this.tracked.id === fx.id && (this.tracked.way ?? "") === way ? " on" : ""}" data-track="fix:${fx.id}:${way}">${this.tracked?.kind === "fix" && this.tracked.id === fx.id && (this.tracked.way ?? "") === way ? "Tracking" : "Track"}</button>`);
+      return `<p>${done ? "<b>✓</b> <s>" : "☐ <b>"}${esc(fx.title(this.w))}${done ? "</s>" : "</b>"}${ways.length ? "" : trk("")}</p>${ways.map((wy) => `<p class="way">· ${esc(wy.text)}${trk(wy.id)}</p>`).join("") || (done ? "" : `<p class="way">· Nobody's said how. Keep listening, or find your own way.</p>`)}`;
     }).join("");
   }
 
@@ -4045,6 +4253,7 @@ class StadiumScene extends Phaser.Scene {
     list.textContent = "";
     const items = inc.length ? inc.map((i) => `${i.what}${i.seenBy ? `, seen by ${i.seenBy}` : ", unseen"}${i.blamed && i.blamed !== "ENG" ? ` (blamed on ${i.blamed} fans)` : ""}`) : ["You didn't do anything anyone noticed."];
     for (const t of items.slice(-8)) { const li = document.createElement("li"); li.textContent = t; list.appendChild(li); }
+    void this.frontPage(news.headline, e.title);
     const cps = $("endCps");
     cps.textContent = "";
     if (e.kind === "through" && this.game2.campaign.fixture < FIXTURES.length - 1) {
@@ -4056,6 +4265,54 @@ class StadiumScene extends Phaser.Scene {
     const nb = document.createElement("button"); nb.textContent = "Restart the tournament"; nb.dataset.new = "1"; cps.appendChild(nb);
     $("ending").hidden = false;
     void this.audio.music(e.kind === "through" ? "mus_win" : "mus_lose", false);
+  }
+
+  /** The day on one front page: Krunch News, your worst moment as the headline, a photo of the
+   *  scene, the day's tally and a star rating. Something to share (or at least to look at). */
+  async frontPage(headline: string, title: string) {
+    const host = $("frontPage");
+    host.innerHTML = "";
+    const shot = await new Promise<HTMLImageElement | null>((r) => { try { this.game.renderer.snapshot((im) => r(im instanceof HTMLImageElement ? im : null)); } catch { r(null); } });
+    if (shot && !shot.complete) await new Promise((r) => (shot.onload = r));
+    const W2 = 540, H2 = 720, cv = document.createElement("canvas"); cv.width = W2; cv.height = H2;
+    const c = cv.getContext("2d")!, m = this.s.match!, st = this.s.stadium!;
+    c.fillStyle = "#f3efe4"; c.fillRect(0, 0, W2, H2);
+    c.fillStyle = "#c8102e"; c.fillRect(0, 0, W2, 86);
+    c.fillStyle = "#fff"; c.font = "900 54px Impact, 'Arial Black', sans-serif"; c.textAlign = "center"; c.fillText("KRUNCH NEWS", W2 / 2, 62);
+    c.fillStyle = "#111"; c.font = "700 14px Georgia, serif"; c.fillText(`${VENUE.ground.toUpperCase()} · ${m.teams[0].short} ${m.score[0]}–${m.score[1]} ${m.teams[1].short}`, W2 / 2, 108);
+    // The headline, wrapped, as big as it'll go.
+    c.font = "900 38px Impact, 'Arial Black', sans-serif"; c.textAlign = "left";
+    const words = headline.toUpperCase().split(" "), linesOut: string[] = []; let line = "";
+    for (const wd of words) { const t2 = line ? line + " " + wd : wd; if (c.measureText(t2).width > W2 - 40) { linesOut.push(line); line = wd; } else line = t2; }
+    if (line) linesOut.push(line);
+    linesOut.slice(0, 4).forEach((l, i) => c.fillText(l, 20, 152 + i * 40));
+    const py = 152 + Math.min(4, linesOut.length) * 40 - 14;
+    if (shot) { const ph = 250, sw = shot.width, sh2 = Math.min(shot.height, sw * (ph / (W2 - 40))); c.drawImage(shot, 0, (shot.height - sh2) / 2, sw, sh2, 20, py, W2 - 40, ph); c.strokeStyle = "#111"; c.lineWidth = 3; c.strokeRect(20, py, W2 - 40, 250); }
+    // The tally and the rating.
+    const fx = fixesDone(this.w), jobs = this.mayhemDone.size, cash = Object.keys(REWARDS).filter((k) => st.flags[`paid_${k}`]).reduce((t, k) => t + REWARDS[k], 0);
+    const stars = Math.max(1, Math.min(5, Math.round(fx * 1.2 + jobs * 0.35 + (title.toLowerCase().includes("through") || st.ending?.kind === "through" ? 1 : 0))));
+    let ty = py + 280;
+    c.fillStyle = "#111"; c.font = "800 18px Georgia, serif";
+    for (const t2 of [`Fixes sorted: ${fx} of ${FIXES.length}`, `Things done: ${jobs} of ${StadiumScene.MAYHEM.length}`, `Earned on the day: £${cash}`, `Incidents: ${st.incidents.filter((i) => i.by === st.pc).length}`]) { c.fillText(t2, 24, ty); ty += 28; }
+    c.font = "900 30px Impact, sans-serif"; c.fillStyle = "#c8102e"; c.fillText("GROZZ RATING", 24, ty + 18);
+    // Stars drawn, not typed (fonts disagree about the hollow one).
+    for (let i = 0; i < 5; i++) {
+      const cx2 = 250 + i * 36, cy2 = ty + 7; c.beginPath();
+      for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + (k * Math.PI) / 5, q = k % 2 ? 6.5 : 15; c.lineTo(cx2 + Math.cos(a) * q, cy2 + Math.sin(a) * q); }
+      c.closePath(); c.fillStyle = i < stars ? "#c8102e" : "#d8d2c2"; c.fill(); c.strokeStyle = "#111"; c.lineWidth = 1.5; c.stroke();
+    }
+    c.fillStyle = "#555"; c.font = "italic 13px Georgia, serif"; c.fillText("Knockout Day", W2 - 110, H2 - 14);
+    cv.className = "fp"; host.appendChild(cv);
+    const row = document.createElement("div"); row.className = "row";
+    const share = document.createElement("button"); share.textContent = "Share the front page"; share.className = "primary";
+    share.addEventListener("click", () => cv.toBlob(async (b) => {
+      if (!b) return;
+      const file = new File([b], "krunch-news.png", { type: "image/png" });
+      const nav = navigator as Navigator & { canShare?: (d: unknown) => boolean };
+      try { if (nav.canShare?.({ files: [file] })) { await nav.share({ files: [file], title: "Krunch News" }); return; } } catch { /* cancelled */ }
+      const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = "krunch-news.png"; a.click();
+    }));
+    row.appendChild(share); host.appendChild(row);
   }
 
   // ---------- Wiring ----------
@@ -4077,6 +4334,8 @@ class StadiumScene extends Phaser.Scene {
       el.addEventListener("click", () => {
         clearTimeout(timer); el.classList.remove("charged");
         const o = get(), held = t0 ? performance.now() - t0 : 0; t0 = 0;
+        // Held on anything but a punch: everything else you could do here (the More list).
+        if (el.id === "act" && held > 600 && o?.action?.verb !== "strike") { this.buzz(20); this.openMore(); return; }
         this.run(o && held > 380 && o.action?.verb === "strike" && o.action.arg !== "takedown" ? { ...o, action: { ...o.action, arg: "haymaker" } } : o);
       });
     };
@@ -4085,6 +4344,15 @@ class StadiumScene extends Phaser.Scene {
     $("betBtn").addEventListener("click", () => (this.sheetKind === "bet" ? this.closeSheet() : this.openBet()));
     holdable($("hit"), () => (this as any).hitOpt ?? null);
     $("moreBtn").addEventListener("click", () => (this.sheetKind === "more" ? this.closeSheet() : this.openMore()));
+    // Instinct: hold it (or I on a keyboard) to see what you can use and where they're looking.
+    const instOn = (e?: Event) => { e?.preventDefault(); this.instinct = true; $("instBtn").classList.add("on"); };
+    const instOff = () => { this.instinct = false; $("instBtn").classList.remove("on"); };
+    $("instBtn").addEventListener("pointerdown", instOn);
+    for (const ev of ["pointerup", "pointercancel", "pointerleave"]) $("instBtn").addEventListener(ev, instOff);
+    window.addEventListener("keydown", (e) => { if (e.key.toLowerCase() === "i" && this.started) instOn(); });
+    window.addEventListener("keyup", (e) => { if (e.key.toLowerCase() === "i") instOff(); });
+    $("todo").addEventListener("click", () => this.openMenu());
+    try { if (localStorage.getItem("kd-lefty") === "1") document.body.classList.add("lefty"); } catch { /* */ }
     $("bagBtn").addEventListener("click", () => (this.sheetKind === "bag" ? this.closeSheet() : this.openBag()));
     $("phoneBtn").addEventListener("click", () => (this.sheetKind === "phone" ? this.closeSheet() : this.openPhone()));
     $("scopeFire").addEventListener("pointerdown", (e) => { e.stopPropagation(); this.fire(); });
@@ -4176,6 +4444,17 @@ class StadiumScene extends Phaser.Scene {
       if (d.new) { this.newGame(); this.closeSheet(); this.setSpeed(1); $("ending").hidden = true; return; }
       if (d.next) { this.continueTournament(); return; }
       if (d.mute) { this.audio.toggleMute(); this.openMenu(); return; }
+      if (d.mini) { this.miniOn = !this.miniOn; try { localStorage.setItem("kd-mini", this.miniOn ? "1" : "0"); } catch { /* */ } this.openMenu(); return; }
+      if (d.buzz) { this.buzzOn = !this.buzzOn; try { localStorage.setItem("kd-buzz", this.buzzOn ? "1" : "0"); } catch { /* */ } this.buzz(40); this.openMenu(); return; }
+      if (d.lefty) { const on = document.body.classList.toggle("lefty"); try { localStorage.setItem("kd-lefty", on ? "1" : "0"); } catch { /* */ } this.openMenu(); return; }
+      if (d.track) {
+        const [kind, id, way] = d.track.split(":");
+        const same = this.tracked && this.tracked.kind === kind && this.tracked.id === id && (this.tracked.way ?? "") === (way ?? "");
+        this.tracked = same ? null : { kind: kind as Tracked["kind"], id, way: way || undefined };
+        this.closeSheet(); this.setSpeed(1);
+        if (this.tracked) { const t = trackTarget(this.w, this.tracked); if (t) this.hint(`Tracking: ${t.label}. Follow the star.`); }
+        return;
+      }
       if (d.zoom) { this.cycleZoom(); this.openMenu(); return; }
       if (d.fp) { this.toggleFirstPerson(); this.closeSheet(); this.setSpeed(1); return; }
     };

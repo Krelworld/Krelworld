@@ -266,3 +266,18 @@ test("in a frock, a bloke gets handsy; flattening him isn't a crime, hitting an 
   dispatch(g.w, { verb: "strike", actor: pc.id, target: { k: "actor", id: other.id } });
   assert.ok(st.incidents.length > before, "assault");
 });
+
+test("Kev's call counts as overheard; Ricky's call leaves his number; flattening a hunter shortens the search", () => {
+  const g = createGame("calls1"), s = g.w.state, pc = pcOf(g), st = s.stadium!;
+  dispatch(g.w, { verb: "callin", actor: pc.id, arg: "kev|Word is their keeper likes a bet." });
+  assert.ok(st.flags.fix_keeper, "keeper fix heard");
+  assert.ok(st.flags.fixw_keeper_bribe, "and how");
+  dispatch(g.w, { verb: "callin", actor: pc.id, arg: "ricky|number" });
+  assert.ok(st.flags.contact_dealer, "Ricky's number saved");
+  const stw = find(g, (a) => a.npc?.job === "patrol");
+  Object.assign(stw.npc!, { target: pc.id, mode: "search", crime: 1 });
+  st.flags.evadeUntil = s.tick + 60 * 20;
+  const before = st.flags.evadeUntil;
+  g.w.bus.emit({ type: "knockout", t: s.tick, who: stw.id, by: pc.id });
+  assert.ok(st.flags.evadeUntil < before, "search shortened");
+});

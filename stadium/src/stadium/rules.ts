@@ -226,7 +226,8 @@ export function installRules(): void {
       // Behind him and he is busy: much easier.
       const toMe = Math.atan2(actor.y - t.y, actor.x - t.x);
       const behind = Math.cos(toMe - t.facing) < -0.2;
-      const p = (behind ? 0.75 : 0.35) + (t.seated ? 0.1 : 0) + (t.effects.drunk > s.tick ? 0.1 : 0) - (isSecurity(t) ? 0.4 : 0);
+      // A clean dip (the touch mini-game won) nearly always works; a fumbled one never does.
+      const p = act.arg === "clean" ? 0.95 : act.arg === "botch" ? 0 : (behind ? 0.75 : 0.35) + (t.seated ? 0.1 : 0) + (t.effects.drunk > s.tick ? 0.1 : 0) - (isSecurity(t) ? 0.4 : 0);
       if (!chance(r, p)) {
         say(w, t, "Oi! Get your hands out of my pocket!");
         crime(w, actor, "pickpocketing", 1, t);

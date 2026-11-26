@@ -42,7 +42,7 @@ What the player gets:
   a chat, a shove or any pause gets you off; a bike left there just goes.
 - Never in Home, the Club, the Venue, the pub, dungeons, minigames, cutscenes (BIKE_SCENES = Hub, Kreddle only).
 - Saves: riding is never saved (you load on foot). The one new flag is `bike_tip` (the tip has shown).
-- First time near the bike (or the first ride): one system toast, "YOUR BIKE: Press Z to hop on your bike, anywhere
+- The first ride (b646de81; it was "first time near the bike" before): one system toast, "YOUR BIKE: Press Z to hop on your bike, anywhere
   in town. Z again to get off." (the key's current binding). On phones it reads "Tap RIDE (the bike button) to hop on
   your bike, anywhere in town. Tap WALK to get off." (TOUCH_WORDING rows `bike-on`, `bike-off`).
 
@@ -97,6 +97,46 @@ with the rider still on): fixed in 53a8e2ad.
   "Tap: Ride your bike" (the existing prompt rule).
 - Character lines that mention a key: none added or touched by this work.
 
-## Checks
+## Laptop fingerprint: every difference, and the one baseline commit (4b8355bd)
 
-(filled in below)
+Checked state by state with positions ignored (classifier and its output in scratchpad/mobile/work/game-adds/:
+classify.py, fp-classify-*.txt). What differs, and why:
+- every state: `"textures"` +1, the bike's sprite sheet (loaded with the rest of the art at boot);
+- hub, pause and its pages, slots_save, alt_hub, alt_pause, kreddle, exchange: the bike's three sprites (the parked
+  one outside Home visible, the two riding layers hidden) and key Z registered by the town's Controls;
+- pause_controls: the new "Bike: get on / off (in town)  Z  L3 (click the stick)" row; rows 21 px apart (were 22);
+- title_with_save / slots_load (and NPC, bird and neon positions in town states): the same objects moved, plus
+  different random chatter flags in the save. Cause, proven: every Phaser Text draws a random texture name
+  (`UUID()`, 32 Math.random calls, phaser/src/gameobjects/text/Text.js:273), so the new Controls row (and on tablets
+  the pad's 🚲 label) shifts the fingerprint's seeded random sequence. Experiment: with the tip toast held back, the
+  town states differed only by the bike sprites, Z and the texture count. (The tip was then moved to the first ride,
+  so arriving in town makes no new Text.)
+- tablets: ipad, fire7, androidtab have a hidden 🚲 in the old pad (shown in town: androidtab hub); touchlaptop
+  differs only by the texture count.
+- Mikey's removed step shows in no recorded state.
+- tests/desktopInvariants.test.ts: the keys list gains `bike: Z  (Bike: get on / off (in town))` and PAD_FIXED gains
+  `bike: "L3 (click the stick)"`, nothing else (edited in the same baseline commit, as hard rule 0 allows for the
+  bike; nothing else in that file or index.html touched).
+The new baselines were taken from the check's own `--out` files (identical states untouched), all in 4b8355bd.
+
+## Checks (final, after the baseline commit; dev servers 5602 / 5612 from this worktree, stopped)
+
+- (a) laptop: half 1 `DESKTOP FINGERPRINT: OK`, half 2 `DESKTOP FINGERPRINT: OK`.
+- (b) touchlaptop, ipad, fire7 (front,newgame) and androidtab (front,newgame,hub): all `OK`.
+- (c) desktopInvariants passes (19 tests); edited only as above.
+- (d) `npx tsc --noEmit` clean. `npx vitest run`: 565 of 567 in the full run; the two misses (wonkStyles "styled
+  zones", content "no slurs") are 5 s timeouts under load and pass on their own (13 of 13).
+- (e) phone smoke, full, main: 439 of 441; ALT: 390 of 396 with the browser crashing mid-run (load average 17 to
+  24 on 4 CPUs). Re-run once: main combat 47/47, ALT phone 69/69, ALT lists + dungeon passed, ALT polish + android
+  + desktop 73/73. `bike` passed in both full runs (10/10 each). Still failing: main `side`'s coyote check
+  ("sinceGround" 194 ms after a 102 ms wait: a frame takes longer than the coyote window at this load); the base
+  commit 496f1066 fails the same check (and two more) on the same machine minutes later, so not this branch.
+- Laptop bike script (scripts/bike-laptop.cjs): OK on main (FLENKY, MIKEY, GRONNY) and ALT (KREBLIS).
+
+## Not done / notes
+
+- PixelLab tools were not available here: the bike art is hand-built pixel art (scratch art/bike.py). If wanted, a
+  PixelLab redraw can replace public/art/props/bike.png frame for frame (64 px, same 10-frame layout).
+- No "before" screenshot of Home was taken from the old build; the fingerprint shows the only change there is the
+  one bike sprite at (606, 1392).
+- Request 2 (auto-fire audit) is not in this role.

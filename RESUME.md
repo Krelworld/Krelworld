@@ -180,3 +180,19 @@ To resume: `Workflow({scriptPath: "<script>", resumeFromRunId: "wf_574a5950-314"
   - "sfx" in sfx-wt (branch sfx from live 0da900db): root cause of silent dungeon effects; likely the iOS silent switch (live has no navigator.audioSession; wave 1's audio.ts sets 'playback'). Report ga-06-sfx.md.
   - Gate ga-07, fix ga-08, re-gate ga-09.
 - Plan: ship aim (+ sfx if needed) with the game-adds publish (merge autofire's final commits too). Asked the user: iPhone or Android, silent switch on, did voices/music play.
+- 01:45 user update: "the sound effects weee simply very quiet" (not silent). Note dropped in work/sfx/USER-UPDATE-READ-ME.md
+  asking the sfx agent to tune wave 2's mix on a new branch sfx-mix (from s3-scenes). BACKSTOP: if ga-06-sfx.md doesn't show
+  sfx-mix commits, the coordinator must raise phone effects (target: dungeon gunshots over the song within ~3 dB of voices,
+  ~+8-10 dB over live) before wave 2 publishes, and merge sfx-mix into s3-games.
+- 01:55 user request (ALL versions): Job Centre toilet opens without clearing the room + a SanChz jam-donut cutscene with art
+  (clothed, donut at groin, small censor bar, moaning with his EXISTING "yegh" clips only). Workflow wf_ff8973c5-ca4
+  (task wo9qf5bvo, script work/donut.js), branch "donut" from game-adds 4b8355bd in donut-wt; reports dn-01..dn-04.
+  Ships after game-adds (merge game-adds' later fixes into donut first). Send the user the 2x screenshots.
+- 02:00 user: "Sanchez shouldn't be with you in that specific room. There's a "where da fuck is Sanchz" from SanMik when you enter".
+  Note in work/donut/USER-UPDATE-READ-ME.md (no SanChz companion in Job Centre Plus until after the scene; new SANMIK entry line
+  "Where da fuck is SanChz?", text only; SanChz's "Signing on" enter line removed from that room). BACKSTOP: check dn-01/dn-02 cover it.
+- 08:30 STATUS: load avg ~60, every gate crawling; nothing published since 0da900db (estimates blown). Running: wave1 final gate,
+  wave2 reviews (L, P), game-adds gate, aim re-gate (ga-08 built HOLD+35° cone; first build agent did nothing), donut gate.
+  Donut art done (28e402e8..16fc2bcb) BUT the room change (no SanChz companion in Job Centre Plus, SANMIK "Where da fuck is SanChz?",
+  drop his "Signing on" line) was NOT done: COORDINATOR MUST DO IT after the donut gate finishes, before publishing.
+  User said "I already had the cutscene made": told them the scene's words are kept and art plays behind them; awaiting reply.

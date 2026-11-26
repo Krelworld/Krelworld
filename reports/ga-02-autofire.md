@@ -140,8 +140,8 @@ stick circling, a DODGE every 3 s):
 
 - **AUTO.** One thumb plays. The right thumb only touches DODGE (3 touches in 12 s). FIRE glows while the game shoots.
   Calm and readable.
-- **LIGHT.** The same hands, but shots come in sparse bursts: about 0.6 of AUTO's pace by construction, measured at
-  0.56 to 0.75 in the smoke test. It reads as "my gun is broken", not as "this is harder". The only fix is to hold
+- **LIGHT.** The same hands, but shots come in sparse bursts: about 0.6 of AUTO's pace by construction (unit-tested over a
+  simulated minute). It reads as "my gun is broken", not as "this is harder". The only fix is to hold
   FIRE, which is HOLD with extra steps.
 - **STILL.** Shots only in the rests. 7 shots in 12 s against AUTO's 24. You have to stop in bullet patterns to shoot,
   which is the opposite of what the dodge-heavy rooms ask of you. It also clashes with the "no standing still"
@@ -163,6 +163,8 @@ for the same result. AUTO is the only scheme that frees a thumb.
 | `1f3f9c7c` | Settings > Firing: one row, **AUTO** (default, exactly the stage 2 behaviour) / **LIGHT** / **STILL** / **HOLD**. It replaces the Auto-fire toggle; HOLD is auto-fire off, and a phone that turned auto-fire off in stage 2 reads as HOLD. FIRE by hand (hold, slide to aim) works the same in every style. The Controls picture's FIRE line follows the style. |
 | `0e010d09` | README: the Firing styles. |
 | `204e8c85` | The Firing row's help line fits in two lines. |
+| `19a89917`, `ae315f4d`, `7ed4092a`, `b7fedb97` | Smoke: the firing checks (see below), on a page of their own. |
+| `f243ed2e` | README: `--only firing`. |
 
 - Code: `settings.ts` (`firing`, `FireStyle`, `fireStyle()`, the row keeps `autoFire` in step), `combatLogic.ts`
   (`AutoPace`, `StillGate`, `LIGHT_PACE` 0.6, `STILL_MS` 120, `STILL_STICK` 0.2), `combat.ts`
@@ -172,10 +174,13 @@ for the same result. AUTO is the only scheme that frees a thumb.
 - Tests: `tests/mobileFiring.test.ts` (9 tests: defaults, legacy auto-fire off, cleaning, the row's get/set, the FIRE
   lines, LIGHT's pace over a minute, STILL's gate). `tests/mobileSettings.test.ts` adjusted: a new default key, and
   autoFire has no row of its own.
-- Smoke: the `combat` section now checks LIGHT's pace (0.45 to 0.78 of AUTO's at the same pinned enemy), that held FIRE
-  in LIGHT goes at full pace, that STILL shoots nothing while the stick is pushed and shoots once it rests, and that
-  HOLD shoots nothing by itself. The `settings` / `settings2` / `together` sections use the Firing row in place of the
-  old toggle.
+- Smoke: the `combat` section ends with the firing styles, on a page of its own (also `--only firing`). The checks:
+  LIGHT pulls the trigger on under 60% of the frames where auto-fire wants to, while AUTO pulls it on all of them,
+  and never out-shoots AUTO. Holding FIRE in LIGHT goes at the full pace. STILL never shoots while the stick is
+  pushed and shoots whenever it has a target once you stand still. HOLD never shoots by itself. On this machine
+  shot counts can't show the 60% itself, because each hit's hit-stop swallows whole long frames; the pace is
+  unit-tested instead. The `settings`, `settings2` and `together` sections use the Firing row in place of the old
+  toggle (every option tapped both ways; HOLD turns auto-fire off).
 - If the user picks AUTO / HOLD only: delete the `light` and `still` options from the row's `options` (the code paths
   can stay or go; nothing else depends on them).
 
@@ -198,6 +203,25 @@ words) and two Controls-picture lines (`FIRE_LIGHT`, `FIRE_STILL`).
   page, and never on a fresh page. It looks like canvas memory running out (iOS caps canvas memory). It is worth a look
   by whoever owns phone memory, with a long real session on a device.
 
-## Checks
+## Checks (own servers from this worktree: 5622 main, 5632 ALT; stopped afterwards)
 
-See the end of this file (filled in when the full check finished).
+The machine's load average was 20 to 25 on 4 CPUs throughout.
+
+| Check | Result |
+|---|---|
+| (a) laptop fingerprint, half 1 (`shell,front,newgame,hub,meeting,dungeon`) | **DESKTOP FINGERPRINT: OK** (40 of 40 states identical) |
+| (a) laptop fingerprint, half 2 (`boss,side,places,minigames,finale,alt`) | **DESKTOP FINGERPRINT: OK** (25 of 25) |
+| (b) touchlaptop, ipad, fire7 (`front,newgame`); androidtab (`front,newgame,hub`) | all **OK** |
+| (c) `tests/desktopInvariants.test.ts` | passes; it, `tests/fingerprints/`, `index.html` and `src/main.ts` are unedited (`git diff 496f1066 --stat` lists only phone files, the smoke script and tests) |
+| (d) `npx tsc --noEmit`, `npx vitest run` | pass (45 files, 562 tests) |
+| (e) phone smoke, main, full | 429 of 435. The failures were the first LIGHT check (counted shots; replaced), the 2 READY checks (my block then sat in the middle of `combat` and filled the WONK meter; it is now on its own page, and READY passes in every rerun), and side quick-tap height, coyote and P2 |
+| (e) phone smoke, ALT, full | the ALT server was killed from outside mid-run (connection refused), so it was started again. Second run: 368 of 376: the welcome conversation, PUNCH tap, weapon chip tap, the old fresh-room step timing out, tap height, coyote and P2 |
+| (e) reruns on the final script | main `combat,side,review1`: 74 of 81. The failures were SWAP tap, slide-to-pick, chip tap, quick-tap height, coyote, camera turn and P2. ALT `phone,combat,side,brawl,review1`: 154 of 157 (SWAP tap, coyote, and STILL, which was then fixed). The welcome conversation and PUNCH pass in this rerun. `--only firing`: **6 of 6 on both builds** |
+
+The failures that remain (SWAP tap, slide-to-pick, chip tap, coyote, quick-tap height, camera turn, P2) are the
+timing flakes the stage 3 reports list under load (s3-06, s3-07; P2 fails on the baseline too, s3-02). They pass in
+one run and fail in another. None of them involves firing, and the code they test is unchanged on this branch.
+I re-ran each failing section once and did not re-run them again.
+
+Laptop: unchanged (all fingerprints OK). Every change is under `src/game/mobile/`, plus the smoke script and tests.
+Both builds behave the same; there are no ALT-only differences.

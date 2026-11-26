@@ -1,7 +1,8 @@
 # Stage 3 wave 1, fix round 1
 
-Worktree `scratchpad/s3-tap-wt`, branch `s3-tap`. Nothing was pushed. Commits: b410b140 (tap to use), ba4e2323 (pictures
-and sound), 8697688d (Whack card, archive), 7b8fd559 (README), plus the report/DEFERRED-free final commit below.
+Worktree `scratchpad/s3-tap-wt`, branch `s3-tap`, head c24ee0d1. Nothing was pushed. Commits: b410b140 (tap to use),
+ba4e2323 (pictures and sound), 8697688d (Whack card, archive), 7b8fd559 (README), c24ee0d1 (two smoke-test timing
+fixes). The worktree is clean.
 No game file outside `src/game/mobile/` changed. index.html, main.ts, the Phaser/vite config,
 `tests/desktopInvariants.test.ts` and `tests/fingerprints/` were not edited. No dialogue was changed and no narrator
 tip was swapped in this round. One UI rule line (Whack's multiplier rule) has its two sentences run on (newline to
@@ -30,6 +31,25 @@ space) on phones only. The words are the same.
 | R8 | fixed | `isStray`: an element is not a stray while it is current, fading or emptied, for 1.2 s after it stopped being current, or for 1.2 s after it was handed out. The smoke stray check now compares `doubles` before/after (+1). |
 | R9 | fixed | (1) The minigame song must be `paused === true`. (2) The `mix3` cores check is replaced by the kart TileSprite pixel check. (3) The culling check asserts nothing well inside the view has `willRender` false (106 in view, 0 wrong). (4) CDP `JSHeapUsedSize`: 43 MB after boot, 322 MB after the six-scene walk (limits 400/500). (5) Hub routes with the CPU 4x slower: slowest 11-63 ms (limit 120). (6) Unit tests (`tests/mobilePlatformFix.test.ts`) for every new rule (family, retry, cache name, holds, pickSlot, sparesToDrop, isStray). art.ts/audio.ts at runtime are covered by `platfix` rather than a fake texture manager. |
 
-## Checks
+## Checks (own servers 5306 / 5316, stopped after)
 
-See the table at the end (filled in after the full run).
+| Check | Result |
+|---|---|
+| (a) laptop, first half | 40 of 40 identical, DESKTOP FINGERPRINT: OK |
+| (a) laptop, second half | 25 of 25 identical, DESKTOP FINGERPRINT: OK |
+| (b) touchlaptop, ipad, fire7, androidtab | all four OK |
+| (c) `tests/desktopInvariants.test.ts` | 19 passed. It, `tests/fingerprints/`, index.html, main.ts and the vite config are unedited since 37a710d4 |
+| (d) `tsc --noEmit`, `vitest run` | tsc clean. vitest 47 files, 591 tests passed in 3 of 4 runs. One run under load had 1 failure I could not identify; it did not repeat. No unit test now uses the clock. |
+| (e) smoke main, full | 506 of 509. Failures: `welcome conversation` (timing), `lists` (renderer OOM-killed), `auto-fire off` (timing). Reruns: `phone,lists` 111/111, `combat` 46/46 |
+| (e) smoke ALT, full | 512 of 519. Failures: `auto-fire kills`, `weapon chip tap`, `JUMP on touch-down`, `coyote` (timing in combat/side at load 24-25), `review1` (Dungeon did not load in time), `platform JS heap` (measured garbage: the check now reads after a full collection), `Krezz Arms door` (Hub transition slow). Reruns: `tapuse` 43/43 (after the re-target fix), `combat,side` and `side,review1` again failed only jump/auto-fire timing checks and P2 (pit; pre-existing, s3-03, owned by mobile-feel) |
+| new sections | `tapfix` 21/21 and `platfix` 9/9 (main). `platform,mix3` 45/45 (main, 01:10) |
+
+**Environment.** From about 04:30 three other agents' Playwright runs were active (`mobile-smoke` on 5512 and 5682,
+`mikey.cjs`), and the memory cgroup OOM-killed renderers repeatedly (dmesg). `platform` then crashed ("Target crashed")
+on both builds about 75 s in. The baseline 0e0ee379, served from a temporary worktree (now removed), crashed the same
+way with the same script, so this is the machine, not this round's code. `platform` passed on main earlier (45/45 with
+`mix3`). In the full ALT run every `platform` check before the crash passed except the heap one. The platform
+section needs a rerun on a quieter machine.
+
+The jump, auto-fire and weapon-chip timing failures are in `combat.ts` / `side.ts` / `jump.ts`, which this round did not
+touch. In `touchLayer.ts`, only ACTION has a `passThrough`, and the zone tap carries `t0`.

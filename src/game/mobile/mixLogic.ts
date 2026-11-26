@@ -146,7 +146,8 @@ export function mixGains(s: SoundSettings, plan: PhoneMixPlan = PHONE_MIX, scene
   const fm = f.fight ? plan.fight.music : 1;
   const fs = f.fight ? plan.fight.sfx : 1;
   return {
-    song: pathGains(l.music * f.music, l.music, plan.out.music * fm),
+    // (the song element's level is clamped at 1 by the game: master x music x lift, at most 1; review R2)
+    song: pathGains(Math.min(1, l.music * f.music), l.music, plan.out.music * fm),
     chip: pathGains(c01(s.music, 0.5) * f.music, l.music, plan.out.music * fm),
     sfx: pathGains(c01(s.sfx, 0.8) * f.sfx, l.sfx, plan.out.sfx * fs),
     voice: pathGains(l.voice, l.voice, plan.out.voice),

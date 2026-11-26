@@ -1048,6 +1048,19 @@ rest brought up. On a phone every path of the game's sound context goes through 
 - `?mobilediag`: "sound mix phone: voice drive +9.5 dB, effects +6 dB, music -1.4 dB · squeeze now voice x / effects y dB ·
   ceiling -1.1 dBFS · peak z dBFS". On a phone `window.__krelMobile.audio.mix` has `report()`, `peak()`, `squeeze()`.
 
+## Stage 3 wave 2 review fixes
+
+- **Timed minigames hold their clock through a pause or a lock** (`games.ts` `holdClock`, `gamesLogic.ts`
+  `pausedSkip`): their deadlines are on `scene.time.now`, which Phaser sets to the loop's time every frame, so a long
+  II pause or a lock used to eat the time left (Deadlift lost at once on RESUME). On a phone the Minigame and Whack
+  scenes' clocks count a frame gap over 250 ms as one ordinary frame; reset on every start. Smoke: `--only wave2`.
+- Bully's 20 s waits while its intro conversation is up; the finale's "Esc: skip scene / fight" is a SKIP pill left of
+  the II that skips (`scenes.ts`); HUD tips "SLOPPY 100% — R!" and the raid / rout "(hold attack)" in touch words
+  (exact HUD lines only); burpees' ROUND CLOCK and Facebrook's "Logged in as" out from under the II; a one-word last
+  TV subtitle page takes a word from the page before; the pseudo-3D shots' SKIP label out of the home-indicator strip.
+- The fight mix uses the song element's real (clamped) level, so at high sliders the dungeon song is not cut below its
+  town level; smoke `--only dungeon` reads the mix's real gain nodes in the fight and back in town.
+
 ## Thumb-feel round (the user's own iPhone test)
 
 The user, on the live build: "jumping feels a little awkward", "The specials, when they do activate, are tiny to

@@ -157,3 +157,14 @@ describe("the first-time cues", () => {
     expect(cueFor(null, [])).toBeNull();
   });
 });
+
+import { PAUSE_GAP_MS, pausedSkip } from "../src/game/mobile/gamesLogic";
+describe("the minigames' clock across a pause (review R1)", () => {
+  it("ordinary frames, even slow ones, are played time; a pause or a lock counts as one frame", () => {
+    expect(pausedSkip(16, 16)).toBe(0);
+    expect(pausedSkip(PAUSE_GAP_MS, 16)).toBe(0);
+    expect(pausedSkip(16000, 16)).toBe(16000 - 16);
+    expect(pausedSkip(16000, 500)).toBe(16000 - 50);
+    expect(pausedSkip(Number.NaN, 16)).toBe(0);
+  });
+});

@@ -164,3 +164,17 @@ describe("phone mix: fights (the user: \"the sound effects were simply very quie
     expect(mixGains({ ...DEFAULTS, sfx: 0 }, PHONE_MIX, DUNGEON).sfx).toEqual({ pre: 0, post: 0 });
   });
 });
+
+describe("phone mix: a fight at high sliders (review R2)", () => {
+  it("the song's in-signal level is the game's own (clamped at 1): the dungeon song is never cut below its town level", () => {
+    const MAX = { master: 1, music: 1, sfx: 1, voiceVolume: 1 };
+    const town = mixGains(MAX);
+    const d = mixGains(MAX, PHONE_MIX, { sfxScale: 0.68, musicBoost: 1.35 });
+    // the game's element plays min(1, 1 x 1 x 1.35) = 1: the signal into the mix is the same as in town
+    const gameSong = (lift: number) => Math.min(1, 1 * 1 * lift);
+    expect(gameSong(1.35) * d.song.pre * d.song.post).toBeCloseTo(gameSong(1) * town.song.pre * town.song.post * PHONE_MIX.fight.music);
+    // at the defaults (0.8 x 0.5 x 1.35 = 0.54, no clamp) the lift is taken out exactly
+    const dd = mixGains({ master: 0.8, music: 0.5 }, PHONE_MIX, { musicBoost: 1.35 });
+    expect(0.54 * dd.song.pre).toBeCloseTo(1);
+  });
+});

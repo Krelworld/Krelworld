@@ -2398,16 +2398,22 @@ async function dungeon(browser) {
     check("in the fight: combat mode on the phone controls (the old canvas pad gone)", inFight === "combat:Dungeon" && (await ph.ev(() => !window.__krel.game.scene.getScene("UI").touch)), inFight);
     // the phone mix in a dungeon fight (the user: "the sound effects were simply very quiet"): the dungeon's own
     // effects cut (x0.68) and song lift (x1.35) are taken back out, effects then go up, the song stays at its level
-    const fmix = await ph.ev(() => {
+    // (no update() here: the wrappers on setSfxScale / setMusicBoost, or the quarter-second poll, must have done it;
+    // read the mix's real gain nodes, not only what it says it set)
+    const mixNow = () => ph.ev(() => {
       const a = window.__krelMobile.audio;
-      a.mix.update();
+      const gr = a.mix.graph;
       const s = window.__krel.G.meta.settings;
-      return { report: a.mix.report(), plan: a.mix.plan.fight, sfx: s.sfx ?? 0.8, master: s.master ?? 0.8, music: s.music ?? 0.5 };
+      const v = (n) => Math.round(n.gain.value * 1000) / 1000;
+      return { report: a.mix.report(), plan: a.mix.plan.fight, nodes: gr ? { preSfx: v(gr.entry.sfx), postSfx: v(gr.post.sfx), preSong: v(gr.entry.song) } : null, sfx: s.sfx ?? 0.8, master: s.master ?? 0.8, music: s.music ?? 0.5 };
     });
+    const close = (x, y) => Math.abs(x - y) < 0.01 * Math.max(1, Math.abs(y));
+    const fmix = await mixNow();
     {
-      const r = fmix.report, close = (x, y) => Math.abs(x - y) < 0.01 * Math.max(1, Math.abs(y));
-      check("in the fight: the phone mix plays it as a fight (effects louder, the song's dungeon lift taken out)",
-        r.built && r.fight && close(r.pre.sfx, 1 / (fmix.sfx * 0.68)) && close(r.post.sfx, fmix.master * fmix.sfx * 1.1 * fmix.plan.sfx) && close(r.pre.song, 1 / (fmix.master * fmix.music * 1.35)), fmix);
+      const r = fmix.report, n = fmix.nodes || {};
+      const want = { preSfx: 1 / (fmix.sfx * 0.68), postSfx: fmix.master * fmix.sfx * 1.1 * fmix.plan.sfx, preSong: 1 / Math.min(1, fmix.master * fmix.music * 1.35) };
+      check("in the fight: the phone mix plays it as a fight (effects louder, the song's dungeon lift taken out), on its real gain nodes",
+        r.built && r.fight && close(n.preSfx, want.preSfx) && close(n.postSfx, want.postSfx) && close(n.preSong, want.preSong), { fmix, want });
     }
     const paused = () => ph.ev(() => ({ menu: window.__krel.active().includes("Menu"), dungeon: window.__krel.game.scene.isPaused("Dungeon"), hp: window.__krel.G.s.hp, running: window.__krel.game.loop.running }));
     const resume = async () => {
@@ -2492,6 +2498,15 @@ async function dungeon(browser) {
     await sleep(800);
     const c3 = await ph.loop();
     check("a tap carries on", c3.running && !(await ph.ev(() => window.__krelMobile.shellState().card)), c3);
+    // out of the fight: the mix plays as anywhere else again (the dungeon's own levels back to 1)
+    await ph.ev(() => window.__krel.go("Hub", {}));
+    await ph.scene("Hub").catch(() => 0);
+    await sleep(1200);
+    {
+      const m = await mixNow();
+      const n = m.nodes || {};
+      check("out of the dungeon (to the town): the phone mix is out of fight mode, its gains the town's", !m.report.fight && close(n.preSfx, 1 / m.sfx) && close(n.postSfx, m.master * m.sfx * 1.1), m);
+    }
     check("dungeon: no page errors", errors.length === 0, errors.slice(0, 3));
   } finally {
     await ctx.close();
@@ -6184,8 +6199,10 @@ async function wave2(browser) {
     await shot("minigame");
     // ---- the lock (page hidden) and back: the minigame's pause menu, not a drop straight in
     if (!m1.ended) {
+      const tLeft = (h) => { const m = /TIME (\d+)s/.exec(String(h || "")); return m ? +m[1] : null; };
+      const t0 = tLeft((await mgNow(ph)).hud);
       await setVis("hidden");
-      await sleep(700);
+      await sleep(3500);
       const hid = await ph.loop();
       await setVis("visible");
       await sleep(1500);
@@ -6198,6 +6215,9 @@ async function wave2(browser) {
       await sleep(800);
       const again = await ph.ev(() => ({ mgPaused: window.__krel.game.scene.isPaused("Minigame"), active: window.__krel.active() }));
       check("wave2: RESUME by touch carries the minigame on", !!res && !again.mgPaused, { res, again });
+      // (review R1) the minigame's clock held while locked and paused: the seconds locked are not lost
+      const t1 = tLeft((await mgNow(ph)).hud);
+      check("wave2: the minigame's clock held through the lock and the pause (time left not eaten by them)", t0 !== null && t1 !== null && t0 - t1 <= 3, { t0, t1 });
       await twoThumbs(ph, 300, async () => (await mgNow(ph)).ended);
     }
     // (taps through the outcome only while the minigame is up and not fading: a tap landing in Home would be tap to use)

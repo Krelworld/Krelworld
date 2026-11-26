@@ -236,3 +236,18 @@ export const GAME_NARRATOR_TIPS: WordingRule[] = [
   // systems/squeeze.ts: "You hug her. Now: SQUEEZE. Hit the buttons as they come up, fast, before she gets bored."
   { id: "squeeze-buttons", re: /\bHit the buttons as they come up, fast, before she gets bored\./g, to: "Tap the screen, fast, before she gets bored." },
 ];
+
+// ------------------------------------------------------------------ the minigames' clock across a pause (review R1)
+
+/** A frame gap longer than this (ms) is a pause, a lock or a sleep, not play. */
+export const PAUSE_GAP_MS = 250;
+
+/**
+ * The time a minigame's clock should skip for a frame: Phaser's scene clock is the game loop's time, so after the
+ * phone's II pause or a lock it jumps by the whole pause and every deadline (Deadlift's 12 s, Bully's 20 s, the
+ * burpees' rounds...) has run out. A gap over PAUSE_GAP_MS counts as one ordinary frame (`delta`, at most 50 ms).
+ */
+export function pausedSkip(gap: number, delta: number): number {
+  if (!(gap > PAUSE_GAP_MS)) return 0;
+  return gap - Math.max(0, Math.min(50, Number.isFinite(delta) ? delta : 16));
+}

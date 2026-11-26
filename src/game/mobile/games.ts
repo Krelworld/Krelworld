@@ -23,7 +23,7 @@ import { NARRATOR_TIPS, STORY_UI_LINES, UI_TEXTS, addWording } from "./wording";
 import { liveScene } from "./listScenes";
 import { phoneSettings } from "./settings";
 import { phoneHooks, setPhoneHooks } from "./boot";
-import { GAME_CUE_KEY, GAME_CUE_MS, GAME_NARRATOR_TIPS, GAME_STORY_LINES, GAME_UI_TEXTS, GAME_WORDING, clearOfPause, cueFor, crocColumn, liftOutOfStrip, PAUSE_CLEAR_X, rhythmLag, rsButtons, rsWord, type RsState } from "./gamesLogic";
+import { GAME_CUE_KEY, GAME_CUE_MS, GAME_NARRATOR_TIPS, GAME_STORY_LINES, GAME_UI_TEXTS, GAME_WORDING, clearOfPause, cueFor, crocColumn, liftOutOfStrip, PAUSE_CLEAR_X, pausedSkip, rhythmLag, rsButtons, rsWord, type RsState } from "./gamesLogic";
 import { synth } from "../audio/Synth";
 import { storageKey } from "../variant";
 
@@ -391,6 +391,34 @@ export function installGames(game: Phaser.Game, layer: TouchLayer): PhoneGames {
     document.head.appendChild(st);
   }
   const g = new PhoneGames(game, layer);
+  // the timed minigames' clock holds while the phone's II menu is up or the phone is locked (review R1): their
+  // deadlines are on scene.time.now, which is the loop's time; a long frame gap is taken back out of it
+  const holdClock = (sc: Phaser.Scene) => {
+    const clock = sc.time as unknown as Bag;
+    if (!clock || clock.__mfHeld) return;
+    clock.__mfHeld = true;
+    const orig = clock.update as (time: number, delta: number) => void;
+    let off = 0;
+    let last: number | null = null;
+    clock.update = function (this: Bag, time: number, delta: number) {
+      if (last !== null) off += pausedSkip(time - last, delta);
+      last = time;
+      orig.call(this, time - off, delta);
+    };
+    // (a new run: create sets time.now from the loop's time again)
+    sc.sys.events.on(Phaser.Scenes.Events.START, () => {
+      off = 0;
+      last = null;
+    });
+  };
+  const hookClocks = () => {
+    for (const k of ["Minigame", "Whack"]) {
+      const sc = game.scene.getScene(k);
+      if (sc) holdClock(sc);
+    }
+  };
+  if (game.isBooted) hookClocks();
+  else game.events.once(Phaser.Core.Events.READY, hookClocks);
   // touch wording: the minigames' rows run first (before stage 1's "Tap / SPACE" → "Tap", which would half-word them)
   for (const r of [...GAME_WORDING].reverse()) addWording(r, "front");
   for (const [k, pats] of Object.entries(GAME_UI_TEXTS)) {

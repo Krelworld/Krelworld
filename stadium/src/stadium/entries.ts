@@ -14,7 +14,8 @@ import { moveItem, spawnItem } from "../core/items";
 import { registerVerb } from "../core/verbs";
 import type { World } from "../core/world";
 import { KICKOFF_AT, SPOTS } from "./layout";
-import { say } from "./npc";
+import { say, secs } from "./npc";
+import { incapacitated } from "./combat";
 import { crime } from "./security";
 
 const near = (a: { x: number; y: number }, p: { x: number; y: number } | undefined, r: number) => !!p && Math.hypot(a.x - p.x, a.y - p.y) < r;
@@ -139,8 +140,66 @@ export function stepEntries(w: World): void {
       moveItem(s, hamper.id, { k: "ground", x: out.x, y: out.y });
     }
   }
-  void KICKOFF_AT;
+  knockOns(w);
 }
+
+/** Chain reactions: take something from someone and the world notices, and the noticing opens a
+ *  gap somewhere else. Each fires once. */
+function knockOns(w: World): void {
+  const s = w.state, st = s.stadium!, tick = s.tick, f = st.flags, t = secs(w);
+  const byName = (name: string) => Object.values(s.actors).find((a) => a.name === name && !a.dead);
+  const has = (a: Actor, def: string) => [a.hand, ...a.pockets].some((id) => id && s.items[id]?.def === def);
+  // Para Steve's chute: he checks his bag every so often. Gone? The display's off, and he goes
+  // looking round the approach for whoever had it, leaving his van.
+  const steve = byName("Para Steve");
+  if (steve && !f.chuteGone && tick % 600 === 300 && !incapacitated(w, steve)) {
+    const bag = Object.values(s.items).find((i) => i.def === "kitbag");
+    const inBag = bag && Object.values(s.items).some((i) => i.def === "parachute" && i.loc.k === "in" && i.loc.c === bag.id);
+    if (bag && !inBag) {
+      f.chuteGone = tick;
+      say(w, steve, "Where's my chute? WHERE'S MY BLOODY CHUTE?", 4);
+      w.bus.emit({ type: "display_cancelled", t: tick });
+      steve.npc!.post = undefined;
+      steve.npc!.plan = [{ k: "go", x: 40, y: 56 }, { k: "wait", s: 6 }, { k: "go", x: 10, y: 54 }, { k: "wait", s: 6 }, { k: "go", x: -20, y: 56 }, { k: "wait", s: 8 }, { k: "go", ...sp().para }, { k: "wait", s: 3600 }];
+      if (VENUE_SIGN() < 0) for (const k of steve.npc!.plan) if ("x" in k) (k as { x: number }).x = -(k as { x: number }).x;
+    }
+  }
+  // Lenny: if he isn't on his way in a minute before kick-off, the tannoy asks for him and the
+  // corridor steward goes out the back to fetch him (off his post). Still missing after kick-off:
+  // "unwell".
+  const lenny = Object.values(s.actors).find((a) => a.npc?.job === "mascot");
+  const lennyGone = !lenny || lenny.dead || incapacitated(w, lenny) || !lenny.worn.outer || s.items[lenny.worn.outer]?.def !== "mascot_suit";
+  if (lennyGone && !f.lennyCalled && t > KICKOFF_AT - 60) {
+    f.lennyCalled = tick;
+    w.bus.emit({ type: "mascot_missing", t: tick });
+    const brian = Object.values(s.actors).find((a) => a.npc?.job === "corridor" && !a.dead);
+    if (brian && !incapacitated(w, brian)) {
+      say(w, brian, "Bloody mascot. I'll go and find him.", 3);
+      brian.npc!.plan = [{ k: "go", ...sp().kitRoom }, { k: "go", ...sp().playersDoor }, { k: "go", ...sp().mascotSmoke }, { k: "wait", s: 25 }, { k: "go", ...sp().playersDoor }, { k: "go", ...sp().corridorPost }];
+    }
+  }
+  if (lennyGone && f.lennyCalled && !f.lennyOff && t > KICKOFF_AT + 30) { f.lennyOff = tick; w.bus.emit({ type: "mascot_off", t: tick }); }
+  // Wally's card: he finds out at the door on his way in. He props it open ("back in a sec") and
+  // goes to the security office to report it.
+  const wally = Object.values(s.actors).find((a) => a.npc?.job === "kitman" && !a.dead);
+  if (wally && !f.cardGone && !incapacitated(w, wally) && near(wally, sp().playersDoor, 2.2) && !has(wally, "kit_card") && wally.npc!.stage % 4 === 2) {
+    f.cardGone = tick;
+    say(w, wally, "Me card! Some bastard's had me card! ...I'll prop it. Back in a sec.", 4);
+    st.gates.playersdoor = { until: tick + 60 * 90, for: null };
+    w.bus.emit({ type: "card_stolen", t: tick });
+    wally.npc!.plan = [{ k: "go", ...sp().kitRoom }, { k: "go", ...sp().chiefDesk }, { k: "wait", s: 40 }];
+  }
+  // The reporter's press pass: he notices, and PC Okafor comes over to take a statement.
+  const rep = byName("Reporter");
+  if (rep && !f.passGone && tick % 600 === 0 && !incapacitated(w, rep) && !has(rep, "press_pass") && t > 20) {
+    f.passGone = tick;
+    say(w, rep, "My pass! Someone's had my press pass! Officer!", 4);
+    w.bus.emit({ type: "pass_stolen", t: tick });
+    const cop = Object.values(s.actors).find((a) => a.npc?.job === "police" && !a.npc.mounted && !a.dead && !incapacitated(w, a));
+    if (cop) cop.npc!.plan = [{ k: "go", x: rep.x + 1, y: rep.y + 0.5 }, { k: "say", text: "Right, sir. Start from the beginning." }, { k: "wait", s: 45 }];
+  }
+}
+const VENUE_SIGN = () => Math.sign((SPOTS as any).para.x) || 1;
 
 /** The people and things these routes need. */
 export function spawnEntries(w: World, staff: (job: any, role: any, name: string, at: { x: number; y: number }, facing: number, extra?: object) => Actor): void {

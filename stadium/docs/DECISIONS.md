@@ -511,3 +511,35 @@ accent and mood tags), with a speech bubble over his head:
 - the parachute: "Geronimoooo!"; jumping without one: "Oh fuuuuuuck!"
 People who hit back now have voiced lines too ("You cunt!", "Come on then, you fat cunt!"),
 with a woman's take for women.
+
+## Knock-ons
+
+The other half of Hitman: what you do gets noticed, and the noticing opens a gap elsewhere.
+- **Steve's chute gone:** he checks his bag, shouts, the tannoy cancels the half-time display,
+  and he walks the approach looking for it, leaving his van.
+- **Lenny missing** a minute before kick-off (knocked out, or his costume gone): the tannoy calls
+  for him, and the corridor steward leaves his post outside the dressing rooms to go and find him,
+  out through the players' entrance to the alley. Still missing after kick-off: "unwell".
+- **Wally's card gone:** he finds out at the door, props it open ("back in a sec") for a minute
+  and a half, and goes to the security office; the tannoy calls security to the players' entrance.
+- **The press pass gone:** the reporter shouts for a copper, and PC Okafor leaves his post to take
+  a statement.
+
+## More to fight with
+
+- **Improvised weapons:** empties on the pub tables and round the bins, chairs in the pub, pint
+  glasses on the concourse bar, the four corner flags. A bottle, glass or chair counts as a
+  weapon (three blows' worth) and goes to pieces on the first hit: "GLASSED!", "CHAIRED!".
+  Holding one in plain view is alarming, like any weapon.
+- **Haymaker:** hold the attack button (or E/space) and let go: the button burns yellow when
+  it's ready. It hits as hard as a weapon, throws them further, and the camera shakes.
+- **Counter:** someone you've hit who's going to hit back shows a flashing "!" for half a second
+  before he swings. Hit him in that window ("Counter X!") and he's out cold.
+
+## Inside the ground
+
+Food kiosks, condiment stands and tellies on poles along the concourses, spilt beer and litter,
+expansion joints and a yellow line on the concrete; urinals and basins in the gents. The dressing
+rooms get shirts on pegs, the physio's table, an ice bath, a tactics board, boots and the showers
+over the drain grate. Skylights and air-con units on the stand roofs, and the TV gantry along the
+front of the main stand. Hampers are drawn as hampers.

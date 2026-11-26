@@ -115,7 +115,12 @@ export function options(w: World, pc: Actor, picked?: string | null): Option[] {
     if (appearance(s, pc).role === "police" && n?.job !== "police") push(`Arrest ${name}`, 22 - d, { verb: "arrest", ...base, target: { k: "actor", id: a.id } });
     const weapon = hand && hasProp(hand, "weapon");
     const sneak = !weapon && !a.fb && fromBehind(pc, a);
-    push(weapon ? `Stab ${name}` : sneak ? `Take down ${name}` : `Punch ${name}`, sneak ? 30 : -1, { verb: "strike", ...base, target: { k: "actor", id: a.id } });
+    const sharp = weapon && hasProp(hand!, "sharp");
+    const glassIt = hand && (hand.def === "bottle" || hand.def === "pint_glass"), chairIt = hand?.def === "chair";
+    // Someone winding up to hit you back: catch him first.
+    const windup = !!n?.retaliateAt && n.retaliateOn === pc.id && n.retaliateAt > s.tick && n.retaliateAt - s.tick <= 30;
+    const label = windup ? `Counter ${name}!` : sharp ? `Stab ${name}` : glassIt ? `Glass ${name}` : chairIt ? `Chair ${name}` : weapon ? `Hit ${name} with the ${lc(itemName(hand!))}` : sneak ? `Take down ${name}` : `Punch ${name}`;
+    push(label, windup ? 60 : sneak ? 30 : -1, { verb: "strike", ...base, target: { k: "actor", id: a.id } });
   }
 
   // Dressed as the referee, on the pitch: make some decisions.

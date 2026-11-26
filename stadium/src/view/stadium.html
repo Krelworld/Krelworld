@@ -111,6 +111,8 @@
     clip-path: polygon(0 0, 100% 0, calc(100% - 12px) 100%, 0 100%); text-align: left; text-wrap: balance;
   }
   #act[hidden] { display: none; }
+  /* Held long enough for a haymaker: the button burns yellow. */
+  #act.charged, #hit.charged { background: #f2c94c !important; color: #111 !important; transform: scale(1.06); }
   #throw { background: var(--bug); color: var(--bugink); border-bottom-color: #9a7b00; }
   #lower { display: flex; gap: 6px; grid-column: 1 / 3; justify-content: flex-end; flex-wrap: wrap; }
   #hit { background: #5a0f1a; border-bottom-color: var(--red); color: #ffd0d6; }

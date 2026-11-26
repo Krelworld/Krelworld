@@ -139,6 +139,13 @@ export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: 
   staff("groundsman", "none", "Old Reg", SPOTS.shed, E);
   spawnItem(s, "wrench", { k: "ground", x: SPOTS.shed.x + 1.4, y: SPOTS.shed.y + 2.4 });
   spawnEntries(w, staff);
+  // Things to hit people with: empties on the pub tables and round the bins, chairs in the pub,
+  // pint glasses on the concourse bar, and the corner flags.
+  const mx = (x: number) => (VENUE.id === "sf" ? -x : x);
+  for (const [x, y] of [[-57.2, 73.9], [-52.6, 79], [-58.9, 78.3], [-58.5, 0.5], [-58, -30], [-23.6, 79.2], [5.4, 73.4], [-28, 72.4]] as const) spawnItem(s, "bottle", { k: "ground", x: mx(x), y });
+  for (const [x, y] of [[-59.4, 73.6], [-56.6, 78.2], [-55, 78.8]] as const) spawnItem(s, "chair", { k: "ground", x: mx(x), y });
+  for (const [x, y] of [[-15.5, 41.4], [-10.5, 41.6], [-44, 68.6]] as const) spawnItem(s, "pint_glass", { k: "ground", x: mx(x), y });
+  for (const [x, y] of [[-36, -23], [36, -23], [-36, 23], [36, 23]] as const) spawnItem(s, "corner_flag", { k: "ground", x, y });
 
   // Locals: no ticket, plenty of opinions.
   for (let i = 0; i < 26; i++) {

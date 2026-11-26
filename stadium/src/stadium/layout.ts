@@ -213,6 +213,23 @@ export const QF_FURNITURE: Furniture[] = [
   f("hamper", -50, -51.2, 1.6, 0.9, true, "kitroom"), f("clothesrail", -54.5, -59.6, 1.6, 0.6, true, "kitroom"), f("shelves", -49, -60.2, 1.5, 0.6, true, "kitroom"),
   f("medbed", -43.5, -57.8, 2.6, 1.1, true, "medical"),
   f("grate", -24, -58.4, 1, 1, false, "dress_home"), f("hatch", -60.5, 78.4, 1.3, 1, false, "pub"),
+  // Inside the ground: food kiosks and condiments on the concourses, tellies on poles, the gents.
+  f("foodkiosk", -36, 39.9, 3.8, 1.3, true, undefined, 2.4), f("foodkiosk", 44, 39.9, 3.8, 1.3, true, undefined, 2.4),
+  f("foodkiosk", -45, 31.5, 3.8, 1.3, true, undefined, 2.4), f("foodkiosk", 45, 31.5, 3.8, 1.3, true, undefined, 2.4),
+  f("condiments", -32.8, 40.6, 0.6, 0.4, true), f("condiments", 40.8, 40.6, 0.6, 0.4, true),
+  f("tvpost", -26, 39.3, 0.5, 0.4, true, undefined, 2.5), f("tvpost", 22, 39.3, 0.5, 0.4, true, undefined, 2.5),
+  f("tvpost", -53, -10, 0.5, 0.4, true, undefined, 2.5), f("tvpost", 53, 10, 0.5, 0.4, true, undefined, 2.5),
+  f("condiments", -54.6, 14, 0.6, 0.4, true), f("condiments", 54.6, -14, 0.6, 0.4, true),
+  f("sinks", 7, 39.6, 0.7, 0.4, false, "toilet_s"), f("sinks", 8.1, 39.6, 0.7, 0.4, false, "toilet_s"), f("sinks", 9.2, 39.6, 0.7, 0.4, false, "toilet_s"),
+  f("urinal", 11.6, 39.7, 3.2, 0.6, true, "toilet_s"),
+  // The dressing rooms: shirts on pegs, the physio's table, an ice bath, the tactics board, boots,
+  // and the showers over the drain grate.
+  f("kitpegs", -17, -59.3, 3.8, 0.4, false, "dress_home"), f("massage", -11, -53, 2.8, 1, true, "dress_home"), f("icebath", -23.4, -54.2, 1.8, 1.4, true, "dress_home"),
+  f("tactics", -24.2, -50.2, 2, 0.6, true, "dress_home", 2), f("boots", -15, -50.4, 1, 0.5, false, "dress_home"), f("boots", -19.5, -50.4, 1, 0.5, false, "dress_home"),
+  f("showers", -24.3, -59.4, 3.3, 0.3, false, "dress_home"),
+  f("kitpegs", 17, -59.3, 3.8, 0.4, false, "dress_away"), f("massage", 11, -53, 2.8, 1, true, "dress_away"), f("icebath", 23.4, -54.2, 1.8, 1.4, true, "dress_away"),
+  f("tactics", 24.2, -50.2, 2, 0.6, true, "dress_away", 2), f("boots", 15, -50.4, 1, 0.5, false, "dress_away"),
+  f("showers", 24.3, -59.4, 3.3, 0.3, false, "dress_away"),
   // The approach and the car park: a scaffold on the corner, a pie stand, the TV truck, parked cars, the horsebox.
   f("scaffold", 47.5, 46.4, 3.6, 1.2, true), f("ladder", -36, 45.4, 1, 0.3, false), f("kitbag", 57.8, 73.2, 1.4, 0.8, false), f("piestand", -40, 54.5, 3.2, 1.6, true),
   f("obtruck", 33, 66.4, 6.8, 2.6, true), f("horsebox", 40, 81, 6.2, 2.4, true),

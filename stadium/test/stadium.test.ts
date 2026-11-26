@@ -1010,3 +1010,93 @@ test("Lenny the Lion smokes in the alley, then goes pitchside; his costume hides
   assert.equal(ap.role, "mascot"); assert.equal(ap.faceHidden, true);
   void pc;
 });
+
+test("knock-ons: nick Steve's chute and the display's off; nick Wally's card and he props the door", () => {
+  const g = createGame("knockons");
+  const s = g.w.state, pc = pcOf(g), st = s.stadium!;
+  const seen: string[] = [];
+  g.w.bus.on((e) => { if (["display_cancelled", "card_stolen", "pass_stolen", "mascot_missing"].includes(e.type)) seen.push(e.type); });
+  const chute = Object.values(s.items).find((i) => i.def === "parachute")!;
+  const card = Object.values(s.items).find((i) => i.def === "kit_card")!;
+  const pass = Object.values(s.items).find((i) => i.def === "press_pass")!;
+  for (const it of [chute, card, pass]) { s.items[it.id].loc = { k: "pocket", a: pc.id } as any; }
+  pc.pockets = [chute.id, card.id, pass.id].filter((id) => s.items[id].def !== "parachute");
+  pc.hand = chute.id; s.items[chute.id].loc = { k: "hand", a: pc.id } as any;
+  for (const a of Object.values(s.actors)) a.pockets = a.pockets.filter((id) => ![card.id, pass.id].includes(id));
+  let doorOpen = false;
+  run(g, 260, () => { if (st.gates.playersdoor && st.gates.playersdoor.until > s.tick && st.gates.playersdoor.for === null) doorOpen = true; });
+  assert.ok(seen.includes("display_cancelled"), "display cancelled");
+  assert.ok(seen.includes("pass_stolen"), "pass reported");
+  assert.ok(seen.includes("card_stolen"), "card missed");
+  assert.ok(doorOpen, "door propped");
+});
+
+test("knock-ons: with Lenny out cold, the tannoy calls for him and a steward leaves his post", () => {
+  const g = createGame("lennyko");
+  const s = g.w.state;
+  run(g, 5);
+  const lenny = find(g, (a) => a.npc?.job === "mascot");
+  lenny.effects.ko = Number.MAX_SAFE_INTEGER; lenny.downUntil = Number.MAX_SAFE_INTEGER;
+  const seen: string[] = [];
+  g.w.bus.on((e) => seen.push(e.type));
+  const brian = find(g, (a) => a.npc?.job === "corridor");
+  const post = { x: brian.x, y: brian.y };
+  run(g, 290);
+  assert.ok(seen.includes("mascot_missing"));
+  assert.ok(Math.hypot(brian.x - post.x, brian.y - post.y) > 5, "off his post");
+  void s;
+});
+
+test("a bottle smashes over someone's head; a haymaker hits harder; catch a wind-up for a counter", () => {
+  const g = createGame("bottle");
+  const s = g.w.state, pc = pcOf(g);
+  run(g, 20);
+  const locals = Object.values(s.actors).filter((a) => a.npc?.job === "local" && !a.dead).slice(0, 3);
+  const face = (t: Actor) => { t.npc!.group = undefined; t.npc!.plan = [{ k: "wait", s: 60 }]; pc.x = t.x - 1.2; pc.y = t.y; t.facing = Math.PI; };
+  // Glassed.
+  const [a, b, c] = locals;
+  face(a);
+  const bottle = spawnItem(s, "bottle", { k: "hand", a: pc.id });
+  let smashed = false;
+  g.w.bus.on((e) => { if (e.type === "smashed") smashed = true; });
+  assert.equal(dispatch(g.w, { verb: "strike", actor: pc.id, target: { k: "actor", id: a.id } }).ok, true);
+  assert.ok(smashed);
+  assert.equal(s.items[bottle.id].loc.k, "gone");
+  assert.equal(pc.hand, null);
+  // A haymaker does as much as a weapon.
+  run(g, 1);
+  face(b);
+  const before = b.hurt ?? 0;
+  assert.equal(dispatch(g.w, { verb: "strike", actor: pc.id, target: { k: "actor", id: b.id }, arg: "haymaker" }).ok, true);
+  assert.ok((b.hurt ?? 0) - before >= 3 || (b.effects.ko ?? 0) > s.tick);
+  // Counter: he's about to swing back.
+  run(g, 1);
+  face(c);
+  c.npc!.retaliateAt = s.tick + 20; c.npc!.retaliateOn = pc.id;
+  assert.equal(dispatch(g.w, { verb: "strike", actor: pc.id, target: { k: "actor", id: c.id } }).ok, true);
+  assert.ok((c.effects.ko ?? 0) > s.tick, "countered: out cold");
+});
+
+test("at the semi-final the new ways in still work: drain, ladder and chute, Lenny, the hamper", () => {
+  const g = createGame("sfroutes", "sf");
+  const s = g.w.state, pc = pcOf(g);
+  run(g, 2);
+  // The drain.
+  spawnItem(s, "wrench", { k: "pocket", a: pc.id });
+  pc.x = SPOTS.cellar.x; pc.y = SPOTS.cellar.y;
+  assert.equal(dispatch(g.w, { verb: "drain", actor: pc.id }).ok, true);
+  assert.equal(areaAt(pc.x, pc.y).id, "dress_home");
+  // The ladder and a chute.
+  spawnItem(s, "parachute", { k: "hand", a: pc.id });
+  pc.x = SPOTS.ladder.x; pc.y = SPOTS.ladder.y; pc.downUntil = 0;
+  assert.equal(dispatch(g.w, { verb: "ladder", actor: pc.id }).ok, true);
+  assert.equal(dispatch(g.w, { verb: "jump", actor: pc.id }).ok, true);
+  run(g, 8);
+  assert.equal(areaAt(pc.x, pc.y).pitch, true);
+  // Lenny's in the alley, on the right side of the ground.
+  const lenny = find(g, (a) => a.npc?.job === "mascot");
+  assert.equal(areaAt(lenny.x, lenny.y).id, "alley");
+  // The hamper sits outside the players' entrance.
+  const hamper = Object.values(s.items).find((i) => i.def === "laundry")!;
+  assert.equal(areaAt((hamper.loc as any).x, (hamper.loc as any).y).id, "alley");
+});

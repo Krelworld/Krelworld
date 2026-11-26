@@ -2,7 +2,7 @@
 // about "tricks": a pie that hits the referee distracts him because thrown things
 // that hit people distract them.
 import { sharpInHand, stab, staffHands } from "./knife";
-import { land } from "./combat";
+import { knockOut, land } from "./combat";
 import { appearance } from "../core/identity";
 import { canPocket, defOf, hasProp, ITEM_DEFS, moveItem, spawnItem } from "../core/items";
 import { chance, pick, rndRange } from "../core/rng";
@@ -276,16 +276,30 @@ export function installRules(): void {
       // Auto-target: you swing at who you meant, whichever way you were facing.
       actor.facing = Math.atan2(t.y - actor.y, t.x - actor.x);
       if (sharpInHand(w, actor) && !t.dead) return stab(w, actor, t);
-      const weapon = !!item && hasProp(item, "weapon") && actor.hand === item.id;
+      // Whatever's in your hand counts, if it's any use in a fight.
+      const held = actor.hand ? w.state.items[actor.hand] : item;
+      const weapon = !!held && hasProp(held, "weapon");
+      const heavy = act.arg === "haymaker" && !weapon;
       const before = t.downUntil;
       strike.perform(w, act, actor, item);
       t.downUntil = before;
-      const result = land(w, actor, t, weapon);
+      // A counter: catch him as he winds up to hit you back, and he goes down.
+      const n = t.npc, tick = w.state.tick;
+      const counter = !!n?.retaliateAt && n.retaliateOn === actor.id && n.retaliateAt > tick && n.retaliateAt - tick <= 30;
+      let result: "takedown" | "ko" | "hurt";
+      if (counter) { n!.retaliateAt = 0; knockOut(w, t, actor, false); result = "ko"; w.bus.emit({ type: "countered", t: tick, by: actor.id, who: t.id, x: t.x, y: t.y }); }
+      else result = land(w, actor, t, weapon, heavy);
+      // Bottles, glasses and chairs go to pieces on the first hit.
+      if (held && hasProp(held, "breakable") && actor.hand === held.id) {
+        moveItem(w.state, held.id, { k: "gone" });
+        if (held.def !== "chair") t.effects.bloody = Math.max(t.effects.bloody ?? 0, tick + 60 * 120);
+        w.bus.emit({ type: "smashed", t: tick, by: actor.id, who: t.id, what: held.def, x: t.x, y: t.y });
+      }
       // The blow sends them back: a fist about a metre and a half, anything heavy further.
-      const dx = t.x - actor.x, dy = t.y - actor.y, dl = Math.hypot(dx, dy) || 1, sp = weapon ? 17 : 14;
+      const dx = t.x - actor.x, dy = t.y - actor.y, dl = Math.hypot(dx, dy) || 1, sp = weapon ? 17 : heavy || counter ? 19 : 14;
       // A choke from behind doesn't throw anyone; a knockout sends them less far than a stagger.
       if (result !== "takedown") { const k = result === "ko" ? 0.55 : 1; t.knock = { vx: (dx / dl) * sp * k, vy: (dy / dl) * sp * k, from: w.state.tick, until: w.state.tick + 26 }; }
-      w.bus.emit({ type: "struck", t: w.state.tick, by: actor.id, who: t.id, weapon, dx: dx / dl, dy: dy / dl });
+      w.bus.emit({ type: "struck", t: w.state.tick, by: actor.id, who: t.id, weapon, heavy: heavy || counter, dx: dx / dl, dy: dy / dl });
       const official = !!t.off, player = !!t.fb && t.fb.status === "playing";
       if (player) t.fb!.stunUntil = w.state.tick + (weapon ? 900 : 160);
       if (player && result !== "hurt") removePlayer(w, t.id, "injured");

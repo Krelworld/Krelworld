@@ -62,7 +62,7 @@ interface TickerLine { text: string; src: string; big: boolean }
 
 /** A PixelLab picture of an item, if there is one. */
 const ICONS = new Set(["pint", "pie", "knife", "whistle", "ticket", "wallet", "laxative", "powder", "shirt_eng", "shirt_por", "shirt_bra", "shirt_arg", "police_uniform", "kit_eng", "kit_opp",
-  "staff_pass", "hivis", "ref_kit", "police_hat", "mask", "flat_cap", "sunglasses", "moustache", "tracksuit", "chef_whites", "overalls", "balaclava", "hammer", "flare", "betslip", "face", "hands", "censored_bar", "wrench", "kit_card", "parachute", "mascot_suit", "press_pass"]);
+  "staff_pass", "hivis", "ref_kit", "police_hat", "mask", "flat_cap", "sunglasses", "moustache", "tracksuit", "chef_whites", "overalls", "balaclava", "hammer", "flare", "betslip", "face", "hands", "censored_bar", "wrench", "kit_card", "parachute", "mascot_suit", "press_pass", "bottle", "pint_glass", "chair", "corner_flag"]);
 const icon = (def: string) => (ICONS.has(def) ? `<img class="ico" src="icons/${def}.png" alt="" onerror="this.remove()">` : `<span class="ico none"></span>`);
 
 /** The main button's words: short enough for a thumb. The full sentence is still in More. */
@@ -206,7 +206,8 @@ class StadiumScene extends Phaser.Scene {
     new Commentator(w, w.bus, (l) => this.matchLine(l.text, l.big));
     const TANNOY: Record<string, Clip> = { welcome: VENUE.id === "qf" ? "tannoy_welcome" : "tannoy_welcome_sf", lorry: "tannoy_lorry", pitch: "tannoy_pitch", "2min": "tannoy_2min", teams: "tannoy_teams", cleaner: "tannoy_cleaner", flares: "tannoy_flares", cameras: "tannoy_cameras",
       delay_late: "tannoy_delay_late", delay_ref: "tannoy_delay_ref", delay_pitch: "tannoy_delay_pitch", delay_safety: "tannoy_delay_safety", delay_again: "tannoy_delay_again",
-      alarm: "tannoy_alarm", breach: "tannoy_breach", forfeit: "tannoy_forfeit", incident: "tannoy_incident" };
+      alarm: "tannoy_alarm", breach: "tannoy_breach", forfeit: "tannoy_forfeit", incident: "tannoy_incident",
+      display_off: "tannoy_display_off", lenny: "tannoy_lenny", lenny_off: "tannoy_lenny_off", card: "tannoy_card", press: "tannoy_press" };
     const ann = new Announcer(w, (a) => {
       this.say(a.text, a.src === "tannoy" ? "Tannoy" : "Commentary", a.big);
       const clip = a.key ? (TANNOY[a.key] ?? (a.key.startsWith("cam") ? "tannoy_supervisor" : undefined)) : undefined;
@@ -354,6 +355,7 @@ class StadiumScene extends Phaser.Scene {
         const v = near(who.x, who.y, 35);
         a.play("whoosh", 0.25 + v * 0.5, { minGap: 0.05, rate: 0.9 + Math.random() * 0.25 });
         a.play(e.weapon ? "weaponhit" : (["hit1", "hit2", "hit3"] as const)[Math.floor(Math.random() * 3)], 0.35 + v * 0.65, { minGap: 0.05, rate: 0.9 + Math.random() * 0.2 });
+        if (e.heavy) { a.play("haymaker", 0.4 + v * 0.6); this.trauma = Math.min(1, this.trauma + 0.35); this.hitStopUntil = Math.max(this.hitStopUntil, performance.now() + 110); }
         if (v > 0.3) a.play("gasp", 0.3 + v * 0.4, { minGap: 5 });
         this.impact(e.by, e.who, e.dx, e.dy, e.weapon ? 1.4 : 1, v);
         break;
@@ -398,6 +400,8 @@ class StadiumScene extends Phaser.Scene {
       case "looted": { const who = s.actors[e.who]; if (who && e.money) { this.popup(who.x, who.y, `+£${e.money}`, "#f2c94c"); a.play("kaching", 0.7); } if (e.by === pcId) this.bark("loot", 0.7); break; }
       case "unseated": a.play("whinny", 1); a.play("bodyfall", 0.9); this.popup(e.x, e.y, "UNSEATED!", "#ff4d5e"); break;
       case "mounted": a.play("whinny", 0.8); if (e.by === pcId) { this.startCine(1600, { zoomAdd: 0, caption: "Tally ho" }); setTimeout(() => this.bark("horse", 1, true), 500); } break;
+      case "smashed": { a.play(e.what === "chair" ? "chair_smash" : "glass_smash", 1); this.popup(e.x, e.y, e.what === "chair" ? "CHAIRED!" : "GLASSED!", "#ff4d5e"); this.trauma = Math.min(1, this.trauma + 0.3); break; }
+      case "countered": this.popup(e.x, e.y, "COUNTER!", "#f2c94c"); break;
       case "horse_jump": a.play("whinny", 0.4, { minGap: 2 }); break;
       case "roof": if (e.by === pcId && e.up) { a.play("ladder", 1); this.startCine(2400, { zoomAdd: 0, caption: "The roof of the South Stand" }); } else if (e.by === pcId) a.play("ladder", 0.7); break;
       case "chute_open": if (e.by === pcId) { a.play("chute", 1); this.bark("chute", 1, true); this.startCine(3000, { zoomAdd: 0, slow: 900, caption: "Geronimo" }); } break;
@@ -522,11 +526,23 @@ class StadiumScene extends Phaser.Scene {
       // Line the pattern up with the world grid, so neighbouring areas of the same floor join seamlessly.
       ts.setTilePosition(Math.round(rx), Math.round(ry));
       if (a.seats) ts.setTilePosition(a.h > a.w ? Math.round(rx - P.sx(a.x + 0.6, 0)) : 0, a.h > a.w ? 0 : Math.round(ry - P.sy(0, a.y + 0.6) + 6));
+      if (FLOOR_OF[a.id] === "concourse") ts.setTint(0xb4b8bc);
       this.groundTiles.push(ts);
     }
     // Road markings.
     const detail = this.detailG; detail.clear();
     g = detail;
+    // Concourse concrete: expansion joints every four metres, a yellow line along the stand wall.
+    {
+      const cg = this.detailG;
+      for (const a of AREAS) {
+        if (FLOOR_OF[a.id] !== "concourse") continue;
+        cg.fillStyle(0x7c8084, 0.5);
+        for (let x = Math.ceil(a.x / 4) * 4; x < a.x + a.w; x += 4) cg.fillRect(...P.rect(x, a.y, 0.06, a.h));
+        for (let y = Math.ceil(a.y / 4) * 4; y < a.y + a.h; y += 4) cg.fillRect(...P.rect(a.x, y, a.w, 0.06));
+      }
+      cg.fillStyle(0xd9b92a, 0.85).fillRect(...P.rect(-56, 38.5, 112, 0.14));
+    }
     g.fillStyle(0xd8d2b8, 0.7);
     for (let x = -88; x < 90; x += 6) g.fillRect(...P.rect(x, 87.9, 3, 0.25));
     for (let y = -46; y < 90; y += 6) g.fillRect(...P.rect(66.9, y, 0.25, 3));
@@ -777,6 +793,7 @@ class StadiumScene extends Phaser.Scene {
   cine: { until: number; focus: { x: number; y: number } | null; lead: { x: number; y: number } | null; zoomAdd: number } | null = null;
   cineDone = new Set<string>();
   wasInDoor = false;
+  keyHeldAt = 0;
   pcLine: { text: string; until: number } | null = null;
   lastBark = 0;
   /** The player mouths off: a voiced line from one pool, with a bubble over his head. */
@@ -1104,7 +1121,7 @@ class StadiumScene extends Phaser.Scene {
     for (const id in s.items) {
       const it = s.items[id], l = it.loc;
       if (l.k !== "ground" && l.k !== "air") continue;
-      if (it.def === "lorry_cargo" || (sprites && it.def === "police_box")) continue;
+      if (it.def === "lorry_cargo" || (sprites && (it.def === "police_box" || it.def === "kitbag"))) continue;
       const def = defOf(it), x = l.x, y = l.y, z = l.k === "air" ? l.z : 0;
       if (!onScreen(x, y)) continue;
       const near = pc && Math.hypot(pc.x - x, pc.y - y) < 2.6;
@@ -1118,6 +1135,18 @@ class StadiumScene extends Phaser.Scene {
           im.setTexture(`ico-${it.def}`).setOrigin(0.5, 0.9).setScale(0.5).setPosition(Math.round(P.sx(x, y)), Math.round(P.sy(x, y, z))).setDepth(dep).setVisible(true).setAlpha(1).setAngle(l.k === "air" ? (tick * 12) % 360 : 0);
         } });
         if (near && l.k === "ground") things.push({ d: y + 1e-4, draw: () => g.lineStyle(3, 0xf2c94c, 0.5 + 0.4 * Math.sin(tick * 0.15)).strokeCircle(P.sx(x, y), P.sy(x, y) - P.S * 0.2, P.S * 0.55) });
+        continue;
+      }
+      // Hampers get the hamper picture.
+      const pic = sprites && (it.def === "kit_hamper" || it.def === "laundry") && this.textures.exists("k-hamper-src") ? "k-hamper-src" : null;
+      if (pic) {
+        things.push({ d: y, draw: () => {}, spr: (dep) => {
+          let im = this.worldSprites.get(`item-${id}`);
+          if (!im) { im = this.add.image(0, 0, pic).setOrigin(0.5, 0.92); this.worldSprites.set(`item-${id}`, im); }
+          this.worldSeen.add(`item-${id}`);
+          im.setPosition(Math.round(P.sx(x, y)), Math.round(P.sy(x, y))).setDepth(dep).setVisible(true).setAlpha(1);
+        } });
+        if (near) things.push({ d: y + 1e-4, draw: () => g.lineStyle(3, 0xf2c94c, 0.5 + 0.4 * Math.sin(tick * 0.15)).strokeCircle(P.sx(x, y), P.sy(x, y) - P.S * 0.3, P.S * 0.9) });
         continue;
       }
       things.push({ d: y, draw: () => {
@@ -1420,6 +1449,13 @@ class StadiumScene extends Phaser.Scene {
         const a = s.actors[id], n = a.npc;
         if (!n || a.hiddenIn || a.dead || Math.hypot(a.x - pc.x, a.y - pc.y) > 22) continue;
         const tx = P.sx(a.x, a.y), ty = headTop(P, a.x, a.y) - 6 * u;
+        // Winding up to hit you back: a big flashing "!" — hit him now and it's a counter.
+        if (n.retaliateAt && n.retaliateOn === pc.id && n.retaliateAt > tick && n.retaliateAt - tick <= 30) {
+          const on = Math.floor(tick / 4) % 2 === 0;
+          ui.fillStyle(0x000000, 1).fillRect(tx - 4 * u, ty - 22 * u, 8 * u, 15 * u).fillRect(tx - 4 * u, ty - 5 * u, 8 * u, 6 * u);
+          ui.fillStyle(on ? 0xff2a3a : 0xf2c94c, 1).fillRect(tx - 2.5 * u, ty - 20.5 * u, 5 * u, 12 * u).fillRect(tx - 2.5 * u, ty - 3.5 * u, 5 * u, 3 * u);
+          continue;
+        }
         if (n.shop || n.job === "barman") {
           ui.fillStyle(0xf2c94c, 1).fillCircle(tx, ty - 4 * u, 5 * u);
           ui.fillStyle(0x7a5a10, 1).fillRect(tx - u, ty - 7 * u, 2 * u, 6 * u);
@@ -1602,6 +1638,23 @@ class StadiumScene extends Phaser.Scene {
         things.push({ d: b.y1 - 0.06, draw: () => {}, spr: (dep) => {
           tile(`roof${i}`, "mat-roofsteel", x, top, w, bot - top, dep);
           tile(`face${i}`, b.front ? "mat-clad" : "mat-seats_h", x, bot, w, lift, dep + 0.1, near ? 0.45 : 1).setTint(b.front ? 0xffffff : 0x8a8f99);
+          // On the roof: skylights down the middle, air-con units, and the TV gantry on the main stand.
+          const deco = (id: string, key: string, wx: number, wy: number) => {
+            if (!this.textures.exists(`k-${key}-src`)) return;
+            let im = this.shellSprites.get(id) as unknown as Phaser.GameObjects.Image | undefined;
+            if (!im) { im = this.add.image(0, 0, `k-${key}-src`).setOrigin(0.5, 0.5); this.shellSprites.set(id, im as unknown as Phaser.GameObjects.TileSprite); }
+            this.shellSeen.add(id);
+            im.setPosition(Math.round(P.sx(wx, 0)), Math.round(P.sy(0, wy)) - lift).setDepth(dep + 0.05).setVisible(true).setAlpha(near ? 0.45 : 1);
+          };
+          const wide = b.x1 - b.x0 > b.y1 - b.y0;
+          if (wide) {
+            const my = (b.y0 + b.y1) / 2;
+            for (let k = 0, wx = b.x0 + 8; wx < b.x1 - 4; wx += 15, k++) deco(`sky${i}-${k}`, "skylight", wx, my + (k % 2 ? 1.5 : -1.5));
+            for (let k = 0, wx = b.x0 + 15; wx < b.x1 - 6; wx += 26, k++) deco(`vent${i}-${k}`, "roofvent", wx, b.y0 + (b.y1 - b.y0) * 0.25);
+            if (!b.front) for (let k = 0, wx = -18; wx <= 18; wx += 6, k++) deco(`gantry${i}-${k}`, "gantry", wx, b.y1 - 1.6);
+          } else {
+            for (let k = 0, wy = b.y0 + 6; wy < b.y1 - 4; wy += 13, k++) deco(`vent${i}-${k}`, "roofvent", (b.x0 + b.x1) / 2 + (k % 2 ? 2.5 : -2.5), wy);
+          }
         } });
         things.push({ d: b.y1 - 0.05, draw: () => {
           const gr = this.lastLayer!;
@@ -2279,10 +2332,20 @@ class StadiumScene extends Phaser.Scene {
     });
     // Phones may suspend audio; any tap brings it back.
     window.addEventListener("pointerdown", () => { if (this.started) void this.audio.unlock(); });
-    $("act").addEventListener("click", () => this.run(primary(this.opts)));
+    // Hold the button to wind up a haymaker (on a punch); a tap is an ordinary swing.
+    const holdable = (el: HTMLElement, get: () => Option | null) => {
+      let t0 = 0, timer = 0;
+      el.addEventListener("pointerdown", () => { t0 = performance.now(); clearTimeout(timer); timer = window.setTimeout(() => { const o = get(); if (o?.action?.verb === "strike") el.classList.add("charged"); }, 380); });
+      el.addEventListener("click", () => {
+        clearTimeout(timer); el.classList.remove("charged");
+        const o = get(), held = t0 ? performance.now() - t0 : 0; t0 = 0;
+        this.run(o && held > 380 && o.action?.verb === "strike" ? { ...o, action: { ...o.action, arg: "haymaker" } } : o);
+      });
+    };
+    holdable($("act"), () => primary(this.opts));
     $("throw").addEventListener("click", () => this.throwNow());
     $("betBtn").addEventListener("click", () => (this.sheetKind === "bet" ? this.closeSheet() : this.openBet()));
-    $("hit").addEventListener("click", () => this.run((this as any).hitOpt ?? null));
+    holdable($("hit"), () => (this as any).hitOpt ?? null);
     $("moreBtn").addEventListener("click", () => (this.sheetKind === "more" ? this.closeSheet() : this.openMore()));
     $("bagBtn").addEventListener("click", () => (this.sheetKind === "bag" ? this.closeSheet() : this.openBag()));
     const touch = window.matchMedia?.("(pointer: coarse)").matches;
@@ -2342,11 +2405,20 @@ class StadiumScene extends Phaser.Scene {
     $("sheet").addEventListener("click", onSheetClick);
     $("ending").addEventListener("click", onSheetClick);
 
+    // E or space: on release, a swing (a haymaker if held), or whatever the main button does.
+    window.addEventListener("keyup", (e) => {
+      const k = e.key.toLowerCase();
+      if ((k !== "e" && k !== " ") || !this.started || !this.keyHeldAt) return;
+      if (this.s.stadium!.vehicles.bus?.drivenBy === this.pc.id) { this.keyHeldAt = 0; return; }
+      const o = primary(this.opts), held = performance.now() - this.keyHeldAt;
+      this.keyHeldAt = 0;
+      this.run(o && held > 380 && o.action?.verb === "strike" ? { ...o, action: { ...o.action, arg: "haymaker" } } : o);
+    });
     window.addEventListener("keydown", (e) => {
       if (!this.started) { if (e.key === "Enter") { $("intro").hidden = true; this.started = true; void this.audio.unlock(); } return; }
       const k = e.key.toLowerCase();
       if ((k === "h" || k === "e") && this.s.stadium!.vehicles.bus?.drivenBy === this.pc.id) { this.honk(); return; }
-      if (k === "e" || k === " ") { e.preventDefault(); this.run(primary(this.opts)); }
+      if (k === "e" || k === " ") { e.preventDefault(); if (!e.repeat) this.keyHeldAt = performance.now(); }
       else if (k === "q") this.throwNow();
       else if (k === "f") this.run(this.opts.find((o) => o.action?.verb === "strike") ?? null);
       else if (k === "r") (this.sheetKind === "more" ? this.closeSheet() : this.openMore());

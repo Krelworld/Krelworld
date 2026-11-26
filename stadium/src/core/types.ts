@@ -11,7 +11,7 @@ export const DT = 1 / TICK_HZ;
 export type Prop =
   | "sharp" | "throwable" | "liquid" | "consumable" | "food" | "alcohol" | "spikable"
   | "substance" | "wearable" | "weapon" | "metal" | "illicit" | "credential" | "container"
-  | "valuable" | "noisy" | "sinister" | "smoke" | "grisly";
+  | "valuable" | "noisy" | "sinister" | "smoke" | "grisly" | "breakable";
 export type WearSlot = "head" | "face" | "outer" | "inner" | "body";
 export type Role =
   | "fan" | "steward" | "police" | "cleaner" | "catering" | "medic" | "broadcaster"

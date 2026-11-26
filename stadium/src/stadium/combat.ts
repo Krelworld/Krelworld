@@ -50,10 +50,10 @@ export function knockOut(w: World, t: Actor, by: Actor | null, quiet: boolean): 
 }
 
 /** A blow lands (the strike verb calls this). Returns whether they went down for good. */
-export function land(w: World, by: Actor, t: Actor, weapon: boolean): "takedown" | "ko" | "hurt" {
+export function land(w: World, by: Actor, t: Actor, weapon: boolean, heavy = false): "takedown" | "ko" | "hurt" {
   const s = w.state;
-  if (fromBehind(by, t) && !weapon && !t.fb) { knockOut(w, t, by, true); return "takedown"; }
-  t.hurt = (t.hurt ?? 0) + (weapon ? 3 : 1);
+  if (fromBehind(by, t) && !weapon && !heavy && !t.fb) { knockOut(w, t, by, true); return "takedown"; }
+  t.hurt = (t.hurt ?? 0) + (weapon || heavy ? 3 : 1);
   if (t.hurt >= toughness(t)) { knockOut(w, t, by, false); return "ko"; }
   t.downUntil = Math.max(t.downUntil, s.tick + STAGGER_TICKS);
   // Some hit back: a big lad nearly always, an ordinary fan sometimes. Security grab you instead.

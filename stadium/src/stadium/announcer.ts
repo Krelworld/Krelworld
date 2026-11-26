@@ -83,6 +83,21 @@ export class Announcer {
       case "run_over":
         if (e.who === pc) this.out({ t: e.t, text: "Would a first-aider please attend the service road.", src: "tannoy", big: false });
         break;
+      case "display_cancelled":
+        this.out({ t: e.t, text: "Ladies and gentlemen, we regret that this afternoon's half-time parachute display has been cancelled. Due to a, er, missing parachute.", src: "tannoy", big: false, key: "display_off" });
+        break;
+      case "mascot_missing":
+        this.out({ t: e.t, text: "Would Lenny the Lion please make his way to the players' tunnel. Lenny the Lion to the tunnel, please. The kids are waiting.", src: "tannoy", big: false, key: "lenny" });
+        break;
+      case "mascot_off":
+        this.out({ t: e.t, text: "Ladies and gentlemen, we're sorry to say Lenny the Lion is, er, unwell today. He sends his love.", src: "tannoy", big: false, key: "lenny_off" });
+        break;
+      case "card_stolen":
+        this.out({ t: e.t, text: "Security to the players' entrance, please. Security to the players' entrance.", src: "tannoy", big: false, key: "card" });
+        break;
+      case "pass_stolen":
+        this.out({ t: e.t, text: "Could stewards please keep an eye out for a lost press accreditation. Thank you.", src: "tannoy", big: false, key: "press" });
+        break;
       case "accident":
         this.out({ t: e.t, text: "Would a cleaner please attend the area immediately. Immediately.", src: "tannoy", big: false, key: "cleaner" });
         break;

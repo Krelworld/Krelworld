@@ -71,6 +71,7 @@ main.ts ── boot.ts installMobile(game) ──► isMobile()? no → return (
 | `tapLogic.ts` | Pure: which thing a tap means (`pickTarget`), the grid path-finder (`buildGrid`, `findPath`), steering along the route |
 | `art.ts` / `artLogic.ts` | Stage 3: the texture budget. The big one-scene pictures (`PARKED_ART`) are parked (texture kept, pixels dropped) until drawn or asked for, then fetched back from the browser's cache; parked again 30 s after their last use |
 | `audio.ts` / `audioLogic.ts` | Stage 3: sound on iPhone. `new Audio()` hands out pooled elements the first tap unlocked, each through its own gain node (the volume settings work on iOS); audio session; resume checks; one song at a time; the route self-test |
+| `mix.ts` / `mixLogic.ts` | Stage 3 wave 2: the phone's sound mix. Every path of the game's sound (effects, songs, voices) through a drive, a low cut, a compressor per path and a soft ceiling under -1 dBFS; the player's sliders applied after the compressors |
 | `perf.ts` / `perfLogic.ts` | Stage 3: off-screen Images / Sprites skipped when drawing, blood pools capped at 40, the player's ring in dark or crowded rooms |
 | `storage.ts` | Stage 3: `navigator.storage.persist()` asked quietly (never in Firefox), a save on `freeze`; the boot's download held in an app's own browser until PLAY HERE ANYWAY |
 | `scenes.ts` / `scenesLogic.ts` | Stage 3 wave 2: the special scenes (Night of Freedom's finger aim, ROCKET / SLOPPY; Beep Beep's stick and pedals; the raid's FIRE; skip pills; the finale card's SKIP SCENE; the telly's paged subtitles); the pure rules (aim pull, rocket target, steering, subtitle pages, narrator tips) |
@@ -946,6 +947,37 @@ Hooks added (guarded; the laptop fingerprint is unchanged):
 
 `window.__krelMobile.scenes` has `gunner` (`lock`, `locked`, `last`, `fingerDown`), `pedals`, `raid` and `stats`.
 
+## Stage 3 wave 2: the phone's sound mix (`mix.ts`, `mixLogic.ts`)
+
+The user, on their iPhone: "Speech and sound effects are a little quiet on phones." On a laptop speech already peaks near
+full scale (about -3 dBFS at the default settings), so it can only get louder if its loud moments are held down and the
+rest brought up. On a phone every path of the game's sound context goes through a mix:
+
+| Path | Where it came from | In the mix |
+|---|---|---|
+| effects, ambience / weather loops, shouts, the distant cackles, Beep Beep's engine | `Synth.sfxGain` -> `Synth.master` | `sfxGain` -> pre (1 / Effects) -> drive x2 -> low cut 110 Hz -> compressor (-18 dB, 6:1) -> post (Master x Effects x 1.1) |
+| chiptune songs | `Synth.musicGain` -> `Synth.master` | pre (1 / Music) -> post (Master x Music x 0.85) |
+| recorded songs | pooled `<audio>` -> its gain (audio.ts) | pre (1 / (Master x Music)) -> post (Master x Music x 0.85) |
+| voice lines, layered crowd lines, slowed lines | a gain -> `ctx.destination` (Voice.ts), pooled voice `<audio>` | pre (1 / voice level) -> drive x3 -> presence +3 dB at 3 kHz -> low cut -> compressor (-18 dB, 8:1, 2 ms) -> post (voice level x 1.15) |
+| everything | | summed -> a soft ceiling (straight up to 0.7, never above 0.88 = -1.1 dBFS) -> the speakers |
+
+- The game's code is unchanged. `Synth.musicGain` / `sfxGain` are re-plumbed once the context exists; `Synth.master` stays
+  connected with nothing going into it; any other connection to the game context's speakers (the voices) is sent to the
+  voice path by a wrapper on `AudioNode.prototype.connect` that is installed on phones only and touches no other
+  context (Phaser's own context and an `OfflineAudioContext` are left alone).
+- The sliders: "pre" takes the player's slider level out of each path's signal and "post" puts it back after the
+  compressor, so the compressors always see the same level and every slider still scales its path exactly (half the
+  Master, half the output; 0 is silence). `synth.setVolumes` is wrapped to update at once; the Voice slider (no call of
+  its own) is read every quarter second. The duck under dialogue, fades and the dungeon's music lift are in the game's
+  own gains, in front of "pre", so they work as before.
+- Measured offline on the game's own files (`OfflineAudioContext`, the mix built by `buildMix` itself; numbers in
+  `reports/s3-08-sound.md`): at the default settings speech about +4.5 dB (as a phone speaker hears it), explosions and
+  gunshots +4 to +9 dB, songs -1.4 dB; the peak never above -1.2 dBFS, even with every slider at 100%.
+- Not in the mix: the robot voice (`speechSynthesis`, only for a line with no recording) and songs after the route
+  self-test fell back to plain elements (an old WebKit bug); both play as before.
+- `?mobilediag`: "sound mix phone: voice drive +9.5 dB, effects +6 dB, music -1.4 dB · squeeze now voice x / effects y dB ·
+  ceiling -1.1 dBFS · peak z dBFS". On a phone `window.__krelMobile.audio.mix` has `report()`, `peak()`, `squeeze()`.
+
 ## Thumb-feel round (the user's own iPhone test)
 
 The user, on the live build: "jumping feels a little awkward", "The specials, when they do activate, are tiny to
@@ -983,7 +1015,7 @@ node scripts/mobile-smoke.cjs --url http://localhost:5212/
 #  BOOST / BRAKE / HORN and a win; the cannon; the finale card's SKIP SCENE; the advert's SKIP; the telly's paged
 #  subtitles; the raid's FIRE; the how-to pages' SKIP; the Lair; tests/mobileScenes.test.ts the rules)
 # tests/mobileWordingScan.test.ts: no touch-wording rule may match any character line in the game
-# (platform: the sound route and the Music setting, resume after a hidden page, one song at a time, the texture ceiling
+# (platform: the sound route and the Music setting, the phone mix (wiring, sliders, peak under -1 dBFS), resume after a hidden page, one song at a time, the texture ceiling
 #  over six scenes, pause in a minigame and the finale, the in-app download hold; tests/mobilePlatform.test.ts the rules)
 # (together: the two stage 2 tracks at once: bigger text in a fight, a conversation in a fight (pills, no fight
 #  buttons), PHONE SETTINGS live in a fight, pause -> CONTROLS on FIGHTS, the Krezz Arms brawl by tap)

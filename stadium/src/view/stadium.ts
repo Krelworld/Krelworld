@@ -36,6 +36,8 @@ import { Fx } from "./fx";
 import { FirstPerson, type FpSprite } from "./fp";
 import { holeState, inCubicle, knifeOn } from "../stadium/gloryhole";
 import { incapacitated, knockedOut, lootable } from "../stadium/combat";
+import { hasRadio } from "../stadium/coverup";
+import { findPath } from "../stadium/nav";
 import { LEADS } from "../stadium/entries";
 import { playOpening } from "./opening";
 import { assetURL, loadPacks } from "./packs";
@@ -64,7 +66,7 @@ interface TickerLine { text: string; src: string; big: boolean }
 
 /** A PixelLab picture of an item, if there is one. */
 const ICONS = new Set(["pint", "pie", "knife", "whistle", "ticket", "wallet", "laxative", "powder", "shirt_eng", "shirt_por", "shirt_bra", "shirt_arg", "police_uniform", "kit_eng", "kit_opp",
-  "staff_pass", "hivis", "ref_kit", "police_hat", "mask", "flat_cap", "sunglasses", "moustache", "tracksuit", "chef_whites", "overalls", "balaclava", "hammer", "flare", "betslip", "face", "hands", "censored_bar", "wrench", "kit_card", "parachute", "mascot_suit", "press_pass", "bottle", "pint_glass", "chair", "corner_flag", "wig", "long_wig", "dress"]);
+  "staff_pass", "radio", "hivis", "ref_kit", "police_hat", "mask", "flat_cap", "sunglasses", "moustache", "tracksuit", "chef_whites", "overalls", "balaclava", "hammer", "flare", "betslip", "face", "hands", "censored_bar", "wrench", "kit_card", "parachute", "mascot_suit", "press_pass", "bottle", "pint_glass", "chair", "corner_flag", "wig", "long_wig", "dress"]);
 const icon = (def: string) => (ICONS.has(def) ? `<img class="ico" src="${assetURL(`icons/${def}.png`)}" alt="" onerror="this.remove()">` : `<span class="ico none"></span>`);
 
 /** The main button's words: short enough for a thumb. The full sentence is still in More. */
@@ -102,6 +104,8 @@ class StadiumScene extends Phaser.Scene {
   keys!: Record<string, Phaser.Input.Keyboard.Key>;
   joyId = -1; joyOx = 0; joyOy = 0; jx = 0; jy = 0;
   picked: string | null = null;
+  /** Tapped someone and picked something to do to them: walking over to do it. */
+  pursue: { id: string; kind: string; item?: string; arg?: string; until: number; path: number[]; pathAt: number } | null = null;
   flash: { x: number; y: number; until: number } | null = null;
   dogNoiseAt = -999;
   /** Beep Beep's hit-stop: the world holds still for a beat when something goes under the wheels. */
@@ -236,7 +240,9 @@ class StadiumScene extends Phaser.Scene {
         if (it) { this.audio.play("pickup", 0.9); this.toast(it.def, itemName(it), "Picked up"); }
       }
       if (e.type === "bus_stolen" && e.by === this.s.stadium!.pc) this.hint(this.driveView === "map" ? "Steer with the stick. The view button (top right) switches to Chase or Cab." : "Up to go, down to brake, left and right to steer. Beep (or H) freezes everyone in front so they can't dive clear. The view button switches Chase, Cab and Map.");
-      if (e.type === "killed" && e.by === this.s.stadium!.pc) this.hint("He's dead. You're covered in his blood: change your top or everyone will see it.");
+      if (e.type === "radio_call" && e.by === this.s.stadium!.pc) this.hint("Security are sending a couple of lads to tidy up. Wait there.");
+      if (e.type === "covered_up") this.hint(`Gone, under a sheet. Nobody saw a thing.${areaAt(this.pc.x, this.pc.y).id === "security" ? " The office door's open for you." : ""}`);
+      if (e.type === "killed" && e.by === this.s.stadium!.pc && !e.stamp) this.hint("He's dead. You're covered in his blood: change your top or everyone will see it.");
       if (e.type === "armed_called") this.hint("Someone's called the armed police. You've got about forty seconds.");
       if (e.type === "armed_challenge") this.hint("Drop the knife and stand still, or run for it.");
       if (e.type === "flayed") this.hint(e.part === "face" ? "In your pocket. Wear it and you'll pass for him, from a distance." : "In your pocket. Some doors have palm readers.");
@@ -382,6 +388,24 @@ class StadiumScene extends Phaser.Scene {
         }
         break;
       }
+      case "headsplat": {
+        // The head goes: a burst of blood every which way, bits, and a pool where it was.
+        const who = s.actors[e.who];
+        a.play("head_splat", 0.5 + near(e.x, e.y, 30) * 0.5); a.play("punch", 0.8, { rate: 0.55 });
+        if (who) {
+          for (let i = 0; i < 4; i++) this.spray(who.x, who.y, 0.35, Math.random() * 2 - 1, Math.random() * 2 - 1, 30, 2.2);
+          this.gibs(who.x, who.y, 26);
+          this.pools.push({ x: who.x, y: who.y, r: 0.1, max: 1.9, grow: 1.1 });
+          if (e.by === pcId) { this.trauma = Math.min(1, this.trauma + 0.8); this.hitStopUntil = performance.now() + 140; this.bark("stomp", 1, true); }
+        }
+        break;
+      }
+      case "radio_call": {
+        a.play("radio_squelch", 0.9);
+        if (e.by === pcId) setTimeout(() => this.bark(e.dead ? "radio_kill" : "radio_ko", 1, true), 250);
+        setTimeout(() => { a.play("radio_squelch", 0.8); setTimeout(() => a.play("stw_copy", 0.9), 300); }, 5200);
+        break;
+      }
       case "mauled": case "flayed": {
         const who = s.actors[e.who];
         if (who) { this.spray(who.x, who.y, 1.3, Math.random() * 2 - 1, Math.random() * 2 - 1, 22, 1.4); this.pools.push({ x: who.x, y: who.y + 0.1, r: 0.1, max: 0.9, grow: 0.35 }); }
@@ -448,6 +472,7 @@ class StadiumScene extends Phaser.Scene {
           "Oi! You!": "stw_oi", "Right. Out you go.": "stw_out", "You can't be in here, pal. Come on.": "stw_pal",
           "Right. Penis detector, sir. Pop it in the slot, please.": "stw_slot", "That's him! That's the fat bald fella! It's a match!": "stw_knob",
           "Bit small. Bit hairy. Go on, then.": "stw_odd", "Jesus Christ. Go on through, sir. Go on.": "stw_bar",
+          "Okay. We'll help cover this up for you. Off you go, mate.": "stw_cover", "Christ. Right. We never saw nothing. We'll help cover this up for you.": "stw_cover_dead",
           "You're coming with me.": "stw_coming", "Stop wriggling!": "stw_wriggle", "Staff only, mate.": "stw_staff",
         };
         if (VOICE[e.text]) a.play(VOICE[e.text], 0.35 + v * 0.65, { minGap: 1.5 });
@@ -785,7 +810,7 @@ class StadiumScene extends Phaser.Scene {
   /** Camera trauma (0-1): the shake is trauma squared, and it drains away. */
   trauma = 0;
   /** Blood in the air, metres; it lands as spots that stay. */
-  drops: { x: number; y: number; z: number; vx: number; vy: number; vz: number; r: number }[] = [];
+  drops: { x: number; y: number; z: number; vx: number; vy: number; vz: number; r: number; c?: number }[] = [];
   /** Pools spreading under the badly hurt. */
   pools: { x: number; y: number; r: number; max: number; grow: number }[] = [];
   /** White flash on a sprite (ms timestamp), and the attacker's lunge. */
@@ -901,6 +926,15 @@ class StadiumScene extends Phaser.Scene {
     if (this.drops.length > 400) this.drops.splice(0, this.drops.length - 400);
   }
 
+  /** Bits of head: bigger, paler lumps among the blood. */
+  gibs(x: number, y: number, n: number): void {
+    const COL = [0xd98c8c, 0xe8dcc8, 0xb07a7a, 0x9c2020, 0xc9a0a0];
+    for (let i = 0; i < n; i++) {
+      const a = Math.random() * Math.PI * 2, sp = 2 + Math.random() * 5;
+      this.drops.push({ x, y, z: 0.3, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, vz: 2 + Math.random() * 3, r: 0.09 + Math.random() * 0.12, c: COL[i % COL.length] });
+    }
+  }
+
   /** Move the blood in the air; what lands becomes a spot on the floor that stays. */
   stepGore(dms: number): void {
     const P = this.P, dt = Math.min(0.05, dms / 1000), S = P.S;
@@ -910,7 +944,7 @@ class StadiumScene extends Phaser.Scene {
       d.x += d.vx * dt; d.y += d.vy * dt; d.z += d.vz * dt; d.vz -= 14 * dt; d.vx *= 0.97; d.vy *= 0.97;
       if (d.z > 0) return true;
       const r = Math.max(1, Math.round(d.r * S * (0.8 + Math.random() * 0.6)));
-      g.fillStyle(Math.random() < 0.5 ? 0x6e0b0b : 0x8a1010, 0.9).fillRect(Math.round(P.sx(d.x, d.y)), Math.round(P.sy(d.x, d.y)), r, Math.max(1, Math.round(r * 0.7)));
+      g.fillStyle(d.c ?? (Math.random() < 0.5 ? 0x6e0b0b : 0x8a1010), 0.9).fillRect(Math.round(P.sx(d.x, d.y)), Math.round(P.sy(d.x, d.y)), r, Math.max(1, Math.round(r * 0.7)));
       this.decals++;
       return false;
     });
@@ -974,6 +1008,9 @@ class StadiumScene extends Phaser.Scene {
       [x, y] = [x * c - y * sn, x * sn + y * c];
     }
     l = Math.hypot(x, y);
+    // Steering yourself calls off a walk-over; otherwise the walk-over steers.
+    if (this.pursue && l > 0.12) { this.pursue = null; }
+    if (this.pursue && l <= 0.12) { this.stepPursue(); return; }
     const g = this.P.ground(x, y);
     const k2 = l > 1 ? 1 / l : 1;
     // A light push is a full walk; past the edge of the stick is a run.
@@ -2198,6 +2235,114 @@ class StadiumScene extends Phaser.Scene {
   }
   closeSheet() { $("sheet").hidden = true; this.sheetKind = null; }
 
+  /** The person under a point on the ground (in metres), standing or down. */
+  personAt(gx: number, gy: number): Actor | null {
+    let best: Actor | null = null, bd = 1.9;
+    for (const id in this.s.actors) {
+      const a = this.s.actors[id];
+      if (a.id === this.pc.id || a.hiddenIn || a.npc?.job === "dog") continue;
+      const d = Math.hypot(a.x - gx, a.y - gy);
+      if (d < bd) { bd = d; best = a; }
+    }
+    return best;
+  }
+
+  personItems: { label: string; kind: string; item?: string; arg?: string; id: string }[] = [];
+
+  /** Tapped someone: everything you could do to them, whatever's in your pockets. Pick one and he walks over and does it. */
+  openPerson(id: string) {
+    const s = this.s, pc = this.pc, a = s.actors[id];
+    if (!a || !pc || !this.started) return;
+    const name = personName(a), down = incapacitated(this.w, a), out: typeof this.personItems = [];
+    const add = (label: string, kind: string, extra: { item?: string; arg?: string } = {}) => out.push({ label, kind, id, ...extra });
+    const n = a.npc, mine = [pc.hand, ...pc.pockets].filter((x): x is string => !!x).map((x) => s.items[x]).filter(Boolean);
+    if (!down) {
+      if (!a.fb) add(`Take ${name} down from behind`, "takedown");
+      add(`Punch ${name}`, "punch");
+      add(`Haymaker ${name}`, "haymaker");
+      for (const it of mine) {
+        if (!hasProp(it, "weapon")) continue;
+        const nm = itemName(it).toLowerCase();
+        add(hasProp(it, "sharp") ? `Stab ${name} (${nm})` : it.def === "bottle" || it.def === "pint_glass" ? `Glass ${name}` : it.def === "chair" ? `Chair ${name}` : `Hit ${name} with the ${nm}`, "weapon", { item: it.id });
+      }
+      if (pc.hand && (hasProp(s.items[pc.hand], "throwable") || defOf(s.items[pc.hand]).size === "small")) add(`Throw the ${itemName(s.items[pc.hand]).toLowerCase()} at ${name}`, "throw");
+      if (n && n.job !== "player" && n.job !== "official") add(`Talk to ${name}`, "talk");
+      if (n && n.job !== "player" && n.job !== "official" && !n.shop) add(`Pickpocket ${name}`, "pickpocket");
+      if (pc.money > 0) add(`Offer ${name} money`, "bribe");
+    } else {
+      add(`Go through ${name}'s pockets`, "loot");
+      add(`Drag ${name}`, "drag");
+      if (!a.splat) add(`Stamp on ${name}'s head`, "stamp");
+      if (hasRadio(this.w, pc)) add(`Radio it in: "I've had to ${a.dead ? "kill" : "knock out"} a fan"`, "radio");
+      if (a.dead && mine.some((it) => hasProp(it, "sharp"))) { add(`Cut off ${name}'s face`, "flay", { arg: "face" }); add(`Cut off ${name}'s hands`, "flay", { arg: "hands" }); }
+    }
+    this.personItems = out;
+    this.sheet("person", `<h2>${esc(name)}${a.dead ? " (dead)" : down ? " (out cold)" : ""}</h2><div class="list">${out.map((o, i) => `<button data-pm="${i}">${esc(o.label)}</button>`).join("")}</div>`);
+  }
+
+  choosePerson(m: { kind: string; item?: string; arg?: string; id: string }) {
+    if (m.kind === "throw") { this.picked = m.id; (this as any).throwAt = this.s.actors[m.id]; this.throwNow(); return; }
+    if (m.kind === "bribe" && Math.hypot(this.s.actors[m.id].x - this.pc.x, this.s.actors[m.id].y - this.pc.y) < 2.2) { this.openBribe(m.id); return; }
+    this.pursue = { id: m.id, kind: m.kind, item: m.item, arg: m.arg, until: performance.now() + 15000, path: [], pathAt: 0 };
+    this.picked = m.id;
+  }
+
+  /** Walk to them (round the back, for a takedown) and, once close enough, do it. */
+  stepPursue() {
+    const p = this.pursue!, pc = this.pc, s = this.s, t = s.actors[p.id];
+    if (pc.seated) { dispatch(this.w, { verb: "stand", actor: pc.id }); this.setZoom(); }
+    const stop = (why?: string) => { this.pursue = null; pc.moveX = pc.moveY = 0; if (why) this.hint(why); };
+    if (!t || t.hiddenIn || performance.now() > p.until || pc.heldBy || pc.hiddenIn) return stop(t && !t.hiddenIn && performance.now() > p.until ? "Couldn't get to them." : undefined);
+    const down = incapacitated(this.w, t);
+    if (["takedown", "punch", "haymaker", "weapon", "talk", "pickpocket", "bribe"].includes(p.kind) && down) return stop();
+    const reach = p.kind === "talk" ? 2.6 : p.kind === "radio" ? 11 : p.kind === "bribe" ? 2 : ["loot", "drag", "stamp", "flay"].includes(p.kind) ? 1.4 : 1.25;
+    const d = Math.hypot(t.x - pc.x, t.y - pc.y);
+    const sneak = p.kind === "takedown";
+    // Behind him, near enough (the strike forgives a half turn, so this does too).
+    const behind = Math.cos(Math.atan2(pc.y - t.y, pc.x - t.x) - t.facing) < 0.1;
+    const ready = d <= reach && (!sneak || behind);
+    if (ready) {
+      pc.moveX = pc.moveY = 0;
+      if (p.item && pc.hand !== p.item) {
+        if (!s.items[p.item] || s.items[p.item].loc.k === "gone") return stop("You haven't got it any more.");
+        dispatch(this.w, { verb: "hold", actor: pc.id, item: p.item });
+      }
+      const target = { k: "actor" as const, id: t.id }, base = { actor: pc.id, target };
+      const act: Action | null =
+        p.kind === "takedown" ? { verb: "strike", ...base, arg: "takedown" } :
+        p.kind === "punch" || p.kind === "weapon" ? { verb: "strike", ...base } :
+        p.kind === "haymaker" ? { verb: "strike", ...base, arg: "haymaker" } :
+        p.kind === "talk" ? { verb: "talk", ...base } :
+        p.kind === "pickpocket" ? { verb: "pickpocket", ...base } :
+        p.kind === "drag" ? { verb: "drag", ...base } :
+        p.kind === "stamp" ? { verb: "finish", ...base } :
+        p.kind === "radio" ? { verb: "radio", ...base } :
+        p.kind === "flay" ? { verb: "flay", ...base, arg: p.arg, item: pc.hand ?? undefined } : null;
+      this.pursue = null;
+      if (p.kind === "loot") { this.openLoot(t.id); return; }
+      if (p.kind === "bribe") { this.openBribe(t.id); return; }
+      if (act) this.run({ label: "", priority: 1, action: act });
+      return;
+    }
+    // Where to stand: next to them, or right behind them for a takedown. Close in but in front:
+    // circle round him rather than walking into his face.
+    let gx = sneak ? t.x - Math.cos(t.facing) * 0.75 : t.x, gy = sneak ? t.y - Math.sin(t.facing) * 0.75 : t.y;
+    if (sneak && d < 2.4 && !behind) {
+      const at = Math.atan2(pc.y - t.y, pc.x - t.x), want = t.facing + Math.PI;
+      const turn = Math.atan2(Math.sin(want - at), Math.cos(want - at));
+      const a2 = at + Math.sign(turn || 1) * Math.min(Math.abs(turn), 0.9);
+      gx = t.x + Math.cos(a2) * 1.15; gy = t.y + Math.sin(a2) * 1.15;
+    }
+    const now = performance.now();
+    if (now - p.pathAt > 400 || !p.path.length) { p.path = findPath(pc.x, pc.y, gx, gy); p.pathAt = now; }
+    while (p.path.length > 2 && Math.hypot(p.path[0] - pc.x, p.path[1] - pc.y) < 0.5) p.path.splice(0, 2);
+    const tx = p.path.length >= 2 && Math.hypot(gx - pc.x, gy - pc.y) > 1.5 ? p.path[0] : gx, ty = p.path.length >= 2 && Math.hypot(gx - pc.x, gy - pc.y) > 1.5 ? p.path[1] : gy;
+    const dx = tx - pc.x, dy = ty - pc.y, l = Math.hypot(dx, dy) || 1;
+    // A run when far off, a walk for the last few metres.
+    const mag = d > 5 ? 1 : 0.85;
+    pc.moveX = (dx / l) * mag; pc.moveY = (dy / l) * mag;
+  }
+
   openMore() {
     const opts = this.opts.filter((o) => o.action || o.sheet);
     const html = `<h2>What do you want to do?</h2><div class="list">${opts.length ? opts.map((o, i) => `<button data-opt="${i}">${esc(o.label)}</button>`).join("") : "<p>Nothing nearby. Walk up to people and things.</p>"}</div>`;
@@ -2358,7 +2503,7 @@ class StadiumScene extends Phaser.Scene {
       el.addEventListener("click", () => {
         clearTimeout(timer); el.classList.remove("charged");
         const o = get(), held = t0 ? performance.now() - t0 : 0; t0 = 0;
-        this.run(o && held > 380 && o.action?.verb === "strike" ? { ...o, action: { ...o.action, arg: "haymaker" } } : o);
+        this.run(o && held > 380 && o.action?.verb === "strike" && o.action.arg !== "takedown" ? { ...o, action: { ...o.action, arg: "haymaker" } } : o);
       });
     };
     holdable($("act"), () => primary(this.opts));
@@ -2385,6 +2530,7 @@ class StadiumScene extends Phaser.Scene {
       if (!d.buy && !d.bag) this.audio.play("tap", 0.5);
       if (d.close) { if (this.sheetKind === "menu") this.setSpeed(1); this.closeSheet(); return; }
       if (d.opt) { this.run(((this as any).moreOpts as Option[])[+d.opt]); this.closeSheet(); return; }
+      if (d.pm) { const m = this.personItems[+d.pm]; this.closeSheet(); if (m) this.choosePerson(m); return; }
       if (d.buy) {
         const r = dispatch(this.w, { verb: "buy", actor: this.pc.id, target: { k: "actor", id: d.who! }, arg: d.buy });
         if (r.ok) this.bought(b, d.buy, +(d.price ?? 0));
@@ -2431,7 +2577,7 @@ class StadiumScene extends Phaser.Scene {
       if (this.s.stadium!.vehicles.bus?.drivenBy === this.pc.id) { this.keyHeldAt = 0; return; }
       const o = primary(this.opts), held = performance.now() - this.keyHeldAt;
       this.keyHeldAt = 0;
-      this.run(o && held > 380 && o.action?.verb === "strike" ? { ...o, action: { ...o.action, arg: "haymaker" } } : o);
+      this.run(o && held > 380 && o.action?.verb === "strike" && o.action.arg !== "takedown" ? { ...o, action: { ...o.action, arg: "haymaker" } } : o);
     });
     window.addEventListener("keydown", (e) => {
       if (!this.started) { if (e.key === "Enter") { $("intro").hidden = true; this.started = true; void this.audio.unlock(); } return; }
@@ -2464,28 +2610,36 @@ class StadiumScene extends Phaser.Scene {
         // Keep the ring clear of the screen edges, so the bottom swipe area never swallows the release.
         const ox = Math.max(70, Math.min(window.innerWidth - 70, e.clientX)), oy = Math.max(70, Math.min(window.innerHeight - 80, e.clientY));
         this.joyId = e.pointerId; this.joyOx = ox; this.joyOy = oy; this.jx = this.jy = 0;
+        this.tapStart = { x: e.clientX, y: e.clientY, at: performance.now(), far: false };
         joy.hidden = false; joy.style.left = `${ox}px`; joy.style.top = `${oy}px`; knob.style.transform = "";
         try { canvas.setPointerCapture(e.pointerId); } catch { /* not all browsers allow it */ }
         move(e);
       } else {
         // Tap someone to aim at them.
         const cam = this.cameras.main, P = this.P;
-        const wx = cam.worldView.x + x / cam.zoom, wy = cam.worldView.y + y / cam.zoom;
+        const wx = cam.worldView.x + (x * DPR) / cam.zoom, wy = cam.worldView.y + (y * DPR) / cam.zoom;
         const gx = wx / P.S, gy = (wy + 0.9 * P.KZ * P.S) / (P.K * P.S);
-        let best: Actor | null = null, bd = 1.8;
-        for (const id in this.s.actors) {
-          const a = this.s.actors[id];
-          if (a.id === this.pc.id || a.hiddenIn) continue;
-          const d = Math.hypot(a.x - gx, a.y - gy);
-          if (d < bd) { bd = d; best = a; }
-        }
+        const best = this.personAt(gx, gy);
         this.picked = best ? best.id : null;
+        if (best) this.openPerson(best.id);
       }
     });
     function move(this: void, e: PointerEvent): void { scene.joyMove(e, knob); }
     const scene = this;
     const release = () => { this.joyId = -1; this.jx = this.jy = 0; joy.hidden = true; };
-    const up = (e: PointerEvent) => { if (e.pointerId === this.joyId) release(); };
+    const up = (e: PointerEvent) => {
+      if (e.pointerId !== this.joyId) return;
+      const t = this.tapStart;
+      this.tapStart = null;
+      release();
+      // A tap, not a push of the stick: if there's someone under it, their menu.
+      if (t && !t.far && performance.now() - t.at < 350 && e.type === "pointerup") {
+        const rect = canvas.getBoundingClientRect(), cam = this.cameras.main, P = this.P;
+        const wx = cam.worldView.x + ((t.x - rect.left) * DPR) / cam.zoom, wy = cam.worldView.y + ((t.y - rect.top) * DPR) / cam.zoom;
+        const who = this.personAt(wx / P.S, (wy + 0.9 * P.KZ * P.S) / (P.K * P.S));
+        if (who) { this.picked = who.id; this.openPerson(who.id); }
+      }
+    };
     canvas.addEventListener("pointermove", move);
     window.addEventListener("pointermove", move);
     for (const ev of ["pointerup", "pointercancel", "lostpointercapture"] as const) {
@@ -2504,8 +2658,10 @@ class StadiumScene extends Phaser.Scene {
     document.addEventListener("visibilitychange", () => { if (document.hidden) release(); });
   }
 
+  tapStart: { x: number; y: number; at: number; far: boolean } | null = null;
   joyMove(e: PointerEvent, knob: HTMLElement) {
     if (e.pointerId !== this.joyId) return;
+    if (this.tapStart && Math.hypot(e.clientX - this.tapStart.x, e.clientY - this.tapStart.y) > 14) this.tapStart.far = true;
     let dx = (e.clientX - this.joyOx) / 50, dy = (e.clientY - this.joyOy) / 50;
     const l = Math.hypot(dx, dy);
     if (l > 1.25) { dx *= 1.25 / l; dy *= 1.25 / l; }

@@ -190,5 +190,11 @@
   "w": 48,
   "h": 48,
   "view": "low top-down"
+ },
+ "radio": {
+  "description": "a black handheld walkie-talkie radio with a stubby antenna and a yellow security sticker, single item icon, realistic, muted natural colours, detailed pixel art",
+  "w": 48,
+  "h": 48,
+  "view": "low top-down"
  }
 }

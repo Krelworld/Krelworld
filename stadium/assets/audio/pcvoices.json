@@ -104,5 +104,35 @@
    "Oh fuuuuuuck!",
    "pc_oh_fuuuuuuck"
   ]
+ ],
+ "stomp": [
+  [
+   "Night night, you mug.",
+   "pc_stomp1"
+  ],
+  [
+   "SPLAT, you cunt!",
+   "pc_stomp2"
+  ],
+  [
+   "Fuckin' 'ell, 'is 'ead's gone everywhere!",
+   "pc_stomp3"
+  ],
+  [
+   "Stamp on this!",
+   "pc_stomp4"
+  ]
+ ],
+ "radio_ko": [
+  [
+   "Yeah, security? I'm in 'ere with a... a fan. Who I've 'ad to knock out. Over.",
+   "pc_radio_ko"
+  ]
+ ],
+ "radio_kill": [
+  [
+   "Yeah, security? I'm in 'ere with a fan who I've 'ad to... kill. Yeah. Kill. Over.",
+   "pc_radio_kill"
+  ]
  ]
 }

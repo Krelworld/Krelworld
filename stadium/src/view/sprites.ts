@@ -116,46 +116,45 @@ const REF: Record<Base, Partial<Record<keyof Recolour, number>>> = {
 };
 
 export class SpriteBank {
-  private made = new Set<string>();
   constructor(private scene: Phaser.Scene) {}
 
-  /** Sheets loaded up front (through Phaser): standing, walking, and the cheer the crowd atlas needs.
-   *  The other animation sheets are big (8 directions of frames each) and most are never seen in a
-   *  given match, so they're fetched and recoloured only when someone first does that thing. Loading
-   *  and recolouring the lot up front came to over 700 MB of pictures: enough to crash a phone. */
+  /** Sheets fetched up front: standing, walking, and the cheer the crowd atlas needs. The other
+   *  animation sheets are big (8 directions of frames each) and most are never seen in a given match,
+   *  so they're fetched and recoloured only when someone first does that thing. Loading and
+   *  recolouring the lot up front came to over 700 MB of pictures: enough to crash a phone.
+   *  The source sheets are only ever painted from, never drawn, so they stay plain images and never
+   *  go to the graphics card. */
   static readonly EAGER = ["rot", "walk", "cheer"];
 
   static preload(scene: Phaser.Scene): void {
     scene.load.image("tiles-street", "art/tiles-street.png");
     scene.load.image("tiles-pitch", "art/tiles-pitch.png");
-    for (const k of BASES) {
-      if (!(EXTRA[k] ?? []).includes("rot")) continue;
-      scene.load.image(`${k}-rot-src`, `art/${k}-rot.png`);
-      for (const x of EXTRA[k] ?? []) if (x !== "rot" && SpriteBank.EAGER.includes(x)) scene.load.image(`${k}-${x}-src`, `art/${k}-${x}.png`);
-    }
+    for (const k of BASES) for (const x of EXTRA[k] ?? []) if (SpriteBank.EAGER.includes(x)) SpriteBank.fetch(k, x);
   }
 
-  /** Lazily loaded source sheets: an image once it has arrived, "wait" while it's on its way. */
-  private lazy = new Map<string, HTMLImageElement | "wait" | "none">();
+  /** Source sheets: an image once it has arrived, "wait" while it's on its way. */
+  private static lazy = new Map<string, HTMLImageElement | "wait" | "none">();
+  private static fetch(base: string, sheet: string): HTMLImageElement | null {
+    const k = `${base}-${sheet}`;
+    const got = SpriteBank.lazy.get(k);
+    if (got instanceof HTMLImageElement) return got;
+    if (got) return null;
+    SpriteBank.lazy.set(k, "wait");
+    const img = new Image();
+    img.onload = () => SpriteBank.lazy.set(k, img);
+    img.onerror = () => SpriteBank.lazy.set(k, "none");
+    img.src = assetURL(`art/${base}-${sheet}.png`);
+    return null;
+  }
   /** What each variant key was made from, so its other sheets can be painted when wanted. */
   private info = new Map<string, { base: Base; rc: Recolour }>();
   /** Recolouring a sheet takes a few milliseconds: only a couple a frame, so nothing stutters. */
   private budget = { frame: -1, left: 0 };
 
   /** The source picture of one sheet of a base, or null if it isn't here (yet). */
-  private srcOf(base: Base, sheet: string): HTMLImageElement | HTMLCanvasElement | null {
-    const k = `${base}-${sheet}-src`;
-    if (this.scene.textures.exists(k)) return this.scene.textures.get(k).getSourceImage() as HTMLImageElement;
+  srcOf(base: Base, sheet: string): HTMLImageElement | null {
     if (!(EXTRA[base] ?? []).includes(sheet)) return null;
-    const got = this.lazy.get(k);
-    if (got instanceof HTMLImageElement) return got;
-    if (got) return null;
-    this.lazy.set(k, "wait");
-    const img = new Image();
-    img.onload = () => this.lazy.set(k, img);
-    img.onerror = () => this.lazy.set(k, "none");
-    img.src = assetURL(`art/${base}-${sheet}.png`);
-    return null;
+    return SpriteBank.fetch(base, sheet);
   }
 
   /** Is this sheet of a variant ready to draw? Fetches and paints it on first asking. */
@@ -209,9 +208,14 @@ export class SpriteBank {
   }
 
   /** Is this base's art here? */
-  has(base: Base): boolean { return this.scene.textures.exists(`${base}-rot-src`) && !!this.srcOf(base, "walk"); }
+  has(base: Base): boolean { return !!this.srcOf(base, "rot") && !!this.srcOf(base, "walk"); }
 
-  ready(): boolean { return this.scene.textures.exists("fan-rot-src") && this.scene.textures.get("fan-rot-src").key !== "__MISSING"; }
+  /** Everything fetched up front has arrived (or failed): the crowd atlas needs the cheers too. */
+  ready(): boolean {
+    if (!this.has("fan")) return false;
+    for (const k of BASES) for (const x of EXTRA[k] ?? []) if (SpriteBank.EAGER.includes(x) && SpriteBank.lazy.get(`${k}-${x}`) === "wait") return false;
+    return true;
+  }
 
   /** A recoloured copy of one sheet of a base, as a canvas. */
   private paint(base: Base, sheet: string, rc: Recolour, src = this.srcOf(base, sheet)!): HTMLCanvasElement {
@@ -238,17 +242,53 @@ export class SpriteBank {
   variant(base: Base, rc: Recolour = {}): string {
     const parts = Object.entries(rc).filter(([, v]) => v !== undefined).sort().map(([k, v]) => `${k}${(v as number).toString(16)}`);
     const key = parts.length ? `${base}~${parts.join("_")}` : base;
-    if (this.made.has(key)) return key;
+    const now = performance.now();
+    const v = this.vmade.get(key);
+    if (v) { v.used = now; return key; }
     this.info.set(key, { base, rc });
+    // Too many outfits about: let go of ones nobody has been drawn in for a few seconds.
+    if (this.variantBytes > SpriteBank.VARIANT_BYTES) this.evictVariants(now);
     // Standing and walking now; the rest (fall, punch, drink...) when first wanted: see sheetReady().
+    const cvs: HTMLCanvasElement[] = [];
+    let bytes = 0;
     for (const sheet of ["rot", "walk"]) {
-      if (!this.scene.textures.exists(`${base}-${sheet}-src`)) continue;
+      const src = this.srcOf(base, sheet);
+      if (!src) continue;
       const tkey = `${key}-${sheet}`;
       if (this.scene.textures.exists(tkey)) this.scene.textures.remove(tkey);
-      this.scene.textures.addSpriteSheet(tkey, this.paint(base, sheet, rc) as unknown as HTMLImageElement, { frameWidth: cellOf(base), frameHeight: cellOf(base) });
+      const cv = this.paint(base, sheet, rc, src);
+      cvs.push(cv); bytes += cv.width * cv.height * 4;
+      this.scene.textures.addSpriteSheet(tkey, cv as unknown as HTMLImageElement, { frameWidth: cellOf(base), frameHeight: cellOf(base) });
     }
-    this.made.add(key);
+    this.vmade.set(key, { used: now, bytes, cvs });
+    this.variantBytes += bytes;
     return key;
+  }
+
+  /** How much the standing-and-walking sheets of all the outfits about may take. */
+  static readonly VARIANT_BYTES = 60e6;
+  private vmade = new Map<string, { used: number; bytes: number; cvs: HTMLCanvasElement[] }>();
+  private variantBytes = 0;
+
+  private evictVariants(now: number): void {
+    const old = [...this.vmade].filter(([, v]) => now - v.used > 4000).sort((a, b) => a[1].used - b[1].used);
+    const gone = new Set<string>();
+    for (const [key, v] of old) {
+      if (this.variantBytes <= SpriteBank.VARIANT_BYTES * 0.8) break;
+      for (const sheet of ["rot", "walk"]) gone.add(`${key}-${sheet}`);
+      for (const [tkey, p] of this.painted) if (tkey.startsWith(`${key}-`) && tkey.slice(key.length + 1).indexOf("-") < 0) { gone.add(tkey); p.cv.width = p.cv.height = 0; this.paintedBytes -= p.bytes; this.painted.delete(tkey); }
+      this.variantBytes -= v.bytes;
+      this.vmade.delete(key);
+      this.info.delete(key);
+      v.cvs.forEach((cv) => { cv.width = cv.height = 0; });
+    }
+    if (!gone.size) return;
+    // Nobody visible is wearing these, but a hidden sprite may still point at one: point it elsewhere.
+    for (const o of this.scene.children.list) {
+      const sp = o as Phaser.GameObjects.Sprite;
+      if (sp.texture && gone.has(sp.texture.key)) sp.setTexture("__DEFAULT");
+    }
+    for (const k of gone) if (this.scene.textures.exists(k)) this.scene.textures.remove(k);
   }
 
   /** One sheet of seated supporters for the stands: a row per colour scheme, then
@@ -264,7 +304,7 @@ export class SpriteBank {
       const b = this.has(base) ? base : "fan";
       const src = this.paint(b, "rot", col);
       [0, 2, 4, 6].forEach((cell, f) => cx.drawImage(src, cell * CELL, 0, CELL, SEAT, f * CELL, r * SEAT, CELL, SEAT));
-      const up = this.scene.textures.exists(`${b}-cheer-src`) ? this.paint(b, "cheer", col) : src;
+      const up = this.srcOf(b, "cheer") ? this.paint(b, "cheer", col) : src;
       const n = Math.max(1, Math.round(up.width / CELL)), fr = up === src ? 0 : Math.min(3, n - 1);
       [0, 2, 4, 6].forEach((dir, f) => cx.drawImage(up, (up === src ? dir : fr) * CELL, up === src ? 0 : dir * CELL, CELL, SEAT, (4 + f) * CELL, r * SEAT, CELL, SEAT));
     });

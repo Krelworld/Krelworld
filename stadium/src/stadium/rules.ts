@@ -289,7 +289,7 @@ export function installRules(): void {
       const counter = !!n?.retaliateAt && n.retaliateOn === actor.id && n.retaliateAt > tick && n.retaliateAt - tick <= 30;
       let result: "takedown" | "ko" | "hurt";
       if (counter) { n!.retaliateAt = 0; knockOut(w, t, actor, false); result = "ko"; w.bus.emit({ type: "countered", t: tick, by: actor.id, who: t.id, x: t.x, y: t.y }); }
-      else result = land(w, actor, t, weapon, heavy);
+      else result = land(w, actor, t, weapon, heavy, act.arg === "takedown");
       // Bottles, glasses and chairs go to pieces on the first hit.
       if (held && hasProp(held, "breakable") && actor.hand === held.id) {
         moveItem(w.state, held.id, { k: "gone" });

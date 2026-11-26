@@ -106,6 +106,8 @@ export interface Actor {
   roof?: boolean;
   /** Coming down under a parachute: from, to, and when. */
   chute?: { x0: number; y0: number; x1: number; y1: number; t0: number; t1: number };
+  /** When his head was stamped flat (a tick), if it was. */
+  splat?: number;
   /** Thrown back by a blow: metres per second along the ground, until a tick (slows as it goes). */
   knock?: { vx: number; vy: number; from: number; until: number };
   /** Active effects with the tick they wear off, e.g. { drunk: 5400 }. */

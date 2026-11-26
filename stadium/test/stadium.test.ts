@@ -9,6 +9,7 @@ import { areaAt, SPOTS } from "../src/stadium/layout";
 import { canSee, witnessesOf } from "../src/stadium/security";
 import { callArmed } from "../src/stadium/knife";
 import { aimThrow } from "../src/stadium/context";
+import { lootable } from "../src/stadium/combat";
 
 const pcOf = (g: Game) => g.w.state.actors[g.w.state.stadium!.pc];
 const find = (g: Game, pred: (a: Actor) => boolean) => Object.values(g.w.state.actors).find(pred)!;
@@ -1129,4 +1130,79 @@ test("the final: the penis detector catches you; the censored bar or the dog get
     walk(g, 0, 40, 10);
     assert.equal(areaAt(pc.x, pc.y).id, "concourse_s", `${how}: through`);
   }
+});
+
+test("a takedown from behind works even if you hold the button (a haymaker from behind still chokes him out)", () => {
+  const g = createGame("takedown");
+  const s = g.w.state, pc = pcOf(g);
+  run(g, 20);
+  const [a, b] = Object.values(s.actors).filter((x) => x.npc?.job === "local" && !x.dead).slice(0, 2);
+  for (const t of [a, b]) { t.npc!.group = undefined; t.npc!.plan = [{ k: "wait", s: 60 }]; }
+  // Behind him: he faces east, we stand to his west.
+  a.facing = 0; pc.x = a.x - 1; pc.y = a.y;
+  assert.equal(dispatch(g.w, { verb: "strike", actor: pc.id, target: { k: "actor", id: a.id }, arg: "haymaker" }).ok, true);
+  assert.ok((a.effects.ko ?? 0) > s.tick, "choked out");
+  // Went for a takedown and he half turned: still counts.
+  run(g, 1);
+  b.facing = 1.3; pc.x = b.x - 1; pc.y = b.y; pc.downUntil = 0;
+  assert.equal(dispatch(g.w, { verb: "strike", actor: pc.id, target: { k: "actor", id: b.id }, arg: "takedown" }).ok, true);
+  assert.ok((b.effects.ko ?? 0) > s.tick, "taken down");
+});
+
+test("the security office: flatten the chief and you can still get out; with a pass you can get in", () => {
+  const g = createGame("office");
+  const s = g.w.state, pc = pcOf(g);
+  run(g, 2);
+  const chief = find(g, (a) => a.npc?.job === "chief");
+  pc.x = SPOTS.chiefDesk.x + 1; pc.y = SPOTS.chiefDesk.y + 2;
+  s.stadium!.detainedUntil = s.tick + 60 * 45;
+  chief.x = pc.x; chief.y = pc.y - 1;
+  // Held there with the chief watching: the door stays shut.
+  walk(g, 34, -46, 6);
+  assert.equal(areaAt(pc.x, pc.y).id, "security");
+  // Knock him out: out you go.
+  chief.effects.ko = s.tick + 60 * 120; chief.downUntil = chief.effects.ko;
+  walk(g, 34, -46, 10);
+  assert.notEqual(areaAt(pc.x, pc.y).id, "security");
+  // And back in, with a steward's pass.
+  spawnItem(s, "staff_pass", { k: "pocket", a: pc.id });
+  walk(g, 34, -54, 10);
+  assert.equal(areaAt(pc.x, pc.y).id, "security");
+});
+
+test("the walkie-talkie: call in a body and two stewards come and cover it up", () => {
+  const g = createGame("radio");
+  const s = g.w.state, pc = pcOf(g);
+  run(g, 20);
+  const steward = find(g, (a) => a.npc?.job === "patrol" || a.npc?.job === "corridor");
+  // Every steward has one on him.
+  assert.ok(lootable(g.w, steward).some((it: { def: string }) => it.def === "radio"));
+  const victim = Object.values(s.actors).find((a) => a.npc?.job === "local" && !a.dead)!;
+  victim.npc!.plan = [{ k: "wait", s: 120 }];
+  victim.effects.ko = s.tick + 60 * 200; victim.downUntil = victim.effects.ko;
+  spawnItem(s, "radio", { k: "pocket", a: pc.id });
+  pc.x = victim.x + 1; pc.y = victim.y;
+  let covered = false, said = "";
+  g.w.bus.on((e) => { if (e.type === "covered_up") covered = true; if (e.type === "say" && /cover this up/.test(e.text)) said = e.text; });
+  assert.equal(dispatch(g.w, { verb: "radio", actor: pc.id, target: { k: "actor", id: victim.id } }).ok, true);
+  run(g, 40);
+  assert.ok(said, "they say they'll cover it up");
+  assert.ok(covered && victim.hiddenIn, "the body's gone");
+  assert.equal(Object.values(s.actors).filter((a) => a.npc?.job === "cleanup").length, 0, "and so are they");
+});
+
+test("stamp on a man's head: it bursts, and he's dead", () => {
+  const g = createGame("stamp");
+  const s = g.w.state, pc = pcOf(g);
+  run(g, 20);
+  const v = Object.values(s.actors).find((a) => a.npc?.job === "local" && !a.dead)!;
+  v.npc!.plan = [{ k: "wait", s: 120 }];
+  v.effects.ko = s.tick + 60 * 200; v.downUntil = v.effects.ko;
+  pc.x = v.x + 1; pc.y = v.y;
+  let splat = false;
+  g.w.bus.on((e) => { if (e.type === "headsplat") splat = true; });
+  assert.equal(dispatch(g.w, { verb: "finish", actor: pc.id, target: { k: "actor", id: v.id } }).ok, true);
+  assert.ok(splat && v.dead && v.splat);
+  // Once is enough.
+  assert.equal(dispatch(g.w, { verb: "finish", actor: pc.id, target: { k: "actor", id: v.id } }).ok, false);
 });

@@ -85,7 +85,7 @@ export function witnessesOf(w: World, x: number, y: number, exclude: Id[], every
   for (const id in w.state.actors) {
     const a = w.state.actors[id];
     if (!a.npc || exclude.includes(id) || a.downUntil > w.state.tick) continue;
-    if (a.npc.job === "player" || a.npc.job === "official") continue;
+    if (a.npc.job === "player" || a.npc.job === "official" || a.npc.job === "cleanup") continue; // the clean-up crew saw nothing
     if (!everyone && !isSecurity(a) && !STAFFISH.has(a.npc.job)) continue;
     if (canSee(w, a, probe, 16)) out.push(a);
   }

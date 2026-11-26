@@ -21,6 +21,7 @@ import { installHorse, stepHorse, takeReins } from "./horse";
 import { installRoutes } from "./routes";
 import { installEntries, spawnEntries, stepEntries } from "./entries";
 import { installDetector } from "./detector";
+import { installCoverup, stepCoverups } from "./coverup";
 import { installReactions, installRules, SHOPS, stepRules } from "./rules";
 import { isSecurity, stepDetention, stepSecurity } from "./security";
 import type { StadiumState } from "./state";
@@ -43,7 +44,7 @@ export const HALF_SECONDS = 450;
 export const HALFTIME_SECONDS = 150;
 
 export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: Campaign = newCampaign()): Game {
-  if (!rulesInstalled) { installRules(); installBetting(); installPolice(); installBus(); installDog(); installKickoff(); installKnife(); installGloryHole(); installCombat(); installHorse(); installRoutes(); installEntries(); installDetector(); rulesInstalled = true; }
+  if (!rulesInstalled) { installRules(); installBetting(); installPolice(); installBus(); installDog(); installKickoff(); installKnife(); installGloryHole(); installCombat(); installHorse(); installRoutes(); installEntries(); installDetector(); installCoverup(); rulesInstalled = true; }
   setVenue(venueId);
   const oppKey = VENUE.opp;
   const opp = TEAMS[oppKey];
@@ -304,6 +305,7 @@ export function stepGame(g: Game): void {
   stepTraffic(w);
   stepCombat(w);
   stepEntries(w);
+  stepCoverups(w);
   stepArmed(w);
   stepRules(w);
   stepTipoffs(w);

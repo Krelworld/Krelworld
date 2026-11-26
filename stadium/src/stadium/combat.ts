@@ -50,9 +50,11 @@ export function knockOut(w: World, t: Actor, by: Actor | null, quiet: boolean): 
 }
 
 /** A blow lands (the strike verb calls this). Returns whether they went down for good. */
-export function land(w: World, by: Actor, t: Actor, weapon: boolean, heavy = false): "takedown" | "ko" | "hurt" {
+export function land(w: World, by: Actor, t: Actor, weapon: boolean, heavy = false, sneak = false): "takedown" | "ko" | "hurt" {
   const s = w.state;
-  if (fromBehind(by, t) && !weapon && !heavy && !t.fb) { knockOut(w, t, by, true); return "takedown"; }
+  // From behind, bare-handed: the choke. If you went for one, a target who has half turned still counts.
+  const behind = fromBehind(by, t) || (sneak && Math.cos(Math.atan2(by.y - t.y, by.x - t.x) - t.facing) < 0.2);
+  if (behind && !weapon && !t.fb) { knockOut(w, t, by, true); return "takedown"; }
   t.hurt = (t.hurt ?? 0) + (weapon || heavy ? 3 : 1);
   if (t.hurt >= toughness(t)) { knockOut(w, t, by, false); return "ko"; }
   t.downUntil = Math.max(t.downUntil, s.tick + STAGGER_TICKS);
@@ -77,6 +79,7 @@ function stock(w: World, t: Actor): void {
     if (h % 5 === 1 && !t.pockets.some((id) => s.items[id].def === "ticket")) add("ticket");
   }
   if (isSecurity(t) && job !== "police" && job !== "armed" && h % 2 === 0) add("staff_pass");
+  if (isSecurity(t) && job !== "armed" && job !== "cleanup") add("radio");
 }
 
 /** Everything that can be taken off someone, including what they're wearing. */
@@ -148,16 +151,24 @@ export function installCombat(): void {
     },
   });
   registerVerb("finish", {
-    // Stamp on a man while he's down.
+    // Stamp on his head while he's down: it goes everywhere.
     check: (w, act, actor) => {
       const t = act.target?.k === "actor" ? w.state.actors[act.target.id] : undefined;
-      return t && knockedOut(w, t) && !t.dead && Math.hypot(t.x - actor.x, t.y - actor.y) < 1.6 ? null : "not down";
+      return t && incapacitated(w, t) && !t.splat && !t.hiddenIn && Math.hypot(t.x - actor.x, t.y - actor.y) < 1.8 ? null : "not down";
     },
     perform: (w, act, actor) => {
       const s = w.state, t = s.actors[(act.target as { id: string }).id];
-      t.dead = true; t.downUntil = Number.MAX_SAFE_INTEGER;
-      w.bus.emit({ type: "killed", t: s.tick, who: t.id, by: actor.id, x: t.x, y: t.y, footballer: !!t.fb, referee: t.off?.job === "referee", stamp: true });
-      crime(w, actor, "stamping on a man's head until he died", 3, t);
+      const wasAlive = !t.dead;
+      t.splat = s.tick;
+      actor.effects.bloody = Math.max(actor.effects.bloody ?? 0, s.tick + 60 * 240);
+      actor.facing = Math.atan2(t.y - actor.y, t.x - actor.x);
+      if (wasAlive) {
+        t.dead = true; t.downUntil = Number.MAX_SAFE_INTEGER;
+        s.stadium!.flags.killings = (s.stadium!.flags.killings ?? 0) + 1;
+        w.bus.emit({ type: "killed", t: s.tick, who: t.id, by: actor.id, x: t.x, y: t.y, footballer: !!t.fb, referee: t.off?.job === "referee", stamp: true });
+      }
+      w.bus.emit({ type: "headsplat", t: s.tick, who: t.id, by: actor.id, x: t.x, y: t.y });
+      crime(w, actor, wasAlive ? "stamping on a man's head until it burst" : "stamping on a dead man's head", wasAlive ? 4 : 3, t);
     },
   });
 }

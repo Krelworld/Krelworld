@@ -615,3 +615,13 @@ On an iPhone the hosted game crashed ("A problem repeatedly occurred") or came u
 - Sound runs at 24 kHz, and spoken lines (tannoy, stewards, voices, Grozz) decode the first time they're played.
 - If the phone still takes the graphics away, a "Reload" prompt replaces the black screen.
 The match now starts at about 134 MB of pictures and levels off around 230 MB.
+
+## Tap a person; the walkie-talkie; the head stamp; out of the office
+
+From play on an iPhone: the take-down "didn't work" on ordinary fans, he got locked in the security office after flattening the chief, and in a chase there's no time to open the bag and pick a weapon.
+- **Tap a person** (anywhere: a quick tap on the stick side counts too) for a menu of everything you could do to them with what's on you: take down from behind, punch, haymaker, a line per weapon in your pockets (stab, glass, chair, hit with), throw, talk, pickpocket, money; and, if they're down, pockets, drag, stamp, radio it in, cut off face or hands. Pick one and Grozz walks over (round the back, for a takedown), gets the weapon out and does it. Moving the stick calls it off. (Taps also now account for the phone's pixel density: they were landing in the wrong place, so tap-to-aim was off too.)
+- **Take-downs**: the main button's take-down was being turned into a punch when the button was held a moment (the hold-for-haymaker). A takedown is never a haymaker now, from behind is a choke whatever you meant, and one you went for still counts if he's half turned.
+- **The office door** opens from inside unless you're being held there and the chief is up and about; anyone with a staff pass, or dressed as a steward or police, can come and go.
+- **Walkie-talkies**: every steward carries one. Take it and, near a body: *"I've had to knock out a fan"* / *"I've had to kill a fan"*. Two stewards come from the back corridor, say they'll help cover it up, and take the body away; nobody raises the alarm, and the office door's held open. The clean-up crew never count as witnesses.
+- **Stamp on a head**: out cold or dead, it bursts: blood every way, bits, a pool, a crunch, Grozz has a word. Once per head.
+- **Memory, round two**: the source artwork stays as plain images and never goes to the graphics card, and outfits nobody has been drawn in for four seconds are let go and remade when they come back (60 MB allowance). After a tour of the whole map: 98 MB of pictures, down from 275.

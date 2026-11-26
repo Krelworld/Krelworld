@@ -420,6 +420,16 @@ export function mayPass(w: World, a: Actor, gate: string): boolean {
     return ["steward", "police", "catering", "cleaner", "medic"].includes(n.role);
   }
   // The player: only through gates opened for him, or the staff door if he looks like staff and nobody is checking.
+  // The security office: staff (or anyone with a pass) come and go. From inside, the door opens
+  // unless you're being held there and the man holding you is up and about.
+  if (gate === "officedoor") {
+    const s = w.state, inside = a.y < -48.25;
+    if ([a.hand, ...a.pockets].some((id) => id && s.items[id]?.def === "staff_pass") || ["steward", "police"].includes(appearance(s, a).role)) return true;
+    if (!inside) return false;
+    const chief = Object.values(s.actors).find((o) => o.npc?.job === "chief");
+    const guarded = !!st.detainedUntil && !!chief && !chief.dead && chief.downUntil <= s.tick && !chief.hiddenIn && Math.hypot(chief.x - a.x, chief.y - a.y) < 9;
+    return !guarded;
+  }
   if (gate === "playersdoor") return [a.hand, ...a.pockets].some((id) => id && w.state.items[id]?.def === "kit_card");
   if (gate === "staffdoor") {
     const role = appearance(w.state, a).role;

@@ -3,6 +3,7 @@
 import { alarmPointNear } from "./kickoff";
 import { sharpInHand } from "./knife";
 import { fromBehind, hidingPlaceNear, incapacitated, knockedOut } from "./combat";
+import { hasRadio, reportable } from "./coverup";
 import { horseNear, mountedOfficer, riding } from "./horse";
 import { atCellar, atGrate, atScaffold } from "./routes";
 import { atLadder, hasChute } from "./entries";
@@ -131,7 +132,7 @@ export function options(w: World, pc: Actor, picked?: string | null): Option[] {
     // Someone winding up to hit you back: catch him first.
     const windup = !!n?.retaliateAt && n.retaliateOn === pc.id && n.retaliateAt > s.tick && n.retaliateAt - s.tick <= 30;
     const label = windup ? `Counter ${name}!` : sharp ? `Stab ${name}` : glassIt ? `Glass ${name}` : chairIt ? `Chair ${name}` : weapon ? `Hit ${name} with the ${lc(itemName(hand!))}` : sneak ? `Take down ${name}` : `Punch ${name}`;
-    push(label, windup ? 60 : sneak ? 30 : -1, { verb: "strike", ...base, target: { k: "actor", id: a.id } });
+    push(label, windup ? 60 : sneak ? 30 : -1, { verb: "strike", ...base, ...(sneak && !windup ? { arg: "takedown" } : {}), target: { k: "actor", id: a.id } });
   }
 
   // Dressed as the referee, on the pitch: make some decisions.
@@ -167,7 +168,12 @@ export function options(w: World, pc: Actor, picked?: string | null): Option[] {
     const name = personName(a);
     out.push({ label: `Go through ${name}'s pockets`, priority: 55, sheet: { kind: "loot", who: a.id } });
     push(`Drag ${name}`, 50, { verb: "drag", ...base, target: { k: "actor", id: a.id } });
-    if (!a.dead) push(`Stamp on ${name}'s head`, 8, { verb: "finish", ...base, target: { k: "actor", id: a.id } });
+    if (!a.splat) push(`Stamp on ${name}'s head`, 8, { verb: "finish", ...base, target: { k: "actor", id: a.id } });
+  }
+
+  // Got a steward's walkie-talkie? Call it in, and they'll tidy up for you.
+  if (hasRadio(w, pc)) for (const b of reportable(w, pc).slice(0, 2)) {
+    push(`Radio it in: "I've had to ${b.dead ? "kill" : "knock out"} a fan"`, 48, { verb: "radio", ...base, target: { k: "actor", id: b.id } });
   }
 
   // The dead, if you've a blade.

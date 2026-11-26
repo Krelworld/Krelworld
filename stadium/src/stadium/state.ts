@@ -3,7 +3,7 @@ import type { Id, Role } from "../core/types";
 
 export type Job =
   | "dog" | "fan" | "local" | "turnstile" | "doorguard" | "gateguard" | "pitchsteward" | "patrol" | "corridor" | "chief"
-  | "police" | "barman" | "seller" | "cleaner" | "driver" | "worker" | "cook" | "player" | "official" | "armed" | "kitman" | "groundsman" | "press" | "mascot" | "para";
+  | "police" | "barman" | "seller" | "cleaner" | "driver" | "worker" | "cook" | "player" | "official" | "armed" | "kitman" | "groundsman" | "press" | "mascot" | "para" | "cleanup";
 
 export type Task =
   | { k: "go"; x: number; y: number; run?: boolean }
@@ -148,6 +148,8 @@ export interface StadiumState {
   doorPass: Id | null;
   /** One-off things that have happened. */
   flags: Record<string, number>;
+  /** Bodies called in on the radio, and the crew sent to take them away. */
+  coverups?: { body: string; crew: string[]; at: number; stage: number; by: string; from?: { x: number; y: number } }[];
   /** The police horse, once its officer is off it. */
   horse?: import("./horse").Horse;
   /** Cars going by on the ring road. */

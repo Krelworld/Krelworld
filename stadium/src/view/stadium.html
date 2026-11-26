@@ -149,6 +149,7 @@
   #hit { background: #5a0f1a; border-bottom-color: var(--red); color: #ffd0d6; }
   #fade { position: absolute; inset: 0; z-index: 5; background: #000; opacity: 0; pointer-events: none; transition: opacity .35s; }
   #fade.on { opacity: 1; }
+  #fade.door { transition: opacity .12s; }
 
   #speed { right: max(12px, env(safe-area-inset-right)); top: 92px; display: flex; gap: 2px; padding: 2px; background: var(--night); }
   #speed button { min-height: 36px; font-size: 15px; }
@@ -392,7 +393,8 @@
       <h1 id="introTitle">England are in the quarter-final.</h1>
       <p id="introText">You are outside the ground with £150 and an England shirt. Kick-off is in five and a half minutes. Help England win, any way you like.</p>
       <ul>
-        <li><b>Move:</b> drag on the left of the screen<span class="keys">, or <kbd>WASD</kbd></span>. Push further to run<span class="keys"> (<kbd>Shift</kbd>)</span>.</li>
+        <li><b>Move:</b> drag on the left of the screen<span class="keys">, or <kbd>WASD</kbd></span>. Push further to run<span class="keys"> (<kbd>Shift</kbd>)</span>. Or <b>tap the ground</b> and he walks there.</li>
+        <li><b>Tap anyone</b> for a ring of things to do to them.</li>
         <li><b>The red button</b> does the obvious thing; a red ring shows what it's aimed at<span class="keys"> (<kbd>E</kbd>)</span>. <b>More…</b> has everything else<span class="keys"> (<kbd>R</kbd>)</span>.</li>
         <li><b>Gold coins</b> mark people selling things. <b>Red marks</b> mean someone's coming for you.</li>
         <li class="keys">Throw <kbd>Q</kbd>, punch <kbd>F</kbd>, bag <kbd>Tab</kbd>, zoom <kbd>Z</kbd>. Tap or click someone to aim at them.</li>

@@ -81,11 +81,23 @@ class OpeningScene extends Phaser.Scene {
     this.input.on("pointerdown", () => this.next());
     void this.run();
   }
-  next() { if (this.nextLine && performance.now() - this.lineAt > 180) this.nextLine(); }
+  next() {
+    if (this.nextLine && performance.now() - this.lineAt > 180) this.nextLine();
+    else if (!this.nextLine && this.skipWait) this.skipWait();
+  }
 
   // ---------- helpers ----------
   mark(m: string) { (window as unknown as { __op?: string }).__op = m; if (location.search.includes("trace")) console.warn("op", m, Math.round(performance.now())); }
-  wait(ms: number) { return new Promise<void>((r) => this.time.delayedCall(ms, r)); }
+  /** A pause between beats. Next cuts a long one short, as it does a line. */
+  wait(ms: number) {
+    return new Promise<void>((r) => {
+      let done = false;
+      const end = () => { if (done) return; done = true; if (this.skipWait === end) this.skipWait = null; r(); };
+      if (ms >= 300) this.skipWait = end;
+      this.time.delayedCall(ms, end);
+    });
+  }
+  skipWait: (() => void) | null = null;
   /** Something gets smashed: bits everywhere (some stay on the floor), a jolt, a flash, a crash. */
   smash(at: { x: number; y: number }, cols: number[], sound: string, big = false) {
     this.sfx(sound, 0.9);
@@ -530,7 +542,7 @@ export function playOpening(done: () => void): void {
   const skip = document.createElement("button");
   skip.textContent = "Skip ▸";
   skip.className = "skip";
-  const BTN = { position: "absolute", bottom: "max(12px, env(safe-area-inset-bottom, 0px))", zIndex: "2", font: '700 16px "Silkscreen", monospace', padding: "10px 16px", background: "#14213d", color: "#fff", border: "2px solid #000", boxShadow: "inset -3px -3px 0 rgba(0,0,0,.4), inset 3px 3px 0 rgba(255,255,255,.15)" };
+  const BTN = { position: "absolute", bottom: "max(12px, env(safe-area-inset-bottom, 0px))", zIndex: "2", font: '700 16px "Silkscreen", monospace', padding: "10px 12px", background: "#14213d", color: "#fff", border: "2px solid #000", boxShadow: "inset -3px -3px 0 rgba(0,0,0,.4), inset 3px 3px 0 rgba(255,255,255,.15)" };
   Object.assign(skip.style, BTN, { right: "max(12px, env(safe-area-inset-right, 0px))" });
   host.appendChild(skip);
   document.body.appendChild(host);
@@ -543,13 +555,23 @@ export function playOpening(done: () => void): void {
     done();
   };
   skip.addEventListener("click", end);
-  // Next line, beside it (a tap on the film does the same).
-  const nxt = document.createElement("button");
-  nxt.textContent = "Next ▸";
-  Object.assign(nxt.style, BTN, { left: "max(12px, env(safe-area-inset-left, 0px))", background: "#2a2a2a" });
-  nxt.addEventListener("click", () => (game?.scene.getScene("opening") as OpeningScene | undefined)?.next());
-  host.appendChild(nxt);
-  skip.textContent = "Skip film ▸▸";
+  // Krelworld's film controls along the bottom: pause, next line, skip the lot (a tap on the film is next line too).
+  const bar = document.createElement("div");
+  Object.assign(bar.style, { position: "absolute", left: "0", right: "0", bottom: "max(12px, env(safe-area-inset-bottom, 0px))", display: "flex", justifyContent: "center", gap: "10px", zIndex: "2", pointerEvents: "none" });
+  const mkBtn = (label: string, bg: string) => { const b = document.createElement("button"); b.textContent = label; Object.assign(b.style, BTN, { position: "static", background: bg, pointerEvents: "auto", minWidth: "84px" }); bar.appendChild(b); return b; };
+  const scene = () => game?.scene.getScene("opening") as OpeningScene | undefined;
+  const pause = mkBtn("❚❚ Pause", "#2a2a2a");
+  let paused = false;
+  pause.addEventListener("click", () => {
+    const sc = scene(); if (!sc) return;
+    paused = !paused;
+    if (paused) { sc.scene.pause(); sc.sound.pauseAll(); pause.textContent = "▶ Play"; } else { sc.scene.resume(); sc.sound.resumeAll(); pause.textContent = "❚❚ Pause"; }
+  });
+  const nxt = mkBtn("Next ▸", "#2a2a2a");
+  nxt.addEventListener("click", () => { if (!paused) scene()?.next(); });
+  skip.remove(); Object.assign(skip.style, { position: "static", pointerEvents: "auto" }); bar.appendChild(skip);
+  host.appendChild(bar);
+  skip.textContent = "Skip ▸▸";
   // A title card with a Play button first: phones only allow sound after a tap.
   const card = document.createElement("div");
   Object.assign(card.style, { position: "absolute", inset: "0", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "18px", background: "radial-gradient(circle at 50% 40%, #2a0d10, #000 70%)", zIndex: "1" });

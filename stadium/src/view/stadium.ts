@@ -800,6 +800,42 @@ class StadiumScene extends Phaser.Scene {
   }
 
   cutDone = false;
+  /** The building you're inside, if any (rooms are shown on their own). */
+  roomId: string | null = null;
+  roomSnap = false;
+  /** What's drawn as inside: changes while the screen is black, not before. */
+  roomShown: string | null = null;
+  roomMask: Phaser.GameObjects.Graphics | null = null;
+  enterRoom(id: string | null) {
+    const first = this.roomId === null && id === null;
+    this.roomId = id;
+    if (first || !this.started) { this.roomSnap = true; this.roomShown = id; return; }
+    // Through the door: a quick dip to black, the camera already where it needs to be when it lifts.
+    const f = $("fade");
+    f.classList.add("door", "on");
+    this.audio.play("op_door" as Clip, 0.35, { minGap: 0.5 });
+    setTimeout(() => { this.roomSnap = true; this.roomShown = this.roomId; }, 120);
+    setTimeout(() => { f.classList.remove("on"); setTimeout(() => f.classList.remove("door"), 250); }, 170);
+  }
+  /** Black out everything but the room you're in (its floor and the painted back wall above it). */
+  drawRoomMask(room: BuildingSpec | undefined) {
+    if (!this.roomMask) this.roomMask = this.add.graphics().setDepth(9.9e6);
+    const g = this.roomMask.clear();
+    if (!room) return;
+    const P = this.P, v = this.cameras.main.worldView, r = room.rect, pad = 40;
+    const x0 = P.sx(r.x0, 0) - 2, x1 = P.sx(r.x1, 0) + 2, y0 = P.sy(0, r.y0) - 3.2 * P.S, y1 = P.sy(0, r.y1) + 4;
+    const X0 = v.x - pad, X1 = v.right + pad, Y0 = v.y - pad, Y1 = v.bottom + pad;
+    g.fillStyle(0x07080b, 1);
+    g.fillRect(X0, Y0, X1 - X0, Math.max(0, y0 - Y0));
+    g.fillRect(X0, y1, X1 - X0, Math.max(0, Y1 - y1));
+    g.fillRect(X0, y0, Math.max(0, x0 - X0), y1 - y0);
+    g.fillRect(x1, y0, Math.max(0, X1 - x1), y1 - y0);
+    // A soft inner edge, like light falling off at the walls.
+    for (let i = 1; i <= 4; i++) {
+      const e = i * 3;
+      g.lineStyle(3, 0x07080b, 0.22).strokeRect(x0 + e - 1.5, y0 + e - 1.5, x1 - x0 - 2 * e + 3, y1 - y0 - 2 * e + 3);
+    }
+  }
   /** One voice at a time: nobody talks over anybody (the bubbles still show). */
   voiceUntil = 0;
   speak(clip: string, vol: number, opts: { rate?: number } = {}): void {
@@ -932,6 +968,16 @@ class StadiumScene extends Phaser.Scene {
     // Whole screen pixels per art pixel, so every pixel of the art is the same size; a bigger screen shows more.
     const steps = zoomSteps();
     if (this.cine && !this.pc?.seated) return steps[Math.min(this.zoomLevel, steps.length - 1)] + this.cine.zoomAdd;
+    // Indoors: step in as far as the room still fits the screen (small shops fill it; the pub doesn't need to).
+    if (this.roomShown && !this.cine) {
+      const b = this.blds.find((x) => x.id === this.roomShown);
+      if (b) {
+        const base = steps[Math.min(this.zoomLevel, steps.length - 1)], rw = (b.rect.x1 - b.rect.x0) * this.P.S, rh = (b.rect.y1 - b.rect.y0 + 3) * this.P.S * this.P.K;
+        let z = base;
+        while (z + 1 <= base + 2 && rw * (z + 1) <= w * 0.96 && rh * (z + 1) <= h * 0.78) z += 1;
+        return z;
+      }
+    }
     // On a phone, step in during a fight, then back out.
     if (this.zoomLevel === 0 && performance.now() < this.fightZoomUntil && Math.min(window.innerWidth, window.innerHeight) < 520) return steps[0] + 1;
     return steps[Math.min(this.zoomLevel, steps.length - 1)];
@@ -1672,6 +1718,8 @@ class StadiumScene extends Phaser.Scene {
       if (a.hiddenIn || (a.fb && a.fb.status === "gone" && !a.dead)) continue;
       if (st.horse?.rider === a.id) continue; // drawn as the horse
       if (!onScreen(a.x, a.y)) continue;
+      // In a room: only the people in it.
+      if (this.roomShown && a !== pc) { const rr = this.blds.find((b) => b.id === this.roomShown)?.rect; if (rr && !(a.x > rr.x0 - 0.3 && a.x < rr.x1 + 0.3 && a.y > rr.y0 - 0.3 && a.y < rr.y1 + 0.3)) continue; }
       if (a.dead) things.push({ d: a.y - 0.4, draw: () => g.fillStyle(0x6a0a0a, 0.85).fillEllipse(P.sx(a.x, a.y), P.sy(a.x, a.y), P.S * 2.4, P.S * (P.standing ? 1.1 : 1.8)) });
       if (a.npc?.job === "dog") { things.push({ d: a.y, draw: () => this.drawDog(a, g) }); continue; }
       const st2 = this.styleOf(a), moving = Math.hypot(a.vx, a.vy) > 0.4;
@@ -1986,11 +2034,25 @@ class StadiumScene extends Phaser.Scene {
     else { tx = 0; ty = 0; }
     // Up high: frame both you and your shadow on the ground.
     if (pc) ty -= (this.liftOf(pc) + (pc.chute ? 3 : 0)) * P.S * 0.75;
+    // Indoors (Stardew's and Zelda's rooms): through the door is a fade, then the room on its own,
+    // framed in the middle of the screen, with the street blacked out round it.
+    const inNow = pc && !pc.roof && !pc.hiddenIn ? this.blds.find((b2) => pc.x > b2.rect.x0 - 0.3 && pc.x < b2.rect.x1 + 0.3 && pc.y > b2.rect.y0 - 0.3 && pc.y < b2.rect.y1 + 0.3) : undefined;
+    if ((inNow?.id ?? null) !== this.roomId) this.enterRoom(inNow?.id ?? null);
+    const room = this.blds.find((b2) => b2.id === this.roomShown);
+    if (room && pc) {
+      const r = room.rect, vw = cam.width / cam.zoom, vh = cam.height / cam.zoom;
+      const rx0 = P.sx(r.x0, 0), rx1 = P.sx(r.x1, 0), ry0 = P.sy(0, r.y0) - 3 * P.S, ry1 = P.sy(0, r.y1);
+      // The whole room in view if it fits; if not, follow him but keep the walls at the edges.
+      tx = rx1 - rx0 <= vw * 0.92 ? (rx0 + rx1) / 2 : clamp(tx, rx0 + vw * 0.46, rx1 - vw * 0.46);
+      ty = ry1 - ry0 <= vh * 0.8 ? (ry0 + ry1) / 2 : clamp(ty, ry0 + vh * 0.4, ry1 - vh * 0.4);
+    }
     const k = 1 - Math.pow(0.004, Math.min(dms, 100) / 1000);
+    if (this.roomSnap) { this.roomSnap = false; this.camX = tx; this.camY = ty; }
     this.camX += (tx - this.camX) * k; this.camY += (ty - this.camY) * k;
     const zt = this.targetZoom();
     if (Math.abs(cam.zoom - zt) > 0.001) cam.setZoom(cam.zoom + (zt - cam.zoom) * Math.min(1, k * 1.5));
     cam.centerOn(this.camX, this.camY);
+    this.drawRoomMask(room);
     if (this.trauma > 0 || this.kick.x || this.kick.y) {
       // Shake: trauma squared through smooth noise (Eiserloh), plus a kick along the blow that springs back.
       const sh = this.trauma * this.trauma * 7 * (P.S / 16), t = performance.now() / 1000;
@@ -2064,7 +2126,7 @@ class StadiumScene extends Phaser.Scene {
     // Buildings: a front and a roof from outside; just low walls once you're in.
     const cut = new Set<string>();
     for (const b of this.blds) {
-      if (free && !pc.roof && inRect(pc.x, pc.y, b.rect, 0.3)) {
+      if (free && !pc.roof && this.roomShown === b.id) {
         cut.add(b.id);
         // Inside: the back wall, painted, standing along the north side of the room.
         const wk = `w-wall-${b.id}`;
@@ -2083,7 +2145,7 @@ class StadiumScene extends Phaser.Scene {
       const { x0, y0, x1, y1 } = b.rect, H = b.height;
       if (!onScreen((x0 + x1) / 2, (y0 + y1) / 2, 500 + (x1 - x0) * 8)) continue;
       // See-through while you're round the back of it.
-      const hid = free && !pc.roof && pc.x > x0 - 0.5 && pc.x < x1 + 0.5 && pc.y < y1 && pc.y > y0 - H - 1;
+      const hid = free && !pc.roof && !this.roomShown && pc.x > x0 - 0.5 && pc.x < x1 + 0.5 && pc.y < y1 && pc.y > y0 - H - 1;
       const a = hid ? 0.4 : 1;
       if (hid) this.pcHidden = true;
       // Its shadow falls to the bottom right: light from the top left, like every other thing here.
@@ -2099,9 +2161,12 @@ class StadiumScene extends Phaser.Scene {
     }
 
     // Props and clutter, at 1:1.
+    const roomR = this.roomShown ? this.blds.find((b) => b.id === this.roomShown)?.rect : undefined;
     for (const p of this.placed.list) {
       if (!onScreen(p.x, p.y, 300)) continue;
       if (p.key === "floodlight") continue;
+      // In a room, the street's props aren't drawn (the tall ones would poke into the room's picture).
+      if (roomR && !(p.x > roomR.x0 - 0.2 && p.x < roomR.x1 + 0.2 && p.y > roomR.y0 - 0.2 && p.y < roomR.y1 + 0.2)) continue;
       const meta = this.world.base[p.key];
       if (!meta) continue;
       const key = `k-${p.key}`, tex = this.textures.get(key).getSourceImage() as HTMLCanvasElement;

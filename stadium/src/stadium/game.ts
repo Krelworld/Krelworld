@@ -76,7 +76,7 @@ export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: 
   offIds.forEach((id, i) => { const a = s.actors[id]; a.x = SPOTS.refRoom.x + (i - 1.5) * 1.6; a.y = SPOTS.refRoom.y; a.npc = newNpc("official", "referee"); });
 
   // The player, with whatever he chose to bring.
-  const pc = spawnActor(s, "protagonist", "Barry", SPOTS.arrival.x, SPOTS.arrival.y, { id: "pc", radius: 0.55, speed: 2.2, money: campaign.money });
+  const pc = spawnActor(s, "protagonist", "Grozz", SPOTS.arrival.x, SPOTS.arrival.y, { id: "pc", radius: 0.55, speed: 2.2, money: campaign.money });
   pc.facing = -Math.PI / 2;
   const load = campaign.loadout.includes("shirt_eng") ? campaign.loadout : ["shirt_eng", ...campaign.loadout];
   for (const d of load) {

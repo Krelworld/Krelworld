@@ -70,7 +70,7 @@ export function newsReport(w: World): Bulletin {
   if (f.ejections) lines.push(`${f.ejections === 1 ? "One supporter was" : `${f.ejections} supporters were`} removed from the ground, ${f.ejections > 1 ? "all of them the same man" : "and later seen trying to get back in"}.`);
   if ((f.betWinnings ?? 0) >= 100) lines.push(`Bookmakers report a single customer winning £${f.betWinnings} on the match. They have described the result as "a coincidence".`);
   if ((f.betLosses ?? 0) >= 100 && !(f.betWinnings ?? 0)) lines.push(`One supporter lost £${f.betLosses} betting on the match. He said he "knew what he was doing".`);
-  if (st.ending?.kind === "arrested") lines.push(`A 52-year-old man from Kent is helping police with their enquiries. He has asked for the score.`);
+  if (st.ending?.kind === "arrested") lines.push(`Grozz, 52, from Basildon, is helping police with their enquiries. He has asked for the score.`);
   if (lines.length < 3) lines.push(m.winner === 0 ? `Fans celebrated long into the evening.` : `Fans were described as "quiet" on the way home.`);
   lines.push(`The governing body says it is "looking into it".`);
   return { headline, lines };

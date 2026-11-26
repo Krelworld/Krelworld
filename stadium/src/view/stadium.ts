@@ -37,6 +37,7 @@ import { FirstPerson, type FpSprite } from "./fp";
 import { holeState, inCubicle, knifeOn } from "../stadium/gloryhole";
 import { incapacitated, knockedOut, lootable } from "../stadium/combat";
 import { LEADS } from "../stadium/entries";
+import { playOpening } from "./opening";
 import { CAP, ensureFloor, ensureMaterials, facade, floodlight, matOf, adBoard, banner, pixelText as pixelTextOn, PPM, roof, TILE_FILES, type BuildingSpec } from "./build";
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -265,7 +266,16 @@ class StadiumScene extends Phaser.Scene {
       : `${VENUE.ground}, against ${opp}. You have £${c.money}${kit.length ? ` and you've brought: ${kit.join(", ").toLowerCase()}` : ""}. ${notorietyText(c.notoriety)} This ground has metal detectors and face-recognition cameras at the turnstiles, and staff need a pass.${VENUE.features.penisDetector ? " And, following recent incidents, a penis detector." : ""}`;
     $("intro").hidden = false;
     this.started = false;
+    // The very first match of a session opens with the film (skippable; ?noopening for tools).
+    if (c.fixture === 0 && !this.openingPlayed && !location.search.includes("noopening")) {
+      this.openingPlayed = true;
+      $("intro").hidden = true;
+      // The ground waits, asleep, while the film plays (one game drawing at a time).
+      this.time.delayedCall(50, () => this.game.loop.sleep());
+      playOpening(() => { this.game.loop.wake(); $("intro").hidden = false; });
+    }
   }
+  openingPlayed = false;
 
   /** England are through: the news, then pack a bag for the next match. */
   continueTournament() {

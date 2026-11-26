@@ -564,3 +564,25 @@ front of the main stand. Hampers are drawn as hampers.
   - **the dog**, held up to the slot: "Bit small. Bit hairy. Go on, then." The dog comes in too.
   The steward doesn't object to the dog at this ground; there's nothing left to object to.
 - Win the final and England are world champions.
+
+## The opening: Grozz
+
+The player is **Grozz**. The first match of a session opens with a film (title card and a Play
+button first, so phones allow the sound; Skip at any point; `?noopening` turns it off for tools):
+
+- **Krunch News** on the telly, using KrelTV's news graphics ported from Krelworld (the ident with
+  the globe and ribbon, the channel bug and clock, LIVE tag, headline strap, scrolling ticker, name
+  straps), with PixelLab stills: the newsreader Penelope Gristle at her desk, England's new manager
+  **Scronson Flabbergast** at a press conference ("The key is to score goals... The mentality we
+  need is a footie mentality"), camera flashes, and a pub going wild.
+- A pint glass comes from behind the camera and goes through the screen: cracks, static, black.
+- **Grozz's front room** (PixelLab: a filthy little terrace, cans, pizza boxes, the battered
+  sofa, the smashed telly sparking on its cabinet). Grozz rants about FIFA rigging it; his kids
+  **Grozzy Jr** and **Screnton** fight over the iPad ("Me want iPad!"); he snaps it in half; his
+  wife **Shezleigh** storms in; he takes her £40 benefit money ("which I deserve anyway, for
+  being a good dad"); she screams about her nails; the kids fight over one packet of crisps; "Right.
+  I've fucking had enough." The front door slams. KNOCKOUT DAY.
+- All voiced with ElevenLabs stock voices (the newsreader, Scronson, Grozz in the same voice as
+  his barks, Shezleigh); the kids are adult takes pitched up with ffmpeg. New PixelLab characters
+  for Shezleigh and the two kids, with shouting, crying, punching and tug-of-war animations.
+- The ground waits asleep underneath while it plays, so only one game draws at a time.

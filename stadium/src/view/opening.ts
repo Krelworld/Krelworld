@@ -260,7 +260,7 @@ class OpeningScene extends Phaser.Scene {
 
     chrome.strap("Scronson Flabbergast", "England manager", 6000);
     const flash = this.time.addEvent({ delay: 900, loop: true, callback: () => { const f = this.add.rectangle(W / 2, H / 2, W, H, 0xffffff, 0.35).setDepth(40); this.tweens.add({ targets: f, alpha: 0, duration: 140, onComplete: () => f.destroy() }); } });
-    for (const [k, t] of [["s1", "Look. Erm. The key... is to score goals."], ["s2", "Obviously the other lot will be trying to score goals... as well. So we'll need to... stop that."], ["s3", "The mentality we need is a footie mentality. We'll take it one game at a time. Then... the next game."]] as const) {
+    for (const [k, t] of [["s1", "Look. Erm. T'key... is to score goals. Like."], ["s2", "Obviously t'other lot'll be trying to score goals... an' all. So we'll need to... stop that."], ["s3", "Mentality we need is a footie mentality. We'll tek it one game at a time. Then... t'next game. Champion."]] as const) {
       scron?.talk(true);
       await this.say(k, t, null);
       scron?.talk(false);

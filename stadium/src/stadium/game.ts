@@ -27,6 +27,7 @@ import { installLech } from "./lech";
 import { stepChat } from "./chatter";
 import { clampToRoof, installRoofs } from "./roofs";
 import { installMissiles, spawnBricks, stepStench } from "./missiles";
+import { installFixes, stepFixes } from "./fixes";
 import { installWitness, stepSnitches } from "./witness";
 import { installPhone, stepPhone } from "./phone";
 import { installNaked, stepNaked } from "./naked";
@@ -213,6 +214,7 @@ export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: 
   createDog(w);
   installReactions(w);
   installMissiles(w);
+  installFixes(w);
   w.bus.on((e) => { if (e.type === "knockout") noteKnockout(w, e.who, e.by); });
   installSettlement(w);
   const g: Game = { w, checkpoints: [], opp: oppKey, venue: venueId, campaign };
@@ -294,7 +296,7 @@ export function stepGame(g: Game): void {
     void wired;
     if (f.stamina <= 0.02 && !f.winded) { f.winded = 1; g.w.bus.emit({ type: "winded", t: s.tick, who: pc.id }); }
     if (f.winded && f.stamina > 0.35) f.winded = 0;
-    pc.speed = (run ? 6.4 : 4.4) * (wired ? 1.15 : 1) * (drunk ? 0.92 : 1) * (f.winded ? 0.75 : 1) * (pc.dragging ? 0.45 : 1);
+    pc.speed = (run ? 7.3 : 5.2) * (wired ? 1.15 : 1) * (drunk ? 0.92 : 1) * (f.winded ? 0.75 : 1) * (pc.dragging ? 0.45 : 1);
     if (pc.bike) pc.speed = (wantRun ? BIKE_SPRINT : BIKE_SPEED) * (drunk ? 0.85 : 1);
   }
   const reins = takeReins(w);
@@ -329,6 +331,7 @@ export function stepGame(g: Game): void {
   stepCoverups(w);
   stepChat(w);
   stepStench(w);
+  stepFixes(w);
   stepSnitches(w);
   stepPhone(w);
   stepNaked(w);

@@ -34,6 +34,10 @@ export function newsReport(w: World): Bulletin {
   else lines.push(`The match was still in progress when our reporter was asked to leave the building.`);
 
   const phantom = (m.physicalGoals[0] + m.physicalGoals[1]) - (m.score[0] + m.score[1]);
+  // The fixes, as the news saw them.
+  if (f.fixdone_star) lines.push(`${opp}'s star player took no meaningful part in the match. His agent described the afternoon as "a series of events".`);
+  if (f.fixdone_keeper) lines.push(`${opp}'s goalkeeper had what pundits are calling "a curious game", and what the betting authorities are calling "a matter of interest".`);
+  if (f.fixdone_ref) lines.push(`The referee's performance is to be reviewed. So is the referee.`);
   if (phantom > 0) lines.push(`The ball crossed the line ${phantom === 1 ? "once" : `${phantom} times`} without a goal being awarded. Officials say this is "normal".`);
   if (f.impostorRulings) lines.push(`${f.impostorRulings === 1 ? "One decision was" : `${f.impostorRulings} decisions were`} made by a referee whom the governing body says it did not appoint.`);
   if (f.twoRefs) lines.push(`For a period, both referees considered the other to have been dismissed.`);

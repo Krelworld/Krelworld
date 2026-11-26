@@ -77,6 +77,9 @@ export const FAN_BANTER = [
   "The stewards have got earpieces. Who's talking to them? Think about it.",
   "I drink to forget. I forget why. So I drink.",
   "Mate of mine got in the back on the beer lorry. Nobody ever checks it.",
+  "Their number 10 dives. Somebody should give him something to dive about.",
+  "Their keeper put money on himself to concede in '18. Swear down.",
+  "That ref has his tea from the same urn every half-time. Creature of habit.",
 ];
 export const FAN_REPLIES = [
   "Too right.", "Shut up, Dave.", "You said that last week.", "That's what I've been saying!", "Is that true?",
@@ -160,6 +163,15 @@ const HOSTILE: Line[][] = [
 ];
 /** Useful things, each worded so the lead it points at gets written down. */
 const TIPS: string[] = [
+  // The fixes (fixes.ts): what you'd need to know to rig the match.
+  "Their number 10's the only one who can play. Take him out and they've got nothing.",
+  "Their lot all drink out of their own cooler by the tunnel before kick-off. Slip something in that and they're on the bog all night.",
+  "Their number 10's always last on their coach outside the team hotel. On his own. Thinks he's a film star.",
+  "You can see the whole pitch from the stand roof. Anyone up there with a brick could do some damage.",
+  "Their keeper likes a bet. Everyone knows it. Wave a hundred quid at him and see.",
+  "Their goalie warms up in the goalmouth on his own before kick-off. Nobody near him.",
+  "Ref's bent. Fifty quid'd do it. A hundred and fifty, he'll give us a penalty.",
+  "Spare ref's kit just hangs in the officials' room down the tunnel. Black's slimming, mind.",
   "My mate swears the drain runs from the pub cellar under the ground. But the cellar's seized solid. Needs a wrench.",
   "Wally the kit man drinks in the pub between runs. That swipe card of his gets you in the back.",
   "Kit lads wheel a laundry hamper straight into the kit room. Nobody looks in a hamper of dirty pants.",

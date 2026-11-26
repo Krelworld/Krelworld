@@ -13,7 +13,7 @@ export const KIT_KEYS = ["barrier", "bench", "bigscreen", "bin", "bollard", "bur
   "shed", "skip", "parkedcar", "hamper", "medbed", "grate", "hatch", "scaffold", "piestand", "obtruck", "horsebox", "ladder", "kitbag", "canopy",
   "roofvent", "gantry", "skylight", "foodkiosk", "condiments", "tvpost", "urinal", "sinks", "massage", "tactics", "icebath", "boots", "showers", "kitpegs", "cornerflag", "pubchair", "detector",
   "kegs", "busstop", "manhole", "chippaper", "pigeons", "gritbin", "flagpole", "newsboard", "scarf", "doormat", "smokerbin",
-  "headless_fan", "headless_steward", "headless_woman", "bricks", "window", "window_broken", "ladder_s"] as const;
+  "headless_fan", "headless_steward", "headless_woman", "bricks", "window", "window_broken", "ladder_s", "door_shut", "door_open", "door_players"] as const;
 export type KitKey = (typeof KIT_KEYS)[number];
 /** Eight-way pictures (S, SE, E, NE, N, NW, W, SW in a row) for things that turn. */
 export const WORLD_8 = ["coach", "lorry"] as const;
@@ -54,7 +54,7 @@ export class WorldArt {
     for (const k of Object.keys(BLD_ART)) scene.load.image(`w-bld-${k}`, `world/bld-${k}.png`);
     for (const k of ["a", "b", "c"]) scene.load.image(`w-bay-${k}`, `world/bld-bay-${k}.png`);
     scene.load.spritesheet("fx-headburst", "world/fx-headburst.png", { frameWidth: 64, frameHeight: 64 });
-    for (const k of ["pub", "charity", "surplus", "bookies", "hotel"]) scene.load.image(`w-wall-${k}`, `world/bld-wall-${k}.png`);
+    for (const k of ["pub", "charity", "surplus", "bookies", "hotel", "cabin", ...ROOM_WALLS]) scene.load.image(`w-wall-${k}`, `world/bld-wall-${k}.png`);
     scene.load.spritesheet("w-coach8", "world/coach-8.png", { frameWidth: 160, frameHeight: 160 });
     scene.load.spritesheet("w-lorry8", "world/lorry-8.png", { frameWidth: 128, frameHeight: 128 });
     scene.load.spritesheet("w-bike8", "world/bike-8.png", { frameWidth: 64, frameHeight: 64 });
@@ -88,6 +88,9 @@ export class WorldArt {
 const r = (x0: number, y0: number, x1: number, y1: number) => ({ x0, y0, x1, y1 });
 
 /** The buildings on the street, quarter-final layout; the semi-final mirrors them. */
+/** Rooms under the stands with a painted back wall (their art is bld-wall-<area id>.png). */
+export const ROOM_WALLS = ["security", "kitchen", "medical", "kitroom", "ref_room"];
+
 export function buildings(venue: Venue): BuildingSpec[] {
   const out: BuildingSpec[] = [
     { id: "pub", rect: r(-62.5, 61.5, -34, 80.5), height: 4.2, mat: "brick", roof: "slate", front: "pub", chimney: true,

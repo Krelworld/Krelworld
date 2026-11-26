@@ -5,6 +5,9 @@ import type { Actor } from "../src/core/types";
 import { dispatch } from "../src/core/verbs";
 import { createGame, stepGame, type Game } from "../src/stadium/game";
 import { SPOTS } from "../src/stadium/layout";
+import { say } from "../src/stadium/npc";
+import { theirStar } from "../src/stadium/fixes";
+import { removePlayer } from "../src/football/api";
 
 const pcOf = (g: Game) => g.w.state.actors[g.w.state.stadium!.pc];
 const find = (g: Game, pred: (a: Actor) => boolean) => Object.values(g.w.state.actors).find(pred)!;
@@ -157,4 +160,18 @@ test("the rifle: three rounds, a kill, armed police called", () => {
   assert.equal(dispatch(g.w, { verb: "shoot", actor: pc.id, target: { k: "actor", id: t.id } }).ok, true);
   assert.equal(rf.ammo, 2);
   assert.ok(s.stadium!.flags.armedAt);
+});
+
+test("fixes: overhearing reveals one, and any way of doing it counts", () => {
+  const g = createGame("fix1"), s = g.w.state, pc = pcOf(g), ev = events(g);
+  const fan = find(g, (a) => a.npc?.job === "fan" && !a.npc.shop);
+  fan.x = pc.x + 2; fan.y = pc.y;
+  // Hearing about their keeper's habit.
+  say(g.w, fan, "Their keeper likes a bet. Everyone knows it. Wave a hundred quid at him and see.");
+  assert.ok(s.stadium!.flags.fix_keeper && s.stadium!.flags.fixw_keeper_bribe);
+  // Their star off the pitch, however it happened: done, "your way" (nobody told you how).
+  removePlayer(g.w, theirStar(g.w)!.id, "injured");
+  run(g, 1);
+  const d = ev.find((e) => e.type === "fix_done" && e.id === "star");
+  assert.ok(d && d.ownWay);
 });

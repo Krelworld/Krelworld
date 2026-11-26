@@ -724,3 +724,21 @@ Researched first: the MGS alert/evasion/caution chain and its "!" sting, MGSV's 
 Looked at how top-down games handle going indoors: most (Zelda, Pokémon, Stardew Valley) keep interiors as separate maps behind a door with a fade; roof cut-aways (fading the roof on entry) work for single-room buildings but leave the street hanging round the room, which is what felt odd here: the front simply vanished and the shopkeeper you'd seen outside was suddenly in a different picture. The world here has to stay one place (people come and go through the doors, stewards chase you in), so it's a hybrid: through the door is a quick dip to black, the camera already framing the room when it lifts (zoomed in as far as the room still fits); everything outside the room's walls is blacked out, the street's props and people aren't drawn, and the building's front only changes while the screen is black. Coming out is the same in reverse.
 
 The opening film now has Krelworld's control bar along the bottom: Pause, Next (cuts the line short, or the pause between beats) and Skip. The start card now says you can tap the ground to walk and tap anyone for the ring.
+
+## Fixes (mission stories), Scronson's voice, pausing, walking speed, back-of-house art
+
+**Fixes.** Hitman's mission stories, kept systemic so they don't crowd out the sandbox:
+- **Three per match, about the result:** their star, their keeper, the referee. Each is a lever the football simulation already responds to (the measured win rates near the top of this file).
+- **Never handed to you.** You find each one by overhearing it: fans' gossip, the barman, a cleaner, Mad Mick. Each new thing you hear adds a way of doing it to the menu's Fixes page. No waypoints and no markers, so you still have to go and find them ("Nobody will tell you how").
+- **Judged by outcome, not steps.** The game checks whether their number 10 is off the pitch, whether their keeper's been got at, whether the referee's been bent, drugged, decked or replaced. Any method counts, including ones nobody told you about ("Fixed, your way").
+- **They produce chaos rather than replace it.** Every listed way is an existing system: framing and tip-offs, the dosed cooler, the bus, the roof, bribery, the tea urn, the ref's kit, Mad Mick. Each has its own witnesses, heat and knock-on effects.
+- The evening news reports what happened to the star, the keeper and the referee.
+
+**Other changes.**
+- **Scronson** is re-recorded with a Yorkshire voice from the ElevenLabs library, slow and gormless, with Yorkshire contractions in his lines.
+- **Pausing:** the world now pauses while the bag, the look card or the phone is open, and carries on at the same speed when you close them.
+- **Walking speed:** walking goes from 4.4 to 5.2 m/s and running from 6.4 to 7.3 m/s.
+- **Back-of-house art:**
+  - painted back walls for the security office (a CCTV bank, the stadium plan, mugshots, lockers), the kitchen, the medical room, the kit room, the officials' room and the stewards' cabin;
+  - proper door pictures: a steel staff door that stands open, lit, when it's open, and the players' double doors under the three lions.
+- **Pseudo-3D buildings: not doing it.** The view is already the three-quarter oblique view that top-down pixel games use (fronts with height, roofs, things behind walls hidden). The flat look came from the bits left as plain blocks, not from the projection. A perspective or parallax pass would fight the 1:1 pixel art (sheared pixels, shimmering edges) and phone performance, for less gain than painting the rooms and doors properly. The optional first-person view stays for the moments that want it (the scope).

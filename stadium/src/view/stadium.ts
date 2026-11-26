@@ -16,6 +16,7 @@ import { Announcer } from "../stadium/announcer";
 import { isNaked } from "../stadium/naked";
 import { roofHeight, roofs } from "../stadium/roofs";
 import { RIFLE_RANGE, rifleOf, windowBroken, windows } from "../stadium/missiles";
+import { FIXES, fixesDone } from "../stadium/fixes";
 import { BOXER_FEE, burnerOn, knows } from "../stadium/phone";
 import { isSecurity } from "../stadium/security";
 import { aimThrow, bribeWhy, itemName, itemOptions, looksOutOfPlace, options, personName, primary, throwTarget, type Option } from "../stadium/context";
@@ -50,6 +51,7 @@ import { findPath } from "../stadium/nav";
 import { LEADS } from "../stadium/entries";
 import { playOpening } from "./opening";
 import { assetURL, loadPacks } from "./packs";
+import { ROOM_WALLS } from "./world";
 import { CAP, ensureFloor, ensureMaterials, facade, floodlight, matOf, adBoard, banner, pixelText as pixelTextOn, PPM, roof, TILE_FILES, type BuildingSpec } from "./build";
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -1036,6 +1038,7 @@ class StadiumScene extends Phaser.Scene {
 
   // ---------- The rifle ----------
   roofHinted = false;
+  fixHinted = false;
   scoped = false;
   scopeOwnFp = false;
   steadyFrom = 0;
@@ -1448,6 +1451,18 @@ class StadiumScene extends Phaser.Scene {
       if (!onScreen(wl.x + wl.w / 2, wl.y + wl.h / 2, 200 + Math.max(wl.w, wl.h) * P.S / 2)) continue;
       if (world.hides(wl) || (sprites && wl.prop)) continue;
       const open = wl.gate && st.gates[wl.gate] && st.gates[wl.gate].until > tick;
+      // Doors that are doors: a steel staff door (standing open when it's open), the players' double doors.
+      const doorKind = wl.gate === "playersdoor" ? "door_players" : wl.gate === "officedoor" || wl.gate === "staffdoor" ? (open ? "door_open" : "door_shut") : null;
+      if (sprites && doorKind && this.textures.exists(`k-${doorKind}`)) {
+        const dk = `k-${doorKind}`, dx = wl.x + wl.w / 2, dy = wl.y + wl.h, id = `door-${wl.gate}`;
+        things.push({ d: dy + 0.02, draw: () => {}, spr: (dep) => {
+          let im = this.worldSprites.get(id) as Phaser.GameObjects.Image | undefined;
+          if (!im) { im = this.add.image(0, 0, dk).setOrigin(0.5, 1); this.worldSprites.set(id, im); }
+          this.worldSeen.add(id);
+          im.setTexture(dk).setPosition(Math.round(P.sx(dx, dy)), Math.round(P.sy(dx, dy))).setDepth(dep).setVisible(true).setAlpha(1).setScale(P.standing && P.S === PPM ? 1 : P.S / PPM);
+        } });
+        if (open) continue;
+      }
       if (open) { things.push({ d: wl.y + wl.h, draw: () => g.fillStyle(0x88cc88, 0.35).fillRect(...P.rect(wl.x, wl.y, wl.w, wl.h)) }); continue; }
       if (!P.standing || !sprites) {
         things.push({ d: wl.y + wl.h, draw: () => {
@@ -2122,6 +2137,23 @@ class StadiumScene extends Phaser.Scene {
       this.worldSeen.add(id);
       return im.setVisible(true).setAlpha(1).setFlipX(false).setCrop();
     };
+
+    // The rooms under the stands: a painted back wall along the north side (CCTV in the security
+    // office, pans in the kitchen, shirts in the kit room), standing in front of the plain wall.
+    for (const id of ROOM_WALLS) {
+      const ar = AREAS.find((x) => x.id === id), wk = `w-wall-${id}`;
+      if (!ar || !this.textures.exists(wk) || !onScreen(ar.x + ar.w / 2, ar.y, 400 + ar.w * 16)) continue;
+      const wy = ar.y + 0.5;
+      things.push({ d: wy + 1e-3, draw: () => {}, spr: (dep) => {
+        let ts = this.shellSprites.get(`awall-${id}`);
+        const wpx = Math.round(ar.w * S), hpx = 3 * S;
+        if (!ts) { ts = this.add.tileSprite(0, 0, wpx, hpx, wk).setOrigin(0, 1); this.shellSprites.set(`awall-${id}`, ts); }
+        this.shellSeen.add(`awall-${id}`);
+        const src = this.textures.get(wk).getSourceImage() as HTMLImageElement;
+        ts.setTileScale(wpx / src.width, hpx / src.height);
+        ts.setPosition(Math.round(P.sx(ar.x, 0)), Math.round(P.sy(0, wy))).setDepth(dep).setVisible(true).setAlpha(1).setFlipX(VENUE.id === "sf");
+      } });
+    }
 
     // Buildings: a front and a roof from outside; just low walls once you're in.
     const cut = new Set<string>();
@@ -2830,14 +2862,20 @@ class StadiumScene extends Phaser.Scene {
   }
 
   // ---------- Sheets ----------
+  /** Rummaging in the bag, changing, on the phone: the world waits (the speed it was going at comes back after). */
+  static readonly PAUSING = new Set(["bag", "wardrobe", "phone"]);
+  pausedFrom: number | null = null;
   sheet(kind: string, html: string) {
     this.closeRing();
+    if (StadiumScene.PAUSING.has(kind)) { if (this.pausedFrom === null && this.speed !== 0) { this.pausedFrom = this.speed; this.setSpeed(0); } }
+    else this.unpauseSheet();
     const el = $("sheet");
     this.sheetKind = kind;
     el.innerHTML = html + `<button class="close" data-close="1">Close</button>`;
     el.hidden = false;
   }
-  closeSheet() { $("sheet").hidden = true; this.sheetKind = null; }
+  closeSheet() { $("sheet").hidden = true; this.sheetKind = null; this.unpauseSheet(); }
+  unpauseSheet() { if (this.pausedFrom !== null) { const sp = this.pausedFrom; this.pausedFrom = null; this.setSpeed(sp); } }
 
   /** How you get into the stands, made obvious (real grounds: big block letters at every vomitory,
    *  a colour per stand, light from the pitch at the end of the tunnel). Each gangway gets a pool of
@@ -3505,6 +3543,9 @@ class StadiumScene extends Phaser.Scene {
       case "guard_aside": this.hint(`The police have taken ${nm(e.who)} aside for a word. His post's empty.`); break;
       case "radio_decoy": this.audio.play("radio_squelch", 0.8); this.hint(e.rumbled ? "\"Who is this? Identify yourself.\" They're on to you." : e.sent ? `"All units to ${e.to}." ${e.sent} steward${e.sent > 1 ? "s" : ""} on their way.` : "\"Received.\" Nobody near enough to go."); break;
       case "boxer_done": this.hint("Brendan's done him. Fifty quid well spent."); this.tick("boxer"); break;
+      case "fix_found": this.toastTick(`★ A fix: ${e.title}`); this.audio.play("chime", 0.6, { rate: 0.8 }); if (!this.fixHinted) { this.fixHinted = true; setTimeout(() => this.hint("Something to fix. What you hear about it goes in the menu (☰), under Fixes. Any way you manage it counts."), 2600); } break;
+      case "fix_way": this.toastTick("✎ Noted"); break;
+      case "fix_done": this.toastTick(e.ownWay ? `✓ FIXED, YOUR WAY: ${e.title}` : `✓ FIXED: ${e.title}`); this.audio.play("chime", 0.9, { rate: 1.2 }); this.audio.play("crowd_ooh", 0.4, { minGap: 2 }); break;
       case "tipoff": if (e.phone && e.by === pcId) setTimeout(() => this.hint("Control's sending an officer."), 3500); break;
     }
   }
@@ -3553,10 +3594,22 @@ class StadiumScene extends Phaser.Scene {
     const cps = this.game2.checkpoints;
     this.sheet("menu", `<h2>Paused</h2><p>Go back to a checkpoint. Everything since then is undone, and the match will not play out the same way.</p>
       <div class="list">${cps.map((c) => `<button data-cp="${c.id}">${esc(c.label)}</button>`).join("")}<button data-new="1">Start a new match day</button><button data-mute="1">${this.audio.muted ? "Sound: off" : "Sound: on"}</button></div>
+      <h2>Fixes (${fixesDone(this.w)}/${FIXES.length})</h2><div class="log">${this.fixesHtml()}</div>
       <h2>To do (${this.mayhemDone.size}/${StadiumScene.MAYHEM.length})</h2><div class="log">${StadiumScene.MAYHEM.map((m) => `<p>${this.mayhemDone.has(m.id) ? "<b>✓</b> <s>" + esc(m.text) + "</s>" : "☐ " + esc(m.text)}</p>`).join("")}</div>
       <h2>Ways in you've heard about</h2><div class="log">${LEADS.filter((l) => this.s.stadium!.flags[`lead_${l.id}`]).map((l) => `<p><b>${esc(l.title)}</b> ${esc(l.how)}</p>`).join("") || "<p>Nothing yet. Talk to people: locals, staff, the man at the shed.</p>"}</div>
       <h2>What you've heard</h2><div class="log">${this.log.slice(-12).reverse().map((l) => `<p><b>${esc(l.src)}</b> ${esc(l.text)}</p>`).join("") || "<p>Nothing yet.</p>"}</div>`);
     this.setSpeed(0);
+  }
+
+  /** The fixes you've heard about, the ways in you know, and what's done. Nothing you haven't heard. */
+  fixesHtml(): string {
+    const f = this.s.stadium!.flags;
+    const known = FIXES.filter((fx) => f[`fix_${fx.id}`] || f[`fixdone_${fx.id}`]);
+    if (!known.length) return "<p>Nothing yet. Their best player, their keeper, the referee: someone round here will know something. Listen.</p>";
+    return known.map((fx) => {
+      const done = !!f[`fixdone_${fx.id}`], ways = fx.ways.filter((wy) => f[`fixw_${fx.id}_${wy.id}`]);
+      return `<p>${done ? "<b>✓</b> <s>" : "☐ <b>"}${esc(fx.title(this.w))}${done ? "</s>" : "</b>"}</p>${ways.map((wy) => `<p class="way">· ${esc(wy.text)}</p>`).join("") || (done ? "" : `<p class="way">· Nobody's said how. Keep listening, or find your own way.</p>`)}`;
+    }).join("");
   }
 
   showEnding() {

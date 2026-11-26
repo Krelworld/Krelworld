@@ -33,6 +33,7 @@ import { BOSS_TEXT } from "../../content/bosses";
 import { voice } from "../audio/Voice";
 import * as Juice from "../gfx/Juice";
 import { playColonEntry } from "./side/colonEntry";
+import { playDonutToilet } from "./side/donutToilet";
 import { playCine } from "../gfx/Cine";
 import { enemyDamageMult, enemyHpMult, maxHp, bump, maxBottles, maxKrezz } from "../systems/stats";
 import { diffFor, scaleCount } from "../systems/difficulty";
@@ -246,6 +247,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     this.paused = false;
     this.dying = false;
     this.picking = false;
+    this.graceUntil = 0;
     this.slowmo = 1;
     // (a slow-mo moment cut short by a scene change mustn't leave the next room in slow motion)
     this.time.timeScale = 1;
@@ -1269,21 +1271,31 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     }
     const chz = this.bros.find((b) => b.id === "SANCHZ");
     chz?.spr.setVisible(false);
-    await this.talk([
-      dir("You push the door. It isn't locked. It was never locked. Some part of him wanted to be found."),
-      dir("The Job Centre staff toilet has been transformed. Tealights on the cistern. Rose petals in the sink. A small speaker playing slow jams."),
-      dir("And there is SanChz. And there, cradled tenderly in both of his hands, is a jam donut."),
-      say("SANCHZ", "…"),
-      say("SANCHZ", "Yeghhhh! You fucking CUNTS! Fuck you J.Q. ! Erotic weekend in stockport"),
+    // a full-frame cutscene over the room (scenes/side/donutToilet.ts): the fight is frozen under it, mid-wave or not;
+    // each line's `fx` is a stage cue for the picture (the words are the scene's own)
+    this.busy = true;
+    const t0 = Date.now();
+    await playDonutToilet(this, [
+      dir("You push the door. It isn't locked. It was never locked. Some part of him wanted to be found.", { fx: "dn_door" }),
+      dir("The Job Centre staff toilet has been transformed. Tealights on the cistern. Rose petals in the sink. A small speaker playing slow jams.", { fx: "dn_room" }),
+      dir("And there is SanChz. And there, cradled tenderly in both of his hands, is a jam donut.", { fx: "dn_reveal" }),
+      say("SANCHZ", "…", { fx: "dn_freeze" }),
+      say("SANCHZ", "Yeghhhh! You fucking CUNTS! Fuck you J.Q. ! Erotic weekend in stockport", { fx: "dn_rage" }),
       say(G.s.player, "It looks like you've got your cock in a jam donut, mate."),
-      say("SANCHZ", "…It's exactly what it looks like."),
-      dir("The donut moans in pleasure"),
-      say("SANMIK", "(bursting in) YEEE — oh. Oh SanChz. Not again. Not in the Job Centre.", { variants: { MIKEY: "YEEE — oh. Oh SanChz. Not again. Not in the Job Centre." } }),
-      say("SANCHZ", "YEGHHH. Love shagging jam donuts!!"),
+      say("SANCHZ", "…It's exactly what it looks like.", { fx: "dn_resume" }),
+      dir("The donut moans in pleasure", { fx: "dn_moan" }),
+      say("SANMIK", "(bursting in) YEEE — oh. Oh SanChz. Not again. Not in the Job Centre.", { variants: { MIKEY: "YEEE — oh. Oh SanChz. Not again. Not in the Job Centre." }, fx: "dn_burst" }),
+      say("SANCHZ", "YEGHHH. Love shagging jam donuts!!", { fx: "dn_love" }),
       gabor("Was that allowed? I don't think that was allowed. Report me. No, report HIM. Report both of us."),
-      dir("Outside, the whole Job Centre shakes. Something enormous is rolling across the car park, screaming a name."),
-      say("SANMIK", "…SanChz. Whose donut is that."),
+      dir("Outside, the whole Job Centre shakes. Something enormous is rolling across the car park, screaming a name.", { fx: "dn_shake" }),
+      say("SANMIK", "…SanChz. Whose donut is that.", { fx: "dn_still" }),
     ]);
+    if (G.rt.timerEnd) G.rt.timerEnd += Date.now() - t0;
+    this.controls?.swallow();
+    this.busy = false;
+    // a moment to get your bearings if you walked out of it into a fight: nothing can hurt you just yet
+    this.graceUntil = this.now() + 1500;
+    this.player.iframesUntil = Math.max(this.player.iframesUntil, this.now() + 1500);
     chz?.spr.setVisible(true);
     G.s.flags.sm_donut = true;
     this.checkExit();
@@ -1330,10 +1342,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
         return;
       }
       case "donut":
-        if (!this.roomCleared) {
-          await this.talk([dir("ENGAGED. From inside: a soft, rhythmic creaking. And… is that Marvin Gaye?"), say("SANCHZ", "(muffled) Busy. Mork. Clear the Job Centre first.")]);
-          return;
-        }
+        // (open any time, mid-fight too: the room freezes under the cutscene, see donutScene)
         await this.donutScene();
         return;
       case "kick_gabor":
@@ -3696,8 +3705,12 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
   /** Real-clock time until which you can't be hurt: you're mid weapon-swap (tap or picker). */
   private swapSafeUntil = 0;
 
+  /** Fight-clock time until which nothing hurts you (just out of a cutscene played mid-fight: the Job Centre toilet). */
+  private graceUntil = 0;
+
   damagePlayer(amount: number, from?: { x: number; y: number }, opts: { unblockable?: boolean; label?: string } = {}) {
     if (this.dying || this.busy) return;
+    if (this.now() < this.graceUntil) return;
     // nothing touches you while you're changing weapon
     if (this.picking || performance.now() < this.swapSafeUntil) return;
     const now = this.now();

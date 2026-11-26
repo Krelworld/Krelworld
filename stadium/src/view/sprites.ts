@@ -10,7 +10,7 @@ import EXTRAS from "../../assets/art/extras.json";
 export const EXTRA: Record<string, string[]> = EXTRAS as Record<string, string[]>;
 
 export const CELL = 88;
-export const BASES = ["fan", "steward", "england", "portugal", "referee", "fanbare", "lad", "woman", "oldboy", "police", "suit", "bigman", "horse", "horsefree", "horsefan", "mascot"] as const;
+export const BASES = ["fan", "steward", "england", "portugal", "referee", "fanbare", "fandress", "fannaked", "lad", "woman", "oldboy", "police", "suit", "bigman", "horse", "horsefree", "horsefan", "mascot"] as const;
 export type Base = (typeof BASES)[number];
 /** Pixel rows (within a cell) of the figure's feet and the top of the head. */
 export const FEET = 73, HEAD = 13;
@@ -33,6 +33,73 @@ export interface Recolour {
   skin?: number;
   /** Trousers off (the fat fan with no shirt): everything from the waist to the ankles goes this skin tone. */
   naked?: number;
+  /** A stick-on moustache, painted on the face in every frame (so it moves with the head). */
+  tache?: number;
+  /** A wig, painted over the head in every frame; `wigLong` 1 for the long one down to the shoulders. */
+  wig?: number;
+  wigLong?: number;
+}
+
+/** Paint a moustache and a wig onto every frame of a sheet, found from the figure itself: the top
+ *  of the head and its width a few rows down, and which way the frame faces (sheets run S, SE, E,
+ *  NE, N, NW, W, SW: across for standing, down the rows for animations). A face that's turned
+ *  away gets no moustache; a wig is all you see from behind. */
+function dressHead(cx: CanvasRenderingContext2D, cv: HTMLCanvasElement, sheet: string, rc: Recolour, C: number): void {
+  if (rc.tache === undefined && rc.wig === undefined) return;
+  const img = cx.getImageData(0, 0, cv.width, cv.height), d = img.data, W = cv.width;
+  const cols = Math.floor(cv.width / C), rows = Math.floor(cv.height / C);
+  const op = (x: number, y: number) => d[(y * W + x) * 4 + 3] > 100;
+  const put = (x: number, y: number, c: number, k = 1) => {
+    if (x < 0 || y < 0 || x >= W || y >= cv.height) return;
+    const i = (y * W + x) * 4, [r, g, b] = rgb(c);
+    d[i] = Math.min(255, r * k); d[i + 1] = Math.min(255, g * k); d[i + 2] = Math.min(255, b * k); d[i + 3] = 255;
+  };
+  for (let row = 0; row < rows; row++) for (let col = 0; col < cols; col++) {
+    const dir = sheet === "rot" ? col : row;
+    // Lying down (the back half of a fall): the head's not at the top any more; leave it.
+    if (sheet === "fall" && col >= 4) continue;
+    const x0 = col * C, y0 = row * C;
+    let top = -1;
+    for (let y = y0; y < y0 + C && top < 0; y++) for (let x = x0; x < x0 + C; x++) if (op(x, y)) { top = y; break; }
+    if (top < 0) continue;
+    const span = (y: number) => { let l = -1, r = -1; for (let x = x0; x < x0 + C; x++) if (op(x, y)) { if (l < 0) l = x; r = x; } return [l, r]; };
+    const [hl, hr] = span(top + 6), hc = (hl + hr) / 2, hw = hr - hl;
+    if (hl < 0 || hw > 26) continue;
+    const front = dir === 0 || dir === 1 || dir === 7, back = dir === 3 || dir === 4 || dir === 5;
+    const toward = dir === 1 || dir === 2 || dir === 3 ? 1 : dir === 5 || dir === 6 || dir === 7 ? -1 : 0;
+    if (rc.wig !== undefined) {
+      const deep = back ? 13 : 5;
+      for (let y = top; y <= top + deep; y++) {
+        const [l, r] = span(y);
+        if (l < 0) continue;
+        for (let x = l; x <= r; x++) {
+          // From the side, the face side stays bare below the fringe.
+          if (!back && y > top + 3 && toward !== 0 && (x - hc) * toward > hw * 0.15) continue;
+          const shade = x === l || x === r || y === top ? 0.55 : (x + y) % 3 === 0 ? 0.85 : 1;
+          put(x, y, rc.wig, shade);
+        }
+      }
+      if (rc.wigLong) {
+        // Down past the ears to the shoulders: a curtain each side (round the back from behind).
+        for (let y = top + 4; y <= top + 20; y++) {
+          if (back) { for (let x = Math.round(hl - 1); x <= Math.round(hr + 1); x++) put(x, y, rc.wig, (x + y) % 4 === 0 ? 0.8 : 0.95); continue; }
+          for (const side of [-1, 1]) {
+            if (toward === side) continue;
+            const ex = side < 0 ? hl - 1 : hr + 1;
+            for (let k = 0; k < 3; k++) put(Math.round(ex - side * k), y, rc.wig, k === 0 ? 0.6 : 0.95);
+          }
+        }
+      }
+    }
+    if (rc.tache !== undefined && !back) {
+      // Upper lip: about two-thirds of the way down the head; nudged the way he's facing.
+      const ly = top + 12, mx = Math.round(hc + toward * (toward && !front ? hw * 0.38 : hw * 0.12));
+      const half = front && toward === 0 ? 3 : 2;
+      for (let x = mx - half; x <= mx + half; x++) { put(x, ly, rc.tache, 1); put(x, ly + 1, rc.tache, 0.7); }
+      put(mx - half - 1, ly + 1, rc.tache, 0.7); put(mx + half + 1, ly + 1, rc.tache, 0.7);
+    }
+  }
+  cx.putImageData(img, 0, 0);
 }
 
 const rgb = (c: number) => [(c >> 16) & 255, (c >> 8) & 255, c & 255];
@@ -78,7 +145,7 @@ function classify(base: Base, r: number, g: number, b: number, y: number, lying 
     case "fanbare":
       if (y > 53 && y <= 66 && h > 190 && h < 250 && l > 0.08) return "legs";
       return null;
-    case "oldboy": case "police": case "suit": case "bigman": case "horse": case "horsefree": case "horsefan": case "mascot":
+    case "oldboy": case "police": case "suit": case "bigman": case "horse": case "horsefree": case "horsefan": case "mascot": case "fandress": case "fannaked":
       return null;
     case "fan":
     case "england": {
@@ -112,6 +179,7 @@ const REF: Record<Base, Partial<Record<keyof Recolour, number>>> = {
   steward: { vest: 0.82, legs: 0.15, skin: 0.7 },
   referee: { shirt: 0.12, skin: 0.7 },
   fanbare: { legs: 0.5, skin: 0.62 },
+  fandress: { skin: 0.62 }, fannaked: { skin: 0.62 },
   lad: { shirt: 0.92, trim: 0.15, skin: 0.7 },
   woman: { shirt: 0.92, trim: 0.15, skin: 0.72 },
   oldboy: { skin: 0.7 }, police: { skin: 0.7 }, suit: { skin: 0.7 }, bigman: { skin: 0.7 }, horse: {}, horsefree: {}, horsefan: {}, mascot: {},
@@ -247,6 +315,7 @@ export class SpriteBank {
       }
       cx.putImageData(img, 0, 0);
     }
+    dressHead(cx, cv, sheet, rc, cellOf(base));
     return cv;
   }
 

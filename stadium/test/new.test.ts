@@ -175,3 +175,68 @@ test("fixes: overhearing reveals one, and any way of doing it counts", () => {
   const d = ev.find((e) => e.type === "fix_done" && e.id === "star");
   assert.ok(d && d.ownWay);
 });
+
+test("you can't walk through the lorry or the police van", () => {
+  const g = createGame("solidvan"), s = g.w.state, pc = pcOf(g), st = s.stadium!;
+  // The police van by the ground: walk north into it from the road side.
+  pc.x = 32; pc.y = 58.5;
+  run(g, 2, () => { pc.moveX = 0; pc.moveY = -1; });
+  assert.ok(pc.y > 55.6, `went into the van: y=${pc.y.toFixed(2)}`);
+  // The beer lorry, stood loading: walk straight at its middle.
+  const v = st.vehicles.lorry;
+  v.speed = 0;
+  const c = Math.cos(v.facing), sn = Math.sin(v.facing);
+  pc.x = v.x - sn * 4; pc.y = v.y + c * 4;
+  run(g, 1.5, () => { v.speed = 0; pc.moveX = sn; pc.moveY = -c; });
+  const across = Math.abs(-(pc.x - v.x) * sn + (pc.y - v.y) * c);
+  assert.ok(across > 1.3, `inside the lorry: ${across.toFixed(2)} from its middle`);
+});
+
+test("a change of clothes out of sight loses the steward after you; in front of him it doesn't", () => {
+  const g = createGame("disguise1"), s = g.w.state, pc = pcOf(g);
+  const stw = find(g, (a) => a.npc?.job === "patrol");
+  const wig = spawnItem(s, "wig", { k: "pocket", a: pc.id });
+  const tache = spawnItem(s, "moustache", { k: "pocket", a: pc.id });
+  // In front of him: he keeps you.
+  pc.x = SPOTS.pubYard.x; pc.y = SPOTS.pubYard.y;
+  stw.x = pc.x + 3; stw.y = pc.y; stw.facing = Math.PI;
+  Object.assign(stw.npc!, { target: pc.id, mode: "chase", crime: 1 });
+  dispatch(g.w, { verb: "wear", actor: pc.id, item: wig.id });
+  assert.equal(stw.npc!.target, pc.id);
+  // Round the corner, far off: he loses you.
+  stw.x = pc.x + 40; stw.y = pc.y - 30;
+  Object.assign(stw.npc!, { target: pc.id, mode: "search", crime: 1 });
+  dispatch(g.w, { verb: "wear", actor: pc.id, item: tache.id });
+  assert.equal(stw.npc!.target, null);
+  assert.equal(stw.npc!.mode, "routine");
+});
+
+test("the pawnbroker buys what you've lifted, and won't touch a face", () => {
+  const g = createGame("pawn1"), s = g.w.state, pc = pcOf(g);
+  const ron = find(g, (a) => a.npc?.shop === "pawn");
+  pc.x = ron.x; pc.y = ron.y + 2.6;
+  const wallet = spawnItem(s, "wallet", { k: "pocket", a: pc.id });
+  const face = spawnItem(s, "face", { k: "pocket", a: pc.id });
+  const before = pc.money;
+  assert.equal(dispatch(g.w, { verb: "pawn", actor: pc.id, target: { k: "actor", id: ron.id }, item: wallet.id }).ok, true);
+  assert.ok(pc.money > before);
+  assert.equal(s.items[wallet.id].loc.k, "gone");
+  assert.equal(dispatch(g.w, { verb: "pawn", actor: pc.id, target: { k: "actor", id: ron.id }, item: face.id }).ok, false);
+  // And he sells: a walkie.
+  pc.money = 100;
+  assert.equal(dispatch(g.w, { verb: "buy", actor: pc.id, target: { k: "actor", id: ron.id }, arg: "radio" }).ok, true);
+});
+
+test("the to-do list pays once per item; the fruit machine takes a quid", () => {
+  const g = createGame("pay1"), pc = pcOf(g);
+  const m0 = pc.money;
+  assert.equal(dispatch(g.w, { verb: "payout", actor: pc.id, arg: "roof" }).ok, true);
+  assert.equal(pc.money, m0 + 10);
+  assert.equal(dispatch(g.w, { verb: "payout", actor: pc.id, arg: "roof" }).ok, false);
+  pc.x = -36; pc.y = 65.4;
+  let spent = 0, won = 0;
+  g.w.bus.on((e: any) => { if (e.type === "fruit") { spent++; won += e.win; } });
+  for (let i = 0; i < 20; i++) dispatch(g.w, { verb: "fruit", actor: pc.id });
+  assert.equal(spent, 20);
+  assert.ok(won < 60, `won ${won}`);
+});

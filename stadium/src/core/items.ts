@@ -63,6 +63,7 @@ export const ITEM_DEFS: Record<string, ItemDef> = Object.fromEntries(
     { id: "pint_glass", name: "Empty pint glass", props: ["weapon", "throwable", "breakable"], size: "small", colour: 0xd8d8c8 },
     { id: "chair", name: "Pub chair", props: ["weapon", "breakable"], size: "large", colour: 0x7a4a2a },
     { id: "corner_flag", name: "Corner flag", props: ["weapon", "throwable"], size: "large", colour: 0xc8102e },
+    { id: "pool_cue", name: "Pool cue", props: ["weapon", "breakable"], size: "large", colour: 0xb08850 },
     { id: "parachute", name: "Parachute", props: [], size: "large", colour: 0x5a6a3a },
     { id: "kitbag", name: "Para Steve's kit bag", props: ["container"], size: "huge", colour: 0x4a5a32 },
     { id: "laundry", name: "Laundry hamper", props: ["container"], size: "huge", colour: 0x8a6a40 },

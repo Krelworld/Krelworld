@@ -29,13 +29,14 @@ import { TEAMS } from "../football/setup";
 import { canBetHere, prices } from "../stadium/betting";
 import { newsReport } from "../stadium/news";
 import { mayPass, secs } from "../stadium/npc";
-import { SHOPS } from "../stadium/rules";
+import { pawnOffer, REWARDS, SHOPS } from "../stadium/rules";
 import { LORRY_LEN, LORRY_WID } from "../stadium/vehicles";
 import { BUS_LEN, BUS_WID, holdOpen } from "../stadium/bus";
 import { drawFigure, headTop, type FigureStyle } from "./figures";
 import { drawBall, drawGoalFrame, drawPitch } from "./pitchArt";
 import { Projection } from "./projection";
 import { Audio, PC_LINES, VOICES, type Clip } from "./audio";
+import { Doorway } from "./doorway";
 import STW_JSON from "../../assets/audio/stwlines.json";
 const STW_VOICE = STW_JSON as Record<string, string>;
 import { Drive3D, type DriveView } from "./drive3d";
@@ -79,7 +80,7 @@ interface TickerLine { text: string; src: string; big: boolean }
 
 /** A PixelLab picture of an item, if there is one. */
 const ICONS = new Set(["brick", "fart_can", "rifle", "burner", "warrant_card", "pint", "pie", "knife", "whistle", "ticket", "wallet", "laxative", "powder", "shirt_eng", "shirt_por", "shirt_bra", "shirt_arg", "police_uniform", "kit_eng", "kit_opp",
-  "staff_pass", "radio", "hivis", "ref_kit", "police_hat", "mask", "flat_cap", "sunglasses", "moustache", "tracksuit", "chef_whites", "overalls", "balaclava", "hammer", "flare", "betslip", "face", "hands", "censored_bar", "wrench", "kit_card", "parachute", "mascot_suit", "press_pass", "bottle", "pint_glass", "chair", "corner_flag", "wig", "long_wig", "dress"]);
+  "staff_pass", "radio", "hivis", "ref_kit", "police_hat", "mask", "flat_cap", "sunglasses", "moustache", "tracksuit", "chef_whites", "overalls", "balaclava", "hammer", "flare", "betslip", "face", "hands", "censored_bar", "wrench", "kit_card", "parachute", "mascot_suit", "press_pass", "bottle", "pint_glass", "chair", "corner_flag", "wig", "long_wig", "dress", "pool_cue", "bicycle"]);
 interface RingItem { label: string; icon: string; kind: string; item?: string; arg?: string; main?: boolean; glyph?: string; opt?: Option }
 const icon = (def: string) => (ICONS.has(def) ? `<img class="ico" src="${assetURL(`icons/${def}.png`)}" alt="" onerror="this.remove()">` : `<span class="ico none"></span>`);
 
@@ -608,7 +609,7 @@ class StadiumScene extends Phaser.Scene {
       street: "slabs", plaza: "slabs", road: "asphalt", eastroad: "asphalt", carpark: "tarmac", hotel_court: "slabs", ticket_office: "slabs", merch: "slabs",
       pub_yard: "herringbone", verge: "grass", concourse_s: "concourse", concourse_w: "concourse", concourse_e: "concourse", corner_sw: "concourse", corner_se: "concourse",
       corner_nw: "concourse", corner_ne: "concourse", loading: "gravel", staffway: "lino", players: "lino", tunnel: "lino", security: "office", ref_room: "lino",
-      dress_home: "rubber", dress_away: "rubber", kitchen: "quarry", bar_s: "boards", toilet_s: "whitetile", cubicle_s: "whitetile", pub: "pubcarpet", pub_toilet: "whitetile",
+      dress_home: "rubber", dress_away: "rubber", kitchen: "quarry", bar_s: "boards", toilet_s: "whitetile", cubicle_s: "whitetile", pub: "boards", pub_toilet: "whitetile",
       pub_cubicle: "whitetile", alley: "tarmac", kitroom: "rubber", medical: "whitetile", backcorr: "lino", cabin: "office", hotel: "office", charity: "boards", surplus: "lino", bookies: "office",
     };
     if (VENUE.features.fanZone) { FLOOR_OF.pub = "grass"; FLOOR_OF.pub_toilet = "slabs"; FLOOR_OF.pub_cubicle = "slabs"; }
@@ -830,16 +831,86 @@ class StadiumScene extends Phaser.Scene {
       const snd: Record<string, Clip> = { charity: "shop_bell", surplus: "shop_bell", bookies: "door_chime", hotel: "desk_bell", pub: "pub_bed" };
       if (snd[b.id]) setTimeout(() => this.audio.play(snd[b.id], b.id === "pub" ? 0.5 : 0.7, { minGap: 2 }), 90);
       if (b.id === "pub") this.nextPub = performance.now() + 14500;
+      // Walking in through the front (not back out, not dragged, not twice in quick succession):
+      // the little doorway beat, with the lights coming up on the room behind it.
+      const now = performance.now(), pc = this.pc;
+      if (b.sign && !pc.heldBy && !pc.dragging && now - (this.lastDoorway[b.id] ?? -1e9) > 20000) {
+        this.lastDoorway[b.id] = now;
+        const hex = (c: number) => `#${c.toString(16).padStart(6, "0")}`, kind = b.doors[0]?.kind;
+        const door = kind === "pub" ? "door_pub" : kind === "shop" ? "door_shop" : kind === "glass" ? "door_steel" : "door_shut";
+        const { base, rc } = this.spriteFor(pc), key = this.bank.variant(base, rc);
+        setTimeout(() => { this.roomSnap = true; this.roomShown = this.roomId; }, 120);
+        void this.doorway.play({ door, sign: b.sign.text, bg: hex(b.sign.bg), fg: hex(b.sign.fg), wall: ({ pub: "#1f3b2a", charity: "#7da597", surplus: "#55603f", bookies: "#2e3a2e", hotel: "#cfc6b4", cabin: "#6f7a62" } as Record<string, string>)[b.id] ?? "#555",
+          walk: (i) => {
+            const tk = this.textures.exists(`${key}-walk`) ? `${key}-walk` : `${key}-rot`;
+            if (!this.textures.exists(tk)) return null;
+            const fr = this.textures.getFrame(tk, tk.endsWith("-walk") ? dirIndex(-Math.PI / 2) * 8 + i : dirIndex(-Math.PI / 2));
+            return { img: fr.source.image as CanvasImageSource, sx: fr.cutX, sy: fr.cutY, sw: fr.cutWidth, sh: fr.cutHeight, foot: feetOf(base) };
+          } }).then(() => { f.classList.remove("on"); setTimeout(() => f.classList.remove("door"), 250); this.roomCard(b); });
+        return;
+      }
       this.roomCard(b);
     }
     setTimeout(() => { this.roomSnap = true; this.roomShown = this.roomId; }, 120);
     setTimeout(() => { f.classList.remove("on"); setTimeout(() => f.classList.remove("door"), 250); }, 170);
   }
+  doorway = new Doorway();
+  gateFlash: Record<string, number> = {};
+  /** Showing your ticket: it goes into the reader, a beep and a green light, and the flaps clunk
+   *  back (or a buzz and a red light). A beat you see and hear, not just a line of text. */
+  scanCard(ok: boolean) {
+    const el = $("scanCard");
+    el.className = ok ? "ok" : "bad";
+    el.innerHTML = `<div class="reader"><i class="lamp"></i><div class="slot"></div></div>${icon("ticket")}<b>${ok ? "ENJOY THE GAME" : "REJECTED"}</b>`;
+    el.hidden = false; void el.offsetWidth; el.classList.add("go");
+    setTimeout(() => this.audio.play(ok ? "scan_beep" : "scan_bad", 0.8), 380);
+    if (ok) setTimeout(() => this.audio.play("turnstile_clunk", 0.9), 720);
+    clearTimeout(this.scanTimer); this.scanTimer = window.setTimeout(() => { el.hidden = true; }, 2200);
+  }
+  scanTimer = 0;
+  /** The fruit machine's window: three reels that spin and stop one by one on what the sim rolled. */
+  fruitSpin(reels: string[], win: number) {
+    const el = $("fruit");
+    el.innerHTML = `<div class="fm"><div class="top">THREE LIONS · £1 A GO</div><div class="reels">${[0, 1, 2].map((i) => `<canvas width="36" height="36" data-r="${i}"></canvas>`).join("")}</div><b class="msg"></b></div>`;
+    el.hidden = false;
+    const cvs = [...el.querySelectorAll("canvas")] as HTMLCanvasElement[], SYM = ["lion", "cherry", "bell", "pint", "bar"];
+    const draw = (cv: HTMLCanvasElement, sym: string, off = 0) => {
+      const c = cv.getContext("2d")!; c.imageSmoothingEnabled = false;
+      c.fillStyle = "#f4efe0"; c.fillRect(0, 0, 36, 36);
+      c.save(); c.translate(0, off);
+      if (sym === "cherry") { c.fillStyle = "#3a7a2a"; c.fillRect(17, 6, 2, 12); c.fillRect(12, 8, 2, 10); c.fillStyle = "#c8102e"; c.fillRect(8, 18, 9, 9); c.fillRect(18, 20, 9, 9); c.fillStyle = "#ff8a8a"; c.fillRect(10, 20, 2, 2); c.fillRect(20, 22, 2, 2); }
+      else if (sym === "bell") { c.fillStyle = "#e0a820"; c.fillRect(12, 8, 12, 4); c.fillRect(10, 12, 16, 12); c.fillRect(7, 24, 22, 4); c.fillStyle = "#7a5a10"; c.fillRect(16, 28, 4, 3); }
+      else if (sym === "pint") { c.fillStyle = "#d89a2a"; c.fillRect(11, 12, 14, 18); c.fillStyle = "#fff"; c.fillRect(10, 7, 16, 6); c.fillStyle = "#b8b8c0"; c.fillRect(25, 15, 4, 8); }
+      else if (sym === "bar") { c.fillStyle = "#111"; c.fillRect(5, 13, 26, 10); c.fillStyle = "#f2c94c"; c.font = "bold 9px monospace"; c.textAlign = "center"; c.fillText("BAR", 18, 21); }
+      else { c.fillStyle = "#1b2a6b"; c.fillRect(6, 6, 24, 24); c.fillStyle = "#f2c94c"; c.font = "bold 18px monospace"; c.textAlign = "center"; c.fillText("★", 18, 25); }
+      c.restore();
+    };
+    const t0 = performance.now();
+    this.audio.play("stw_slot" as Clip, 0.6, { minGap: 0.1 });
+    const step = () => {
+      const t = performance.now() - t0;
+      cvs.forEach((cv, i) => {
+        const stopAt = 600 + i * 380;
+        if (t < stopAt) draw(cv, SYM[Math.floor(t / 70 + i * 2) % SYM.length], ((t / 7) % 36) - 18);
+        else draw(cv, reels[i]);
+        if (t >= stopAt && !cv.dataset.done) { cv.dataset.done = "1"; this.audio.play("tap", 0.8); }
+      });
+      if (t < 600 + 2 * 380 + 50) { requestAnimationFrame(step); return; }
+      const msg = el.querySelector(".msg") as HTMLElement;
+      msg.textContent = win ? `WINNER  +£${win}` : "NOTHING. AGAIN?";
+      el.classList.toggle("won", win > 0);
+      if (win) { this.audio.play("kaching", 1); const money = $("money"); money.classList.remove("earned"); void money.offsetWidth; money.classList.add("earned"); }
+      clearTimeout(this.fruitTimer); this.fruitTimer = window.setTimeout(() => { el.hidden = true; }, 1600);
+    };
+    step();
+  }
+  fruitTimer = 0;
+  lastDoorway: Record<string, number> = {};
   /** The place's name across the top as you walk in, in the colours of the sign over its door. */
   roomCard(b: BuildingSpec): void {
     if (!b.sign) return;
     const el = $("roomCard"), hex = (c: number) => `#${c.toString(16).padStart(6, "0")}`;
-    const sub: Record<string, string> = { charity: "Charity shop · open", surplus: "Army surplus · cash only", bookies: "Bookmaker · bets taken", hotel: "Team hotel · staff and players only", pub: "Free house", cabin: "Stewards only" };
+    const sub: Record<string, string> = { charity: "Charity shop · open", surplus: "Army surplus · cash only", bookies: "Pawnbroker · cash for anything", hotel: "Team hotel · staff and players only", pub: "Free house", cabin: "Stewards only" };
     el.innerHTML = `<b>${esc(b.sign.text)}</b>${sub[b.id] ? `<small>${esc(sub[b.id])}</small>` : ""}`;
     el.style.background = hex(b.sign.bg); el.style.color = hex(b.sign.fg);
     el.hidden = false; el.classList.remove("in"); void el.offsetWidth; el.classList.add("in");
@@ -1831,10 +1902,12 @@ class StadiumScene extends Phaser.Scene {
       seenSprites.add(a.id);
       // Up on the stand roof, or floating down under a canopy: drawn above everything.
       things.push({ d: this.liftOf(a) > 0 ? 1e5 + a.y : a.y, draw: () => {}, spr: (depth) => this.placeSprite(a, st2, shiver, moving, depth) });
-      // Starkers: a very small black bar. Very small.
-      if (isNaked(a) && !st2.down && !a.seated) things.push({ d: a.y + 0.0004, draw: () => {
-        const cx = Math.round(P.sx(a.x + shiver, a.y)), cy = Math.round(P.sy(a.x, a.y, this.liftOf(a) + 0.46)), bw = Math.max(4, Math.round(P.S * 0.17)), bh = Math.max(2, Math.round(P.S * 0.065));
-        g.fillStyle(0x000000, 1).fillRect(cx - bw / 2, cy - bh / 2, bw, bh);
+      // Starkers: the telly's pixelated blur over the crotch (a little mosaic of skin tones that
+      // shimmers as he moves), not drawn from behind.
+      if (isNaked(a) && !st2.down && !a.seated && dirIndex(a.facing) !== 4) things.push({ d: a.y + 0.0004, draw: () => {
+        const di = dirIndex(a.facing), side = di === 2 ? 1 : di === 6 ? -1 : di === 1 || di === 3 ? 0.5 : di === 7 || di === 5 ? -0.5 : 0;
+        const cx = Math.round(P.sx(a.x + shiver, a.y) + side * P.S * 0.06), cy = Math.round(P.sy(a.x, a.y, this.liftOf(a) + 0.47));
+        this.mosaic(g, cx, cy, Math.max(2, Math.round(P.S * 0.045)), Math.abs(side) === 1 ? 2 : 3, 3, Math.floor(tick / 6));
       } });
       // Out cold: little stars going round; the dead lie still in their own blood.
       if (knockedOut(this.w, a) && !a.dead) things.push({ d: a.y + 0.0003, draw: () => {
@@ -2404,14 +2477,25 @@ class StadiumScene extends Phaser.Scene {
         if (!this.textures.exists(bk)) this.textures.addCanvas(bk, banner(`ENGLAND\nV\n${opp.name.toUpperCase()}`, 0xf4f4f4, 0x1b2a6b, opp.colour));
         if (!this.textures.exists("banner-eng")) this.textures.addCanvas("banner-eng", banner("", 0xf4f4f4, 0xc8102e, 0xc8102e, true));
         for (const [i, x] of [-30, -20, 20, 30].entries()) image(`ban${i}`, i === 1 || i === 2 ? bk : "banner-eng").setOrigin(0.5, 0).setPosition(Math.round(P.sx(x, 0)), faceTop + 48).setDepth(dep).setAlpha(nearF ? 0.45 : 1);
-        xs.forEach((x, i) => image(`tst${i}`, "k-turnstile").setOrigin(0.5, tx.foot / 160).setPosition(Math.round(P.sx(x, 0)), Math.round(P.sy(0, 45))).setDepth(dep + 0.01).setAlpha(nearF ? 0.45 : 1));
+        // Booths with flaps: shut, or folded back while the gate's open for someone (or just after
+        // someone's gone through, so you see it move).
+        const gateOf = ["turnstile1", "turnstile2", "turnstile3"], tick2 = this.s.tick;
+        const newArt = this.textures.exists("k-turnstile_shut");
+        if (newArt) for (const i of [3]) this.worldSprites.get(`tst${i}`)?.setVisible(false);
+        (newArt ? [-6, 0, 6].map((x) => (VENUE.id === "sf" ? -x : x)) : xs).forEach((x, i) => {
+          const gt = newArt ? (VENUE.id === "sf" ? gateOf[2 - i] : gateOf[i]) : ["turnstile1", "turnstile2", "turnstile2", "turnstile3"][i], g = this.s.stadium!.gates[gt];
+          const open = (!!g && g.until > tick2) || (this.gateFlash[gt] ?? 0) > performance.now();
+          const k = this.textures.exists("k-turnstile_shut") ? (open ? "k-turnstile_open" : "k-turnstile_shut") : "k-turnstile";
+          const ft = this.world.base[k.slice(2)] ?? tx;
+          image(`tst${i}`, k).setOrigin(0.5, ft.foot / 160).setPosition(Math.round(P.sx(x, 0)), Math.round(P.sy(0, 45))).setDepth(dep + 0.01).setAlpha(nearF ? 0.45 : 1);
+        });
       } });
     }
     // Advertising boards round the pitch: made-up sponsors facing the cameras on the far side
     // and the ends; on the near side you see their backs.
     {
       const ADS: [string, number, number][] = [["STELLAR LAGER", 0xc8102e, 0xf4f1ea], ["GREGGORS PIES", 0x1b3a8a, 0xf2c94c], ["KWIKLOAN 1999%", 0x2f9e5a, 0xffffff],
-        ["LUCKY LIONEL'S", 0x3d2a6b, 0xf2c94c], ["VAPE CITY", 0x111111, 0x6cf0ff], ["NO WIN NO FEE", 0xf2c94c, 0x111111], ["PIE & MASH", 0xf4f1ea, 0x1b2a6b], ["BET RESPONSIBLY", 0x222222, 0xd7263d]];
+        ["CASH KINGS", 0x141416, 0xf2c94c], ["VAPE CITY", 0x111111, 0x6cf0ff], ["NO WIN NO FEE", 0xf2c94c, 0x111111], ["PIE & MASH", 0xf4f1ea, 0x1b2a6b], ["BET RESPONSIBLY", 0x222222, 0xd7263d]];
       ADS.forEach(([t, bg, fg], i) => { if (!this.textures.exists(`ad${i}`)) this.textures.addCanvas(`ad${i}`, adBoard(t, bg, fg)); });
       if (!this.textures.exists("adback")) this.textures.addCanvas("adback", adBoard("", 0, 0, true));
       let i = 0;
@@ -2453,7 +2537,25 @@ class StadiumScene extends Phaser.Scene {
     const out = this.spriteFor0(a);
     if (!this.bank.has(out.base)) out.base = out.base === "police" ? "steward" : "fan";
     if (out.base === "steward" && a.npc?.job === "police" && !out.rc.vest) out.rc = { vest: 0x1c2a4a };
+    // A stick-on moustache and a wig are painted into the frames themselves, so they sit on the head
+    // whichever way he turns and however he moves.
+    if (!out.base.startsWith("horse") && out.base !== "mascot") {
+      const head = a.worn.head ? this.s.items[a.worn.head]?.def : undefined, face = a.worn.face ? this.s.items[a.worn.face]?.def : undefined;
+      if (face === "moustache") out.rc = { ...out.rc, tache: ITEM_DEFS.moustache.colour ?? 0x3a2a1a };
+      if (head === "wig" || head === "long_wig") out.rc = { ...out.rc, wig: ITEM_DEFS[head].colour ?? 0x5a3a22, wigLong: head === "long_wig" ? 1 : undefined };
+    }
     return out;
+  }
+  /** A censor mosaic: cols x rows blocks of skin tones, centred on (cx, cy), reshuffled each `seed`. */
+  mosaic(g: { fillStyle: (c: number, a?: number) => any; fillRect: (x: number, y: number, w: number, h: number) => any }, cx: number, cy: number, q: number, cols: number, rows: number, seed: number) {
+    const tones = [0xd99a7e, 0xc4876a, 0xe8b49a, 0xb07258, 0xf0c4aa, 0x9a5e48];
+    const x0 = Math.round(cx - (cols * q) / 2), y0 = Math.round(cy - (rows * q) / 2);
+    for (let i = 0; i < cols; i++) for (let j = 0; j < rows; j++) g.fillStyle(tones[Math.abs(hash(`${i}${j}${seed}`)) % tones.length], 1).fillRect(x0 + i * q, y0 + j * q, q, q);
+  }
+  /** Is this bit of headgear painted into his sprite (so the drawn-on version is skipped)? */
+  baked(a: Actor, what: "tache" | "wig"): boolean {
+    const b = this.spriteFor0(a).base;
+    return this.bank.has(b) && !b.startsWith("horse") && b !== "mascot" && (what === "tache" ? a.worn.face && this.s.items[a.worn.face]?.def === "moustache" : a.worn.head && ["wig", "long_wig"].includes(this.s.items[a.worn.head]?.def)) === true;
   }
   spriteFor0(a: Actor): { base: Base; rc: Recolour; h: number } {
     const s = this.s, m = s.match!, isPc = a.id === s.stadium!.pc;
@@ -2487,7 +2589,11 @@ class StadiumScene extends Phaser.Scene {
       if (outer.id === "dress") rc.legs = outer.colour;
     } else if (inner && inner.id !== "shirt_eng") { rc.shirt = inner.colour; rc.trim = inner.colour2; }
     // Starkers: the belly, and pink all the way down.
-    if (isPc && isNaked(a)) return { base: "fanbare", rc: { naked: 0xd99a7e }, h: 1.75 };
+    // Starkers: his own naked sprite (a smooth doll's crotch, the telly's mosaic over it); the old
+    // pink-trousered fallback only if that hasn't loaded.
+    if (isPc && isNaked(a)) return this.bank.has("fannaked") ? { base: "fannaked", rc: {}, h: 1.75 } : { base: "fanbare", rc: { naked: 0xd99a7e }, h: 1.75 };
+    // In the frock: a proper dress, hairy calves and trainers, not a pink tracksuit.
+    if (isPc && outer?.id === "dress" && this.bank.has("fandress")) return { base: "fandress", rc: {}, h: 1.75 };
     // The hired help.
     if (a.name === "Bare-Knuckle Brendan" && this.bank.has("bigman")) return { base: "bigman", rc: { skin: SKIN[2] }, h: 1.95 };
     if (a.name === "Spliff Ricky" && this.bank.has("lad")) return { base: "lad", rc: { shirt: 0x2a2a2a, trim: 0xf4f4f4, legs: 0x2a2a2a, skin: SKIN[1] }, h: 1.75 };
@@ -2495,7 +2601,7 @@ class StadiumScene extends Phaser.Scene {
     const shop = a.npc?.shop;
     if (shop === "charity" && this.bank.has("woman")) return { base: "woman", rc: { shirt: 0xb07ab0, trim: 0x5a3a5a, skin: rc.skin }, h: 1.6 };
     if (shop === "surplus" && this.bank.has("bigman")) return { base: "bigman", rc: { skin: rc.skin }, h: 1.85 };
-    if (shop === "bookies" && this.bank.has("suit")) return { base: "suit", rc: { skin: rc.skin }, h: 1.75 };
+    if ((shop === "bookies" || shop === "pawn") && this.bank.has("suit")) return { base: "suit", rc: { skin: rc.skin }, h: 1.75 };
     if ((a.name === "Barmaid" || a.female) && a.npc?.job === "barman" && this.bank.has("woman")) return { base: "woman", rc: { shirt: 0x222222, trim: 0x222222, skin: rc.skin }, h: 1.6 };
     if (job === "barman" || job === "seller" || job === "cook") { rc.shirt = 0xf0ece2; rc.trim = 0x333333; rc.legs = 0x2a2a2a; }
     if (job === "driver" || job === "worker") { rc.shirt = 0x2d5a8a; rc.trim = 0x1a3050; rc.legs = 0x2a3340; }
@@ -2623,7 +2729,7 @@ class StadiumScene extends Phaser.Scene {
       sp.setTexture(`${key}-run`, di * n + Math.floor((tick + Math.abs(hash(a.id)) % 50) * 0.22) % n);
     } else if (moving && !a.seated) {
       // The walk cycle, paced to how fast they're going.
-      const rate = Math.min(1.6, Math.hypot(a.vx, a.vy) / 2.2) * (base === "fan" || base === "fanbare" || base === "bigman" ? 0.13 : 0.18);
+      const rate = Math.min(1.6, Math.hypot(a.vx, a.vy) / 2.2) * (base === "fan" || base === "fanbare" || base === "fandress" || base === "fannaked" || base === "bigman" ? 0.13 : 0.18);
       const f = Math.floor((tick + Math.abs(hash(a.id)) % 50) * rate) % 8;
       sp.setTexture(`${key}-walk`, di * 8 + f);
     } else if (!a.seated) {
@@ -2681,16 +2787,18 @@ class StadiumScene extends Phaser.Scene {
     } else if (job === "armed") {
       g.fillStyle(0x15171a, 1).fillEllipse(x, top + hw * 0.5, hw * 2.2, hw * 1.4);
     } else if (a.worn.head && (s.items[a.worn.head]?.def === "wig" || s.items[a.worn.head]?.def === "long_wig")) {
+      if (this.baked(a, "wig")) { /* painted into the sprite */ } else {
       // A wig: a mop of hair over the bald head; the long one hangs to the shoulders.
       const long = s.items[a.worn.head].def === "long_wig", c = st2.hat ?? 0x5a3a22;
       g.fillStyle(c, 1).fillEllipse(x, top + hw * 0.55, hw * 2.3, hw * 1.5);
       g.fillRect(x - hw * 1.15, top + hw * 0.5, hw * 0.45, hw * (long ? 3.6 : 1.4)).fillRect(x + hw * 0.7, top + hw * 0.5, hw * 0.45, hw * (long ? 3.6 : 1.4));
       g.fillStyle(0xffffff, 0.18).fillRect(x - hw * 0.5, top + hw * 0.1, hw * 0.9, hw * 0.25);
+      }
     } else if (st2.hat) g.fillStyle(st2.hat, 1).fillEllipse(x, top + hw * 0.5, hw * 2.2, hw * 1.1).fillRect(x - hw * 1.4, top + hw * 0.8, hw * 2.8, hw * 0.3);
     if (st2.face) {
       const fy = top + hw * 1.6;
       if (st2.face.kind === "full") g.fillStyle(st2.face.colour, 1).fillEllipse(x, fy, hw * 2, hw * 2.3);
-      else if (st2.face.kind === "tache") g.fillStyle(st2.face.colour, 1).fillRect(x - hw * 0.6, fy + hw * 0.45, hw * 1.2, hw * 0.3);
+      else if (st2.face.kind === "tache") { if (!this.baked(a, "tache")) g.fillStyle(st2.face.colour, 1).fillRect(x - hw * 0.6, fy + hw * 0.45, hw * 1.2, hw * 0.3); }
       else g.fillStyle(st2.face.colour, 1).fillRect(x - hw * 0.8, fy - hw * 0.15, hw * 1.6, hw * 0.35);
     }
     if ((a.effects.bloody ?? 0) > tick) {
@@ -3017,6 +3125,18 @@ class StadiumScene extends Phaser.Scene {
       { x: -50.3, y: 0, code: "W", col: 0x1b4fd0, dir: "w", aisle: [-50, -0.8, 9, 1.6] },
       { x: 50.3, y: 0, code: "E", col: awayCol, dir: "e", aisle: [41, -0.8, 9, 1.6] },
     ];
+    // Outside: yellow queue lanes painted up to each turnstile and big chevrons pointing in, so the
+    // way in reads from across the plaza.
+    for (const t of SPOTS.turnstiles) {
+      g.fillStyle(0xf2c94c, 0.85);
+      g.fillRect(...P.rect(t.x - 1.3, 45.2, 0.12, 4.6)); g.fillRect(...P.rect(t.x + 1.18, 45.2, 0.12, 4.6));
+      for (let k = 0; k < 3; k++) {
+        const cy = 46.2 + k * 1.25;
+        g.fillTriangle(P.sx(t.x, cy), P.sy(t.x, cy), P.sx(t.x - 0.7, cy + 0.7), P.sy(t.x - 0.7, cy + 0.7), P.sx(t.x + 0.7, cy + 0.7), P.sy(t.x + 0.7, cy + 0.7));
+        g.fillStyle(0x3a3d42, 1).fillTriangle(P.sx(t.x, cy + 0.35), P.sy(t.x, cy + 0.35), P.sx(t.x - 0.45, cy + 0.8), P.sy(t.x - 0.45, cy + 0.8), P.sx(t.x + 0.45, cy + 0.8), P.sy(t.x + 0.45, cy + 0.8));
+        g.fillStyle(0xf2c94c, 0.85);
+      }
+    }
     for (const wy of ways) {
       // The aisle: bare concrete steps up through the seats.
       const [ax, ay, aw, ah] = wy.aisle;
@@ -3406,7 +3526,16 @@ class StadiumScene extends Phaser.Scene {
       const poor = this.pc.money < price;
       return `<button class="ware${poor ? " poor" : ""}" data-buy="${def}" data-who="${who}" data-price="${price}">${icon(def)}<span class="nm">${esc(ITEM_DEFS[def].name)}</span><span class="pr">£${price}</span></button>`;
     }).join("");
-    this.sheet("shop", `<h2>${esc(shop.name)}</h2>${this.keeperHtml(who)}<p class="purse">You have <b>£${this.pc.money}</b> · tap something to buy it</p><div class="wares">${rows}</div>`);
+    // The pawnbroker buys as well as sells: everything you're carrying, with what he'll give for it.
+    let sell = "";
+    if (seller.npc!.shop === "pawn") {
+      const pc = this.pc, mine = [pc.hand, ...pc.pockets, ...Object.values(pc.worn)].filter((x): x is string => !!x).map((id) => this.s.items[id]).filter(Boolean);
+      sell = `<h2>Sell</h2><div class="wares">${mine.map((it) => {
+        const offer = pawnOffer(it.def);
+        return `<button class="ware sell${offer ? "" : " poor"}" data-pawn="${it.id}" data-who="${who}">${icon(it.def)}<span class="nm">${esc(itemName(it))}</span><span class="pr">${offer ? `£${offer}` : "No"}</span></button>`;
+      }).join("") || "<p class='dim'>You've nothing he wants. Wallets, passes, phones, shirts: lift some off people.</p>"}</div>`;
+    }
+    this.sheet("shop", `<h2>${esc(shop.name)}</h2>${this.keeperHtml(who)}<p class="purse">You have <b>£${this.pc.money}</b> · tap something to buy it</p><div class="wares">${rows}</div>${sell}`);
   }
 
   /** A purchase: the till, the money going down, the thing flying into your bag. */
@@ -3513,18 +3642,43 @@ class StadiumScene extends Phaser.Scene {
     return { look, opens, watched, sus: Math.max(1, Math.min(5, sus)), perk };
   }
 
+  /** The dressing room: him big in the middle, slowly turning, and everything you've got that goes
+   *  on a body laid out under him. Tap to put it on or take it off; the panel stays open, so you can
+   *  try things on one after another (the fitting rooms in Hitman and Sims, not a menu per item). */
+  mirrorDir = 0;
+  mirrorTimer = 0;
   openWardrobe() {
-    const pc = this.pc, inf = this.outfitInfo();
+    const pc = this.pc, inf = this.outfitInfo(), s = this.s;
+    const mine = [pc.hand, ...pc.pockets, ...Object.values(pc.worn)].filter((x): x is string => !!x).map((id) => s.items[id]).filter((it) => it && defOf(it).slot);
+    const tiles = mine.map((it) => {
+      const on = it.loc.k === "worn";
+      return `<button class="try${on ? " on" : ""}" data-try="${it.id}">${icon(it.def)}<span>${esc(itemName(it))}</span><i>${on ? "Wearing" : "Try on"}</i></button>`;
+    }).join("");
     this.sheet("wardrobe", `<h2>The look</h2>
-      <div class="mirror"><canvas id="mirror" width="252" height="300"></canvas><div class="spec">
+      <div class="mirror"><div class="glass"><canvas id="mirror" width="240" height="300"></canvas><button class="turn l" data-turn="-1">◀</button><button class="turn r" data-turn="1">▶</button></div><div class="spec">
         <b class="lk">${esc(inf.look)}</b>
         <div class="tags">${inf.opens.map((t) => `<span class="op">${esc(t)}</span>`).join("")}</div>
         <small>Watched by</small><div class="tags">${inf.watched.map((t) => `<span class="wt">${esc(t)}</span>`).join("")}</div>
         <div class="sus">Stands out <b>${"●".repeat(inf.sus)}</b>${"○".repeat(5 - inf.sus)}</div>
         ${inf.perk ? `<p>${esc(inf.perk)}</p>` : ""}
       </div></div>
+      <div class="tries">${tiles || `<p class="dim">Nothing to put on. The charity shop's got frocks and wigs; the army surplus has the rest.</p>`}</div>
       <div class="row">${pc.naked ? `<button data-wd="dress">Pull your trousers up</button>` : `<button data-wd="strip" class="red">Strip naked</button>`}<button data-wd="bag">Bag</button></div>`);
     this.drawMirror();
+    // He turns round slowly, so you see the back of the wig too.
+    clearInterval(this.mirrorTimer);
+    this.mirrorTimer = window.setInterval(() => {
+      if (this.sheetKind !== "wardrobe") { clearInterval(this.mirrorTimer); return; }
+      this.mirrorDir = (this.mirrorDir + 1) % 8; this.drawMirror();
+    }, 1100);
+  }
+  tryOn(id: string) {
+    const it = this.s.items[id]; if (!it) return;
+    const verb = it.loc.k === "worn" ? "remove" : "wear";
+    const r = dispatch(this.w, { verb, actor: this.pc.id, item: id });
+    if (!r.ok) this.hint(r.reason ?? "Can't."); else this.audio.play("wear", 0.9);
+    this.mirrorDir = 0;
+    this.openWardrobe();
   }
 
   /** Grozz, big, as he looks now: the body sprite scaled up, with whatever's on his head drawn over it. */
@@ -3533,7 +3687,7 @@ class StadiumScene extends Phaser.Scene {
     if (!cv) return;
     const pc = this.pc, P = this.P, { base, rc, h } = this.spriteFor(pc), key = this.bank.variant(base, rc), tk = `${key}-rot`;
     if (!this.textures.exists(tk)) { if (tries < 20) setTimeout(() => this.drawMirror(tries + 1), 150); return; }
-    const fr = this.textures.getFrame(tk, 0), src = fr.source.image as CanvasImageSource;
+    const fr = this.textures.getFrame(tk, this.mirrorDir % 8), src = fr.source.image as CanvasImageSource;
     const c = cv.getContext("2d")!, cw = cv.width, ch = cv.height;
     c.clearRect(0, 0, cw, ch);
     // The floor and a spotlight.
@@ -3559,8 +3713,11 @@ class StadiumScene extends Phaser.Scene {
       lineBetween(a1: number, b1: number, a2: number, b2: number) { c.beginPath(); c.moveTo(X(a1), Y(b1)); c.lineTo(X(a2), Y(b2)); c.stroke(); return g; },
     };
     const sitting = pc.seated; pc.seated = false;
-    try { this.drawHeadwear(g, pc, { ...this.styleOf(pc), down: false }); } finally { pc.seated = sitting; }
-    if (isNaked(pc)) { const by = Y(P.sy(pc.x, pc.y, 0.46)); c.fillStyle = "#000"; c.fillRect(fx - P.S * 0.085 * K, by - P.S * 0.032 * K, P.S * 0.17 * K, P.S * 0.065 * K); }
+    if (this.mirrorDir === 0) try { this.drawHeadwear(g, pc, { ...this.styleOf(pc), down: false }); } finally { pc.seated = sitting; }
+    pc.seated = sitting;
+    if (isNaked(pc) && this.mirrorDir % 8 !== 4) { const by = Y(P.sy(pc.x, pc.y, 0.47)), q = Math.max(3, Math.round(P.S * 0.045 * K)), sd = this.mirrorDir % 8, side = sd === 2 ? 1 : sd === 6 ? -1 : sd === 1 || sd === 3 ? 0.5 : sd === 7 || sd === 5 ? -0.5 : 0;
+      const gg = { fillStyle: (v: number) => { c.fillStyle = col(v); return gg; }, fillRect: (x: number, y: number, w: number, h2: number) => { c.fillRect(x, y, w, h2); return gg; } };
+      this.mosaic(gg, fx + side * P.S * 0.06 * K, by, q, Math.abs(side) === 1 ? 2 : 3, 3, Math.floor(performance.now() / 100)); }
   }
 
   // ---------- The phone ----------
@@ -3584,7 +3741,6 @@ class StadiumScene extends Phaser.Scene {
         ${knows(this.w, "dealer") ? c("dealer", "Spliff Ricky", "He comes to you") : ""}
         ${knows(this.w, "boxer") ? c("boxer", "Bare-Knuckle Brendan", `£${BOXER_FEE} and he flattens anyone`) : ""}
         ${unknown ? `<p class="dim">${unknown === 2 ? "Two numbers" : "One number"} you haven't got yet. People give you theirs if you talk to them.</p>` : ""}
-        ${c("bets", "Betting app", "Live odds")}
       </div></div>`);
   }
   /** Who to grass up (or have flattened): their players by name, and anyone you can see. */
@@ -3678,6 +3834,8 @@ class StadiumScene extends Phaser.Scene {
     const s = this.s, st = s.stadium!, pcId = st.pc, nm = (id: string) => (s.actors[id] ? personName(s.actors[id]) : "Someone");
     switch (e.type) {
 
+      case "fruit": if (e.by === pcId) this.fruitSpin(e.reels, e.win); break;
+      case "ticket_scanned": if (e.who === pcId) this.scanCard(e.ok); if (e.ok) this.gateFlash[e.gate] = performance.now() + 4500; break;
       case "pc_say": this.pcLine = { text: e.text, until: performance.now() + 2600 }; break;
       case "snitch": if (e.who === pcId) { this.hint(`${nm(e.by)} saw that, and he's off to find a steward. Tap him: pay him off, lean on him, or flatten him first.`); this.audio.play("heat_alert", 0.35, { minGap: 2 }); } break;
       case "snitch_stopped": if (e.how !== "down") this.hint(e.how === "paid" ? `${nm(e.by)} never saw a thing.` : `${nm(e.by)} has seen sense.`); this.tick("grass"); break;
@@ -3734,7 +3892,10 @@ class StadiumScene extends Phaser.Scene {
     if (!m) return;
     this.mayhemDone.add(id);
     this.audio.play("chime", 0.6, { rate: 1.3 });
-    this.toastTick(`✓ ${m.text}`);
+    // It pays: cash on the nail, through the sim so it's saved and replayed like everything else.
+    const r = dispatch(this.w, { verb: "payout", actor: this.pc.id, arg: id });
+    this.toastTick(`✓ ${m.text}${r.ok ? `  +£${REWARDS[id]}` : ""}`);
+    if (r.ok) setTimeout(() => { this.audio.play("kaching", 0.7); const money = $("money"); money.classList.remove("earned"); void money.offsetWidth; money.classList.add("earned"); }, 350);
   }
   toastTick(text: string) {
     const el = document.createElement("div");
@@ -3748,7 +3909,7 @@ class StadiumScene extends Phaser.Scene {
     this.sheet("menu", `<h2>Paused</h2><p>Go back to a checkpoint. Everything since then is undone, and the match will not play out the same way.</p>
       <div class="list">${cps.map((c) => `<button data-cp="${c.id}">${esc(c.label)}</button>`).join("")}<button data-new="1">Start a new match day</button><button data-mute="1">${this.audio.muted ? "Sound: off" : "Sound: on"}</button><button data-zoom="1">Zoom: ${esc(this.zoomLabel())}</button><button data-fp="1">${this.fp.on ? "Back to the overhead view" : "First-person view"}</button></div>
       <h2>Fixes (${fixesDone(this.w)}/${FIXES.length})</h2><div class="log">${this.fixesHtml()}</div>
-      <h2>To do (${this.mayhemDone.size}/${StadiumScene.MAYHEM.length})</h2><div class="log">${StadiumScene.MAYHEM.map((m) => `<p>${this.mayhemDone.has(m.id) ? "<b>✓</b> <s>" + esc(m.text) + "</s>" : "☐ " + esc(m.text)}</p>`).join("")}</div>
+      <h2>To do (${this.mayhemDone.size}/${StadiumScene.MAYHEM.length})</h2><div class="log">${StadiumScene.MAYHEM.map((m) => `<p>${this.mayhemDone.has(m.id) ? "<b>✓</b> <s>" + esc(m.text) + "</s>" : "☐ " + esc(m.text)} <span class="pay">£${REWARDS[m.id] ?? 0}</span></p>`).join("")}</div>
       <h2>Ways in you've heard about</h2><div class="log">${LEADS.filter((l) => this.s.stadium!.flags[`lead_${l.id}`]).map((l) => `<p><b>${esc(l.title)}</b> ${esc(l.how)}</p>`).join("") || "<p>Nothing yet. Talk to people: locals, staff, the man at the shed.</p>"}</div>
       <h2>What you've heard</h2><div class="log">${this.log.slice(-12).reverse().map((l) => `<p><b>${esc(l.src)}</b> ${esc(l.text)}</p>`).join("") || "<p>Nothing yet.</p>"}</div>`);
     this.setSpeed(0);
@@ -3853,6 +4014,13 @@ class StadiumScene extends Phaser.Scene {
         setTimeout(() => this.sheetKind === "shop" && this.openShop(d.who!), 420);
         return;
       }
+      if (d.pawn) {
+        const r = dispatch(this.w, { verb: "pawn", actor: this.pc.id, target: { k: "actor", id: d.who! }, item: d.pawn });
+        if (r.ok) { this.audio.play("kaching", 1); const money = $("money"); money.classList.remove("spent"); void money.offsetWidth; money.classList.add("spent"); }
+        else { this.audio.play("nope", 0.8); this.hint(r.reason === "he won't take that" ? "\"I'm not touching that.\"" : r.reason ?? ""); }
+        setTimeout(() => this.sheetKind === "shop" && this.openShop(d.who!), 300);
+        return;
+      }
       if (d.bet) { const r = dispatch(this.w, { verb: "bet", actor: this.pc.id, arg: d.bet, amount: +d.amt! }); if (!r.ok) this.hint(r.reason ?? ""); this.openBet(); return; }
       if (d.report) { const r = dispatch(this.w, { verb: "report", actor: this.pc.id, target: { k: "actor", id: d.report } }); if (!r.ok) this.hint(r.reason ?? ""); this.closeSheet(); return; }
       if (d.loot) {
@@ -3881,6 +4049,8 @@ class StadiumScene extends Phaser.Scene {
         }
         this.openBag(); return;
       }
+      if (d.try) { this.tryOn(d.try); return; }
+      if (d.turn) { this.mirrorDir = (this.mirrorDir + 8 + +d.turn) % 8; clearInterval(this.mirrorTimer); this.drawMirror(); return; }
       if (d.wd) {
         if (d.wd === "look") { this.openWardrobe(); return; }
         if (d.wd === "bag") { this.openBag(); return; }

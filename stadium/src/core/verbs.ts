@@ -1,6 +1,6 @@
 // Every deliberate thing an actor does is an Action dispatched here. One entry
 // point means actions can be validated, announced, and recorded for replay.
-import { canPocket, defOf, hasProp, moveItem } from "./items";
+import { canPocket, defOf, hasProp, moveItem, POCKET_SLOTS } from "./items";
 import type { Action, Actor, Id, Item, VerbId, WorldState } from "./types";
 import type { World } from "./world";
 
@@ -62,8 +62,10 @@ export const VERBS: Record<VerbId, VerbDef> = {
     perform: (w, a, actor, item) => {
       const slot = defOf(item!).slot!;
       const old = actor.worn[slot];
+      // What it replaces goes in the bag if there's room (clothes fold small), else on the floor.
       if (old) moveItem(w.state, old, { k: "ground", x: actor.x, y: actor.y });
       moveItem(w.state, item!.id, { k: "worn", a: actor.id, slot });
+      if (old && actor.pockets.length < POCKET_SLOTS) moveItem(w.state, old, { k: "pocket", a: actor.id });
     },
   },
   remove: {

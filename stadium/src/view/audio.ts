@@ -17,13 +17,15 @@ export const CLIPS = [
   "tannoy_display_off", "tannoy_lenny", "tannoy_lenny_off", "tannoy_card", "tannoy_press", "glass_smash", "chair_smash", "haymaker",
   "tannoy_welcome_final", "tannoy_facerec", "tannoy_detector", "stw_slot", "stw_knob", "stw_odd", "stw_bar", "detector_ok", "detector_alarm",
   "radio_squelch", "head_splat", "heat_alert", "heat_clear", "car_alarm", "car_door", "car_crash", "car_kick", "stw_copy", "stw_cover", "stw_cover_dead",
-  "alert_sting", "fart", "shop_bell", "door_chime", "desk_bell", "gh_offer", "gh_no", "gh_yes", "gh_rude", "gh_chop", "gh_after", "gh_knock",
+  "alert_sting", "fart", "shop_bell", "door_chime", "desk_bell", "scan_beep", "scan_bad", "turnstile_clunk", "gh_offer", "gh_no", "gh_yes", "gh_rude", "gh_chop", "gh_after", "gh_knock",
 ] as const;
 /** Voiced lines (ElevenLabs stock British voices): what's said -> clip; a woman says the `_f` take. */
 import VOICES_JSON from "../../assets/audio/voices.json";
 export const VOICES: Record<string, string> = VOICES_JSON as Record<string, string>;
 /** The player's own voice: what he shouts when he hits, knocks out, robs, rides, jumps. */
 import PC_JSON from "../../assets/audio/pcvoices.json";
+/** Voices (his, the crowd's, the phone) sit a touch above the effects so they read over the din. */
+const voiceBoost = (name: string) => (/^(pc_|v_)/.test(name) ? 1.25 : 1);
 export const PC_LINES: Record<string, [string, string][]> = PC_JSON as unknown as Record<string, [string, string][]>;
 export type Clip = (typeof CLIPS)[number] | `v_${string}` | `pc_${string}`;
 
@@ -152,7 +154,7 @@ export class Audio {
     src.buffer = b;
     src.playbackRate.value = opts.rate ?? 1;
     const g = this.ctx.createGain();
-    g.gain.value = volume;
+    g.gain.value = volume * voiceBoost(name);
     if (opts.muffle) {
       const f = this.ctx.createBiquadFilter();
       f.type = "lowpass"; f.frequency.value = 300 + (1 - opts.muffle) * 8000;
@@ -170,7 +172,7 @@ export class Audio {
     const b = this.buffers.get(name);
     if (!b || !this.ctx) return { dur: 0, stop: () => {} };
     const src = this.ctx.createBufferSource(), g = this.ctx.createGain();
-    src.buffer = b; g.gain.value = volume;
+    src.buffer = b; g.gain.value = volume * voiceBoost(name);
     src.connect(g).connect(this.master);
     src.start();
     return { dur: b.duration, stop: () => { try { src.stop(); } catch { /* already done */ } } };

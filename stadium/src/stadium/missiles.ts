@@ -35,7 +35,7 @@ export function windowNear(a: Actor, r = 1.8): number {
   for (let i = 0; i < ws.length; i++) if (Math.hypot(a.x - ws[i].x, a.y - ws[i].y) < r) return i;
   return -1;
 }
-const SMASHERS = new Set(["brick", "hammer", "wrench", "bottle", "chair", "pint_glass"]);
+const SMASHERS = new Set(["brick", "hammer", "wrench", "bottle", "chair", "pint_glass", "pool_cue"]);
 
 function smash(w: World, i: number, by: Actor | undefined): void {
   const s = w.state, st = s.stadium!, p = windows()[i];

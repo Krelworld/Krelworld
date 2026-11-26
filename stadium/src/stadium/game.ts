@@ -11,7 +11,7 @@ import { installBetting, installSettlement } from "./betting";
 import { installPolice, stepTipoffs } from "./police";
 import { createDog, installDog, stepDog } from "./dog";
 import { stepKit } from "./kit";
-import { createBus, driveBus, installBus, stepBus, stepBusSanctions } from "./bus";
+import { BUS_LEN, BUS_WID, createBus, driveBus, installBus, stepBus, stepBusSanctions } from "./bus";
 import { installKickoff, stepKickoff } from "./kickoff";
 import { installKnife, stepArmed } from "./knife";
 import { installGloryHole } from "./gloryhole";
@@ -35,9 +35,9 @@ import { noteKnockout, spawnScenarios, stepScenarios } from "./scenarios";
 import { driveCar, installCars } from "./cars";
 import { BIKE_SPEED, BIKE_SPRINT, installBike, stepBikes } from "./bike";
 import { installReactions, installRules, SHOPS, stepRules } from "./rules";
-import { isSecurity, stepDetention, stepHeat, stepRadio, stepSecurity } from "./security";
+import { changedClothes, isSecurity, stepDetention, stepHeat, stepRadio, stepSecurity } from "./security";
 import type { StadiumState } from "./state";
-import { lorryHits, stepVehicle } from "./vehicles";
+import { LORRY_LEN, LORRY_WID, lorryHits, stepVehicle } from "./vehicles";
 
 export interface Checkpoint { id: "arrival" | "admission" | "kickoff" | "halftime"; label: string; tick: number; state: WorldState }
 
@@ -134,8 +134,8 @@ export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: 
   staff("seller", "none", "Stallholder", SPOTS.merchSeller, S, { shop: "merch" });
   staff("seller", "none", "Rose", SPOTS.charity, S, { shop: "charity", lines: ["Chef's whites came in this morning. Fits a big lad. Nobody stops a man in whites in a kitchen.", "All proceeds to the donkey sanctuary.", "Lovely frock on the dummy, that. Big sizes in the back."] });
   staff("seller", "none", "Sarge", SPOTS.surplus, S, { shop: "surplus", lines: ["Sold a ladder to a fella last week. Said the stand roof's the best seat in the house. Up there with a brick, you'd be king.", "Them stink cans are army grade. Clears a room. Clears a stand.", "Flares are for boats. Officially.", "Cash only. No questions."] });
-  staff("seller", "none", "Lucky Lionel", SPOTS.bookie, S, { shop: "bookies", lines: ["Their keeper likes a bet. Had a monkey on with me last week, on his own lot to lose.", "England? Brave. I like it.", "Odds change when the score does, sunshine.", "No refunds on acts of God. Or acts of you."] });
-  staff("seller", "none", "Kiosk", SPOTS.kiosk, N, { shop: "bookies", lines: ["Bets close fifteen seconds after a goal.", "Next goal's the one everyone wants."] });
+  staff("seller", "none", "Lionel", SPOTS.bookie, S, { shop: "pawn", lines: ["Their keeper was in here pawning his watch. He likes a bet, that one. Owes half the bookies in town.", "Wallets, phones, passes, shirts. I don't ask. You don't tell.", "Shut the bookie's down after the last World Cup. This pays better.", "Anything with a face on it, I'm not touching."] });
+  staff("seller", "none", "Kiosk", SPOTS.kiosk, N, { shop: "kiosk", lines: ["Pies are hot. Ish.", "We've run out of Bovril. Don't start."] });
   staff("cleaner", "cleaner", "Cleaner", VENUE.cleanerSpots[0], E);
   staff("cook", "catering", "Cook", SPOTS.kitchenSpot, S);
   // The people with hooks. Del sells tickets cheaper than the office and carries plenty more.
@@ -162,6 +162,8 @@ export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: 
   const mx = (x: number) => (VENUE.id === "sf" ? -x : x);
   for (const [x, y] of [[-57.2, 73.9], [-52.6, 79], [-58.9, 78.3], [-58.5, 0.5], [-58, -30], [-23.6, 79.2], [5.4, 73.4], [-28, 72.4]] as const) spawnItem(s, "bottle", { k: "ground", x: mx(x), y });
   for (const [x, y] of [[-59.4, 73.6], [-56.6, 78.2], [-55, 78.8]] as const) spawnItem(s, "chair", { k: "ground", x: mx(x), y });
+  // A cue left on the pool table.
+  if (!VENUE.features.fanZone) spawnItem(s, "pool_cue", { k: "ground", x: mx(-49.6), y: 74 });
   for (const [x, y] of [[-15.5, 41.4], [-10.5, 41.6], [-44, 68.6]] as const) spawnItem(s, "pint_glass", { k: "ground", x: mx(x), y });
   for (const [x, y] of [[-36, -23], [36, -23], [-36, 23], [36, 23]] as const) spawnItem(s, "corner_flag", { k: "ground", x, y });
 
@@ -215,6 +217,10 @@ export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: 
   installReactions(w);
   installMissiles(w);
   installFixes(w);
+  // A change of clothes out of sight shakes off whoever was after you.
+  w.bus.on((e) => {
+    if (e.type === "action" && e.action.actor === st.pc && ["wear", "remove", "strip", "dress"].includes(e.action.verb)) changedClothes(w, s.actors[st.pc]);
+  });
   w.bus.on((e) => { if (e.type === "knockout") noteKnockout(w, e.who, e.by); });
   installSettlement(w);
   const g: Game = { w, checkpoints: [], opp: oppKey, venue: venueId, campaign };
@@ -253,6 +259,38 @@ function collide(w: World, a: Actor): void {
   }
   a.x = Math.max(BOUNDS.x + 1, Math.min(BOUNDS.x + BOUNDS.w - 1, a.x));
   a.y = Math.max(BOUNDS.y + 1, Math.min(BOUNDS.y + BOUNDS.h - 1, a.y));
+}
+
+/** Vehicles are solid to walk into (not just to be run over by): the lorry and the coach while
+ *  they're stood or crawling, the traffic, your own car when you're out of it, the vans by the
+ *  ground. Only for you: everyone else's routes are planned round the walls, and a crowd bunched
+ *  behind a parked lorry would be worse than the odd fan stepping through one. Something moving
+ *  quickly isn't a wall; it's what knocks you down. */
+function vehicleBoxes(w: World, pc: Actor): { x: number; y: number; ang: number; hl: number; hw: number }[] {
+  const st = w.state.stadium!, out: { x: number; y: number; ang: number; hl: number; hw: number }[] = [];
+  for (const id in st.vehicles) {
+    const v = st.vehicles[id];
+    if (v.speed > 1.5 || v.drivenBy === pc.id || (v.state === "driving" && v.kind === "lorry" && v.speed > 0.5)) continue;
+    out.push(v.kind === "bus" ? { x: v.x, y: v.y, ang: v.facing, hl: BUS_LEN / 2, hw: BUS_WID / 2 } : { x: v.x, y: v.y, ang: v.facing, hl: LORRY_LEN / 2, hw: LORRY_WID / 2 });
+  }
+  for (const c of st.traffic ?? []) out.push({ x: c.x, y: c.y, ang: 0, hl: 2.1, hw: 0.85 });
+  const m = st.myCar;
+  if (m && !m.driving) out.push({ x: m.x, y: m.y, ang: m.facing, hl: 2.1, hw: 0.9 });
+  const mx = VENUE.id === "sf" ? -1 : 1;
+  out.push({ x: 32 * mx, y: 54.9, ang: 0, hl: 2.6, hw: 0.7 }, { x: 46 * mx, y: 52.2, ang: 0, hl: 2.6, hw: 0.8 }); // the police van, the burger van
+  return out;
+}
+function collideVehicles(w: World, a: Actor): void {
+  if (a.hiddenIn || a.heldBy || a.roof || a.bike || w.state.stadium!.horse?.rider === a.id) return;
+  const r = a.radius;
+  for (const b of vehicleBoxes(w, a)) {
+    const c = Math.cos(b.ang), sn = Math.sin(b.ang), dx = a.x - b.x, dy = a.y - b.y;
+    const al = dx * c + dy * sn, ac = -dx * sn + dy * c;
+    const pl = b.hl + r - Math.abs(al), pw = b.hw + r - Math.abs(ac);
+    if (pl <= 0 || pw <= 0) continue;
+    if (pl < pw) { const d = Math.sign(al || 1) * pl; a.x += c * d; a.y += sn * d; }
+    else { const d = Math.sign(ac || 1) * pw; a.x += -sn * d; a.y += c * d; }
+  }
 }
 
 /** Walking supporters at once (on top of the painted crowd in the stands). */
@@ -314,6 +352,7 @@ export function stepGame(g: Game): void {
     if ((a.fb && !a.fb.controlled && !a.knock) || a.off || a.hiddenIn || a.heldBy) continue;
     if (a.roof && clampToRoof(a)) continue; // up on a roof: no walls, just the edges
     collide(w, a);
+    if (a.id === st.pc) collideVehicles(w, a);
   }
   for (const id in st.vehicles) {
     const v = st.vehicles[id];

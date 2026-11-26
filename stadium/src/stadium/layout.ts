@@ -92,7 +92,7 @@ const QF_AREAS: Area[] = [
   { id: "carpark", name: "Car park", access: "public", floor: 0x34373b, outside: true, ...r(26, 62, 60, 82) },
   { id: "charity", name: "Second Hand Rose (charity shop)", access: "public", floor: 0x4a3f38, outside: true, ...r(-18, 62, -4, 72) },
   { id: "surplus", name: "Army & Navy Surplus", access: "public", floor: 0x3d4434, outside: true, ...r(8, 62, 22, 72) },
-  { id: "bookies", name: "Lucky Lionel's Bookmakers", access: "public", floor: 0x3d3350, outside: true, ...r(28, 62, 44, 72) },
+  { id: "bookies", name: "Cash Kings Pawnbrokers", access: "public", floor: 0x3d3350, outside: true, ...r(28, 62, 44, 72) },
 ];
 
 const WALL = 0x8a8f96, WALLTOP = 0xb4b9bf, BRICK = 0x7a4a3a, BRICKTOP = 0x9a6a55, CABIN = 0x6f7a62;
@@ -191,6 +191,7 @@ export const QF_FURNITURE: Furniture[] = [
   // The Three Lions: tables, the pool table, a fruit machine, the telly, pumps on the bar.
   f("pubtable", -58, 73.5, 1.5, 0.8, true, "pub"), f("pubtable", -58, 78, 1.5, 0.8, true, "pub"), f("pubtable", -53.5, 78.6, 1.5, 0.8, true, "pub"),
   f("pooltable", -51, 72.6, 2.6, 1.4, true, "pub"), f("fruitmachine", -36, 64.4, 1, 0.6, true, "pub", 2),
+  f("toiletsign", -52.6, 66.6, 1, 0.2, false, "pub"),
   f("pubtv", -36.2, 75.2, 1.8, 0.5, false, "pub"), f("pumps", -47.5, 67.25, 2.2, 0.3, false, "pub"), f("pumps", -40.5, 67.25, 2.2, 0.3, false, "pub"),
   // The shops: a counter at the back with the shopkeeper behind it (you're served across it), and a
   // shop floor in front worth browsing. Second Hand Rose: rails, a mannequin in somebody's nan's
@@ -203,10 +204,11 @@ export const QF_FURNITURE: Furniture[] = [
   f("armycounter", 15, 65.4, 2.8, 0.9, true, "surplus"),
   f("shelves", 9.4, 64.4, 1.5, 0.6, true, "surplus"), f("shelves", 20.6, 64.4, 1.5, 0.6, true, "surplus"), f("shelves", 20.6, 71.6, 1.5, 0.6, true, "surplus"),
   f("camorack", 9.6, 68.2, 1.7, 0.5, true, "surplus"), f("ammoboxes", 20.4, 68.2, 1.2, 0.7, true, "surplus"), f("camomannequin", 10.2, 71.4, 0.5, 0.4, true, "surplus", 2), f("ammoboxes", 18.4, 71.5, 1.2, 0.7, true, "surplus"),
-  f("betcounter", 34.2, 65.6, 3.4, 0.9, true, "bookies"), f("betcounter", 37.8, 65.6, 3.4, 0.9, true, "bookies"),
-  f("betstand", 30.4, 67.8, 0.7, 0.5, true, "bookies"), f("betstand", 41.6, 67.8, 0.7, 0.5, true, "bookies"),
-  f("fruitmachine", 28.8, 64.6, 1, 0.6, true, "bookies", 2), f("fruitmachine", 43.2, 64.6, 1, 0.6, true, "bookies", 2),
-  f("betscreens", 30.6, 70.9, 2, 0.5, true, "bookies", 2), f("betscreens", 41.4, 70.9, 2, 0.5, true, "bookies", 2),
+  // Lionel's: a pawnbroker's now. The jewellery counter, tellies stacked up, guitars, bikes by the door.
+  f("pawncounter", 36, 65.6, 3.4, 0.9, true, "bookies"),
+  f("tvstack", 30.2, 64.4, 1.4, 0.8, true, "bookies", 2), f("guitarrack", 42, 64.4, 1.7, 0.6, true, "bookies", 2),
+  f("tvstack", 42.6, 68.2, 1.4, 0.8, true, "bookies", 2), f("guitarrack", 29.6, 68.2, 1.7, 0.6, true, "bookies", 2),
+  f("bikerack", 30.8, 71.2, 2.8, 0.6, true, "bookies"),
   // The team hotel lobby: reception, sofas, palms, the kit bags waiting for the coach.
   f("sofa", 77.6, -31, 2.4, 0.9, true, "hotel"), f("sofa", 77.6, -22.6, 2.4, 0.9, true, "hotel"),
   f("bigplant", 74.9, -38.6, 0.8, 0.6, true, "hotel", 2), f("bigplant", 91, -38.6, 0.8, 0.6, true, "hotel", 2), f("bigplant", 79, -15.2, 0.8, 0.6, true, "hotel", 2),
@@ -233,7 +235,7 @@ export const QF_FURNITURE: Furniture[] = [
   f("tvpost", -53, -10, 0.5, 0.4, true, undefined, 2.5), f("tvpost", 53, 10, 0.5, 0.4, true, undefined, 2.5),
   f("condiments", -54.6, 14, 0.6, 0.4, true), f("condiments", 54.6, -14, 0.6, 0.4, true),
   // Ladders up onto the roofs (roofs.ts), and brick piles (missiles.ts).
-  f("ladder_s", -38, 80.9, 1, 0.3, false), f("ladder_s", -6, 72.9, 1, 0.3, false), f("ladder_s", 20.2, 72.9, 1, 0.3, false), f("ladder", 76.2, -13.6, 1, 0.3, false),
+  f("ladder_pub", -38, 80.9, 1, 0.3, false, undefined, 4), f("ladder_shop", -6, 72.9, 1, 0.3, false, undefined, 3.5), f("ladder_shop", 20.2, 72.9, 1, 0.3, false, undefined, 3.5), f("ladder_hotel", 76.2, -13.6, 1, 0.3, false, undefined, 6),
   f("bricks", 50, 48.6, 1.8, 0.8, false), f("bricks", -66, 30.4, 1.8, 0.8, false), f("bricks", 52, 79.4, 1.8, 0.8, false), f("bricks", -24.5, 76.4, 1.8, 0.8, false),
   // Concourse life: a programme seller, bins, litter, a sandwich board.
   f("programmes", 33, 39.9, 1.8, 0.8, true), f("bin", -28.6, 39.1, 0.6, 0.6, true), f("bin", 27.2, 39.1, 0.6, 0.6, true), f("bin", -53.8, 20, 0.6, 0.6, true), f("bin", 53.8, -20, 0.6, 0.6, true),
@@ -250,7 +252,7 @@ export const QF_FURNITURE: Furniture[] = [
   f("tactics", 24.2, -50.2, 2, 0.6, true, "dress_away", 2), f("boots", 15, -50.4, 1, 0.5, false, "dress_away"),
   f("showers", 24.3, -59.4, 3.3, 0.3, false, "dress_away"),
   // The approach and the car park: a scaffold on the corner, a pie stand, the TV truck, parked cars, the horsebox.
-  f("scaffold", 47.5, 46.4, 3.6, 1.2, true), f("ladder", -36, 45.4, 1, 0.3, false), f("kitbag", 57.8, 73.2, 1.4, 0.8, false), f("piestand", -40, 54.5, 3.2, 1.6, true),
+  f("scaffold", 47.5, 46.4, 3.6, 1.2, true), f("ladder_stand", -36, 45.4, 1, 0.3, false, undefined, 5), f("kitbag", 57.8, 73.2, 1.4, 0.8, false), f("piestand", -40, 54.5, 3.2, 1.6, true),
   f("obtruck", 52.5, 65.2, 6.8, 2.6, true), f("horsebox", 40, 81, 6.2, 2.4, true),
   f("parkedcar", 47.6, 77.6, 4.6, 1.8, true), f("parkedcar", 36.5, 77.6, 4.6, 1.8, true), f("parkedcar", 57.2, 77.6, 4.6, 1.8, true),
   // The street: trees in grates along the approach, a statue, bin bags and pavement boards.

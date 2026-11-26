@@ -21,7 +21,7 @@ import type { Action, Actor, Item } from "../core/types";
 import { possibleVerbs } from "../core/verbs";
 import type { World } from "../core/world";
 import { areaAt, SPOTS, VENUE } from "./layout";
-import { climbPointNear, turnstileNear, SHOPS } from "./rules";
+import { climbPointNear, fruitNear, turnstileNear, SHOPS } from "./rules";
 
 export interface Option {
   label: string;
@@ -79,6 +79,7 @@ export function options(w: World, pc: Actor, picked?: string | null): Option[] {
     push(VENUE.inside(pc.x, pc.y) ? "Climb out through the window" : "Climb in through the window", 75, { verb: "climbwindow", ...base });
   }
   if (hand0 && hasProp(hand0, "gun")) out.push({ label: "Look through the scope", priority: 66, sheet: { kind: "scope", who: pc.id } });
+  if (!pc.seated && fruitNear(pc)) push("Play the fruit machine (£1)", 60, { verb: "fruit", ...base });
   if (!pc.seated && ladderNear(pc)) push(`Climb the ladder: ${ladderNear(pc)!.roof.name.replace(/^The /, "the ")}`, 70, { verb: "ladder", ...base });
   if (pc.seated) out.push({ label: "Stand up", priority: 90, action: { verb: "stand", ...base } });
 

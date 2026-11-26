@@ -14,7 +14,7 @@ export const KIT_KEYS = ["barrier", "bench", "bigscreen", "bin", "bollard", "bur
   "roofvent", "gantry", "skylight", "foodkiosk", "condiments", "tvpost", "urinal", "sinks", "massage", "tactics", "icebath", "boots", "showers", "kitpegs", "cornerflag", "pubchair", "detector",
   "kegs", "busstop", "manhole", "chippaper", "pigeons", "gritbin", "flagpole", "newsboard", "scarf", "doormat", "smokerbin",
   "headless_fan", "headless_steward", "headless_woman", "bricks", "window", "window_broken", "ladder_s", "door_shut", "door_open", "door_players",
-  "shopcounter", "armycounter", "betcounter", "reception", "mannequin", "camomannequin", "brictable", "bookcase", "camorack", "ammoboxes", "betstand", "sofa", "bigplant", "luggage"] as const;
+  "shopcounter", "armycounter", "betcounter", "reception", "mannequin", "camomannequin", "brictable", "bookcase", "camorack", "ammoboxes", "betstand", "sofa", "bigplant", "luggage", "ladder_pub", "ladder_shop", "ladder_hotel", "ladder_stand", "turnstile_shut", "turnstile_open", "pawncounter", "tvstack", "guitarrack", "bikerack", "toiletsign"] as const;
 export type KitKey = (typeof KIT_KEYS)[number];
 /** Eight-way pictures (S, SE, E, NE, N, NW, W, SW in a row) for things that turn. */
 export const WORLD_8 = ["coach", "lorry"] as const;
@@ -74,7 +74,7 @@ export class WorldArt {
       if (this.scene.textures.exists(`k-${k}`)) continue;
       const src = this.img(k);
       if (!src) continue;
-      const cv = k === "turnstile" ? repaintSign(src, { x: 61, y: 24, w: 74, h: 21 }, "TURNSTILE", "#3fcf5c", "#0f2a14") : (() => {
+      const cv = k === "turnstile" ? repaintSign(src, { x: 61, y: 24, w: 74, h: 21 }, "TURNSTILE", "#3fcf5c", "#0f2a14") : k === "turnstile_shut" || k === "turnstile_open" ? repaintSign(src, { x: 42, y: 20, w: 108, h: 19 }, "TICKETS", "#f2ecd0", "#1b2a6b") : k === "toiletsign" ? repaintSign(src, { x: 6, y: 4, w: 52, h: 17 }, "TOILETS", "#1c5c3c", "#f4f1ea") : (() => {
         const c = document.createElement("canvas"); c.width = src.width; c.height = src.height; c.getContext("2d")!.drawImage(src, 0, 0); return c;
       })();
       const d = cv.getContext("2d", { willReadFrequently: true })!.getImageData(0, 0, cv.width, cv.height).data;
@@ -101,7 +101,7 @@ export function buildings(venue: Venue): BuildingSpec[] {
     { id: "surplus", rect: r(7.5, 61.5, 22.5, 72.5), height: 3.6, mat: "stock", roof: "slate", front: "surplus",
       doors: [{ x0: 13, x1: 17, kind: "shop" }], sign: { text: "ARMY & NAVY", bg: 0xd9cfa8, fg: 0x2f3d22 } },
     { id: "bookies", rect: r(27.5, 61.5, 44.5, 72.5), height: 3.6, mat: "render", roof: "felt", front: "bookies",
-      doors: [{ x0: 34, x1: 38, kind: "glass" }], sign: { text: "LUCKY LIONEL'S", bg: 0x3d2a6b, fg: 0xf2c94c } },
+      doors: [{ x0: 34, x1: 38, kind: "glass" }], sign: { text: "CASH KINGS", bg: 0x141416, fg: 0xf2c94c } },
     { id: "hotel", rect: r(73.5, -40.5, 92, -14), height: 7, mat: "render", roof: "felt", front: "hotel",
       doors: [{ x0: 80, x1: 84, kind: "glass" }], sign: { text: "TEAM HOTEL", bg: 0x22262c, fg: 0xf4f1ea } },
     { id: "cabin", rect: r(76, 50, 88, 58), height: 2.8, mat: "cabin", roof: "ribbed", front: "cabin", doors: [], sign: { text: "STEWARDS", bg: 0xf4f4f4, fg: 0x1c2a1c } },

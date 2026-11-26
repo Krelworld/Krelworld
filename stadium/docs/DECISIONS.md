@@ -819,3 +819,70 @@ A screenshot of the pub showed six speech bubbles, three rows of HUD (the speed 
   - the bell on the hotel desk;
   - the pub's noise.
 - **Shop prices** are now red BUY £n buttons; what you can't afford reads NEED £n.
+
+## Round: voices, solid vehicles, ladders, doorways, the look, turnstiles, money, the pub
+
+**Voices match the opening.** Grozz and Shezleigh now sound the same in the game and on the phone as in the opening.
+- **Why they didn't:** the opening uses ElevenLabs' newer model with Grozz's voice and Ruby B for Shezleigh. Half of Grozz's fight barks and every phone line had been made on the older model, with Lizzie as Shezleigh.
+- **What was re-recorded:** 29 barks and 15 phone lines, on the newer model with the opening's voices and the opening's screech treatment for her.
+- **Volume:** voices play about 25% louder than effects.
+
+**Vehicles are solid to walk into.** This covers:
+- the lorry and the coach while they're stood or crawling;
+- the traffic;
+- your car when you're out of it;
+- the police van and the burger van.
+
+A vehicle moving quickly still knocks you down rather than blocking you. Only the player bumps into vehicles. NPC routes are planned round walls, and a crowd jammed behind a parked lorry would look worse than the odd fan stepping through one.
+
+**Ladders reach the roofline.** Each building has its own ladder length, measured off its painted front: pub, shops, hotel, stand.
+
+**Walking into a building.** Under a second, played over the cut to the room, then the name card:
+- the shop's own front door in its own colours with its name over it;
+- Grozz from behind, waddling up;
+- the door swings open, the light spills out, and in he goes.
+
+It plays when you go in, not when you leave, and once per building per 20 seconds, so nipping in and out isn't a chore.
+
+**The look:**
+- **Two new PixelLab characters**, with every animation the shirtless sprite has:
+  - Grozz in a floral frock (hairy calves, trainers);
+  - Grozz naked with a smooth doll's crotch.
+- **Censor:** the naked one gets the telly's mosaic, a shimmering block of skin tones, not a black bar. There's no mosaic from behind.
+- **Moustache and wig** are painted into every frame of his sprite, found from the head in each frame, so they sit on him whichever way he faces. From behind you see the wig, not the moustache.
+- **The dressing room:** Grozz big and slowly turning, with every wearable you carry as a tile underneath. Tap to try on or take off. The panel stays open.
+- **Swapped clothes** go in your pockets when there's room, not on the floor.
+
+**Disguises work after you've been seen (Hitman's rule).**
+- **Out of sight:** change clothes where nobody chasing you can see, and they lose you.
+- **In sight:** change in front of them, and the new outfit goes round on the radio.
+- **The turnstile bug:** while the stewards were on alert, the turnstile steward silently ignored your ticket. Now:
+  - if he's after you: "Don't you move";
+  - if he's busy with someone else: "Wait there";
+  - otherwise he serves you, but stops anyone who matches the description going round.
+
+**Turnstiles:**
+- New booth art: an open blue steel frame, a ticket reader with red and green lights, flaps that fold back while the gate's open for someone. The old art was a closed glass door misspelt "TURNILE".
+- Yellow queue lanes and chevrons are painted up to each turnstile.
+- **Showing your ticket:** the ticket slides into the reader with a beep and a green lamp, then the flaps clunk back. If it's rejected, you get a buzz and a red lamp.
+
+**Money: betting is gone; the to-do list pays.** Each item pays once, through the sim so it saves and replays.
+- **Pay rates** run from £5 (getting slapped) to £40 (nicking the team bus).
+- **Balance:** you start with £40 and a ticket costs £45–60, so two or three easy jobs get you in. The keeper bribe (£100) or a bent referee (£150) takes a proper afternoon.
+- **Removed:** the betting app and the kiosk's bets. The betting code stays underneath for tests.
+
+**Lucky Lionel's is now Cash Kings Pawnbrokers.**
+- **The loop:** rob, sell, spend. Betting was a sum on a menu; this gives every wallet, pass, phone and stolen shirt a price.
+- **What he sells:** a walkie, a burner, a bike, sunglasses.
+- **What he buys:** almost anything, for about a third of what it's worth (stolen gear more). He won't touch a face or a pair of hands.
+- **The shop itself:** jewellery counter, tellies, guitars, bikes, and a new back wall and window displays.
+- **Keeper hint:** Lionel still tips you off that their keeper "likes a bet".
+
+**The pub, calmer and with more to do.**
+- **Fewer people, settled in place:** at most 11 drinkers; when it's full, people go to the yard instead. They settle in groups at the bar, the tables, the telly and the pool table, and stay longer, instead of wandering the whole floor.
+- **Floor:** floorboards instead of the loud patterned carpet.
+- **Toilets:** a TOILETS sign with an arrow at the door.
+- **New things to do:**
+  - **The fruit machine:** £1 a go, roughly 80p back in the pound. Three lions pays £20.
+  - **A pool cue:** left on the table; it snaps over someone's head.
+- **The toilet cubicle scene** has a new pixel-art backdrop: a graffitied green partition, a strip light, a puddle.

@@ -5,7 +5,7 @@ import { sharpInHand, stab, staffHands } from "./knife";
 import { knockOut, land } from "./combat";
 import { appearance } from "../core/identity";
 import { canPocket, defOf, hasProp, ITEM_DEFS, moveItem, spawnItem } from "../core/items";
-import { chance, pick, rndRange } from "../core/rng";
+import { chance, pick, rnd, rndRange } from "../core/rng";
 import { inVest, vestBlown } from "./security";
 import { lineOfSight } from "./nav";
 import type { Action, Actor, Id, Item } from "../core/types";
@@ -17,7 +17,7 @@ import { endPeriod } from "../football/match";
 import { beginRestart } from "../football/restarts";
 import { areaAt, SPOTS, TURNSTILES, VENUE, WALLS } from "./layout";
 import { FAN_POOL, say, STAFF_LINES } from "./npc";
-import { alert, crime, isSecurity, struggle, witnessesOf } from "./security";
+import { alert, crime, isSecurity, struggle, wantedMatch, witnessesOf } from "./security";
 import { cargoOpen } from "./vehicles";
 import { holdOpen } from "./bus";
 import { hearLead } from "./entries";
@@ -31,11 +31,37 @@ export const SHOPS: Record<string, { name: string; stock: Record<string, number>
   pub: { name: "The Three Lions", stock: { pint: 5, pie: 4 } },
   bar: { name: "Concourse bar", stock: { pint: 7, pie: 5 } },
   bookies: { name: "Bookmaker", stock: {} },
+  // Lucky Lionel's is a pawnbroker now: a few useful things to buy, and cash for whatever you've
+  // lifted off people (betting made the money side a sum; this makes it a loop: rob, sell, spend).
+  pawn: { name: "Cash Kings Pawnbrokers", stock: { radio: 30, burner: 30, bicycle: 25, sunglasses: 5 } },
+  kiosk: { name: "Snack kiosk", stock: { pie: 4, pint: 7 } },
   charity: { name: "Second Hand Rose", stock: { flat_cap: 6, sunglasses: 5, moustache: 3, wig: 9, long_wig: 12, dress: 15, tracksuit: 12, chef_whites: 18, overalls: 15 } },
   tout: { name: "Dodgy Del", stock: { ticket: 45 } },
   surplus: { name: "Army & Navy Surplus", stock: { balaclava: 10, hammer: 14, flare: 20, knife: 25, fart_can: 15 } },
   dealer: { name: "Spliff Ricky", stock: { powder: 30, laxative: 12, burner: 25, fart_can: 15 } },
 };
+
+export const fruitNear = (a: Actor) => VENUE.furniture.some((f) => f.key === "fruitmachine" && f.room === "pub" && Math.hypot(f.x - a.x, f.y + 0.6 - a.y) < 1.8);
+
+/** What each thing on the to-do list pays. Starting with £40 and a ticket at £45-60, two or three
+ *  easy ones get you in; a bent referee (£150) takes a proper afternoon's work. Roughly: the
+ *  easier and more repeatable, the less; the big set pieces (the bus, a parachute, a streak) most. */
+export const REWARDS: Record<string, number> = {
+  in: 20, ko_stw: 15, horse: 25, car: 20, pitch: 15, dog: 15, splat: 10, slap: 5, bus: 40, chute: 30, lenny: 20, evade: 15,
+  streak: 30, bomb: 15, grass: 10, boxer: 10, secret: 25, roof: 10, window: 10, stench: 15, rifle: 30,
+};
+
+/** What the pawnbroker gives for a thing (0: he won't have it). Stolen goods go for about half. */
+const PAWN: Record<string, number> = {
+  wallet: 15, radio: 15, burner: 12, ticket: 30, press_pass: 20, staff_pass: 15, warrant_card: 35, police_hat: 10, police_uniform: 25,
+  kit_card: 10, whistle: 5, ref_kit: 20, kit_eng: 40, kit_opp: 25, mascot_suit: 30, rifle: 120, bicycle: 12, knife: 6, hammer: 6, wrench: 8,
+  shirt_eng: 15, shirt_opp: 10, shirt_por: 10, shirt_bra: 10, shirt_arg: 10, hivis: 8, parachute: 30, sunglasses: 2, flare: 6, powder: 0,
+};
+export function pawnOffer(def: string): number {
+  if (def in PAWN) return PAWN[def];
+  const d = ITEM_DEFS[def];
+  return d?.price && !d.props.includes("food") && !d.props.includes("liquid") ? Math.max(1, Math.floor(d.price * 0.35)) : 0;
+}
 
 const near = (a: Actor, b: { x: number; y: number }, r: number) => Math.hypot(a.x - b.x, a.y - b.y) <= r;
 /** Held in the security office, the chief's always within earshot. */
@@ -67,6 +93,50 @@ export function installRules(): void {
     },
     perform: (w, act, actor) => colleague(w, actor, targetActor(w, act)!),
   });
+  // The pub fruit machine: a quid a go. Three lions pays twenty, three of anything else six, two
+  // cherries two. It takes more than it gives, like they do (about 80p back in the pound).
+  registerVerb("fruit", {
+    check: (w, _act, actor) => (!fruitNear(actor) ? "no fruit machine here" : actor.money < 1 ? "not enough money" : null),
+    perform: (w, _act, actor) => {
+      const r = w.state.rng.world, reel = () => { const x = rnd(r); return x < 0.12 ? "lion" : x < 0.38 ? "cherry" : x < 0.6 ? "bell" : x < 0.82 ? "pint" : "bar"; };
+      const reels = [reel(), reel(), reel()];
+      const same = reels[0] === reels[1] && reels[1] === reels[2], cherries = reels.filter((x) => x === "cherry").length;
+      const win = same ? (reels[0] === "lion" ? 20 : 6) : cherries >= 2 ? 2 : 0;
+      actor.money += win - 1;
+      w.bus.emit({ type: "fruit", t: w.state.tick, by: actor.id, reels, win });
+    },
+  });
+
+  // The to-do list pays: each thing done once, cash in hand (somebody's always filming, and the
+  // lads' group chat is generous). Paid once per item per match.
+  registerVerb("payout", {
+    check: (w, act) => (act.arg && act.arg in REWARDS && !w.state.stadium!.flags[`paid_${act.arg}`] ? null : "nothing owed"),
+    perform: (w, act, actor) => {
+      const st = w.state.stadium!, amount = REWARDS[act.arg!];
+      st.flags[`paid_${act.arg}`] = w.state.tick || 1;
+      actor.money += amount;
+      w.bus.emit({ type: "payout", t: w.state.tick, id: act.arg, amount });
+    },
+  });
+
+  // Selling to the pawnbroker: what he'll give you, and what he won't touch.
+  registerVerb("pawn", {
+    check: (w, act, actor) => {
+      const seller = targetActor(w, act), it = act.item ? w.state.items[act.item] : undefined;
+      if (!seller || seller.npc?.shop !== "pawn") return "nobody buying";
+      if (!near(actor, seller, 3.6)) return "too far";
+      if (!it || ![actor.hand, ...actor.pockets, ...Object.values(actor.worn)].includes(it.id)) return "not carrying it";
+      return pawnOffer(it.def) > 0 ? null : "he won't take that";
+    },
+    perform: (w, act, actor) => {
+      const seller = targetActor(w, act)!, it = w.state.items[act.item!], price = pawnOffer(it.def);
+      moveItem(w.state, it.id, { k: "gone" });
+      actor.money += price;
+      say(w, seller, pick(w.state.rng.world, ["Pleasure doing business.", "I'll not ask where it's from.", "Lovely. Next.", "Cash. Don't spend it all at once."]));
+      w.bus.emit({ type: "pawned", t: w.state.tick, by: actor.id, def: it.def, price });
+    },
+  });
+
   registerVerb("buy", {
     check: (w, act, actor) => {
       const seller = targetActor(w, act), shop = seller?.npc?.shop;
@@ -331,7 +401,7 @@ export function installRules(): void {
       // Bottles, glasses and chairs go to pieces on the first hit.
       if (held && hasProp(held, "breakable") && actor.hand === held.id) {
         moveItem(w.state, held.id, { k: "gone" });
-        if (held.def !== "chair") t.effects.bloody = Math.max(t.effects.bloody ?? 0, tick + 60 * 120);
+        if (held.def !== "chair" && held.def !== "pool_cue") t.effects.bloody = Math.max(t.effects.bloody ?? 0, tick + 60 * 120);
         w.bus.emit({ type: "smashed", t: tick, by: actor.id, who: t.id, what: held.def, x: t.x, y: t.y });
       }
       // The blow sends them back: a fist about a metre and a half, anything heavy further.
@@ -533,7 +603,11 @@ function turnstileCheck(w: World, act: Action): void {
   const s = w.state, st = s.stadium!, by = s.actors[act.actor], t = targetActor(w, act), it = act.item ? s.items[act.item] : undefined;
   if (!t?.npc || t.npc.job !== "turnstile" || !it) return;
   const n = t.npc, ap = appearance(s, by), r = s.rng.world;
-  if (n.mode !== "routine" && n.mode !== "watch") return;
+  // On the alert: if it's you he's after, no. Anyone else (a new face, a new frock) still gets
+  // served, though he looks harder: matching the description going round gets you stopped.
+  if (n.target === by.id && ["approach", "chase", "escort"].includes(n.mode)) return void say(w, t, "Don't you move.");
+  if (n.mode !== "routine" && n.mode !== "watch" && n.target && n.target !== by.id) return void say(w, t, "Hang on, mate. We've got a situation. Wait there.");
+  if (wantedMatch(w, t, by) >= 0.5) { n.sus[by.id] = Math.max(n.sus[by.id] ?? 0, 0.7); return void say(w, t, "Hold on. You look like the one on the radio. Step aside."); }
   const g = turnstileNear(t) ?? turnstileNear(by);
   if (!g?.gate) return;
   if (it.def === "warrant_card") {
@@ -550,8 +624,8 @@ function turnstileCheck(w: World, act: Action): void {
   }
   if (it.def !== "ticket") return void say(w, t, "That's not a ticket, is it?");
   if (st.dog?.state === "led" && !st.flags.serviceDog && !VENUE.features.penisDetector) return void say(w, t, "No dogs. Not even that one. Especially not that one.");
-  if (it.void) { n.sus[by.id] = Math.max(n.sus[by.id] ?? 0, 0.6); return void say(w, t, "This ticket's been cancelled. Hop it."); }
-  if (it.used) return void say(w, t, "This one's already been scanned.");
+  if (it.void) { n.sus[by.id] = Math.max(n.sus[by.id] ?? 0, 0.6); w.bus.emit({ type: "ticket_scanned", t: s.tick, who: by.id, gate: g.gate, ok: false }); return void say(w, t, "This ticket's been cancelled. Hop it."); }
+  if (it.used) { w.bus.emit({ type: "ticket_scanned", t: s.tick, who: by.id, gate: g.gate, ok: false }); return void say(w, t, "This one's already been scanned."); }
   if (ap.faceHidden) return void say(w, t, ap.sinister ? "You're not coming in dressed like that." : "Mask off, please.");
   // The cameras: a barred face is flagged unless at least half of it is covered.
   if (VENUE.features.faceCameras && st.banned.includes(ap.faceId) && ap.faceCover < 0.5) {
@@ -576,6 +650,7 @@ function turnstileCheck(w: World, act: Action): void {
   it.used = true;
   if (startDetector(w, by, g.gate, t)) return;
   st.gates[g.gate] = { until: s.tick + 60 * 4, for: by.id };
+  w.bus.emit({ type: "ticket_scanned", t: s.tick, who: by.id, gate: g.gate, ok: true });
   say(w, t, "Enjoy the game.");
 }
 

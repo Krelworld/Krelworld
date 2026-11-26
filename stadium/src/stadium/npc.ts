@@ -123,10 +123,32 @@ function clearSpot(w: World, areaId: string, pad: number): { x: number; y: numbe
 
 
 /** Hang about in an area: join a group already standing there if there's room, or start one. */
+/** Where people stand in the pub: at the bar, round the tables, under the telly, by the pool table.
+ *  Drinkers settle at these and stay a while, instead of milling about the whole floor. */
+const PUB_SPOTS = [{ x: -46.5, y: 69 }, { x: -41.5, y: 69 }, { x: -58, y: 75.4 }, { x: -58, y: 80 }, { x: -53.5, y: 80.4 }, { x: -39.5, y: 77.8 }, { x: -51, y: 74.9 }];
+const PUB_CAP = 11;
+
 function hangOut(w: World, a: Actor, areaId: string, seconds: number): void {
   const n = a.npc!, s = w.state, r = s.rng.world;
   let centre: { x: number; y: number } | null = null;
-  if (chance(r, 0.75)) {
+  if (areaId === "pub" && !VENUE.features.fanZone) {
+    // A full pub spills into the yard; otherwise you join the quietest spot and stop there longer.
+    const at = PUB_SPOTS.map((p) => ({ p, k: 0 }));
+    let inside = 0;
+    for (const id in s.actors) {
+      const o = s.actors[id].npc;
+      if (!o?.group || id === a.id || areaAt(o.group.x, o.group.y).id !== "pub") continue;
+      inside++;
+      const e = at.find((q) => q.p.x === o.group!.x && q.p.y === o.group!.y); if (e) e.k++;
+    }
+    if (inside >= PUB_CAP) areaId = "pub_yard";
+    else {
+      const open = at.filter((q) => q.k < 3);
+      centre = (open.length ? pick(r, open) : pick(r, at)).p;
+      seconds *= 1.6;
+    }
+  }
+  if (!centre && chance(r, 0.75)) {
     const counts = new Map<string, { c: { x: number; y: number }; k: number }>();
     for (const id in s.actors) {
       const o = s.actors[id].npc;

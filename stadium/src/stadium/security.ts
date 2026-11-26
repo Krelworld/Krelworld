@@ -3,7 +3,7 @@ import { maybeSnitch } from "./witness";
 import { climb, ladderNear, roofOf, roofs } from "./roofs";
 import { appearance, looksPermitted } from "../core/identity";
 import { defOf, hasProp, moveItem } from "../core/items";
-import { chance } from "../core/rng";
+import { chance, pick } from "../core/rng";
 import { DT, type Actor, type Id } from "../core/types";
 import type { World } from "../core/world";
 import { areaAt, BOUNDS, SPOTS, type Area } from "./layout";
@@ -78,7 +78,7 @@ function trespass(w: World, t: Actor, area: Area): number {
 }
 
 /** Does this person match a description going round? */
-function wantedMatch(w: World, v: Actor, t: Actor): number {
+export function wantedMatch(w: World, v: Actor, t: Actor): number {
   const st = w.state.stadium!, ap = appearance(w.state, t), d = Math.hypot(t.x - v.x, t.y - v.y);
   const outer = t.worn.outer ? w.state.items[t.worn.outer].def : null;
   let m = 0;
@@ -505,6 +505,26 @@ export function stepDetention(w: World): void {
 }
 
 
+
+/** He's changed his clothes. Anyone after him who couldn't see him do it has lost him: they're
+ *  looking for the old outfit now (Hitman's rule: a disguise change out of sight breaks the chase;
+ *  one done in front of them doesn't). Seen doing it, the new look goes round too. */
+export function changedClothes(w: World, pc: Actor): void {
+  const s = w.state, st = s.stadium!, tick = s.tick;
+  const after = Object.values(s.actors).filter((a) => isSecurity(a) && a.npc!.target === pc.id && a.downUntil <= tick && a.npc!.mode !== "escort");
+  if (!after.length || pc.heldBy) return;
+  const saw = after.filter((a) => canSee(w, a, pc, 20));
+  if (saw.length) {
+    const ap = appearance(s, pc);
+    for (const wd of st.wanted) if (wd.until > tick) wd.look = ap.look;
+    say(w, saw[0], "Getting changed won't help you, sunshine.");
+    return;
+  }
+  for (const a of after) { const n = a.npc!; n.sus[pc.id] = 0.3; n.crime = 0; n.mode = "routine"; n.target = null; n.intent = null; n.goal = null; n.path = []; n.plan = []; say(w, a, pick(s.rng.world, ["Where's he gone?", "Lost him.", "He was right here."])); }
+  st.flags.evadeUntil = 0;
+  st.flags.cautionUntil = tick + 60 * 20;
+  w.bus.emit({ type: "evaded", t: tick, disguise: true });
+}
 
 // ---------- Heat ----------
 /** How hot it is for him, MGS/GTA style. flags.heatMode: 0 clear, 1 noticed, 2 caution, 3 evasion,

@@ -1,0 +1,26 @@
+{
+ "pawncounter": {
+  "description": "a pawn shop glass jewellery display counter full of gold rings, chains and watches, a small cash register and a pile of old mobile phones on top, steel frame",
+  "w": 128,
+  "h": 72,
+  "view": "high top-down"
+ },
+ "tvstack": {
+  "description": "a wobbly stack of second-hand televisions, games consoles and DVD players with handwritten price tags, on a wooden pallet",
+  "w": 64,
+  "h": 72,
+  "view": "high top-down"
+ },
+ "guitarrack": {
+  "description": "a pawn shop rack of second-hand electric guitars and an acoustic guitar standing in a row, price tags hanging off them",
+  "w": 72,
+  "h": 72,
+  "view": "high top-down"
+ },
+ "bikerack": {
+  "description": "three second-hand bicycles leaning in a metal rack with cardboard price signs",
+  "w": 96,
+  "h": 64,
+  "view": "high top-down"
+ }
+}

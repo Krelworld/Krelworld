@@ -39,7 +39,7 @@ writeFileSync(
 import { cpSync } from "node:fs";
 cpSync("assets/audio", "dist/stadium/audio", { recursive: true });
 mkdirSync("dist/stadium/art", { recursive: true });
-for (const f of readdirSync("assets/art")) if (/^[a-z]+-[a-z]+\.png$/.test(f) && !f.startsWith("tiles")) copyFileSync(`assets/art/${f}`, `dist/stadium/art/${f}`);
+for (const f of readdirSync("assets/art")) if (/^[a-z]+-[a-z0-9]+\.png$/.test(f) && !f.startsWith("tiles")) copyFileSync(`assets/art/${f}`, `dist/stadium/art/${f}`);
 for (const t of ["street", "pitch"]) copyFileSync(`assets/art/tiles-${t}.png`, `dist/stadium/art/tiles-${t}.png`);
 mkdirSync("dist/stadium/icons", { recursive: true });
 for (const f of readdirSync("assets/icons")) if (f.endsWith(".png")) copyFileSync(`assets/icons/${f}`, `dist/stadium/icons/${f}`);

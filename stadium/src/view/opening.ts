@@ -57,9 +57,9 @@ class OpeningScene extends Phaser.Scene {
   init(d: { done: () => void }) { this.done = d.done; }
 
   preload() {
-    for (const k of ["tv_studio", "tv_presser", "tv_fans", "room", "tv_studio_bg", "tv_presser_bg", "tv_pub_bg", "tv_studio_front", "tv_presser_front"]) this.load.image(k, `scenes/${k}.png`);
+    for (const k of ["room", "tv_studio_bg", "tv_presser_bg", "tv_pub_bg", "tv_studio_front", "tv_presser_front"]) this.load.image(k, `scenes/${k}.png`);
     // The newsreader and the manager: camera-facing talking sheets, 128 px cells, one row.
-    for (const b of ["penelope", "scronson"]) for (const a of ["rot", "talk", "talk2"]) this.load.spritesheet(`${b}-${a}`, `art/${b}-${a}.png`, { frameWidth: 128, frameHeight: 128 });
+    for (const b of ["penelope", "scronson"]) for (const a of ["talk"]) this.load.spritesheet(`${b}-${a}`, `art/${b}-${a}.png`, { frameWidth: 128, frameHeight: 128 });
     for (const b of ["lad", "woman"]) for (const a of ["rot", "cheer"]) this.load.spritesheet(`${b}-${a}`, `art/${b}-${a}.png`, { frameWidth: 88, frameHeight: 88 });
     for (const k of LINES) this.load.audio(`op_${k}`, `audio/op_${k}.mp3`);
     for (const k of SFX) this.load.audio(`op_${k}`, `audio/op_${k}.mp3`);
@@ -117,15 +117,15 @@ class OpeningScene extends Phaser.Scene {
   }
   /** Someone on the telly: the camera-facing frames, scaled up, cut off at the desk. Talks while told to. */
   onTelly(base: string, x: number, y: number, scale: number, deskY: number) {
-    if (!this.textures.exists(`${base}-rot`)) return null;
-    const sp = this.add.sprite(x, y, `${base}-rot`, 0).setOrigin(0.5, 1).setScale(scale).setDepth(5);
+    if (!this.textures.exists(`${base}-talk`)) return null;
+    const sp = this.add.sprite(x, y, `${base}-talk`, 0).setOrigin(0.5, 1).setScale(scale).setDepth(5);
     // Crop at the desk: only what's above deskY (screen) shows.
     const top = y - 128 * scale, keep = Math.max(1, (deskY - top) / scale);
     sp.setCrop(0, 0, 128, Math.min(128, keep));
     let k = 0;
     const talk = (on: boolean) => {
       if (!on) { sp.stop(); sp.setFrame(0); return; }
-      const a = ["talk", "talk2"][k++ % 2];
+      const a = "talk"; k++;
       if (!this.textures.exists(`${base}-${a}`)) return;
       const key = `${base}-${a}-tv`;
       if (!this.anims.exists(key)) this.anims.create({ key, frames: this.anims.generateFrameNumbers(`${base}-${a}`, {}), frameRate: 8, repeat: -1 });
@@ -168,7 +168,7 @@ class OpeningScene extends Phaser.Scene {
 
   async telly() {
     // ===== The telly =====
-    const live = this.textures.exists("tv_studio_bg") && this.textures.exists("penelope-rot");
+    const live = this.textures.exists("tv_studio_bg") && this.textures.exists("penelope-talk");
     const pic = this.add.image(W / 2, H / 2, live ? "tv_studio_bg" : "tv_studio").setScale(W / 400).setDepth(1);
     // The desk, in front of her: the bottom of the studio picture drawn again over the presenter.
     const desk = live ? this.add.image(W / 2, H / 2, "tv_studio_front").setScale(W / 400).setDepth(6) : null;
@@ -189,7 +189,7 @@ class OpeningScene extends Phaser.Scene {
     pen?.talk(false); pen?.sp.setVisible(false); desk?.setVisible(false);
 
     this.mark("presser");
-    const live2 = this.textures.exists("tv_presser_bg") && this.textures.exists("scronson-rot");
+    const live2 = this.textures.exists("tv_presser_bg") && this.textures.exists("scronson-talk");
     pic.setTexture(live2 ? "tv_presser_bg" : "tv_presser").setScale(W / 400);
     const mics = live2 ? this.add.image(W / 2, H / 2, "tv_presser_front").setScale(W / 400).setDepth(6) : null;
     const scron = live2 ? this.onTelly("scronson", W / 2, H * PRES.presser.feet, PRES.presser.scale, (DESK.presser * W) / 400) : null;

@@ -4952,6 +4952,60 @@ async function tapfix(browser) {
       check("P4: tap the ARCADE's frontage: walk to the slots", onScreen && st.walking && /KRAZY REELS/.test(st.tag || ""), { pg, onScreen, last: st.last, tag: st.tag });
       await tapDone(ph);
     }
+    // ---- R9 / R10: routes in the town on a slow phone (the CPU 4x slower): the slowest route, the grid built once
+    check("the Hub for routes", await toWalk(ph, "Hub"), await ph.mode());
+    await setIn();
+    await sleep(800);
+    await ph.cdp.send("Emulation.setCPUThrottlingRate", { rate: 4 }).catch(() => {});
+    const r0 = (await tapState(ph)).stats;
+    const vp0 = await ph.ev(() => ({ w: innerWidth, h: innerHeight }));
+    const doors = (await tapTargets(ph)).filter((t) => !t.low && t.far > 150 && t.page.x > 60 && t.page.x < vp0.w - 60 && t.page.y > 70 && t.page.y < vp0.h - 30).slice(0, 4);
+    for (const d of doors) {
+      await ph.tapCss(d.page.x, d.page.y);
+      await sleep(400);
+      await ph.ev(() => window.__krelMobile.tapUse.cancel("test"));
+    }
+    const r1 = (await tapState(ph)).stats;
+    await ph.cdp.send("Emulation.setCPUThrottlingRate", { rate: 1 }).catch(() => {});
+    check("R9/R10: town routes with the CPU 4x slower: the slowest under 120 ms", r1.routes - r0.routes >= 2 && r1.routeMs < 120, { routes: r1.routes - r0.routes, slowestMs: Math.round(r1.routeMs) });
+
+    // ---- P5: Whack-a-Drongus's card with the bigger text: the rule and every row inside the card, nothing overlapping
+    await ph.ev(() => {
+      const k = window.__krel;
+      k.newRun("FLENKY");
+      k.go("Whack");
+    });
+    await ph.scene("Whack");
+    await sleep(2500);
+    const wc = await ph.ev(() => {
+      const sc = window.__krel.game.scene.getScene("Whack");
+      const L = sc.layer.list;
+      const card = L.find((o) => o.type === "Rectangle" && o.width === 700).getBounds();
+      const texts = L.filter((o) => o.type === "Text" && o.y > card.y && o.y < card.bottom).map((o) => ({ t: o.text.slice(0, 24), b: o.getBounds() }));
+      const hit = (a, b) => a.x < b.right - 1 && b.x < a.right - 1 && a.y < b.bottom - 1 && b.y < a.bottom - 1;
+      const over = [];
+      for (let i = 0; i < texts.length; i++) for (let j = i + 1; j < texts.length; j++) if (hit(texts[i].b, texts[j].b)) over.push(`${texts[i].t} / ${texts[j].t}`);
+      const out = texts.filter((x) => x.b.x < card.x || x.b.right > card.right || x.b.bottom > card.bottom).map((x) => x.t);
+      return { over, out, n: texts.length };
+    });
+    check("P5: Whack-a-Drongus's card: nothing overlaps, everything inside the card", wc.n > 10 && wc.over.length === 0 && wc.out.length === 0, wc);
+
+    // ---- P6: the archive's records by their whole names (two lines where needed)
+    await ph.ev(() => {
+      const k = window.__krel;
+      k.newRun("FLENKY");
+      k.setChapter(4, {});
+      k.G.s.archiveUnlocked = ["arch_motto", "arch_scrombus_arrival", "arch_national_drink", "arch_vending", "arch_flenky_bans"];
+      k.go("Archive");
+    });
+    await ph.scene("Archive");
+    await sleep(2500);
+    const ar = await ph.ev(() => {
+      const ls = [...document.querySelectorAll(".pl.wrapl .pl-row .pl-l")].slice(0, 5);
+      const title = document.querySelector(".pl.wrapl .pl-title");
+      return { n: ls.length, whole: ls.filter((e) => e.scrollHeight <= e.clientHeight + 1).length, title: title ? title.scrollHeight <= title.clientHeight + 1 && title.scrollWidth <= title.clientWidth + 1 : false };
+    });
+    check("P6: the archive list shows its records' names whole (at most one long one clamped) and the count in full", ar.n === 5 && ar.whole >= 4 && ar.title, ar);
     check("tapfix: no page errors", errors.length === 0, errors.slice(0, 3));
   } finally {
     await ctx.close();

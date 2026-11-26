@@ -23,6 +23,7 @@ import { CharSelectScene } from "../scenes/CharSelectScene";
 import { PubScene } from "../scenes/PubScene";
 import { SaveSlotsScene } from "../scenes/SaveSlotsScene";
 import { HomeScene } from "../scenes/HomeScene";
+import { WhackScene } from "../scenes/kreddle/WhackScene";
 import { button } from "../ui/theme";
 import { buttonsIn, isGameButton, resizeButton, type GameButton } from "./canvasUi";
 import { gamePx, markReading, readability, type Readability } from "./readability";
@@ -713,6 +714,40 @@ function layoutPubTv(sc: Bag) {
   sub.setOrigin(0.5, 0).setY(show.y + Math.max(16, show.height) + 2);
 }
 
+/**
+ * Whack-a-Drongus's start card (P5): with the bigger text the multiplier rule ran across the right-hand column and out
+ * of the card, and "GOLDEN CROBLEY: THE GREAT TAP" ran into its "x2!". On a phone the rule wraps into the free slot
+ * under the right-hand column, and a row's points move right where its name needs the room (inside the card).
+ */
+function layoutWhackCard(sc: Bag) {
+  const L = sc.layer as Phaser.GameObjects.Container | undefined;
+  if (!L || !readability()?.on) return;
+  const list = L.list as Bag[];
+  const card = list.find((o) => o.type === "Rectangle" && o.width === 700) as Phaser.GameObjects.Rectangle | undefined;
+  const rule = list.find((o) => o.type === "Text" && /^Hit five in a row/.test(o.text)) as Phaser.GameObjects.Text | undefined;
+  if (!card || !rule) return;
+  const right = card.x + card.width / 2 - 8;
+  const texts = list.filter((o) => o.type === "Text") as Phaser.GameObjects.Text[];
+  // (a row: its name, origin left, and its points, origin right, on the same line)
+  for (const pts of texts.filter((t) => t.originX === 1)) {
+    const name = texts.find((t) => t.originX === 0 && Math.abs(t.y - pts.y) < 2 && t.x < pts.x && pts.x - t.x <= 300);
+    if (!name) continue;
+    const need = name.x + name.width + 6 - (pts.x - pts.width);
+    if (need <= 0) continue;
+    // (no further than the card's edge, or the next column's icons)
+    const nextCol = texts.filter((t) => t.originX === 0 && t.x > pts.x).reduce((m, t) => Math.min(m, t.x - 30), right);
+    pts.setX(Math.min(pts.x + need, nextCol));
+  }
+  // the rule: under the right-hand column (its rows end higher than the left's), inside the card
+  const col = texts.filter((t) => t.originX === 0 && t.x > card.x);
+  const top = col.reduce((m, t) => Math.max(m, t.y + t.height / 2), 0) + 6;
+  const x0 = col.reduce((m, t) => Math.min(m, t.x), Infinity) - 28;
+  const w = right - x0;
+  if (!(w > 120) || !Number.isFinite(top)) return;
+  // (the same words: its two sentences run on, so they wrap to three lines in the slot, not four)
+  rule.setText(rule.text.replace(/\s*\n\s*/g, " ")).setWordWrapWidth(w, true).setOrigin(0.5, 0).setPosition(x0 + w / 2, top);
+}
+
 function patchScenes() {
   if (patched) return;
   patched = true;
@@ -726,6 +761,7 @@ function patchScenes() {
     for (const b of buttonsIn(((sl.root as Bag)?.list as unknown[]) ?? [])) if (b.y > 440 && b.x > 300 && b.x < 660) liftButton(b);
   });
   wrap(HomeScene.prototype as unknown as Bag, "laptopPanel", (h) => layoutLaptop(h as unknown as Phaser.Scene));
+  wrap(WhackScene.prototype as unknown as Bag, "attract", (w) => layoutWhackCard(w));
   wrap(CharSelectScene.prototype as unknown as Bag, "create", (c) => {
     layoutCharGrid(c as Phaser.Scene & Bag);
     // (create() drew the first details before the grid moved: again, now)

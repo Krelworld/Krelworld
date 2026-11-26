@@ -6,7 +6,8 @@
 import type { TouchLayer } from "./touchLayer";
 import type { Placed, Rect, SlotId } from "./layout";
 import { BRAWL_BUTTONS } from "./brawl";
-import { phoneSettings } from "./settings";
+import { fireStyle, phoneSettings } from "./settings";
+import { FIRE_AUTO, fireLine } from "./combatWording";
 
 export type PictureTab = "walk" | "fight" | "side" | "brawl";
 
@@ -24,9 +25,8 @@ export const PICTURE_TABS: { id: PictureTab; title: string }[] = [
   { id: "brawl", title: "BRAWL" },
 ];
 
-/** FIRE's line, as the auto-fire setting has it (P10). */
-export const FIRE_AUTO = "Shoots by itself at enemies in range. Hold to fire anyway, slide your thumb to aim";
-export const FIRE_MANUAL = "Hold to shoot: it aims for you. Slide your thumb to aim by hand";
+// (FIRE's lines live in combatWording.ts: pure, so the unit tests can read them)
+export { FIRE_AUTO, FIRE_LIGHT, FIRE_MANUAL, FIRE_STILL, fireLine } from "./combatWording";
 
 const PAUSE: PictureItem = { at: { control: "pause" }, word: "II", line: "Pause (and this menu)" };
 /** The pocket (thumb-feel round): the fart, a fizzy bongo and the SanMik change, full size, only when they can be used. */
@@ -206,7 +206,7 @@ export class ControlsPicture {
       }
       const row = document.createElement("div");
       row.className = "kcp-row";
-      const line = it.line === FIRE_AUTO && !phoneSettings().autoFire ? FIRE_MANUAL : it.line;
+      const line = it.line === FIRE_AUTO ? fireLine(fireStyle(phoneSettings())) : it.line;
       row.innerHTML = `<span class="n">${n}</span><span>${it.word ? `<b>${it.word}</b>: ` : ""}${line}</span>`;
       list.appendChild(row);
     }

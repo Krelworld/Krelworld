@@ -868,7 +868,7 @@ async function settings(browser) {
   try {
     const key = await ph.ev(async () => (await import("/src/game/variant.ts")).storageKey("krelworld.phone.settings"));
     let st = await ph.ev((k) => ({ s: window.__krelMobile.settings.get(), stored: localStorage.getItem(k), n: window.__krelMobile.settings.list().length }), key);
-    check("defaults: right-handed, M, 30%, auto-fire, normal aim assist, phone assist on, battery saver off, readability ON (stage 2), haptics on", JSON.stringify(st.s) === JSON.stringify({ leftHanded: false, buttonSize: "M", opacity: 0.3, stick: "stays", autoFire: true, aimAssist: "normal", phoneAssist: true, batterySaver: false, readability: true, textSize: "normal", haptics: true, syncOffsetMs: 0, playOverMyMusic: false }), st.s);
+    check("defaults: right-handed, M, 30%, HOLD FIRE (auto-fire off: EASY is a choice), normal aim assist, phone assist on, battery saver off, readability ON (stage 2), haptics on", JSON.stringify(st.s) === JSON.stringify({ leftHanded: false, buttonSize: "M", opacity: 0.3, stick: "stays", autoFire: false, firing: "auto", aimAssist: "normal", phoneAssist: true, batterySaver: false, readability: true, textSize: "normal", haptics: true, syncOffsetMs: 0, playOverMyMusic: false }), st.s);
     check("nothing is written just by loading", st.stored === null);
     check("the typed list a settings screen renders has every setting", st.n === 13, st.n);
     const before = await ph.snap();
@@ -1600,7 +1600,7 @@ async function settings2(browser) {
     };
     const s0 = await get();
     const fails = [];
-    for (const key of ["leftHanded", "haptics", "autoFire", "phoneAssist", "readability", "batterySaver", "playOverMyMusic"]) {
+    for (const key of ["leftHanded", "haptics", "phoneAssist", "readability", "batterySaver", "playOverMyMusic"]) {
       const before = (await get())[key];
       await into(`.kps-row[data-key="${key}"]`);
       await sleep(60);
@@ -1611,11 +1611,14 @@ async function settings2(browser) {
       await sleep(150);
       if (mid === before || (await get())[key] !== before) fails.push(key);
     }
-    for (const [key, vals] of [["buttonSize", ["S", "L", "M"]], ["stick", ["fixed", "follows", "stays"]], ["aimAssist", ["strong", "off", "normal"]], ["textSize", ["large", "normal"]]]) {
+    for (const [key, vals] of [["buttonSize", ["S", "L", "M"]], ["stick", ["fixed", "follows", "stays"]], ["aimAssist", ["strong", "off", "normal"]], ["textSize", ["large", "normal"]], ["firing", ["auto", "hold"]]]) {
       for (const v of vals) {
         await tapIn(key, `[data-v="${v}"]`);
         await sleep(150);
-        if ((await get())[key] !== v) fails.push(`${key}=${v}`);
+        const g = await get();
+        // (Firing: HOLD is auto-fire off; the row keeps autoFire in step)
+        const now = key === "firing" ? (g.autoFire === false ? "hold" : g.firing) : g[key];
+        if (now !== v || (key === "firing" && g.autoFire !== (v !== "hold"))) fails.push(`${key}=${v}`);
       }
     }
     for (const [key, d, want] of [["opacity", "1", 0.4], ["opacity", "-1", 0.3], ["syncOffsetMs", "1", 5], ["syncOffsetMs", "-1", 0]]) {
@@ -1632,7 +1635,9 @@ async function settings2(browser) {
     const auto = await ph.ev((k) => localStorage.getItem(k), mk);
     if (off.v !== "0" || !off.note || auto !== null) fails.push(`phoneLayout ${JSON.stringify({ off, auto })}`);
     check("every row works by tap (toggles both ways, every choice, sliders up and down, Phone layout off then auto)", fails.length === 0, fails);
-    check("and the settings end where they started", JSON.stringify(await get()) === JSON.stringify(s0));
+    // (Firing compares by the style in force: HOLD is stored as auto-fire off, whatever flavour `firing` keeps)
+    const styled = (g) => JSON.stringify({ ...g, firing: g.autoFire === false ? "hold" : g.firing });
+    check("and the settings end where they started", styled(await get()) === styled(s0));
     // Bigger text off: the menu behind is drawn again at the game's own sizes; on again
     await into('.kps-row[data-key="readability"]');
     await ph.tapSel('.kps-row[data-key="readability"]');
@@ -2491,7 +2496,10 @@ async function dungeon(browser) {
     };
     // thumbs on the stick and FIRE when the page hides (no touchcancel): both let go (R9; FIRE sits where ATTACK was)
     const [sx, sy] = await ph.g2c(150, 400);
-    const [ax, ay] = await ph.g2c(860, 440);
+    // (on FIRE itself: with HOLD the default, nothing but a thumb on FIRE fires, so a press beside it would read as no
+    // attack; it used to pass on auto-fire alone)
+    const fireCtl = (await ph.snap()).controls.find((c) => c.id === "c-fire" && c.shown);
+    const [ax, ay] = fireCtl ? [fireCtl.face.x + fireCtl.face.w / 2, fireCtl.face.y + fireCtl.face.h / 2] : await ph.g2c(860, 440);
     await ph.touch("touchStart", [{ x: sx, y: sy, id: 1 }]);
     for (let i = 1; i <= 5; i++) {
       await ph.touch("touchMove", [{ x: sx + i * 10, y: sy, id: 1 }]);
@@ -2662,7 +2670,17 @@ async function combat(browser) {
   try {
     await ph.ev(() => window.__krelMobile.setInsets({ top: 0, right: 47, bottom: 21, left: 47 }));
     await ph.ev(() => window.__krelMobile.combat.resetTeaching());
+    // (the one-time HOLD tip: every toast is noted from here on)
+    await ph.ev(() => {
+      window.__toastsSeen = [];
+      window.__krel.G.on((ev, d) => ev === "toast" && d && window.__toastsSeen.push(String(d.title)));
+    });
     check("a top-down room reached through DebugSkip (as Mikey): combat mode", await toFight(ph, "wildern", 0, 2, "MIKEY"), await ph.mode());
+    {
+      const st0 = await ph.ev(() => ({ s: window.__krelMobile.combat.snapshot().firing, toasts: window.__toastsSeen }));
+      check("a fresh phone fights on HOLD, and its first fight says so once (HOLD FIRE TO SHOOT)", st0.s === "hold" && st0.toasts.filter((t) => t === "HOLD FIRE TO SHOOT").length === 1, st0);
+      await ph.shot("combat-hold-tip");
+    }
     let s = await ph.snap();
     const shown = (id) => !!s.controls.find((c) => c.id === id && c.shown);
     const pad = await ph.ev(() => window.__krel.game.scene.getScene("UI").touch);
@@ -2726,6 +2744,178 @@ async function combat(browser) {
       if (killed) break;
     }
     check("auto-fire kills a test enemy in range without a thumb on FIRE (M1)", victim !== null && killed, { victim });
+    // ---- Settings > Firing (the auto-fire audit): LIGHT fires at a slower pace, STILL only while you stand still
+    // (the player to an open spot first, inside the room with nothing solid within 200 px: HOLD and the auto-fire
+    // flavours only aim at what you can see, and the stick tests may leave you by a wall, with the test enemy pinned
+    // beside you then inside the wall)
+    const toSpot = () => ph.ev(async () => {
+      const d = window.__krel.game.scene.getScene("Dungeon");
+      const p = d.player;
+      const walls = (d.obstacles?.getChildren() ?? []).map((o) => o.body).filter(Boolean).map((b) => ({ x: b.x, y: b.y, w: b.width, h: b.height }));
+      const W = d.room.w;
+      const H = d.room.h;
+      const clear = (x, y) => x > 260 && x < W - 260 && y > 140 && y < H - 140 && walls.every((r) => x < r.x - 200 || x > r.x + r.w + 200 || y < r.y - 60 || y > r.y + r.h + 60);
+      let best = null;
+      for (let y = 140; y < H - 140 && !best; y += 20) for (let x = 260; x < W - 260; x += 20) if (clear(x, y) && (!best || Math.abs(x - W / 2) + Math.abs(y - H / 2) < Math.abs(best.x - W / 2) + Math.abs(best.y - H / 2))) best = { x, y };
+      const at = best ?? { x: W / 2, y: H / 2 };
+      p.spr.body.reset(at.x, at.y);
+    });
+    await toSpot();
+    await sleep(600);
+    const dummy = await ph.ev(() => {
+      const d = window.__krel.game.scene.getScene("Dungeon");
+      const p = d.player;
+      const kind = (d.room.waves && d.room.waves[0] && d.room.waves[0][0] && d.room.waves[0][0][0]) || "drongle";
+      const e = d.spawnEnemy(kind, p.x + 150, p.y - 20, { noDrops: true });
+      if (!e) return null;
+      for (const o of d.enemies) if (o !== e && !o.dead) o.setPosition(p.x - 900, p.y - 900);
+      e.hp = e.maxHp = 1e6;
+      window.__afDummy = e;
+      return e.uid;
+    });
+    // count shots over a stretch of game time (the dummy pinned in front, never dying)
+    const shotsFor = (ms) =>
+      ph.ev(
+        (ms) =>
+          new Promise((res) => {
+            const d = window.__krel.game.scene.getScene("Dungeon");
+            const t0 = d.time.now;
+            let last = d.player.attackAnimUntil;
+            let n = 0;
+            let auto = 0;
+            let frames = 0;
+            const tick = () => {
+              const e = window.__afDummy;
+              // (fully seen all along: some kinds flicker through a dash's wind-up, which the aim rightly skips)
+              if (e && !e.dead) {
+                e.body.reset(d.player.x + 150, d.player.y - 20);
+                e.setAlpha(1).setVisible(true);
+              }
+              frames++;
+              if (window.__krelMobile.combat.snapshot().autoShooting) auto++;
+              if (d.player.attackAnimUntil !== last) {
+                last = d.player.attackAnimUntil;
+                n++;
+              }
+              if (d.time.now - t0 >= ms) {
+                d.events.off("postupdate", tick);
+                res({ n, auto: auto / Math.max(1, frames) });
+              } else return;
+            };
+            d.events.on("postupdate", tick);
+          }),
+        ms,
+      );
+    let fullRate = null;
+    let lightRate = null;
+    if (dummy !== null) {
+      await ph.ev(() => window.__krelMobile.settings.set({ autoFire: true, firing: "auto" }));
+      await sleep(300);
+      fullRate = await shotsFor(2500);
+      await ph.ev(() => window.__krelMobile.settings.set({ firing: "light" }));
+      await sleep(300);
+      lightRate = await shotsFor(2500);
+    }
+    const ratio = fullRate && lightRate && fullRate.n ? lightRate.n / fullRate.n : 0;
+    check("Firing LIGHT: auto-fire shoots at about 60% of AUTO's pace at the same enemy, no thumb on FIRE", ratio > 0.45 && ratio < 0.78, { fullRate, lightRate, ratio });
+    // LIGHT: a held FIRE goes at the gun's full pace
+    {
+      const fire = await ctlOf("c-fire");
+      const [fx, fy] = mid(fire);
+      await ph.touch("touchStart", [{ x: fx, y: fy, id: 7 }]);
+      const heldRate = await shotsFor(2500);
+      await ph.touch("touchEnd", []);
+      check("Firing LIGHT: holding FIRE fires at the full pace", fullRate && heldRate.n >= fullRate.n * 0.85, { fullRate, heldRate });
+    }
+    // STILL: nothing while the stick is pushed, shooting again once it rests
+    await ph.ev(() => window.__krelMobile.settings.set({ firing: "still" }));
+    await sleep(300);
+    await ph.touch("touchStart", [{ x: 120, y: 260, id: 1 }]);
+    for (let i = 1; i <= 6; i++) {
+      await ph.touch("touchMove", [{ x: 120 + i * 9, y: 260, id: 1 }]);
+      await sleep(30);
+    }
+    const moving = await shotsFor(900);
+    await ph.touch("touchEnd", []);
+    await toSpot();
+    await sleep(600);
+    const resting = await shotsFor(1200);
+    check("Firing STILL: no auto-fire while you move, auto-fire once you stand still", moving.auto === 0 && resting.auto > 0.5 && resting.n > 0, { moving, resting });
+    // HOLD: never by itself
+    await ph.ev(() => window.__krelMobile.settings.set({ firing: "hold" }));
+    await sleep(300);
+    const hold = await shotsFor(1200);
+    check("Firing HOLD: no shots without a thumb on FIRE", hold.n === 0 && hold.auto === 0, hold);
+    // ---- HOLD (the default): the aim locks only onto an enemy in front of you, on screen, not behind a wall; EASY
+    // still aims all round
+    if (dummy !== null) {
+      // the dummy pinned at an offset from the player for a stretch, facing set; then what the aim is on
+      const aimFor = (dx, dy, facing, ms = 500) =>
+        ph.ev(
+          ([dx, dy, facing, ms]) =>
+            new Promise((res) => {
+              const d = window.__krel.game.scene.getScene("Dungeon");
+              const c = window.__krelMobile.combat;
+              const t0 = d.time.now;
+              const tick = () => {
+                const e = window.__afDummy;
+                if (e && !e.dead) {
+                  e.body.reset(d.player.x + dx, d.player.y + dy);
+                  e.setAlpha(1).setVisible(true);
+                }
+                // (only the dummy counts: the room's own enemies, and any the next wave brings, are kept out of it)
+                for (const o of d.enemies) if (o !== e && !o.dead) o.visible = false;
+                c.lastMove = facing;
+                if (d.time.now - t0 < ms) return;
+                d.events.off("postupdate", tick);
+                const sn = c.snapshot();
+                for (const o of d.enemies) if (o !== e && !o.dead) o.visible = true;
+                res({ target: sn.target ? sn.target.id : null, aim: sn.aim === null ? null : +sn.aim.toFixed(2), want: e ? e.uid : null, dist: e ? Math.round(Math.hypot(e.x - d.player.x, e.y - d.player.y)) : null, me: [Math.round(d.player.x), Math.round(d.player.y)], view: ((v) => [v.x, v.y, v.width, v.height].map(Math.round))(d.cameras.main.worldView) });
+              };
+              d.events.on("postupdate", tick);
+            }),
+          [dx, dy, facing, ms],
+        );
+      await ph.ev(() => window.__krelMobile.settings.set({ autoFire: false, firing: "auto" }));
+      await toSpot();
+      await sleep(600);
+      const ahead = await aimFor(150, -20, 0);
+      const behind = await aimFor(-150, 20, 0);
+      const turned = await aimFor(-150, 20, Math.PI);
+      check("HOLD: the aim locks onto the enemy in front, not one behind you (aims ahead instead); turning toward it locks on", ahead.target === ahead.want && behind.target !== behind.want && (behind.target !== null || Math.abs(behind.aim) < 0.05) && turned.target === turned.want, { ahead, behind, turned });
+      const view = await ph.ev(() => {
+        const d = window.__krel.game.scene.getScene("Dungeon");
+        const v = d.cameras.main.worldView;
+        return { right: v.x + v.width - d.player.x, w: v.width };
+      });
+      const offs = await aimFor(view.right + 30, 0, 0);
+      check("HOLD: never locks onto an enemy off screen, even right in front", offs.target === null, { offs, view });
+      // a pillar between you and it
+      await ph.ev(() => {
+        const d = window.__krel.game.scene.getScene("Dungeon");
+        const p = d.player;
+        window.__pillar = d.add.rectangle(p.x + 90, p.y, 40, 140, 0, 0);
+        d.obstacles.add(window.__pillar);
+      });
+      const walled = await aimFor(170, 0, 0);
+      await ph.ev(() => window.__krelMobile.settings.set({ autoFire: true, firing: "auto" }));
+      const easyBehind = await aimFor(-150, 20, 0);
+      const easyWalled = await aimFor(170, 0, 0);
+      await ph.ev(() => {
+        const d = window.__krel.game.scene.getScene("Dungeon");
+        if (window.__pillar) d.obstacles.remove(window.__pillar, true, true);
+        window.__pillar = null;
+      });
+      check("HOLD: never locks onto an enemy behind a wall or pillar", walled.target === null, walled);
+      check("EASY (the old auto-fire): still aims all round you and through pillars", easyBehind.target === easyBehind.want && easyWalled.target === easyWalled.want, { easyBehind, easyWalled });
+    }
+    await ph.ev(() => {
+      window.__krelMobile.settings.set({ autoFire: true, firing: "auto" });
+      const e = window.__afDummy;
+      if (e && !e.dead) e.hp = 1;
+      window.__afDummy = null;
+    });
+    await sleep(300);
     // ---- FIRE by hand (auto-fire off): hold fires, slide aims, the stream carries on 200 ms after lifting
     await ph.ev(() => window.__krelMobile.settings.set({ autoFire: false }));
     await sleep(300);
@@ -3732,10 +3922,10 @@ async function together(browser) {
       await sleep(400);
     };
     const af0 = await ph.ev(() => window.__krelMobile.settings.get().autoFire);
-    await tapIn("autoFire");
+    await tapIn("firing", "EASY");
     await tapIn("buttonSize", "L");
     const s1 = await ph.ev(() => window.__krelMobile.settings.get());
-    check("the page's auto-fire and button size rows change the settings", s1.autoFire === !af0 && s1.buttonSize === "L", { af0, autoFire: s1.autoFire, buttonSize: s1.buttonSize });
+    check("the page's Firing (EASY: auto-fire on; HOLD is the default) and button size rows change the settings", af0 === false && s1.autoFire === true && s1.firing === "auto" && s1.buttonSize === "L", { af0, autoFire: s1.autoFire, firing: s1.firing, buttonSize: s1.buttonSize });
     await ph.tapSel(".kps-done");
     await sleep(500);
     await ph.tapText("RESUME", { scene: "Menu" });
@@ -3744,7 +3934,7 @@ async function together(browser) {
     const fire1 = await ctlOf("c-fire");
     ts = await hudTexts(ph, ["UI"]);
     check("back in the fight: the bigger buttons at once, and HUD and buttons still fit", fire1.face.w > fire0.face.w + 2 && offGame(ts).length === 0 && (await domSpill(ph, ".kt *")).length === 0, { before: fire0.face.w, after: fire1.face.w });
-    await ph.ev(() => window.__krelMobile.settings.set({ buttonSize: "M", autoFire: true, textSize: "large" }));
+    await ph.ev(() => window.__krelMobile.settings.set({ buttonSize: "M", autoFire: true, firing: "auto", textSize: "large" }));
     await sleep(1200);
     ts = await hudTexts(ph, ["UI"]);
     mv = await metersVsChips(ph);

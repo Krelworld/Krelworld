@@ -7,6 +7,11 @@
 //  - Auto-fire only shoots at an enemy that is in the gun's range, on screen, with no explosive barrel next to you in
 //    the way (shots in this game fly through pillars and furniture, so those don't block; a barrel by your feet would
 //    blow up in your face).
+//  - The phone's default firing (HOLD, the user's choice after playing: "both auto firing and auto aiming. It was so
+//    easy") aims only at what is IN FRONT of you: an enemy within CONE_DEG of the way you face (the way you last moved),
+//    that you can see (its body on screen) and that no wall or pillar hides. You aim by turning with the stick; once
+//    FIRE is held on one it stays locked (you can strafe round it) until it dies, leaves reach or can't be seen. EASY
+//    firing keeps the old aim (anything about, all round you).
 import type { AimAssist } from "./settings";
 
 export interface Pt {
@@ -53,6 +58,12 @@ export const BARREL_DANGER = 115;
 /** Auto-fire: how far the golden melee combo reaches (its magnet range is a swing's reach plus 120). */
 export const MELEE_REACH = 200;
 
+/** HOLD firing: the game aims only at an enemy within this many degrees either side of the way you face (the user's
+ *  choice: "within about 35 degrees")... */
+export const CONE_DEG = 35;
+/** ...and keeps one it is already on until it is this far round (so a target on the cone's edge doesn't flicker). */
+export const CONE_KEEP_DEG = 45;
+
 const TAU = Math.PI * 2;
 /** The smallest signed difference between two angles (radians). */
 export function angleDiff(a: number, b: number): number {
@@ -66,6 +77,78 @@ export function angleDiff(a: number, b: number): number {
 export function onScreen(p: Pt, view: { x: number; y: number; w: number; h: number } | null, margin = 16): boolean {
   if (!view) return true;
   return p.x >= view.x - margin && p.x <= view.x + view.w + margin && p.y >= view.y - margin && p.y <= view.y + view.h + margin;
+}
+
+/** Is any real part of it in view (its centre no further outside the view than half its radius)? A big boss half on
+ *  screen counts; a small enemy just off the edge doesn't. */
+export function inView(t: Pt & { r: number }, view: { x: number; y: number; w: number; h: number } | null): boolean {
+  return onScreen(t, view, Math.max(0, t.r) / 2);
+}
+
+/** A wall, pillar or other solid block (world px, top-left and size). */
+export interface WallRect {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+/** Does the segment a→b pass through the rectangle (shrunk by `inset` each side, so a shot grazing a corner is fine)? */
+export function segHitsRect(a: Pt, b: Pt, r: WallRect, inset = 4): boolean {
+  const x0 = r.x + inset;
+  const y0 = r.y + inset;
+  const x1 = r.x + r.w - inset;
+  const y1 = r.y + r.h - inset;
+  if (x1 <= x0 || y1 <= y0) return false;
+  // Liang-Barsky clipping
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  let t0 = 0;
+  let t1 = 1;
+  const edges: [number, number][] = [
+    [-dx, a.x - x0],
+    [dx, x1 - a.x],
+    [-dy, a.y - y0],
+    [dy, y1 - a.y],
+  ];
+  for (const [pp, q] of edges) {
+    if (pp === 0) {
+      if (q < 0) return false;
+      continue;
+    }
+    const t = q / pp;
+    if (pp < 0) {
+      if (t > t1) return false;
+      if (t > t0) t0 = t;
+    } else {
+      if (t < t0) return false;
+      if (t < t1) t1 = t;
+    }
+  }
+  return t0 <= t1;
+}
+
+/**
+ * Can you see it from where you stand: no wall or pillar between you, and (with `room`, the floor inside the walls)
+ * it is inside the room, not behind the room's own walls.
+ */
+export function lineOfSight(me: Pt, t: Pt, walls: readonly WallRect[], room?: WallRect | null): boolean {
+  if (room && (t.x < room.x || t.x > room.x + room.w || t.y < room.y || t.y > room.y + room.h)) return false;
+  for (const w of walls) {
+    // (a block you are standing in or touching doesn't hide everything: only one between you and it counts)
+    if (me.x >= w.x && me.x <= w.x + w.w && me.y >= w.y && me.y <= w.y + w.h) continue;
+    if (t.x >= w.x && t.x <= w.x + w.w && t.y >= w.y && t.y <= w.y + w.h) continue;
+    if (segHitsRect(me, t, w)) return false;
+  }
+  return true;
+}
+
+/** Is it within `deg` degrees either side of `facing` (radians)? Something right on top of you always is. */
+export function inCone(me: Pt, t: Pt, facing: number, deg: number): boolean {
+  const dx = t.x - me.x;
+  const dy = t.y - me.y;
+  if (Math.hypot(dx, dy) < 1) return true;
+  return Math.abs(angleDiff(Math.atan2(dy, dx), facing)) <= (deg * Math.PI) / 180;
 }
 
 /**
@@ -97,12 +180,29 @@ export interface PickInput {
   /** The gun's reach (world px). When some enemy is inside it, only those count: a target the gun can't reach never
    *  holds the aim (and auto-fire) while another one walks up inside it (F3). */
   fireRange?: number;
+  /**
+   * HOLD firing (the phone default): the way you face (radians). Set, only targets within `coneDeg` of it count (the one
+   * already aimed at stays until `keepDeg`), and only ones `visible` says yes to. Null / unset: all round you (EASY).
+   */
+  facing?: number | null;
+  coneDeg?: number;
+  keepDeg?: number;
+  /** HOLD firing, FIRE held: the one already aimed at stays locked on wherever it goes (you can strafe round it), as
+   *  long as it stays in reach and visible. A new one is only ever picked inside the cone. */
+  lockPrev?: boolean;
+  /** HOLD firing: can you really see it (body on screen, no wall in between)? Unset: on screen by its centre (EASY). */
+  visible?: (t: AimTarget) => boolean;
 }
 
 /** The target to aim at: an enemy (sticky, stick-biased), else a barrel or crate, else null. */
 export function pickTarget(i: PickInput): AimTarget | null {
   const reach = i.reach ?? ACQUIRE;
-  const seen = (t: AimTarget) => Math.hypot(t.x - i.me.x, t.y - i.me.y) <= reach + t.r && onScreen(t, i.view ?? null);
+  const facing = typeof i.facing === "number" ? i.facing : null;
+  const cone = i.coneDeg ?? CONE_DEG;
+  const keep = Math.max(cone, i.keepDeg ?? CONE_KEEP_DEG);
+  const ahead = (t: AimTarget) => facing === null || (i.lockPrev && t.id === i.prev) || inCone(i.me, t, facing, t.id === i.prev ? keep : cone);
+  const look = i.visible ?? ((t: AimTarget) => onScreen(t, i.view ?? null));
+  const seen = (t: AimTarget) => Math.hypot(t.x - i.me.x, t.y - i.me.y) <= reach + t.r && ahead(t) && look(t);
   const fr = i.fireRange;
   const inGun = (t: AimTarget) => fr === undefined || Math.hypot(t.x - i.me.x, t.y - i.me.y) <= fr + t.r;
   const gunHasOne = fr !== undefined && i.enemies.some((e) => seen(e) && inGun(e));
@@ -140,7 +240,7 @@ export function pickTarget(i: PickInput): AimTarget | null {
 }
 
 /** A slide's angle, snapped onto the enemy nearest that direction (within the tune's degrees), and which one. */
-export function snapAim(me: Pt, angle: number, enemies: AimTarget[], tune: AimTune, reach = ACQUIRE, view?: { x: number; y: number; w: number; h: number } | null): { angle: number; snapped: AimTarget | null } {
+export function snapAim(me: Pt, angle: number, enemies: AimTarget[], tune: AimTune, reach = ACQUIRE, view?: { x: number; y: number; w: number; h: number } | null, visible?: (t: AimTarget) => boolean): { angle: number; snapped: AimTarget | null } {
   if (!tune.snapDeg) return { angle, snapped: null };
   const lim = (tune.snapDeg * Math.PI) / 180;
   let best: AimTarget | null = null;
@@ -149,7 +249,7 @@ export function snapAim(me: Pt, angle: number, enemies: AimTarget[], tune: AimTu
     const dx = e.x - me.x;
     const dy = e.y - me.y;
     const d = Math.hypot(dx, dy);
-    if (d > reach + e.r || !onScreen(e, view ?? null)) continue;
+    if (d > reach + e.r || !(visible ? visible(e) : onScreen(e, view ?? null))) continue;
     const off = Math.abs(angleDiff(Math.atan2(dy, dx), angle));
     if (off <= lim && off < bd) {
       bd = off;

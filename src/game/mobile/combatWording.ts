@@ -1,6 +1,10 @@
 // PHONE MODE: touch wording for the fights (stage 2 part 1). Pure (no Phaser), so it is unit-tested. UI hints and
 // control instructions only, never a character's line; combat.ts adds these rows to wording.ts's table on a phone.
 import type { WordingRule } from "./wording";
+import { fireStyle, phoneSettings, type FireStyle } from "./settings";
+
+/** Is the phone on EASY firing (the old auto-fire) right now? The two FIRE how-tos below follow it. */
+const easyFiring = () => fireStyle(phoneSettings()) === "auto";
 
 /** The first dungeon's how-to-play texts that name a touch button (TutorialScene's touch column). */
 export const TUTORIAL_TEXT = /^(?:ATTACK button \(hold|DODGE button$|GUN button$|E button$|SPECIAL button\. |WONK button\. |💨 button\. |PJ button\. |🍺 button\. |Later on: ⚡T, then CUME\.$|Esc pauses at any time; CONTROLS)/;
@@ -11,7 +15,14 @@ export const TUTORIAL_TEXT = /^(?:ATTACK button \(hold|DODGE button$|GUN button$
  */
 export const COMBAT_WORDING: WordingRule[] = [
   { id: "weapon-pick", re: /^\(the world's slowed right down\) · Tap one · .*$/, to: "(the world's slowed right down) · Tap one, or slide onto one and let go · ✕ to close" },
-  { id: "tut-shoot", re: /^ATTACK button \(hold; aims at the nearest enemy\)$/, to: "FIRE (bottom right) shoots by itself at enemies in range. Hold it to fire anyway, slide it to aim" },
+  {
+    id: "tut-shoot",
+    re: /^ATTACK button \(hold; aims at the nearest enemy\)$/,
+    // (Settings > Firing: HOLD, the default, or EASY, the old auto-fire)
+    get to() {
+      return easyFiring() ? "FIRE (bottom right) shoots by itself at enemies in range. Hold it to fire anyway, slide it to aim" : "FIRE (bottom right): hold it to shoot. It aims at enemies in front of you; slide it to aim by hand";
+    },
+  },
   { id: "tut-dodge", re: /^DODGE button$/, to: "DODGE button. Dodge right as you get hit for a PERFECT DODGE (slow-mo)" },
   // (SWAP only shows once there's a second gun to swap to: P12)
   { id: "tut-swap", re: /^GUN button$/, to: "SWAP (it appears once you have a second gun), or tap your gun up top. Hold either to choose. Empty guns swap automatically" },
@@ -28,7 +39,11 @@ export const COMBAT_WORDING: WordingRule[] = [
   {
     id: "wildern-controls",
     re: /^CONTROLS: WASD move · Mouse aim · Left click attack · .* · Esc pause$/,
-    to: "CONTROLS: drag on the left to move · FIRE shoots by itself (hold it to fire, slide it to aim) · DODGE, SPECIAL and SWAP on the right · WONK!, HEAL and the rest pop up when they're ready · II pause",
+    get to() {
+      return easyFiring()
+        ? "CONTROLS: drag on the left to move · FIRE shoots by itself (hold it to fire, slide it to aim) · DODGE, SPECIAL and SWAP on the right · WONK!, HEAL and the rest pop up when they're ready · II pause"
+        : "CONTROLS: drag on the left to move · hold FIRE to shoot (it aims at enemies in front of you; slide it to aim) · DODGE, SPECIAL and SWAP on the right · WONK!, HEAL and the rest pop up when they're ready · II pause";
+    },
   },
 ];
 
@@ -112,3 +127,21 @@ export const COMBAT_NARRATOR_TIPS: WordingRule[] = [
   { id: "golden-ready", re: /\bPress T in your next dungeon\./g, to: "Tap GOLD in your next dungeon." },
 ];
 
+
+/** FIRE's line in the Controls picture, as Settings > Firing has it (P10; the auto-fire audit). */
+export const FIRE_AUTO = "Shoots by itself at enemies in range. Hold to fire anyway, slide your thumb to aim";
+export const FIRE_MANUAL = "Hold to shoot: it aims at enemies in front of you. Slide your thumb to aim by hand";
+/** Settings > Firing: LIGHT and STILL (the auto-fire audit). */
+export const FIRE_LIGHT = "Shoots by itself, slowly. Hold to fire at full speed, slide your thumb to aim";
+export const FIRE_STILL = "Shoots by itself while you stand still. Hold to fire on the move, slide your thumb to aim";
+/** FIRE's line for the firing style in force. */
+export function fireLine(style: FireStyle): string {
+  return style === "hold" ? FIRE_MANUAL : style === "light" ? FIRE_LIGHT : style === "still" ? FIRE_STILL : FIRE_AUTO;
+}
+
+
+/** The one-time tip in the first fight on HOLD firing (a system toast; UI text, phones only). */
+export const FIRE_TIP = Object.freeze({
+  title: "HOLD FIRE TO SHOOT",
+  text: "It aims at enemies in front of you: turn with the stick. Settings > Firing > EASY shoots for you.",
+});

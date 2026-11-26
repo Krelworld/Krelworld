@@ -55,7 +55,9 @@ describe("phone settings: defaults and cleaning", () => {
       opacity: 0.3,
       // (thumb-feel round: the base stays where the thumb lands; it no longer follows it about)
       stick: "stays",
-      autoFire: true,
+      // (HOLD FIRE by default since the user found auto-fire too easy; EASY, the old auto-fire, is a choice)
+      autoFire: false,
+      firing: "auto",
       aimAssist: "normal",
       phoneAssist: true,
       batterySaver: false,
@@ -95,7 +97,8 @@ describe("phone settings: defaults and cleaning", () => {
   });
 
   it("every setting has exactly one row in the list a settings screen renders", () => {
-    expect(PHONE_SETTINGS.map((s) => s.key).sort()).toEqual([...PHONE_SETTING_KEYS].sort());
+    // (autoFire has no row of its own: the Firing row's HOLD is auto-fire off, and it keeps autoFire in step)
+    expect(PHONE_SETTINGS.map((s) => s.key).sort()).toEqual(PHONE_SETTING_KEYS.filter((k) => k !== "autoFire").sort());
     for (const s of PHONE_SETTINGS) {
       expect(s.label.length).toBeGreaterThan(2);
       expect(s.help.length).toBeGreaterThan(5);
@@ -168,7 +171,7 @@ describe("phone settings: storage", () => {
     expect(st.writes).toEqual([KEY]);
     const stored = JSON.parse(st.data.get(KEY)!);
     // (only what the player chose: never the defaults)
-    expect(stored).toEqual({ v: 2, leftHanded: true, buttonSize: "L", readability: false });
+    expect(stored).toEqual({ v: 3, leftHanded: true, buttonSize: "L", readability: false });
     // next visit
     resetPhoneSettingsForTests();
     const heard: string[][] = [];
@@ -199,7 +202,7 @@ describe("phone settings: storage", () => {
     const st = memStorage();
     usePhoneSettingsStore(localPhoneSettingsStore(st));
     updatePhoneSettings({ buttonSize: "L" });
-    expect(JSON.parse(st.data.get(KEY)!)).toEqual({ v: 2, buttonSize: "L" });
+    expect(JSON.parse(st.data.get(KEY)!)).toEqual({ v: 3, buttonSize: "L" });
     // the next visit, after stage 2 has flipped readability (and auto-fire) to new defaults
     resetPhoneSettingsForTests();
     setPhoneDefaultsForTests({ readability: true, autoFire: false });
@@ -217,7 +220,7 @@ describe("phone settings: storage", () => {
   it("a version 1 object (every field stored) counts only the values that differ from version 1's defaults (R5)", () => {
     // (version 1 was written while readability's default was still off)
     // (and its stick was the old default, "floating")
-    const v1 = { v: 1, ...DEFAULT_PHONE_SETTINGS, readability: false, stick: "floating", buttonSize: "L", haptics: false };
+    const v1 = { v: 1, ...DEFAULT_PHONE_SETTINGS, readability: false, stick: "floating", autoFire: true, buttonSize: "L", haptics: false };
     expect(chosenFromStored(v1)).toEqual({ buttonSize: "L", haptics: false });
     const st = memStorage({ [KEY]: JSON.stringify(v1) });
     setPhoneDefaultsForTests({ readability: true });
@@ -232,7 +235,7 @@ describe("phone settings: storage", () => {
     usePhoneSettingsStore(localPhoneSettingsStore(st));
     updatePhoneSettings({ buttonSize: "S", opacity: 0.5 });
     resetPhoneSettings();
-    expect(JSON.parse(st.data.get(KEY)!)).toEqual({ v: 2 });
+    expect(JSON.parse(st.data.get(KEY)!)).toEqual({ v: 3 });
     expect(phoneSettings()).toEqual(DEFAULT_PHONE_SETTINGS);
   });
 

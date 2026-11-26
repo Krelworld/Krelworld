@@ -3,8 +3,10 @@
 // The old twelve-button canvas pad is replaced, in the top-down rooms and boss fights, by the layer's floating stick
 // (the town's zone, gutter included) and a right-hand cluster laid out as research "layout v2":
 //
-//   FIRE (prime corner)  hold = fire, slide = aim by hand (snaps onto an enemy). Auto-fire (on by default) shoots by
-//                        itself at an enemy in range with a clear line: the right thumb is free to dodge.
+//   FIRE (prime corner)  hold = fire, slide = aim by hand (snaps onto an enemy). By default (HOLD) the game aims only at
+//                        an enemy in front of you (aim.ts CONE_DEG), on screen and not behind a wall: you aim by turning
+//                        with the stick. EASY (Settings > Firing) is the old auto-fire: it shoots by itself at any enemy
+//                        in range with a clear line, aiming all round you.
 //   DODGE (up-left)      SWAP (left: tap = next gun, hold = the weapon picker)      SPECIAL (up: the lad's special,
 //   only while it would go)      READY (pops in when WONK, the golden transformation, the Cumehameha or IBS is ready)
 //   HEAL (pops in when a drink would heal; red and pulsing under 40%)      ACTION (pops in with a prompt, like walking)
@@ -26,12 +28,13 @@ import { weaponList } from "../ui/weapons";
 import { isMikey, sanmikForced } from "../systems/sanmik";
 import { storageKey } from "../variant";
 import { setPhoneHooks } from "./boot";
-import { phoneSettings } from "./settings";
+import { fireStyle, phoneSettings, type FireStyle } from "./settings";
 import { SCENE_RULES, addSceneRule, currentInputSource } from "./modes";
 import { rightStick } from "./pad";
 import { registerModeController, type ModeContext, type TouchControl, type TouchLayer } from "./touchLayer";
-import { ACQUIRE, AIM_TUNE, MELEE_REACH, SLIDE_PX, aimPointFor, autoFireOk, pickTarget, snapAim, type AimTarget, type Pt } from "./aim";
-import { DUNGEON_RULE, FIRE_GRACE_MS, HoldTracker, MashQueue, PICKER_RULE, READY, RELABEL_MS, TEACH_ROOMS, healShown, healWanted, readyAbility, spamGap, specialCost, specialWanted, specialWord, type ReadyId } from "./combatLogic";
+import { ACQUIRE, AIM_TUNE, CONE_DEG, CONE_KEEP_DEG, MELEE_REACH, SLIDE_PX, aimPointFor, autoFireOk, inView, lineOfSight, pickTarget, snapAim, type AimTarget, type Pt, type WallRect } from "./aim";
+import { cueSeen, markCue } from "./cues";
+import { AutoPace, StillGate, DUNGEON_RULE, FIRE_GRACE_MS, HoldTracker, MashQueue, PICKER_RULE, READY, RELABEL_MS, TEACH_ROOMS, healShown, healWanted, readyAbility, spamGap, specialCost, specialWanted, specialWord, type ReadyId } from "./combatLogic";
 import { controlScale, MIN_CONTROL, safeRect, type Placed, type Rect } from "./layout";
 import { COMBAT_CSS, COMBAT_STYLE_ID } from "./combatCss";
 import { haptic } from "./haptics";
@@ -39,7 +42,7 @@ import { SideMove } from "./side";
 import { fitRoomName } from "./roomName";
 import { JUMP_TUNE } from "./jump";
 import { NARRATOR_TIPS, STORY_UI_LINES, UI_TEXTS, addWording, wordText } from "./wording";
-import { COMBAT_NARRATOR_TIPS, COMBAT_WORDING, COMBAT_WORDING_FIRST, FIGHT_UI_LINES, TUTORIAL_TEXT } from "./combatWording";
+import { COMBAT_NARRATOR_TIPS, COMBAT_WORDING, COMBAT_WORDING_FIRST, FIGHT_UI_LINES, FIRE_TIP, TUTORIAL_TEXT } from "./combatWording";
 
 // ------------------------------------------------------------------ what we read off the Dungeon (from outside)
 
@@ -71,6 +74,7 @@ interface PlayerLike {
   noHealUntil: number;
   headbuttMode: boolean;
   attackAnimUntil: number;
+  attackCd: number;
   dodgeUntil: number;
   iframesUntil: number;
   dead: boolean;
@@ -87,6 +91,9 @@ interface DungeonLike extends Phaser.Scene {
   player?: PlayerLike;
   enemies?: EnemyLike[];
   spice?: { breakables?: Breakable[] } | null;
+  /** The room's walls, pillars and furniture (a static physics group; private in the Dungeon, read from outside). */
+  obstacles?: { getChildren?(): unknown[] } | null;
+  room?: { w: number; h: number } | null;
   side?: boolean;
   busy?: boolean;
   picking?: boolean;
@@ -120,6 +127,24 @@ function dungeonOf(game: Phaser.Game): DungeonLike | null {
   }
 }
 
+/** The room's solid blocks (walls, pillars, furniture) as rectangles, from their static physics bodies. */
+function wallsOf(dun: DungeonLike): WallRect[] {
+  const out: WallRect[] = [];
+  let kids: unknown[] = [];
+  try {
+    kids = dun.obstacles?.getChildren?.() ?? [];
+  } catch {
+    return out;
+  }
+  for (const k of kids) {
+    const o = k as { active?: boolean; body?: { x: number; y: number; width: number; height: number; enable?: boolean } | null };
+    const b = o?.body;
+    if (!b || o.active === false || b.enable === false || !(b.width > 0) || !(b.height > 0)) continue;
+    out.push({ x: b.x, y: b.y, w: b.width, h: b.height });
+  }
+  return out;
+}
+
 // ------------------------------------------------------------------ icons (drawn, so no font or emoji differences)
 
 const svg = (body: string) => `<svg viewBox="0 0 24 24" aria-hidden="true">${body}</svg>`;
@@ -144,6 +169,8 @@ interface Taught {
   special: number;
 }
 const TAUGHT_KEY = () => storageKey("krelworld.phone.combatTaught");
+/** The one-time HOLD firing tip (cues.ts: once per phone, per build). */
+const FIRE_TIP_CUE = "fire-hold";
 
 function loadTaught(): Taught {
   try {
@@ -172,6 +199,12 @@ export interface CombatSnapshot {
   manual: boolean;
   snapped: boolean;
   autoFiring: boolean;
+  /** Auto-fire shooting this frame (LIGHT's pace and STILL's standing still applied). */
+  autoShooting: boolean;
+  /** The firing style in force (Settings > Firing). */
+  firing: FireStyle;
+  /** The way you face (radians): HOLD aims only within CONE_DEG of it. */
+  facing: number;
   fireHeld: boolean;
   ready: ReadyId | null;
   heal: boolean;
@@ -198,6 +231,12 @@ export class CombatControls {
   private graceUntil = 0;
   private burstSince = 0;
   private autoFiring = false;
+  /** Auto-fire is shooting this frame (LIGHT's pace and STILL's standing still applied; `autoFiring` is the wish). */
+  private autoShooting = false;
+  /** Firing styles (Settings > Firing): LIGHT's pace, STILL's gate, and the last shot seen. */
+  private readonly pace = new AutoPace();
+  private readonly still = new StillGate();
+  private lastShotMark = 0;
   // swap / picker
   private swapHold = new HoldTracker();
   private swapBy: TouchControl | null = null;
@@ -363,8 +402,8 @@ export class CombatControls {
       return;
     }
     // auto-fire off: the stream carries on a moment, so hopping to DODGE and back doesn't break it (M1)
-    this.graceUntil = !cancelled && !phoneSettings().autoFire ? realNow() + FIRE_GRACE_MS : 0;
-    TOUCH.attack = this.graceUntil > realNow() || this.autoFiring;
+    this.graceUntil = !cancelled && fireStyle(phoneSettings()) !== "auto" ? realNow() + FIRE_GRACE_MS : 0;
+    TOUCH.attack = this.graceUntil > realNow() || this.autoShooting;
   }
 
   // ------------------------------------------------------------------ placement of the chips
@@ -558,6 +597,7 @@ export class CombatControls {
     ctl.autoAimPoint = null;
     if (!p || !p.spr?.active) return;
     const st = phoneSettings();
+    const style = fireStyle(st);
     this.tune = AIM_TUNE[st.aimAssist] ?? AIM_TUNE.normal;
     const me: Pt = { x: p.x, y: p.y };
     const sideView = dun.side === true;
@@ -608,20 +648,31 @@ export class CombatControls {
       range = f.range;
       speed = f.speed;
     }
+    // HOLD (the default): only what is in front of you (the way you last moved), that you can see: its body on screen
+    // and no wall or pillar in between. EASY: the old aim, all round you.
+    const ahead = style !== "auto";
+    let visible: ((t: AimTarget) => boolean) | undefined;
+    if (ahead) {
+      const walls = wallsOf(dun);
+      const room = !sideView && dun.room ? { x: 24, y: 24, w: dun.room.w - 48, h: dun.room.h - 48 } : null;
+      visible = (t) => inView(t, vr) && lineOfSight(me, t, walls, room);
+    }
     // the target: an enemy inside the gun's reach first, so auto-fire never waits on one it can't hit (F3)
     const prev = this.target?.id ?? null;
-    this.target = pickTarget({ me, stick: { x: sx, y: sy }, enemies, objects, prev, tune: this.tune, view: vr, reach: ACQUIRE, fireRange: range });
+    // (HOLD: FIRE held keeps its target locked while you strafe; you pick a new one by facing it)
+    const locked = this.fireHeld || realNow() < this.graceUntil;
+    this.target = pickTarget({ me, stick: { x: sx, y: sy }, enemies, objects, prev, tune: this.tune, view: vr, reach: ACQUIRE, fireRange: range, facing: ahead ? this.lastMove : null, coneDeg: CONE_DEG, keepDeg: CONE_KEEP_DEG, visible, lockPrev: locked });
     // aim: a slide by hand (snapped), else the target, else straight ahead
     const d = this.layer.decision;
     const fighting = (d.mode === "combat" || d.mode === "side") && !d.mash && !d.picker;
     if (this.manual) {
-      const sn = snapAim(me, this.manual.raw, enemies, this.tune, ACQUIRE, vr);
+      const sn = snapAim(me, this.manual.raw, enemies, this.tune, ACQUIRE, vr, visible);
       this.manual.angle = sn.angle;
       this.manual.snapped = sn.snapped;
       this.aimAngle = sn.angle;
       this.aimPt = sn.snapped ? { x: sn.snapped.x, y: sn.snapped.y } : { x: me.x + Math.cos(sn.angle) * 180, y: me.y + Math.sin(sn.angle) * 180 };
     } else {
-      const autoAims = this.target && (st.aimAssist !== "off" || (st.autoFire && this.target.kind === "enemy"));
+      const autoAims = this.target && (st.aimAssist !== "off" || (style !== "hold" && this.target.kind === "enemy"));
       if (autoAims && this.target) {
         const pt = aimPointFor(me, this.target, speed, this.tune.lead);
         this.aimAngle = Math.atan2(pt.y - me.y, pt.x - me.x);
@@ -633,13 +684,24 @@ export class CombatControls {
     }
     // auto-fire: an enemy in range, on screen, no barrel by your feet in the way; never a special, never in an overlay
     const now = realNow();
-    let auto = st.autoFire && fighting && !golden && !dun.busy && !dun.picking && autoFireOk({ me, target: this.target, range, view: vr, barrels });
+    let auto = style !== "hold" && fighting && !golden && !dun.busy && !dun.picking && autoFireOk({ me, target: this.target, range, view: vr, barrels });
     // (a "don't hold the trigger" room: let go for a moment every two seconds, the way a laptop player taps)
     if (auto && dun.rule?.kind === "NO_ATTACK_SPAM") {
       if (!this.burstSince) this.burstSince = now;
       if (spamGap(now, this.burstSince)) auto = false;
     } else if (!auto) this.burstSince = 0;
     this.autoFiring = auto;
+    // firing styles: LIGHT shoots at a slower pace (shots from a held FIRE go at the gun's own); STILL only while you
+    // stand still (a dodge is moving)
+    const tn = dun.now();
+    if (p.attackAnimUntil !== this.lastShotMark) {
+      this.lastShotMark = p.attackAnimUntil;
+      if (!this.fireHeld && now >= this.graceUntil) this.pace.shot(tn, p.attackCd);
+    }
+    const stood = this.still.update(tn, Math.hypot(TOUCH.mx, TOUCH.my), tn < p.dodgeUntil);
+    if (style === "light" && !this.pace.ok(tn)) auto = false;
+    if (style === "still" && !stood) auto = false;
+    this.autoShooting = auto;
     TOUCH.attack = (fighting && (this.fireHeld || now < this.graceUntil)) || auto;
     if (st.phoneAssist) this.assist(dun, p, dt);
   }
@@ -736,6 +798,9 @@ export class CombatControls {
     if (held.length) window.setTimeout(sweep, 120);
     this.mash.classList.remove("show");
     this.autoFiring = false;
+    this.autoShooting = false;
+    this.pace.reset();
+    this.still.reset();
     this.target = null;
     this.layer.occluders = [];
     // (FIRE belongs to the fight: outside it nothing reads it as held, even with the thumb still down)
@@ -754,6 +819,7 @@ export class CombatControls {
     this.manual = null;
     this.graceUntil = 0;
     this.autoFiring = false;
+    this.autoShooting = false;
     TOUCH.attack = false;
     TOUCH.held.delete("special");
     TOUCH.held.delete("swap");
@@ -808,6 +874,13 @@ export class CombatControls {
       saveTaught(this.teach);
     }
     const teaching = this.teach.rooms <= TEACH_ROOMS;
+    // HOLD firing (the default since auto-fire was found too easy): the first fight on this phone says so, once, and
+    // FIRE pulses, so a player used to auto-fire isn't left wondering why nothing shoots
+    if (fight && dun && !cueSeen(FIRE_TIP_CUE) && fireStyle(phoneSettings()) !== "auto" && (dun.enemies ?? []).some((e) => e && !e.dead && e.active)) {
+      markCue(FIRE_TIP_CUE);
+      this.pulseUntil.fire = this.pulseUntil.sfire = realNow() + 4000;
+      G.emit("toast", { title: FIRE_TIP.title, text: FIRE_TIP.text });
+    }
     // ---- the cluster
     const side = d.mode === "side";
     show("fire", fight && !side);
@@ -880,7 +953,7 @@ export class CombatControls {
     // neighbour, the HUD or the home-indicator strip: N1); pulses the first time each matters
     for (const id of ["fire", "sfire", "jump", "dodge", "swap", "heal"] as const) if (this.c[id].el.classList.contains("taught") !== teaching) this.c[id].el.classList.toggle("taught", teaching);
     const t = realNow();
-    for (const id of ["ready", "heal", "swap", "special"] as const) this.c[id].el.classList.toggle("pulse", (this.pulseUntil[id] ?? 0) > t && this.c[id].shown);
+    for (const id of ["ready", "heal", "swap", "special", "fire", "sfire"] as const) this.c[id].el.classList.toggle("pulse", (this.pulseUntil[id] ?? 0) > t && this.c[id].shown);
     // ---- feedback: a flash on the button that just did something (FIRE flashes with auto-fire's shots too)
     if (p) this.flashes(p);
     this.c.fire.el.classList.toggle("auto", this.autoFiring);
@@ -1064,6 +1137,9 @@ export class CombatControls {
       manual: !!this.manual,
       snapped: !!this.manual?.snapped,
       autoFiring: this.autoFiring,
+      autoShooting: this.autoShooting,
+      firing: fireStyle(phoneSettings()),
+      facing: this.lastMove,
       fireHeld: this.fireHeld,
       ready: this.readyId,
       heal: this.c.heal.shown,

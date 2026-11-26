@@ -62,7 +62,7 @@ main.ts ── boot.ts installMobile(game) ──► isMobile()? no → return (
 | `rotate.ts` | The "turn your phone sideways" screen (DOM, so it also covers the first load), with an empty `extra` slot |
 | `css.ts` | All phone CSS, injected at runtime (index.html is never edited) |
 | `combat.ts` | Stage 2: the top-down fights (FIRE with auto-fire and slide-to-aim, DODGE, SWAP, SPECIAL, READY, HEAL, ACTION, the weapon chip, the pocket (💨 / 🍺 / SANMIK), the mash overlay), the hooks it lends the game (`setPhoneHooks`), phone assist, the fight's touch wording |
-| `aim.ts` | Pure: target choice (nearest, stick-biased, sticky, objects as a fallback), snap, lead, auto-fire's "in range, on screen, no barrel by your feet" |
+| `aim.ts` | Pure: target choice (nearest, stick-biased, sticky, objects as a fallback), snap, lead, auto-fire's "in range, on screen, no barrel by your feet"; HOLD's rules: the cone (`CONE_DEG` 35, `CONE_KEEP_DEG` 45, `inCone`), body on screen (`inView`), line of sight (`lineOfSight`, `segHitsRect`) |
 | `combatLogic.ts` | Pure: READY's order, HEAL's rule, tap / hold (`HoldTracker`), SPECIAL's word and fill, the Dungeon's two mode rows |
 | `combatWording.ts` | Pure: the fights' touch wording rows (the weapon picker's how-to line, the first dungeon's how-to-play rows, the finale's inject hint) |
 | `combatCss.ts` | The fight controls' CSS (its own `<style>`, phones only) |
@@ -310,13 +310,42 @@ With no enemy about, holding FIRE aims at the nearest barrel or crate.
 A red ring sits at the target's feet (orange for an object). Strong aim leads moving targets. Aim assist off: FIRE
 shoots straight ahead (the last stick direction) and slides don't snap; auto-fire still aims at what it shoots.
 
-**Auto-fire** (research M1, on by default for the first device test): only at an enemy in the gun's own range (each
+**HOLD's aim: only what is in front of you** (the default since the user played the auto-fire build: "both auto firing
+and auto aiming. It was so easy"; their choice: "1 and 4", report `ga-08-aim-fix.md`). On every firing style but EASY
+the target must also be (1) within `CONE_DEG` (35°) either side of the way you face, which is the way you last pushed
+the stick (side rooms: the way you last ran); the target already aimed at stays until `CONE_KEEP_DEG` (45°), so one on
+the cone's edge doesn't flicker; and (4) really visible: its body on screen (centre no more than half its radius
+outside the camera's view, `inView`), inside the room's walls (top-down), and no wall, pillar or furniture block (the
+Dungeon's `obstacles` group, read from outside) on the line from you to it (`lineOfSight`). Barrels and crates obey the
+same rules. You aim by turning with the stick; with nothing in front, FIRE shoots straight ahead. While FIRE is held
+(and its 200 ms grace) the target it is on stays locked wherever it goes round you (`lockPrev`), so you can strafe
+and back off while shooting it; it goes when it dies, leaves reach or can't be seen, and the next one is again picked
+only in front. (Without the lock, measured: a player who must keep facing a target walks into it, and the first
+Cafeteria room went from a clear in 32 s to a death; see `ga-08-aim-fix.md`.) A slide on FIRE still
+aims anywhere by hand, and snaps only onto an enemy you can see. EASY keeps the old aim exactly (all round you, centre
+within 16 px of the screen, through pillars, as shots really fly through them).
+
+**Auto-fire** (research M1; Settings > Firing > EASY, off by default since `ga-08`): only at an enemy in the gun's own range (each
 gun's `range`, modded; the Fart Blaster's), on screen, and never through a live barrel within 115 px of you (it would
 blow up in your face). Never at barrels or crates, never a special, never in the mash overlay, the picker, a pause,
 a conversation or a scripted moment, never while golden (the golden attack is a lunging melee: auto-fire never moves
 you). When the gun runs dry the game's own auto-switch runs (and, the first times, SWAP pulses). In a room whose decree
 bans holding the trigger (NO_ATTACK_SPAM, 2.5 s), auto-fire lets go for 160 ms every 2 s, the way a laptop player taps.
 FIRE glows red while auto-fire is shooting and flashes with each shot.
+
+**Firing styles** (Settings > Firing, one row: **HOLD** (the default) / **EASY**; reports `ga-02-autofire.md` and
+`ga-08-aim-fix.md`). HOLD never shoots by itself: hold FIRE and it aims as above (in front of you). EASY (stored as
+`firing: "auto"` with `autoFire: true`) is the stage 2 auto-fire with the old all-round aim. The audit's LIGHT and STILL
+are no longer offered on the row (they only made fights harder and felt broken) but still work when set (the smoke
+test sets them); they use HOLD's aim. Every style keeps FIRE by hand exactly as above (hold = fire with aim assist,
+slide = aim by hand); only what happens with no thumb on FIRE differs: EASY as above; LIGHT waits out the gun's
+cooldown and then 2/3 of it again after each auto shot (`AutoPace`); STILL fires only while the stick rests (under 0.2
+push for 120 ms, not mid-dodge; `StillGate`), in side rooms too; HOLD never. The first fight on HOLD shows a one-time
+toast ("HOLD FIRE TO SHOOT", `FIRE_TIP`, cue `fire-hold` in cues.ts) and FIRE pulses for 4 s. The first dungeon's
+how-to lines (`tut-shoot`, `wildern-controls`) follow the style in force.
+LIGHT, STILL and HOLD give FIRE the 200 ms grace after the thumb lifts. The Controls picture's FIRE line follows the
+style (`fireLine`, combatWording.ts). `combat.snapshot()` adds `autoShooting` (auto-fire shooting this frame, after
+LIGHT's pace and STILL's gate; `autoFiring` is the wish, which FIRE's glow shows), `firing` and `facing` (radians).
 
 **Phone assist** (`phoneAssist`, research S9; numbers in `ASSIST`): pick-ups (coins, ammo, health, Krezz, bottles,
 bongos; never quest items) come to you from 140 world px instead of 90 and faster (0.5 px/ms, 2 px/ms inside 60); a
@@ -352,7 +381,7 @@ SanMik Zone / Catford, the Nu Warehouse trip, the Cuddle Tower and the citadel's
 colon) drops the old canvas pad on a phone. Layout v2: **JUMP** (84, prime corner, touch area to the corner), **FIRE**
 (60) left of it, DODGE / SPECIAL / READY / HEAL / ACTION / the pocket as in top-down rooms, no SWAP button (the weapon
 chip swaps). The stick is `"x"`: left / right only, full speed at 35% of the travel. Aim: the way you face plus
-auto-aim (no slide-aim); auto-fire is the same setting as top-down rooms (on by default).
+auto-aim (no slide-aim; HOLD's cone round the way you face); firing is the same setting as top-down rooms (HOLD by default).
 
 Jump feel on a phone (the Player's side branch asks `phoneHooks().sideMove()` first; gravity, take-off speeds and run
 speed are the game's):
@@ -483,10 +512,12 @@ One typed object, `PhoneSettings`, kept under its own key `storageKey("krelworld
 nothing; a change is saved at once; storage that throws (private mode, full) is survived (the settings then last for the
 visit). `installMobile()` attaches the store before anything lays itself out.
 
-**Only what the player chose is stored** (`{ v: 2, buttonSize: "L" }`, `chosenPhoneSettings()`), never the defaults, so
+**Only what the player chose is stored** (`{ v: 3, buttonSize: "L" }`, `chosenPhoneSettings()`), never the defaults, so
 changing a default in `DEFAULT_PHONE_SETTINGS` later reaches everyone who never chose that setting, whatever else they
 changed; a player who set it themselves keeps their choice. Reset forgets every choice. Version 1 (stage 1 part 2,
 never shipped) stored every field: reading one, only the values that differ from version 1's defaults count as chosen.
+Version 3 (`ga-08`, HOLD became the default): reading an older object, `autoFire: true` and any `firing` but `hold`
+(the old default and the audit's flavours) are not choices, so those phones move to HOLD; `autoFire: false` stays.
 Research S12: when a default changes, tell the player (a one-line toast on the next visit) rather than changing it
 silently.
 
@@ -500,7 +531,8 @@ silently.
 | `readability` | **true** (stage 2) | yes (see below) | "Bigger text": the font floor and the reading sizes |
 | `textSize` | `"normal"` | yes, with readability | `"large"`: every floor x1.25 (labels 13.75, reading 20 CSS px) |
 | `batterySaver` | false | yes | 30 frames a second |
-| `autoFire` | true | yes (top-down fights) | combat fires by itself at an enemy in range, on screen, with no barrel by your feet in the line |
+| `autoFire` | false | yes (fights) | combat fires by itself at an enemy in range, on screen, with no barrel by your feet in the line (EASY). Off by default since `ga-08` (HOLD). No row of its own: the Firing row's HOLD is `autoFire: false`, EASY is `true`, and the row keeps it in step |
+| `firing` | `"auto"` | yes (fights) | Settings > Firing (`fireStyle()`): the auto-fire flavour while `autoFire` is on: `auto` (EASY), `light` (auto-fire at 60% of the gun's pace, `LIGHT_PACE`), `still` (auto-fire only once the stick has rested 120 ms, `StillGate`); `hold` never by itself. `autoFire: false` reads as `hold` whatever this says. The row offers HOLD / EASY only |
 | `aimAssist` | `"normal"` | yes | `off` (FIRE shoots straight ahead, slides don't snap) / `normal` (stick-biased, sticky, 15° snap) / `strong` (stickier, 25° snap, leads moving targets) |
 | `phoneAssist` | true | yes (top-down fights; part 2 adds the jump help) | pick-ups come from further and faster, a dodge's safe window +60 ms, enemy bullets drawn 1.25x |
 | `syncOffsetMs` | 0 | stage 3 | rhythm offset, -300 to 300 ms |

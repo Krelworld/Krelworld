@@ -172,3 +172,11 @@ To resume: `Workflow({scriptPath: "<script>", resumeFromRunId: "wf_574a5950-314"
 **Machine**
 - One Playwright browser per agent; at most two agents at once.
 - Ultracode is on: use the Workflow tool for substantive tasks.
+
+## 2026-11-26 01:40 UTC: user played LIVE on their phone
+- Verbatim: "Just played on phone. There weee no sound effects in dungeon. It was both auto firing and auto aiming. It was so easy".
+- Launched workflow wf_505061ed-dbb (task w9513z2v0, script mobile/work/aim-sfx.js):
+  - "aim" in aim-wt (branch aim from autofire 204e8c85): phone default = hold FIRE + 35° cone, no off-screen/behind-wall lock (boss counts if any part visible); EASY = old auto-fire; LIGHT/STILL dropped; one-time "Hold FIRE to shoot" tip. Report ga-05-aim.md.
+  - "sfx" in sfx-wt (branch sfx from live 0da900db): root cause of silent dungeon effects; likely the iOS silent switch (live has no navigator.audioSession; wave 1's audio.ts sets 'playback'). Report ga-06-sfx.md.
+  - Gate ga-07, fix ga-08, re-gate ga-09.
+- Plan: ship aim (+ sfx if needed) with the game-adds publish (merge autofire's final commits too). Asked the user: iPhone or Android, silent switch on, did voices/music play.

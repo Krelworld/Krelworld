@@ -81,6 +81,14 @@ Each line: where it came from, what is wrong, what the stage should do. Ids are 
   and the real `env()` safe-area path. Not yet: four and five simultaneous touches; tap-the-thing in the Hub by touch;
   the Club, the Venue and Kreddle driven by touch.
 
+- **S3 fix round 1, device checks (from R2, R5, R7, P7).** On a real iPhone: (1) the offline copy fills (about 65 MB
+  in CacheStorage, `?mobilediag` "offline copy n/661") and, in flight mode after 10+ minutes of play, a boss fight and a
+  TV show still show every picture; watch Safari's storage eviction. (2) Five or more songs asked for inside one 350 ms
+  fade-out still put the last on a spare element, which an iPhone may hold until the next tap (four are covered); a
+  spare that has played is reused after that. (3) The silent-route fallback (R7) only happens on old WebKit; check a
+  slowed voice line there. (4) P7 ("stuck" on the way to the Kreddle bridge) could not be reproduced; a walk now steps
+  aside before its later re-routes: watch for it in the town.
+
 ## Stage 3: the user's own requests (2026-11-25)
 
 - **Manual aim where you can't move.** The user: "in certain parts of the game maybe test whether manual aim might be okay

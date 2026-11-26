@@ -5955,6 +5955,19 @@ async function scenesSection(browser) {
     const shownB = s.controls.filter((c) => c.shown).map((c) => c.id);
     check("scenes: Beep Beep shows BOOST, BRAKE, HORN and II, a left / right stick, and no key hint", ["sc-boost", "sc-brake", "sc-horn", "pause"].every((id) => shownB.includes(id)) && s.decision.stick === "x" && !(await ph.ev(() => window.__krel.scene("BeepBeep").hint.visible)), { shownB, stick: s.decision.stick });
     await ph.shot("scenes-beepbeep");
+    // (stage 4, P12 / s4-02 F9) the speedo and its MPH sit clear of BOOST and BRAKE
+    {
+      const m = await ph.ev(() => {
+        const t = window.__krel.scene("BeepBeep").mphTx;
+        return { x: t.x, y: t.y, dial: { x: t.x, y: 440, r: 52 } };
+      });
+      const [dx, dy] = await ph.g2c(m.dial.x - m.dial.r, m.dial.y - m.dial.r);
+      const [ex, ey] = await ph.g2c(m.dial.x + m.dial.r, m.dial.y + m.dial.r + 50);
+      const dial = { x: dx, y: dy, w: ex - dx, h: ey - dy };
+      const faces = s.controls.filter((c) => c.shown && /^sc-(boost|brake|horn)$/.test(c.id)).map((c) => c.face);
+      const hit = faces.filter((f) => f.x < dial.x + dial.w && dial.x < f.x + f.w && f.y < dial.y + dial.h && dial.y < f.y + f.h);
+      check("scenes: Beep Beep's speedo and MPH are clear of BOOST, BRAKE and HORN (P12)", faces.length === 3 && hit.length === 0, { dial, faces });
+    }
     // steer left with the stick (a drag on the left)
     const px0 = await ph.ev(() => window.__krel.scene("BeepBeep").px);
     await ph.touch("touchStart", [{ x: 200, y: 260, id: 21 }]);
@@ -6925,6 +6938,59 @@ async function s4fix(browser) {
     const chip = await ph.ev(() => window.__krel.game.scene.getScene("UI").statT.text);
     check("s4 M1: the town HUD says GOLD, not T, after the golden juice", /GOLDEN JUICE \(GOLD in a fight\)/.test(chip) && !/T to transform/.test(chip), chip);
     await ph.ev(() => (window.__krel.G.s.flags.golden_charge = false));
+    // ---- M2: the town's camera runs on past the map's corner, so the player at the bottom-right corner is clear of
+    // the buttons; m1: at most two toasts at once
+    if (s4part("layout")) {
+      await ph.ev(() => window.__krel.game.scene.getScene("Hub").av.body.reset(2536, 1766));
+      await sleep(2500);
+      const lay = await ph.ev(() => {
+        const s = window.__krelMobile.snapshot();
+        const L = window.__krelMobile.layer;
+        const g = window.__krel.game;
+        const h = g.scene.getScene("Hub");
+        const b = h.av.getBounds();
+        const cam = h.cameras.main;
+        const cb = g.scale.canvasBounds;
+        const k = cb.width / 960;
+        const pg = (x, y) => ({ x: cb.x + ((x - cam.scrollX - cam.width / 2) * cam.zoom + cam.x + cam.width / 2) * k, y: cb.y + ((y - cam.scrollY - cam.height / 2) * cam.zoom + cam.y + cam.height / 2) * k });
+        const a = pg(b.x, b.y);
+        const z = pg(b.right, b.bottom);
+        const me = { x: a.x, y: a.y, w: z.x - a.x, h: z.y - a.y };
+        const faces = s.controls.filter((c) => c.shown && c.id !== "pause" && c.face && c.face.w > 0).map((c) => ({ id: c.id, ...c.face }));
+        const under = faces.filter((f) => f.x < me.x + me.w && me.x < f.x + f.w && f.y < me.y + me.h && me.y < f.y + f.h).map((f) => f.id);
+        return { me, under, pad: window.__krelMobile.qa.stats.townPad, bounds: cam.getBounds(), mode: s.decision.mode };
+      });
+      check("s4 M2: at the town's bottom-right corner the player is not under ACTION / RIDE (the camera runs on past the edge)", lay.pad && lay.under.length === 0 && lay.mode === "walk", lay);
+      await shot("town-corner");
+      await ph.ev(() => {
+        for (let i = 0; i < 4; i++) window.__krel.G.emit("toast", { title: `TEST ${i}`, text: "A toast to stack up." });
+      });
+      await sleep(700);
+      const tn = await ph.ev(() => {
+        const ui = window.__krel.game.scene.getScene("UI");
+        return ui.toasts.filter((t) => t.until > ui.time.now).length;
+      });
+      check("s4 m1: four toasts at once show two at most", tn <= 2, tn);
+      // F9: the save list's rows end above BACK
+      await ph.ev(() => {
+        const g = window.__krel.game;
+        g.scene.getScene("Hub").scene.launch("Slots", { mode: "save", caller: "Hub" });
+      });
+      await ph.scene("Slots", 20000);
+      await sleep(1200);
+      const sl = await ph.ev(() => {
+        const sc = window.__krel.game.scene.getScene("Slots");
+        const list = sc.root.list;
+        const rows = list.filter((o) => o.type === "Rectangle" && o.width >= 600 && o.height >= 80 && o.height <= 100).map((o) => o.y + o.height / 2);
+        const back = list.filter((o) => o.type === "Container" && o.list && o.list.some((c) => c.type === "Text" && /BACK/.test(c.text)));
+        const bk = back[0] ? back[0].getBounds() : null;
+        return { lastRowBottom: Math.max(...rows), backTop: bk ? bk.y : null };
+      });
+      check("s4 F9: the save list's last row ends above BACK", sl.backTop !== null && sl.lastRowBottom <= sl.backTop - 4, sl);
+      await shot("save-list");
+      await ph.ev(() => window.__krel.game.scene.stop("Slots"));
+      await sleep(500);
+    }
     // ---- R3 / F3: Back on the pause menu resumes (never leaves the page); Back twice, three times, stays
     const url0 = ph.page.url();
     if (s4part("back")) {

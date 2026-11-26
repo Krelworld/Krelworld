@@ -241,7 +241,8 @@ export function installQaFixes(game: Phaser.Game, shell: { addBackHandler(fn: ()
     wonkPending = false;
     const sc = game.scene.getScene("Club") as Phaser.Scene | null;
     if (!sc || !game.scene.isActive("Club") || !wonkLive()) return;
-    sc.scene.pause();
+    // (the manager's own pause: at once, before this frame's update, so the Wonk-Off's clock never ticks under the card)
+    game.scene.pause("Club");
     stats.wonkCards++;
     wonkAt.shown = performance.now();
     wonkAt.pausedUnder = game.scene.isPaused("Club");
@@ -251,7 +252,7 @@ export function installQaFixes(game: Phaser.Game, shell: { addBackHandler(fn: ()
       card = null;
       stats.wonkStarts++;
       wonkAt.started = performance.now();
-      if (game.scene.isPaused("Club") && !game.scene.isActive("Menu")) sc.scene.resume();
+      if (game.scene.isPaused("Club") && !game.scene.isActive("Menu")) game.scene.resume("Club");
     });
     host.appendChild(card);
   });

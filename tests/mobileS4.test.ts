@@ -65,3 +65,45 @@ describe("stage 4: the posse fight by touch (s4-01 B1)", () => {
     expect(posseWanted(null)).toBe(null);
   });
 });
+
+describe("stage 4: smaller fixes (pure parts)", () => {
+  it("the bike on a phone goes where the thumb points; a laptop's bike is unchanged (s4-01 m7)", async () => {
+    const { bikeVelocity } = await import("../src/game/systems/bike");
+    // rolling down-right at speed, the stick pushed straight left for 0.3 s (18 frames)
+    let a = { x: 200, y: 200 };
+    let b = { x: 200, y: 200 };
+    for (let i = 0; i < 18; i++) {
+      a = bikeVelocity(a.x, a.y, -300, 0, 16.7, true);
+      b = bikeVelocity(b.x, b.y, -300, 0, 16.7, false);
+    }
+    expect(Math.abs(a.y)).toBeLessThan(5);
+    expect(a.x).toBeLessThan(-150);
+    // (the laptop's ease: the old numbers, still drifting)
+    expect(Math.abs(b.y)).toBeGreaterThan(20);
+    // (node is not a phone: the default is the laptop's)
+    const c = bikeVelocity(200, 200, -300, 0, 16.7);
+    const d = bikeVelocity(200, 200, -300, 0, 16.7, false);
+    expect(c).toEqual(d);
+  });
+  it("a BOMB HERE spot is tapped on its own circle, never grown to the school behind it (s4-01 M4)", async () => {
+    const { GROUND_SPOT } = await import("../src/game/mobile/tapTargets");
+    expect(GROUND_SPOT.test("E: Plant a bomb (2/4)")).toBe(true);
+    expect(GROUND_SPOT.test("E: Enter Wildern Academy")).toBe(false);
+  });
+  it("Whack's rules line splits into two even lines with the same words (P6)", async () => {
+    const { splitWhackRules } = await import("../src/game/mobile/qaLogic");
+    const line = "HIGH SCORE: 120     ·     30 SECONDS     ·     1 🎟 KROKEN PER 200 POINTS (max 25) · NEW HIGH SCORE +3 🎟 · 1000+: 500 KREZZCOIN";
+    const out = splitWhackRules(line)!;
+    expect(out.split("\n")).toHaveLength(2);
+    expect(out.split("\n")[1].startsWith("NEW HIGH SCORE")).toBe(true);
+    expect(out.replace("\n", " · ")).toBe(line);
+    expect(splitWhackRules("INSERT 100 KREZZCOIN")).toBe(null);
+    expect(splitWhackRules(out)).toBe(null);
+  });
+  it("toasts: at most two; a toast over the player is seen through (rects overlap)", async () => {
+    const { TOAST_MAX, overlaps } = await import("../src/game/mobile/qaLogic");
+    expect(TOAST_MAX).toBe(2);
+    expect(overlaps({ x: 0, y: 0, w: 10, h: 10 }, { x: 15, y: 0, w: 10, h: 10 })).toBe(false);
+    expect(overlaps({ x: 0, y: 0, w: 10, h: 10 }, { x: 15, y: 0, w: 10, h: 10 }, 6)).toBe(true);
+  });
+});

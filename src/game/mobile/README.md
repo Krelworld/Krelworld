@@ -220,6 +220,8 @@ topmost running scene per rule):
 | Club, Kreddle, Venue | walk (none while busy or a machine is open) | `menu`: the pause menu over the scene (on a laptop Esc walks you out; each has an exit to walk to) | – |
 | Kreddle with the raid / rout running | walk | `edge` (their own Esc → pause menu) | yes |
 | Hub with the shoving match running (`sub: "shove"`) | walk, ACTION = SHOVE (no prompt shows) | `edge` | – |
+| Hub with the posse's BEAT UP fight on (stage 4, `posse.ts`) | tap, `posse: true`: SHOVE (left thumb), PUNCH, KICK (right); the wanted one glows | `menu` | yes |
+| Club with the Wonk-Off on (stage 4, `qaFixes.ts`) | tap, `wonk: true` (after its "Tap to start" card) | `menu` | yes |
 | anything else | none | – | – |
 
 `ModeDecision` = `{ mode, scene, pause, pauseButton, action, sanmik, legacyPad, live, stick, ...anything a rule adds }`.
@@ -579,7 +581,9 @@ Android camera cutout (16-40), so SPECIAL is never pushed onto DODGE nor READY o
   Phone settings page, the guide, then the conversation: its LOG closes, a meeting / cutscene / vignette pauses). Then
   a back pauses where the game can pause, and does nothing where it can't (the title, a town conversation, a menu);
   the guard goes straight back up (and again on the next touch, if the browser skipped an entry made outside a tap). A
-  back while the pause menu is showing leaves the game.
+  back while the pause menu is showing closes it, as RESUME does (stage 4, DEFERRED R3: a doubled edge swipe used to
+  leave KRELWORLD mid-fight); Back never leaves the page. On the telly, Back does what Esc does (a show: switch off; On
+  Demand: whatever's on).
 
 ## Phone settings (`settings.ts`)
 
@@ -1164,6 +1168,43 @@ It pulses until pressed once on the phone (`cueSeen("bike")`). The stick steers 
 gets you off first (any use does). The first-time tip ("Press Z to hop on your bike...") is a toast, reworded by the
 `bike-on` / `bike-off` rows of `TOUCH_WORDING`. The Controls picture's WALKING tab has a RIDE line. Smoke section:
 `bike`.
+
+## Stage 4: the phone QA's fixes (`posse.ts`, `qaFixes.ts`, `qaLogic.ts`)
+
+- **The posse fight** (town, `Beatup.ts`): its canvas circles sit in a non-scrolling container but scroll themselves,
+  so in town a tap never reached them, and the busy town had no stick and no II (a softlock). `posse.ts` adds a row in
+  front of "walking" (tap mode, `posse: true`, pause `menu`) and three layer buttons that call the fight's own
+  `press()`: SHOVE under the left thumb (the prime slot mirrored), PUNCH (72 px) and KICK (the prime corner: the
+  finisher) under the right. The wanted one glows (`posseWanted`); the canvas circles and their [E] [F] [SPACE] hide.
+  `__krelMobile.posse.state()`.
+- **The Wonk-Off** (Club): when its "WONK-OFF" title is added to the Club, the Club is paused (the scene manager's own
+  pause, at once) under a "WONK-OFF / Tap to start" card that takes only a fresh tap landing `READY_ARM_MS` (650 ms) or
+  more after it showed; then a row gives it the II (tap mode, `wonk: true`, pause `menu`). `__krelMobile.qa.wonk()`.
+- **Back**: the pause menu closes on Back (never `history.back()`); the telly answers Back as Esc does.
+- **Toasts**: at most `TOAST_MAX` (2) at once (the oldest goes early), and a toast the player stands under is drawn at
+  22% (dungeon exits sit under them).
+- **Town camera**: on a phone the Hub camera's bounds run `TOWN_CAM_PAD` (240 x 130 game px) past the map's edge on the
+  buttons' side and the bottom, so the player at the map's corner is never under ACTION / RIDE (the band past the
+  edge is the camera's dark background).
+- **Fights**: the 💨 pocket button always says FART (the level shows on the HUD meter); BONGO waits while HEAL shows;
+  buttons go see-through over explosive barrels and pickups (`occluders`); in the finale brawl over the Super Saiyan
+  (`brawl.ts meRect`), and the brawl's corner SKIP FIGHT hides (the II's card has it).
+- **Tap to use**: `GROUND_SPOT` (the Wildern bombs) never grows to the building behind it.
+- **Wording**: the HUD chip "(T to transform)" (watched on `UIScene.statT` only), the new-gun toast, the drugs pills
+  (town and cockpit), the finale's mash hint, the SanMik toast, four side-room legends and three golden-juice
+  narrator tips, the gun rack's "Point at a gun"; verbs INJECT, OPEN (staff toilet), FREE (Untie); no hint says
+  "ACTION". `tests/mobileNarratorKeys.test.ts` fails if any narrator line still names a key on a phone.
+- **Layouts**: the Krunch Pit board's rows are 74 px (5 shown) on a phone; Beep Beep's speedo sits left of the
+  pedals (guarded hook); the save list's rows close up 10 px each and end above BACK; Whack's rules line splits into
+  two even lines; the Difficulty screen drops its multipliers line; the title's tagline has an outline; the book's own
+  SKIP is the only skip (the conversation pill steps aside); RuneScape's re-up glows below 35 gear.
+- **Home screen**: running from the home screen, the pause menu has no FULLSCREEN row (`phoneOnHomeScreen()`), and
+  once seen as installed the page stays so for the visit.
+- **Bike** (all versions): a Kreddle shove dismounts; the Hub places the bike's layers on POST_UPDATE (after physics).
+  Phones only: `bikeVelocity(..., snappy)` kills the sideways drift in ~45 ms.
+- **Side rooms**: `PIT_MARGIN` 140 (was 120).
+
+Smoke: `--only s4` (parts with `--s4 posse,layout,back,wonk,tv`).
 
 ## Testing
 

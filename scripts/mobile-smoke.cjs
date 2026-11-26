@@ -4261,21 +4261,41 @@ function measureScreen(ph) {
 const overlap = (a, b, pad = 0) => a.x < b.x + b.w - pad && b.x < a.x + a.w - pad && a.y < b.y + b.h - pad && b.y < a.y + a.h - pad;
 const inside = (a, b, pad = 1) => a.x >= b.x - pad && a.y >= b.y - pad && a.x + a.w <= b.x + b.w + pad && a.y + a.h <= b.y + b.h + pad;
 
+/** A caption or word (a rectangle) on a control's face (a circle when round). */
+const rectInFace = (r, face) => (isRound(face) ? rectInCircle(r, face) : overlap(r, face));
+/** A round control's face (as wide as tall) is a circle; anything else a rectangle. */
+const isRound = (r) => Math.abs(r.w - r.h) < 1;
+/** Does a rectangle reach into a circle by more than `pad` px? */
+const rectInCircle = (r, c, pad = 0) => {
+  const cx = c.x + c.w / 2;
+  const cy = c.y + c.h / 2;
+  const dx = Math.max(r.x - cx, 0, cx - (r.x + r.w));
+  const dy = Math.max(r.y - cy, 0, cy - (r.y + r.h));
+  return Math.hypot(dx, dy) < c.w / 2 - pad;
+};
+/** Do two drawings overlap (by more than `pad`)? Round faces are circles (a diagonal neighbour's corner is not it). */
+const shapesOverlap = (a, b, pad = 0) => {
+  if (isRound(a) && isRound(b)) return Math.hypot(a.x + a.w / 2 - b.x - b.w / 2, a.y + a.h / 2 - b.y - b.h / 2) < a.w / 2 + b.w / 2 - pad;
+  if (isRound(b)) return rectInCircle(a, b, pad);
+  if (isRound(a)) return rectInCircle(b, a, pad);
+  return overlap(a, b, pad);
+};
+
 /** No caption over another caption, a control, or the HUD; words inside their own faces; no two faces on each other. */
 function collisions(m) {
   const out = [];
   for (const c of m.caps) {
-    for (const o of m.controls) if (o.id !== c.id && overlap(c.r, o.face)) out.push(`caption ${c.id}:${c.text} on ${o.id}`);
+    for (const o of m.controls) if (o.id !== c.id && rectInFace(c.r, o.face)) out.push(`caption ${c.id}:${c.text} on ${o.id}`);
     for (const o of m.caps) if (o !== c && overlap(c.r, o.r)) out.push(`caption ${c.id} on caption ${o.id}`);
     for (const h of m.hud) if (overlap(c.r, h.r)) out.push(`caption ${c.id} on HUD ${h.id}`);
     if (c.r.y + c.r.h > m.vp.h || c.r.x < 0 || c.r.x + c.r.w > m.vp.w) out.push(`caption ${c.id} off screen`);
   }
   for (const w of m.words) {
     if (!inside(w.r, w.face)) out.push(`word ${w.id}:${w.text} outside its button`);
-    for (const o of m.controls) if (o.id !== w.id && overlap(w.r, o.face)) out.push(`word ${w.id} on ${o.id}`);
+    for (const o of m.controls) if (o.id !== w.id && rectInFace(w.r, o.face)) out.push(`word ${w.id} on ${o.id}`);
   }
   for (let i = 0; i < m.controls.length; i++)
-    for (let j = i + 1; j < m.controls.length; j++) if (overlap(m.controls[i].face, m.controls[j].face, 1)) out.push(`${m.controls[i].id} on ${m.controls[j].id}`);
+    for (let j = i + 1; j < m.controls.length; j++) if (shapesOverlap(m.controls[i].face, m.controls[j].face, 1)) out.push(`${m.controls[i].id} on ${m.controls[j].id}`);
   return out;
 }
 
@@ -4387,7 +4407,8 @@ async function polish(browser) {
       });
       const heal = await ph.ev(() => !!document.querySelector('.kt-btn.show.low[data-ctl="c-heal"]'));
       const big = pr.profile.viewport.width === 844 ? 59.5 : 51.5;
-      check(`polish ${where} mid-game: 💨, 🍺 and HEAL are full-size buttons on the right (drawn ${big > 55 ? 60 : 52}+ px, 44+ px to touch), HEAL red when low`, ["c-bongo", "c-fart", "c-heal"].every((id) => pk.some((c) => c.id === id)) && pk.every((c) => c.right && Math.min(c.w, c.h) >= (c.id === "c-heal" ? 51.5 : big) && Math.min(c.hw, c.hh) >= 44) && heal, { pk, heal, ids: midRoom.ids });
+      // (stage 4, M3: a fizzy bongo waits while HEAL is up, one drink button at a time; 30% health here, so HEAL)
+      check(`polish ${where} mid-game: 💨 and HEAL are full-size buttons on the right (drawn ${big > 55 ? 60 : 52}+ px, 44+ px to touch), HEAL red when low, 🍺 waiting while HEAL is up`, ["c-fart", "c-heal"].every((id) => pk.some((c) => c.id === id)) && !pk.some((c) => c.id === "c-bongo") && pk.every((c) => c.right && Math.min(c.w, c.h) >= (c.id === "c-heal" ? 51.5 : big) && Math.min(c.hw, c.hh) >= 44) && heal, { pk, heal, ids: midRoom.ids });
       // the longest pocket word (CABBAGE, fart level 3) stays inside its round button at every size (the recheck saw it
       // clipped to "ABBAG" at 750x340; forced here so the check never depends on how far the meter got)
       const cab = await ph.ev(async () => {
@@ -4399,7 +4420,8 @@ async function polish(browser) {
         const a = f.getBoundingClientRect(), b = w.getBoundingClientRect();
         return { text: w.textContent, face: Math.round(a.width), word: Math.round(b.width), inside: b.left >= a.left + 2 && b.right <= a.right - 2 };
       });
-      check(`polish ${where} mid-game: the longest 💨 word (CABBAGE) sits inside its button`, !!cab && cab.text === "CABBAGE" && cab.inside, cab);
+      // (stage 4, s4-01 M3: the button always says FART now, whatever the level; the level shows on the HUD's meter)
+      check(`polish ${where} mid-game: the 💨 word (FART, at fart level 3 too) sits inside its button`, !!cab && cab.text === "FART" && cab.inside, cab);
       // ---- 3. a boss (Krandall)
       if (!pr.light) {
         const ok3 = await toFight(ph, "wildern", 3, 2);
@@ -7243,8 +7265,18 @@ async function cluster(browser) {
         .filter((c) => c.from > reach);
       const col = collisions(m);
       const onHud = [];
-      for (const c of fight) for (const h of m.hud) if (overlap(c.face, h.r, 1)) onHud.push(`${c.id} on ${h.id}`);
+      for (const c of fight) for (const h of m.hud) if (shapesOverlap(c.face, h.r, 1)) onHud.push(`${c.id} on ${h.id}`);
       const small = fight.filter((c) => Math.min(c.face.w, c.face.h) < 43.5).map((c) => `${c.id}:${Math.round(c.face.w)}`);
+      // research M5: 12 px or more between drawn edges
+      const close = [];
+      for (let i = 0; i < fight.length; i++)
+        for (let j = i + 1; j < fight.length; j++) {
+          const a = fight[i].face;
+          const b = fight[j].face;
+          const g = Math.hypot(a.x + a.w / 2 - b.x - b.w / 2, a.y + a.h / 2 - b.y - b.h / 2) - a.w / 2 - b.w / 2;
+          if (g < 11.5) close.push(`${fight[i].id}/${fight[j].id}:${Math.round(g)}`);
+        }
+      check(`cluster ${where} ${name}: 12 px or more between the fight buttons`, close.length === 0, close);
       check(`cluster ${where} ${name}: every fight button within ${Math.round(reach)} px of the thumb's edge`, far.length === 0, far.length ? far : fight.map((c) => c.id));
       check(`cluster ${where} ${name}: no button on another (pause and the weapon chip clear), none over the HUD's words, none under 44 px`, col.length === 0 && onHud.length === 0 && small.length === 0, [...col, ...onHud, ...small].slice(0, 8));
       await ph.shot(`cluster-${pr.tag}-${name}`);

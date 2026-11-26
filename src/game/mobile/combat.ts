@@ -1,7 +1,8 @@
 // PHONE MODE: the top-down fights (stage 2, part 1). Phones only; nothing here runs on a laptop.
 //
 // The old twelve-button canvas pad is replaced, in the top-down rooms and boss fights, by the layer's floating stick
-// (the town's zone, gutter included) and a right-hand cluster laid out as research "layout v2":
+// (the town's zone, gutter included) and a right-hand cluster (research "layout v2", made a compact grid hugging the
+// edge in s4b: layout.ts fightCluster):
 //
 //   FIRE (prime corner)  hold = fire, slide = aim by hand (snaps onto an enemy). By default (HOLD) the game aims only at
 //                        the nearest enemy you can see, all round you (on screen, not behind a wall); it shoots only while you hold
@@ -10,7 +11,7 @@
 //   DODGE (up-left)      SWAP (left: tap = next gun, hold = the weapon picker)      SPECIAL (up: the lad's special,
 //   only while it would go)      READY (pops in when WONK, the golden transformation, the Cumehameha or IBS is ready)
 //   HEAL (pops in when a drink would heal; red and pulsing under 40%)      ACTION (pops in with a prompt, like walking)
-//   the pocket, at the cluster's upper left: 💨 (the fart, levels 1 to 3), 🍺 (a fizzy bongo), SANMIK (as Mikey),
+//   the pocket, in the cluster's free cells nearest the edge: 💨 (the fart), 🍺 (a fizzy bongo), SANMIK (as Mikey),
 //   each a full-size button in its own place, only while it can be used (thumb-feel round: they were small chips)
 //   up top: the weapon chip (tap = next, hold = picker) beside pause.
 //

@@ -387,43 +387,49 @@ export function outsideZone(r: Rect, zone: Rect): Rect | null {
 //
 // The user, on an iPhone in the Wildern Cafeteria: "Do you think it's good that the buttons can start creeping to the
 // centre of the screen?" With SANMIK, FART / BONGO, HEAL, READY, SPECIAL, DODGE, SWAP and FIRE all up, the pocket and
-// ACTION sat 206 to 286 px in from the edge, over the middle of the fight. The fight's buttons are now a compact grid
-// in the bottom-right safe corner (mirrored for left-handed play):
+// ACTION sat 206 to 286 px in from the edge, over the middle of the fight. The fight's buttons are now three tight
+// columns in the bottom-right safe corner (mirrored for left-handed play), each column as low as FIRE and the cell
+// left of it allow, 12 px between drawings (research M5). At 844x390:
 //
-//          col 2   col 1   col 0          (columns of 60 px buttons, 7 px apart, from the safe edge in)
-//   row 3  [ p ]   [ p ]   [ p ]          p: pocket cells (FART, BONGO, SANMIK take the ones nearest the edge)
-//   row 2  [ p ]   HEAL    READY
-//   row 1  ACTION  DODGE   SPECIAL
-//   row 0  [ p ]   SWAP      FIRE         (FIRE / JUMP the big corner button; side rooms: FIRE where SWAP is)
+//          col 2    col 1    col 0
+//           [ ]      FART             (each column stacks upward as far as pause and the weapon chip allow; left-handed,
+//          SANMIK    HEAL    READY     the HUD's top-left block)
+//          ACTION    DODGE   SPECIAL
+//                 SWAP        FIRE    (FIRE / JUMP the big corner button; side rooms: FIRE where SWAP is)
 //
-// Rows go up from FIRE's top only as far as pause and the weapon chip (or, left-handed, the HUD's top-left block)
-// allow (`keepOut`); a cell further in than FIGHT_REACH px (x the drawn size) is never used. Each button has a fixed home
-// cell, so nothing moves when another comes or goes. The pocket's homes are the free cells nearest the edge, in the
-// order FART, BONGO, SANMIK. Only when there are more buttons up than cells (big buttons on a short screen) does a
-// button without a cell take a free one nearest the edge, and if none is left a pocket button is drawn smaller
-// (POCKET_MIN, 44 px) in a gap rather than further in.
+// No cell's centre is further in than FIGHT_REACH (x the drawn size). Each button has a fixed home cell, so nothing
+// moves when another comes or goes; the pocket's homes are the cells left over nearest the edge (FART, then SANMIK),
+// and BONGO's is HEAL's (the fizzy bongo only shows while HEAL doesn't: one drink button at a time). Only when there
+// are more buttons up than cells (big buttons on a short screen) does a button without a cell take a free one nearest
+// the edge, and if none is left the pocket is drawn smaller (POCKET_MIN, 44 px) in a gap rather than further in.
 
 /** No fight button's centre is further than this from the safe edge (CSS px at scale 1, 844x390, size M). */
 export const FIGHT_REACH = 200;
 /** A pocket button with no cell left is drawn this small (a comfortable 44 px target), never further in. */
 export const POCKET_MIN = 44;
-/** The cluster's button size and gap at scale 1. */
+/** The cluster's button size at scale 1. */
 export const CLUSTER_SIZE = 60;
-export const CLUSTER_GAP = 7;
+/** Between two drawings: at least 12 px (research M5), scaled up with the buttons. */
+export const CLUSTER_GAP = 12;
 /** From the safe edge to column 0's centre (scale 1). */
 export const CLUSTER_EDGE = 44;
 
 export type FightRole = "prime" | "second" | "dodge" | "special" | "ready" | "heal" | "action" | "fart" | "bongo" | "sanmik";
-/** The pocket, in priority order (the first takes the free cell nearest the edge). */
+/** The pocket: drawn smaller when there are more buttons than cells. */
 export const POCKET_ROLES = ["fart", "bongo", "sanmik"] as const;
-/** The fixed buttons and their home cells ("b1": the bottom row left of FIRE; "c<col>r<row>": the grid above it). */
-export const FIGHT_HOMES: Readonly<Record<Exclude<FightRole, "prime" | (typeof POCKET_ROLES)[number]>, string>> = {
+/** The pocket buttons with homes of their own, in priority order (the first takes the spare cell nearest the edge). */
+export const POCKET_HOMES = ["fart", "sanmik"] as const;
+/**
+ * The fixed buttons' home cells: "b1" is the cell left of FIRE; "c<col>.<n>" the n-th cell up column col (0 = the edge
+ * column). BONGO's home is HEAL's.
+ */
+export const FIGHT_HOMES: Readonly<Record<"second" | "dodge" | "special" | "ready" | "heal" | "action", string>> = {
   second: "b1",
-  dodge: "c1r1",
-  special: "c0r1",
-  ready: "c0r2",
-  heal: "c1r2",
-  action: "c2r1",
+  special: "c0.0",
+  ready: "c0.1",
+  dodge: "c1.0",
+  heal: "c1.1",
+  action: "c2.0",
 };
 
 export interface FightCell {
@@ -474,42 +480,50 @@ export function fightReach(vp: Viewport, settings: Pick<PhoneSettings, "buttonSi
 const mirrorRect = (vp: Viewport, r: Rect): Rect => ({ x: vp.w - r.x - r.w, y: r.y, w: r.w, h: r.h });
 
 /**
- * The fight cluster's cells, worked out right-handed (the caller mirrors): FIRE's corner, the bottom row left of it and
- * the rows above it, each cell kept clear of `keepOut` (right-handed page rects) by the gap and inside FIGHT_REACH.
+ * The fight cluster's cells, worked out right-handed (the caller mirrors): FIRE's corner, the cell left of it, and three
+ * columns from the edge in, each starting as low as FIRE and that cell allow (12 px clear) and stacking upward; every
+ * cell clear of `keepOut` (right-handed page rects), inside the safe area and within FIGHT_REACH.
  */
 export function fightGrid(vp: Viewport, settings: Pick<PhoneSettings, "buttonSize">, keepOut: readonly Rect[] = []): { prime: Placed; cells: FightCell[]; gap: number } {
   const s = controlScale(vp.h, settings.buttonSize);
   const prime = placeControl(vp, SLOTS.prime, { leftHanded: false, buttonSize: settings.buttonSize });
   const size = Math.max(MIN_CONTROL, CLUSTER_SIZE * s);
   const r = size / 2;
-  const gap = Math.max(6, CLUSTER_GAP * s);
+  const gap = CLUSTER_GAP * Math.max(1, s);
   const pitch = size + gap;
   const safe = safeRect(vp);
   const right = safe.x + safe.w;
   const bottom = safe.y + safe.h;
   let x0 = right - Math.max(CLUSTER_EDGE * s, r + 4);
-  // (one column for every row: clear of the Dynamic Island band wherever the screen has a notch or cutout)
+  // (one edge column for every height: clear of the Dynamic Island band wherever the screen has a notch or cutout)
   if (islandSides(vp)) x0 = Math.min(x0, vp.w - islandGap(vp) - r);
   const reach = fightReach(vp, settings);
   const cells: FightCell[] = [];
-  const add = (id: string, cx: number, cy: number) => {
-    if (cy - r < safe.y || cy + r > bottom + 1e-9 || cx - r < safe.x) return;
-    if (right - cx > reach + 1e-6) return;
+  const ok = (cx: number, cy: number) =>
+    cy - r >= safe.y - 1e-9 &&
+    cy + r <= bottom + 1e-9 &&
+    cx - r >= safe.x &&
+    right - cx <= reach + 1e-6 &&
     // (keepOut is touch areas, pause's and the chip's 10 px slop included: the round drawing stays out of them)
-    if (keepOut.some((k) => circleHits(cx, cy, r, k))) return;
-    cells.push({ id, cx, cy, size, in: right - cx });
-  };
-  // the bottom row, left of FIRE, its bottom level with FIRE's
+    !keepOut.some((k) => circleHits(cx, cy, r, k));
+  // the cell left of FIRE, its bottom level with FIRE's
   const yb = Math.min(prime.cy + prime.size / 2 - r, bottom - r);
-  const xb1 = prime.cx - prime.size / 2 - gap - r;
-  add("b1", xb1, yb);
-  add("b2", xb1 - pitch, yb);
-  // the rows above FIRE
-  const y1 = prime.cy - prime.size / 2 - gap - r;
-  for (let row = 1; row <= 6; row++) {
-    const cy = y1 - (row - 1) * pitch;
-    if (cy - r < safe.y) break;
-    for (let col = 0; col < 3; col++) add(`c${col}r${row}`, x0 - col * pitch, cy);
+  const xb = prime.cx - prime.size / 2 - gap - r;
+  const blockers: { cx: number; cy: number; r: number }[] = [{ cx: prime.cx, cy: prime.cy, r: prime.size / 2 }];
+  if (ok(xb, yb)) {
+    cells.push({ id: "b1", cx: xb, cy: yb, size, in: right - xb });
+    blockers.push({ cx: xb, cy: yb, r });
+  }
+  // the columns: each starts as low as FIRE and that cell allow, then stacks upward a pitch at a time
+  for (let col = 0; col < 3; col++) {
+    const cx = x0 - col * pitch;
+    let cy = bottom - r;
+    for (const b of blockers) {
+      const need = b.r + r + gap;
+      const dx = Math.abs(cx - b.cx);
+      if (dx < need) cy = Math.min(cy, b.cy - Math.sqrt(need * need - dx * dx));
+    }
+    for (let n = 0; n < 8 && cy - r >= safe.y - 1e-9; n++, cy -= pitch) if (ok(cx, cy)) cells.push({ id: `c${col}.${n}`, cx, cy, size, in: right - cx });
   }
   return { prime, cells, gap };
 }
@@ -539,9 +553,12 @@ export function fightCluster(
   }
   const homes = new Set(Object.values(FIGHT_HOMES));
   const spare = cells.filter((c) => !homes.has(c.id)).sort(nearest);
-  POCKET_ROLES.forEach((role, i) => {
+  POCKET_HOMES.forEach((role, i) => {
     if (spare[i]) homeOf.set(role, spare[i]);
   });
+  // (a fizzy bongo only shows while HEAL doesn't: one drink button, one place)
+  const healHome = homeOf.get("heal");
+  if (healHome) homeOf.set("bongo", healHome);
   const core = (Object.keys(FIGHT_HOMES) as FightRole[]).filter((r) => up.has(r));
   const pocket = POCKET_ROLES.filter((r) => up.has(r));
   const out: Partial<Record<FightRole, FightCell>> = {};
@@ -561,7 +578,7 @@ export function fightCluster(
   for (const role of core) {
     if (out[role]) continue;
     const f = free()[0];
-    const spot = f ?? squeeze(vp, settings, placedNow(), ko, gap, size) ?? squeeze(vp, settings, placedNow(), ko, gap, POCKET_MIN);
+    const spot = f ?? squeeze(vp, settings, placedNow(), ko, gap, size) ?? squeeze(vp, settings, placedNow(), ko, gap, POCKET_MIN) ?? squeeze(vp, settings, placedNow(), ko, 4, POCKET_MIN);
     if (spot) take(role, spot);
   }
   // the pocket: each at home while there are cells enough; with more pocket buttons up than cells left, all of them
@@ -574,7 +591,8 @@ export function fightCluster(
     for (const role of pocket) if (!out[role]) take(role, free()[0]);
   } else {
     for (const role of pocket) {
-      const spot = squeeze(vp, settings, placedNow(), ko, gap, POCKET_MIN);
+      // (12 px clear where it can be; if not, the last resort is a tighter gap rather than no button)
+      const spot = squeeze(vp, settings, placedNow(), ko, gap, POCKET_MIN) ?? squeeze(vp, settings, placedNow(), ko, 4, POCKET_MIN);
       if (spot) take(role, spot);
     }
   }
@@ -600,7 +618,7 @@ function squeeze(vp: Viewport, settings: Pick<PhoneSettings, "buttonSize">, plac
   const right = safe.x + safe.w;
   const reach = fightReach(vp, settings);
   const r = size / 2;
-  const g = Math.max(4, gap * 0.7);
+  const g = gap;
   const island = islandSides(vp);
   for (let inn = r + 4; inn <= reach + 1e-6; inn += 2) {
     const cx = right - inn;

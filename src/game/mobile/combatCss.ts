@@ -48,7 +48,7 @@ export const COMBAT_CSS = `
 .kt-heal .kt-face{border-color:rgba(255,158,207,.85);background:rgba(120,20,70,.45)}
 /* HEAL under 40%: red, the urgent one */
 .kt-heal.low .kt-face{border-color:#ff5d7a;background:rgba(170,20,50,.6)}
-/* the pocket (thumb-feel round): 💨 / 🍺 / SANMIK, full-size round buttons at the cluster's upper left, each only
+/* the pocket (thumb-feel round): 💨 / 🍺 / SANMIK, full-size round buttons in the cluster's free cells, each only
    while it can be used; the icon over its word, always inside the button */
 .kt-pocket .kt-face{flex-direction:column;gap:1px;font-size:11px}
 .kt-pocket .kt-pi{font-size:24px;line-height:1;filter:drop-shadow(0 1px 1px #000)}

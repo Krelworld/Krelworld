@@ -61,7 +61,7 @@ interface TickerLine { text: string; src: string; big: boolean }
 
 /** A PixelLab picture of an item, if there is one. */
 const ICONS = new Set(["pint", "pie", "knife", "whistle", "ticket", "wallet", "laxative", "powder", "shirt_eng", "shirt_por", "shirt_bra", "shirt_arg", "police_uniform", "kit_eng", "kit_opp",
-  "staff_pass", "hivis", "ref_kit", "police_hat", "mask", "flat_cap", "sunglasses", "moustache", "tracksuit", "chef_whites", "overalls", "balaclava", "hammer", "flare", "betslip", "face", "hands", "censored_bar"]);
+  "staff_pass", "hivis", "ref_kit", "police_hat", "mask", "flat_cap", "sunglasses", "moustache", "tracksuit", "chef_whites", "overalls", "balaclava", "hammer", "flare", "betslip", "face", "hands", "censored_bar", "wrench", "kit_card"]);
 const icon = (def: string) => (ICONS.has(def) ? `<img class="ico" src="icons/${def}.png" alt="" onerror="this.remove()">` : `<span class="ico none"></span>`);
 
 /** The main button's words: short enough for a thumb. The full sentence is still in More. */
@@ -388,6 +388,7 @@ class StadiumScene extends Phaser.Scene {
       case "knockout": {
         const who = s.actors[e.who];
         if (who) { this.popup(who.x, who.y, e.quiet ? "TAKEDOWN" : "KO!", e.quiet ? "#f2c94c" : "#ff4d5e"); if (e.quiet) a.play("bodyfall", 0.6, { minGap: 0.1 }); }
+        if (e.quiet && e.by) this.choking.set(e.by, performance.now() + 750);
         if (e.who === pcId) this.say(`You're out cold. You come round${e.lost ? ` £${e.lost} lighter` : ""}.`, "", true);
         break;
       }
@@ -395,6 +396,15 @@ class StadiumScene extends Phaser.Scene {
       case "unseated": a.play("whinny", 1); a.play("bodyfall", 0.9); this.popup(e.x, e.y, "UNSEATED!", "#ff4d5e"); break;
       case "mounted": a.play("whinny", 0.8); if (e.by === pcId) this.startCine(1600, { zoomAdd: 0, caption: "Tally ho" }); break;
       case "horse_jump": a.play("whinny", 0.4, { minGap: 2 }); break;
+      case "crawled": case "roof_run": case "stretchered": {
+        if ((e.by ?? e.who) !== pcId) break;
+        // The long way round: a fade to black, the sound of it, and a caption.
+        const f = $("fade"); f.classList.add("on"); setTimeout(() => f.classList.remove("on"), 700);
+        if (e.type === "crawled") { a.play("drain", 1); this.startCine(2200, { zoomAdd: 1, caption: e.to === "grate" ? "Up through the shower drain" : "Back down the drain" }); }
+        else if (e.type === "roof_run") { a.play("ladder", 1); this.startCine(2200, { zoomAdd: 1, caption: "Over the roof and down the tunnel ladder" }); }
+        else { a.play("groan", 1); this.startCine(2600, { zoomAdd: 1, caption: "Stretchered to the medical room" }); }
+        break;
+      }
       case "hid_body": a.play(e.where?.startsWith("bin") ? "zip_bin" : "bag", 1); this.say(e.where?.startsWith("bin") ? "Into the bin he goes." : "Out of sight.", "", false); break;
       case "car_horn": { const v = near(e.x, e.y, 40); if (v > 0) a.play("horn", (0.2 + v * 0.6) * (e.long ? 1 : 0.6), { minGap: 1.5, rate: e.long ? 0.9 : 1.15 }); break; }
       case "armed_called": case "armed_deployed": a.play("siren", 0.6, { minGap: 8 }); break;
@@ -468,7 +478,7 @@ class StadiumScene extends Phaser.Scene {
       pub_yard: "herringbone", verge: "grass", concourse_s: "concourse", concourse_w: "concourse", concourse_e: "concourse", corner_sw: "concourse", corner_se: "concourse",
       corner_nw: "concourse", corner_ne: "concourse", loading: "gravel", staffway: "lino", players: "lino", tunnel: "lino", security: "office", ref_room: "lino",
       dress_home: "rubber", dress_away: "rubber", kitchen: "quarry", bar_s: "boards", toilet_s: "whitetile", cubicle_s: "whitetile", pub: "pubcarpet", pub_toilet: "whitetile",
-      pub_cubicle: "whitetile", cabin: "office", hotel: "office", charity: "boards", surplus: "lino", bookies: "office",
+      pub_cubicle: "whitetile", alley: "tarmac", kitroom: "rubber", medical: "whitetile", backcorr: "lino", cabin: "office", hotel: "office", charity: "boards", surplus: "lino", bookies: "office",
     };
     if (VENUE.features.fanZone) { FLOOR_OF.pub = "grass"; FLOOR_OF.pub_toilet = "slabs"; FLOOR_OF.pub_cubicle = "slabs"; }
     // Beyond the edge of the map: more pavement, and a palisade fence round it all.
@@ -480,6 +490,12 @@ class StadiumScene extends Phaser.Scene {
         const sx = Math.round(P.sx(x, 0)), sy = Math.round(P.sy(0, y)), fw = Math.round(w * P.S);
         this.groundTiles.push(this.add.tileSprite(sx, sy - 58, fw, 58, "mat-palisade").setOrigin(0).setDepth(dep).setTilePosition(0, 0));
       };
+      // The railway embankment behind the alley fence: rough grass under the trees.
+      const gk = ensureFloor(this, "grass");
+      if (gk) {
+        const ex = VENUE.id === "sf" ? 70.5 : BOUNDS.x - 40, [gx, gy, gw, gh] = P.rect(ex, BOUNDS.y - 30, 61.5, 84 - (BOUNDS.y - 30));
+        this.groundTiles.push(this.add.tileSprite(Math.round(gx), Math.round(gy), Math.round(gw), Math.round(gh), gk).setOrigin(0).setDepth(0.3).setTilePosition(Math.round(gx), Math.round(gy)).setTint(0xa8b49c));
+      }
       fence(BOUNDS.x, BOUNDS.y, BOUNDS.w, 0.5);
       fence(BOUNDS.x, BOUNDS.y + BOUNDS.h + 0.3, BOUNDS.w, 9e6);
       for (const x of [BOUNDS.x - 0.15, BOUNDS.x + BOUNDS.w]) {
@@ -752,6 +768,8 @@ class StadiumScene extends Phaser.Scene {
   /** A cinematic moment: letterbox, a push-in on a point (or a long lead ahead), slow motion. */
   cine: { until: number; focus: { x: number; y: number } | null; lead: { x: number; y: number } | null; zoomAdd: number } | null = null;
   cineDone = new Set<string>();
+  wasInDoor = false;
+  choking = new Map<string, number>();
   startCine(ms: number, opts: { focus?: { x: number; y: number }; lead?: { x: number; y: number }; zoomAdd?: number; slow?: number; caption?: string }): void {
     const now = performance.now();
     this.cine = { until: now + ms, focus: opts.focus ?? null, lead: opts.lead ?? null, zoomAdd: opts.zoomAdd ?? 1 };
@@ -762,6 +780,12 @@ class StadiumScene extends Phaser.Scene {
   stepCine(): void {
     const s = this.s, pc = this.pc;
     if (this.cine && performance.now() > this.cine.until) { this.cine = null; document.body.classList.remove("cine"); }
+    // The players' entrance: a beep and a clunk as the card opens it.
+    if (pc) {
+      const inDoor = Math.abs(pc.x - (VENUE.id === "sf" ? 56.5 : -56.5)) < 0.9 && pc.y > -56.2 && pc.y < -52.8;
+      if (inDoor && !this.wasInDoor) this.audio?.play("swipe", 1, { minGap: 2 });
+      this.wasInDoor = inDoor;
+    }
     if (!pc || this.cine) return;
     const ar = areaAt(pc.x, pc.y), m = s.match!, live = m.phase === "live" || m.phase === "restart";
     const key = `${VENUE.id}:${s.stadium!.arrivedAt}`;
@@ -1735,14 +1759,20 @@ class StadiumScene extends Phaser.Scene {
       return;
     }
     sp.setAngle(0).setOrigin(0.5, feetOf(base) / cellOf(base)).clearTint().setTintMode(Phaser.TintModes.MULTIPLY);
-    const dragged = a.dragging ? this.s.actors[a.dragging] : null;
-    if (dragged && has("drag")) {
+    const dragged = a.dragging ? this.s.actors[a.dragging] : null, choke = this.choking.get(a.id) ?? 0;
+    if (choke > performance.now() && has("choke")) {
+      // The takedown: an arm round the neck from behind until he goes limp.
+      const n = this.frames(`${key}-choke`), left = (choke - performance.now()) / 750;
+      sp.setTexture(`${key}-choke`, di * n + Math.min(n - 1, Math.floor((1 - left) * n)));
+    } else if (dragged && has("drag")) {
       // Hauling a body: bent over it, walking backwards.
-      const n = this.frames(`${key}-drag`), f = moving ? Math.floor((tick + Math.abs(hash(a.id)) % 50) * 0.12) % n : 0;
+      // Loop the bent-over half of the cycle; the first half is him straightening up.
+      const n = this.frames(`${key}-drag`), h0 = Math.floor(n / 2), f = h0 + (moving ? Math.floor((tick + Math.abs(hash(a.id)) % 50) * 0.12) % (n - h0) : 0);
       sp.setTexture(`${key}-drag`, dirIndex(Math.atan2(dragged.y - a.y, dragged.x - a.x)) * n + f);
     } else if (a.id === this.s.stadium!.pc && this.sheetKind === "loot" && has("search")) {
       const n = this.frames(`${key}-search`);
-      sp.setTexture(`${key}-search`, di * n + Math.floor(tick * 0.12) % n);
+      const h0 = Math.floor(n / 2);
+      sp.setTexture(`${key}-search`, di * n + h0 + Math.floor(tick * 0.1) % (n - h0));
     } else if (moving && !a.seated && has("run") && Math.hypot(a.vx, a.vy) > 4.8) {
       const n = this.frames(`${key}-run`);
       sp.setTexture(`${key}-run`, di * n + Math.floor((tick + Math.abs(hash(a.id)) % 50) * 0.22) % n);

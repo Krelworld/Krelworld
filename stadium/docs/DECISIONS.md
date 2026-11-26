@@ -405,3 +405,66 @@ Now:
   when anyone shoots.
 - **Moments.** Letterbox, a push-in and slow motion for a big knockout ("SPARKO"), walking out of
   the tunnel, and running onto the pitch while the game's on.
+
+## Sandbox pass (docs/research-sandbox.md)
+
+The complaint: too much empty space, too few ways to scheme, fighting awkward. The research says
+those share one cause: the area outgrew the content. Hitman builds "Swiss cheese" (connections
+per volume), Escapists and Goose keep levels small and full, and every room gets two or three
+exits with one of them naughty. Verdicts:
+
+- **No radical redesign of the bowl.** The ground, the routes and 100+ tests depend on it. We
+  shrank the playable outside instead and filled what's left.
+- **First person: optional, not the main view.** The research is against free-roam first person
+  for a systemic top-down sandbox (you lose the read of who's watching). It's in as a toggle
+  (V, or the 1P button): a Doom-style raycaster over the same walls, with eight-way sprites as
+  billboards and your fists at the bottom.
+
+## Combat that's easy
+
+- **Tap to hit, auto-target.** You swing at the nearest person in reach and turn to face them;
+  reach is a little longer than before.
+- **From behind is a takedown.** If they're facing away it's a silent chokehold: down at once,
+  no noise, no knockback. Face to face it's a brawl: hits stagger, the third or fourth knocks
+  them out, and fans and locals hit back.
+- **Knocked out and dead.** Knocked out lasts about fifty seconds, then they come round angry
+  (security radio it in). Stamp on a man who's down and he's dead.
+- **Pockets.** Anyone down can be searched: money, and whatever they'd plausibly carry
+  (powder, a knife, a ticket, a staff pass). Seen doing it, it's a crime.
+- **Bodies.** Drag them (you're slow), put them in a bin or a private room. Hidden bodies never
+  wake. Left in the open, someone finds them: "Man down!", and security come.
+- **You get hurt too.** Five hits and you're out: you lose half your money, and inside the
+  ground the first-aiders stretcher you to the medical room (which is next to the dressing
+  rooms).
+
+## The horse
+
+Pull PC Hargreaves off his horse (from beside him), climb on, and gallop. Anyone in front goes
+over; at full gallop they stay down. Low walls (barriers, counters, turnstiles) get jumped, high
+ones stop you. Leave the horse and the officer gets back up and back on. It's all crime, level 3.
+
+## Text
+
+Silkscreen for labels and buttons, Pixelify Sans for anything you read as a sentence (speech,
+the ticker, the tannoy), bevelled pixel panels. Speech is comic bubbles drawn in the world,
+and hits pop words: KO!, TAKEDOWN, +£35, UNSEATED!
+
+## The diorama, and the naughty ways in
+
+The west flank is now a walled **service alley** behind a palisade fence, with the railway
+embankment's trees beyond: the kit room, the medical room and a back corridor sit behind the
+West End. Ways into the dressing rooms, besides the ones already there:
+
+- **The drain.** The pub cellar hatch (bolted: you need a wrench) drops into a Victorian sewer
+  that comes up through the England dressing-room shower grate. Old Reg the groundsman, at his
+  shed in the alley, tells you about it, and his wrench is lying next to the shed.
+- **The scaffold.** On the corner of the ground by the car park: up, across the roof, down the
+  ladder into the tunnel. Someone might see you.
+- **The players' entrance.** A door off the alley that opens only to a swipe card. Wally the
+  kit man has one: he drinks in the pub, walks round the alley, swipes in and sorts the kit,
+  and goes round again. Pick his pocket, or knock him out and take it.
+- **The stretcher.** Get knocked out inside the ground and you wake up in the medical room.
+
+Also new on the approach: Dodgy Del the ticket tout (cheaper than the office; real tickets out of
+his own pocket, and your money goes in it, so he's worth robbing), a TV reporter and cameraman,
+the outside-broadcast truck, a horsebox, a pie stand and parked cars.

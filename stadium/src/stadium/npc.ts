@@ -161,7 +161,7 @@ function routine(w: World, a: Actor): void {
       if (finished && n.stage < 9) {
         n.stage = 9; n.sitting = false; a.seated = false;
         const ts = pick(r, [-6, 0, 6]);
-        later({ k: "go", x: ts, y: 42.5 }, { k: "go", x: ts, y: 47 }, { k: "go", x: rndRange(r, -80, 80), y: 94 }, { k: "despawn" });
+        later({ k: "go", x: ts, y: 42.5 }, { k: "go", x: ts, y: 47 }, { k: "go", x: VENUE.id === "sf" ? rndRange(r, -80, 64) : rndRange(r, -64, 80), y: 94 }, { k: "despawn" });
         return;
       }
       if (n.stage === 0) {
@@ -238,6 +238,19 @@ function routine(w: World, a: Actor): void {
     case "cleaner": {
       const spots = VENUE.cleanerSpots;
       later({ k: "go", ...spots[n.stage++ % spots.length] }, { k: "wait", s: rndRange(r, 6, 14) });
+      return;
+    }
+    case "kitman": {
+      // Wally the kit man: a pint in the pub, out the back along the alley, in through the players'
+      // entrance with his swipe card, sorts the kit, and round again. Follow him, or lift the card.
+      const pubSpot = { x: SPOTS.pubBarman.x + rndRange(r, -2, 2), y: SPOTS.pubBarman.y + 2.2 };
+      const legs: Task[][] = [
+        [{ k: "go", ...pubSpot }, { k: "say", text: "Usual, please. Quick one." }, { k: "wait", s: rndRange(r, 20, 35) }],
+        [{ k: "go", x: SPOTS.playersDoor.x - 1.2, y: SPOTS.playersDoor.y + 2 }, { k: "go", ...SPOTS.playersDoor }, { k: "go", ...SPOTS.kitRoom }],
+        [{ k: "say", text: "Forty shirts, forty pairs of socks, one of them always missing." }, { k: "wait", s: rndRange(r, 25, 40) }],
+        [{ k: "go", ...SPOTS.playersDoor }, { k: "go", x: SPOTS.playersDoor.x - 1.2, y: SPOTS.playersDoor.y + 6 }],
+      ];
+      later(...legs[n.stage++ % legs.length]);
       return;
     }
     default:
@@ -322,7 +335,7 @@ export function spawnFan(w: World, away: boolean, seated: boolean): Actor {
   const standId = away ? "stand_e" : pick(r, ["stand_s", "stand_s", "stand_w", "stand_n"]);
   const seat = randIn(w, standId, 1.2);
   // Arrivals come off the far pavement and cross the ring road (the traffic waits for them).
-  const start = seated ? seat : { x: rndRange(r, -85, 85), y: rndRange(r, 93, 95) };
+  const start = seated ? seat : { x: VENUE.id === "sf" ? rndRange(r, -85, 66) : rndRange(r, -66, 85), y: rndRange(r, 93, 95) };
   const a = spawnActor(s, "npc", away ? pick(r, AWAY_NAMES) : pick(r, FAN_NAMES), start.x, start.y, {
     npc: newNpc("fan", "fan", { seat, hasTicket: true, team: away ? 1 : 0 }), speed: 1.5, radius: 0.4, money: Math.round(rndRange(r, 10, 80)),
   });
@@ -363,6 +376,9 @@ export const STAFF_LINES: Partial<Record<Job, string[]>> = {
   corridor: ["You lost, pal?"],
   cook: ["Get out of my kitchen."],
   chief: ["What do you want?"],
+  kitman: ["Can't stop, the gaffer wants the kit ironed.", "Swipe card's the only way in the back. Don't even think about it.", "Hamper's full of dirty socks. Nobody looks in there."],
+  groundsman: ["Off my grass.", "Drain runs from the pub cellar right under the dressing rooms. Old Victorian brick. Rats the size of dogs.", "Left me wrench somewhere. Hatch in the pub cellar's seized solid."],
+  press: ["Can I get a quick word for the cameras?", "We're live in five, keep it clean."],
 };
 
 export function spawnStaff(w: World, job: Job, role: Role, name: string, x: number, y: number, extra: Partial<Npc> = {}, look: Partial<Actor> = {}): Actor {
@@ -382,6 +398,7 @@ export function mayPass(w: World, a: Actor, gate: string): boolean {
     return ["steward", "police", "catering", "cleaner", "medic"].includes(n.role);
   }
   // The player: only through gates opened for him, or the staff door if he looks like staff and nobody is checking.
+  if (gate === "playersdoor") return [a.hand, ...a.pockets].some((id) => id && w.state.items[id]?.def === "kit_card");
   if (gate === "staffdoor") {
     const role = appearance(w.state, a).role;
     return ["steward", "police"].includes(role) && st.doorPass === a.id;

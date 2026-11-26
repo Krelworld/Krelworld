@@ -3,7 +3,7 @@ import type { Id, Role } from "../core/types";
 
 export type Job =
   | "dog" | "fan" | "local" | "turnstile" | "doorguard" | "gateguard" | "pitchsteward" | "patrol" | "corridor" | "chief"
-  | "police" | "barman" | "seller" | "cleaner" | "driver" | "worker" | "cook" | "player" | "official" | "armed";
+  | "police" | "barman" | "seller" | "cleaner" | "driver" | "worker" | "cook" | "player" | "official" | "armed" | "kitman" | "groundsman" | "press";
 
 export type Task =
   | { k: "go"; x: number; y: number; run?: boolean }

@@ -10,6 +10,7 @@ import type { World } from "../core/world";
 import { areaAt, SOLID } from "./layout";
 import { say } from "./npc";
 import { alert, canSee, crime, isSecurity } from "./security";
+import { stretcher } from "./routes";
 
 /** How long someone stays knocked out. */
 export const KO_SECONDS = 50;
@@ -140,6 +141,8 @@ export function installCombat(): void {
     perform: (w, _act, actor) => {
       const b = w.state.actors[actor.dragging!];
       b.hiddenIn = hidingPlaceNear(w, actor)!;
+      // Out of sight, out of the match: a stashed body stays stashed.
+      b.effects.ko = Number.MAX_SAFE_INTEGER; b.downUntil = Number.MAX_SAFE_INTEGER;
       actor.dragging = undefined;
       w.bus.emit({ type: "hid_body", t: w.state.tick, by: actor.id, who: b.id, where: b.hiddenIn });
     },
@@ -210,6 +213,7 @@ function hitPlayerBack(w: World, a: Actor, t: Actor): void {
     t.effects.ko = s.tick + 8 * 60; t.downUntil = s.tick + 8 * 60; t.hurt = 0;
     const lost = Math.floor(t.money / 2); t.money -= lost;
     w.bus.emit({ type: "knockout", t: s.tick, who: t.id, by: a.id, quiet: false, lost });
+    stretcher(w, t);
   } else t.downUntil = Math.max(t.downUntil, s.tick + 24);
   if (t.id === s.stadium!.pc) crime(w, a, "brawling", 1, t);
 }

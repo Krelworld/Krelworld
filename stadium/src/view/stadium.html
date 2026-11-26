@@ -202,6 +202,11 @@
   #toast span { font: 700 18px/1.1 var(--display); }
   #toast.in { animation: strap .22s ease-out; }
   .touch .keys { display: none; }
+  /* Landscape phones: the action buttons fill the bottom right, so captions go up under the score. */
+  @media (max-height: 520px) and (min-width: 561px) {
+    #ticker { top: calc(56px + env(safe-area-inset-top, 0px)); bottom: auto; right: 40vw; }
+    #ticker .txt { font-size: 15px !important; }
+  }
   @media (max-width: 560px) {
     #ticker { right: max(8px, env(safe-area-inset-right, 0px)); bottom: 150px; }
     #act { min-height: 56px; font-size: 20px; }

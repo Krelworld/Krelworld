@@ -18,6 +18,7 @@ import { installGloryHole } from "./gloryhole";
 import { stepTraffic } from "./traffic";
 import { installCombat, stepCombat } from "./combat";
 import { installHorse, stepHorse, takeReins } from "./horse";
+import { installRoutes } from "./routes";
 import { installReactions, installRules, SHOPS, stepRules } from "./rules";
 import { isSecurity, stepDetention, stepSecurity } from "./security";
 import type { StadiumState } from "./state";
@@ -40,7 +41,7 @@ export const HALF_SECONDS = 450;
 export const HALFTIME_SECONDS = 150;
 
 export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: Campaign = newCampaign()): Game {
-  if (!rulesInstalled) { installRules(); installBetting(); installPolice(); installBus(); installDog(); installKickoff(); installKnife(); installGloryHole(); installCombat(); installHorse(); rulesInstalled = true; }
+  if (!rulesInstalled) { installRules(); installBetting(); installPolice(); installBus(); installDog(); installKickoff(); installKnife(); installGloryHole(); installCombat(); installHorse(); installRoutes(); rulesInstalled = true; }
   setVenue(venueId);
   const oppKey = VENUE.opp;
   const opp = TEAMS[oppKey];
@@ -122,6 +123,20 @@ export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: 
   staff("seller", "none", "Kiosk", SPOTS.kiosk, N, { shop: "bookies", lines: ["Bets close fifteen seconds after a goal.", "Next goal's the one everyone wants."] });
   staff("cleaner", "cleaner", "Cleaner", VENUE.cleanerSpots[0], E);
   staff("cook", "catering", "Cook", SPOTS.kitchenSpot, S);
+  // The people with hooks. Del sells tickets cheaper than the office and carries plenty more.
+  const del = staff("seller", "none", "Dodgy Del", SPOTS.tout, S, { shop: "tout", lines: ["Tickets, tickets. Buy or sell.", "Forty-five, cash, don't look at me like that.", "Old Bill's on the horse today. Mind his back end."] });
+  del.money = 220;
+  for (let i = 0; i < 3; i++) spawnItem(s, "ticket", { k: "pocket", a: del.id });
+  // Wally the kit man and his swipe card.
+  const wally = staff("kitman", "catering", "Wally the kit man", SPOTS.pubBarman, S, { post: undefined });
+  wally.x += 2; wally.y += 2.2;
+  spawnItem(s, "kit_card", { k: "pocket", a: wally.id });
+  // The telly: a reporter doing pieces to camera on the approach, with his cameraman.
+  staff("press", "none", "Reporter", SPOTS.reporter, S);
+  staff("press", "none", "Cameraman", SPOTS.cameraman, N, { lines: ["Mind the cable.", "Rolling."] });
+  // Old Reg the groundsman, at his shed. His wrench is lying about nearby.
+  staff("groundsman", "none", "Old Reg", SPOTS.shed, E);
+  spawnItem(s, "wrench", { k: "ground", x: SPOTS.shed.x + 1.4, y: SPOTS.shed.y + 2.4 });
 
   // Locals: no ticket, plenty of opinions.
   for (let i = 0; i < 26; i++) {

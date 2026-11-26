@@ -9,7 +9,8 @@ import EIGHT from "../../assets/world/eight.json";
 
 export const KIT_KEYS = ["barrier", "bench", "bigscreen", "bin", "bollard", "burgervan", "cone", "crates", "door_pub", "door_shop", "door_steel", "flowerbox",
   "lamppost", "litter", "merchstall", "pallets", "phonebox", "policevan", "portaloo", "programmes", "puddle", "staffdoor", "ticketbooth", "turnstile",
-  "pubtable", "fruitmachine", "pooltable", "pubtv", "pumps", "clothesrail", "shelves", "betscreens", "tree", "statue", "binbags", "aboard", "desk", "kitbench", "kitchen", "lockers", "dugout", "tvcamera", "stretcher", "cart"] as const;
+  "pubtable", "fruitmachine", "pooltable", "pubtv", "pumps", "clothesrail", "shelves", "betscreens", "tree", "statue", "binbags", "aboard", "desk", "kitbench", "kitchen", "lockers", "dugout", "tvcamera", "stretcher", "cart",
+  "shed", "skip", "parkedcar", "hamper", "medbed", "grate", "hatch", "scaffold", "piestand", "obtruck", "horsebox"] as const;
 export type KitKey = (typeof KIT_KEYS)[number];
 /** Eight-way pictures (S, SE, E, NE, N, NW, W, SW in a row) for things that turn. */
 export const WORLD_8 = ["coach", "lorry"] as const;
@@ -114,6 +115,21 @@ export function placements(venue: Venue): Placement[] {
   for (const [i, x, y] of [[0, 59.5, -55], [1, 59.5, -51.5], [2, 43, -58.5]] as const) out.push({ id: `pallet${i}`, key: "pallets", x, y });
   for (const [i, x, y] of [[0, 58, -40], [1, 61, -58.5]] as const) out.push({ id: `lcrate${i}`, key: "crates", x, y });
   for (const [i, x, y] of [[0, 64.2, 40], [1, 64.2, 46], [2, 64.2, 52], [3, 69.8, 70], [4, 29, 80.5], [5, -60, 58.5]] as const) out.push({ id: `cone${i}`, key: "cone", x, y });
+  // The service alley: wheelie bins and bin bags against the stand wall, pallets and crates by the
+  // players' entrance, cones and puddles. Beyond the fence, the railway embankment's trees.
+  for (const [i, y] of [-44, -30, -8, 6, 24, 38].entries()) { out.push({ id: `abin${i}`, key: "bin", x: -57.8, y }); out.push({ id: `abag${i}`, key: "binbags", x: -58.3, y: y + 1.6 }); }
+  for (const [i, x, y] of [[0, -60, -47], [1, -61.5, -45], [2, -66.5, 30], [3, -67, 32.6]] as const) out.push({ id: `apal${i}`, key: "pallets", x, y });
+  for (const [i, x, y] of [[0, -58.4, -58.5], [1, -58.4, -47.6], [2, -68.4, -2], [3, -68.4, 0.5], [4, -68.6, 50]] as const) out.push({ id: `acrate${i}`, key: "crates", x, y });
+  for (const [i, x, y] of [[0, -63, -26], [1, -64.5, -24], [2, -61, 44], [3, -62, 66]] as const) out.push({ id: `acone${i}`, key: "cone", x, y });
+  for (const [i, x, y] of [[0, -63, -40], [1, -66, 20], [2, -60.5, 55], [3, -64, -10]] as const) out.push({ id: `apud${i}`, key: "puddle", x, y, flat: true });
+  for (const [i, x, y] of [[0, -55.5, -20], [1, -55.5, 10], [2, -52, 41], [3, 55.5, -20], [4, 55.5, 10], [5, 52, 41], [6, -30, 41.5], [7, 30, 41.5]] as const) out.push({ id: `cbin${i}`, key: "bin", x, y });
+  for (const [i, x, y] of [[0, -54.8, -33], [1, -54.8, 30], [2, 54.8, -33], [3, 54.8, 30]] as const) out.push({ id: `ccrate${i}`, key: "crates", x, y });
+  {
+    let ts = 7;
+    const tr = () => ((ts = (ts * 16807) % 2147483647) / 2147483647);
+    let i = 0;
+    for (let y = -58; y < 82; y += 5.5) for (const cx of [-74, -80.5, -87]) out.push({ id: `etree${i++}`, key: "tree", x: cx + (tr() - 0.5) * 3, y: y + (tr() - 0.5) * 2.5, flip: tr() < 0.5 });
+  }
   let seed = 99;
   const rnd = () => ((seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
   for (let i = 0; i < 26; i++) {
@@ -130,7 +146,7 @@ export function placements(venue: Venue): Placement[] {
     for (const [i, x, y] of [[0, -50, 72], [1, -44, 72], [2, -50, 76], [3, -44, 76]] as const) out.push({ id: `fzb${i}`, key: "bench", x, y });
   }
   // Furniture and dressing (already mirrored for the semi-final by the layout).
-  venue.furniture.forEach((q, i) => furn.push({ id: `furn${i}`, key: q.key as KitKey, x: q.x, y: q.y, room: q.room }));
+  venue.furniture.forEach((q, i) => furn.push({ id: `furn${i}`, key: q.key as KitKey, x: q.x, y: q.y, room: q.room, flat: q.key === "grate" || q.key === "hatch" }));
   // Mirrored for the semi-final; anything with writing on it keeps its writing the right way round.
   const LETTERED = new Set(["ticketbooth", "merchstall", "staffdoor", "policevan", "programmes", "burgervan", "phonebox", "bigscreen"]);
   if (venue.id === "sf") for (const p of out) { p.x = -p.x; if (!LETTERED.has(p.key)) p.flip = !p.flip; }

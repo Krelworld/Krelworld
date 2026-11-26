@@ -40,6 +40,7 @@ const C = {
 /** Later areas sit on top of earlier ones; the last one that contains a point wins. */
 const QF_AREAS: Area[] = [
   { id: "street", name: "Outside the ground", access: "public", floor: C.street, outside: true, ...r(-92, -62, 92, 96) },
+  { id: "alley", name: "Service alley", access: "public", floor: 0x47484a, outside: true, ...r(-70, -62, -57, 84) },
   { id: "plaza", name: "Stadium approach", access: "public", floor: C.pavement, outside: true, ...r(-60, 45, 60, 60) },
   { id: "road", name: "Ring road", access: "public", floor: C.road, outside: true, ...r(-92, 84, 92, 92) },
   { id: "eastroad", name: "Service road", access: "public", floor: C.road, outside: true, ...r(62, -50, 72, 92) },
@@ -61,6 +62,9 @@ const QF_AREAS: Area[] = [
   { id: "tunnel", name: "Players' tunnel", access: "restricted", roles: ["steward", "police", "footballer", "referee", "medic"], floor: C.players, ...r(-2, -38, 2, -28) },
 
   // Behind the Main Stand: staff only.
+  { id: "kitroom", name: "Kit room", access: "restricted", roles: ["footballer", "catering", "steward", "medic"], floor: 0x3e4a5a, ...r(-56, -61, -47, -50) },
+  { id: "medical", name: "Medical room", access: "staff", roles: ["medic", "steward", "police"], floor: 0xb8c4c8, ...r(-47, -61, -40, -50) },
+  { id: "backcorr", name: "Back corridor", access: "staff", roles: ["steward", "police", "catering", "cleaner", "medic", "footballer"], floor: C.players, ...r(-56, -50, -40, -38.5) },
   { id: "players", name: "Players' corridor", access: "restricted", roles: ["steward", "police", "footballer", "referee", "medic", "catering", "cleaner"], floor: C.players, ...r(-40, -48, 40, -38) },
   { id: "dress_home", name: "England dressing room", access: "restricted", roles: ["footballer", "medic"], floor: 0x2d3b6e, ...r(-26, -60, -8, -48) },
   { id: "dress_away", name: "Away dressing room", access: "restricted", roles: ["footballer", "medic"], floor: 0x6e2d36, ...r(8, -60, 26, -48) },
@@ -107,7 +111,10 @@ const QF_WALLS: Wall[] = [
   wall(56, 50, 58, 51), wall(61, 50, 63.4, 51),
   wall(58, 50, 61, 51, 2.2, 0x50607a, 0x6a7a94, "staffdoor"),
   // West and east outer walls.
-  wall(-57, -62, -56, 45), wall(62, -62, 63, -46), wall(62, -40, 63, 44),
+  wall(-57, -62, -56, -56), wall(-57, -56, -56, -53, 2.4, 0x50607a, 0x6a7a94, "playersdoor"), wall(-57, -53, -56, 45),
+  wall(62, -62, 63, -46), wall(62, -40, 63, 44),
+  // The west edge of the map: a palisade fence, with the ring road running on through.
+  wall(-70.5, -62, -70, 83.8, 2.2, 0x2f5a3a, 0x3f6a4a), wall(-70.5, 92.2, -70, 96, 2.2, 0x2f5a3a, 0x3f6a4a),
   wall(62, -46, 63, -40, 2.5, 0x606a50, 0x7a846a, "servicegate"),
   // North outer wall.
   wall(-57, -62, 63, -61),
@@ -117,7 +124,11 @@ const QF_WALLS: Wall[] = [
   wall(-56, -38.5, -40, -38), wall(40, -38.5, 56, -38),
   wall(-40, -38.5, -2, -38), wall(2, -38.5, 40, -38),
   wall(-2.4, -38, -2, -28.6, 1.6), wall(2, -38, 2.4, -28.6, 1.6), // tunnel sides
-  wall(-56, -61, -40, -38.5, 4), // solid block west of the corridor
+  // West of the corridor: the kit room (players' entrance from the alley) and the medical room,
+  // off a back corridor that runs into the players' corridor.
+  wall(-56, -61.5, -40, -61), wall(-47.25, -61, -46.75, -55), wall(-47.25, -52, -46.75, -50),
+  wall(-56, -50, -53, -49.5), wall(-51, -50, -45, -49.5), wall(-43, -50, -40, -49.5),
+  wall(-40.5, -61, -40, -48.5),
   // Rooms behind the corridor (doors face the corridor).
   wall(-40, -48.5, -36, -48), wall(-32, -48.5, -26, -48), // kitchen door at -36..-32
   wall(-26.5, -61, -26, -48), // west wall of the England room
@@ -197,6 +208,15 @@ export const QF_FURNITURE: Furniture[] = [
   f("dugout", -7.5, -26.2, 4.2, 1.2, true), f("dugout", 7.5, -26.2, 4.2, 1.2, true),
   f("tvcamera", -18, 25.6, 0.8, 0.5, false), f("tvcamera", 18, 25.6, 0.8, 0.5, false), f("tvcamera", 37.8, -6, 0.8, 0.5, false),
   f("cart", -38.5, -26.5, 2.6, 1.3, true),
+  // The alley: the groundsman's shed, a skip; the kit room and medical room fitted out.
+  f("shed", -66, 12, 3, 2.4, true), f("skip", -65.5, -18, 3.4, 1.8, true), f("parkedcar", -65.5, -34, 4.6, 1.8, true),
+  f("hamper", -50, -51.2, 1.6, 0.9, true, "kitroom"), f("clothesrail", -54.5, -59.6, 1.6, 0.6, true, "kitroom"), f("shelves", -49, -60.2, 1.5, 0.6, true, "kitroom"),
+  f("medbed", -43.5, -57.8, 2.6, 1.1, true, "medical"),
+  f("grate", -24, -58.4, 1, 1, false, "dress_home"), f("hatch", -60.5, 78.4, 1.3, 1, false, "pub"),
+  // The approach and the car park: a scaffold on the corner, a pie stand, the TV truck, parked cars, the horsebox.
+  f("scaffold", 47.5, 46.4, 3.6, 1.2, true), f("piestand", -40, 54.5, 3.2, 1.6, true),
+  f("obtruck", 52, 66.5, 6.8, 2.6, true), f("horsebox", 40, 81, 6.2, 2.4, true),
+  f("parkedcar", 31, 73, 4.6, 1.8, true), f("parkedcar", 36.5, 77.6, 4.6, 1.8, true), f("parkedcar", 52, 77.6, 4.6, 1.8, true),
   // The street: trees in grates along the approach, a statue, bin bags and pavement boards.
   ...[-45.5, -32.5, -19.5, 19.5, 32.5, 45.5].map((x) => f("tree", x, 59.4, 0.5, 0.5, true, undefined, 3)),
   f("statue", -44, 53.2, 1.3, 1.0, true, undefined, 3),
@@ -251,6 +271,17 @@ const QF_SPOTS = {
   busPark: { x: 83, y: -7 },
   busBay: { x: 46, y: -40.8 },
   /** Break glass, press here. */
+  cellar: { x: -60.5, y: 78 },
+  grate: { x: -24, y: -58.4 },
+  scaffold: { x: 47.5, y: 47.3 },
+  roofDrop: { x: 3.4, y: -40.6 },
+  medBed: { x: -43.5, y: -57 },
+  kitRoom: { x: -51.5, y: -56 },
+  playersDoor: { x: -59, y: -54.5 },
+  tout: { x: -12, y: 57 },
+  reporter: { x: 8, y: 56.2 },
+  cameraman: { x: 8, y: 59.6 },
+  shed: { x: -63.2, y: 10.5 },
   alarmPoints: [{ x: -30, y: 43.6 }, { x: 36, y: 43.6 }, { x: -55.6, y: -12 }, { x: 55.6, y: 18 }, { x: -30, y: -47.6 }],
 };
 

@@ -4,6 +4,8 @@ import { alarmPointNear } from "./kickoff";
 import { sharpInHand } from "./knife";
 import { fromBehind, hidingPlaceNear, incapacitated, knockedOut } from "./combat";
 import { horseNear, mountedOfficer, riding } from "./horse";
+import { atCellar, atGrate, atScaffold } from "./routes";
+const hasItem = (s: { items: Record<string, Item> }, a: Actor, def: string) => [a.hand, ...a.pockets].some((id) => id && s.items[id]?.def === def);
 import { appearance } from "../core/identity";
 import { defOf, hasProp } from "../core/items";
 import type { Action, Actor, Item } from "../core/types";
@@ -118,6 +120,11 @@ export function options(w: World, pc: Actor, picked?: string | null): Option[] {
     push("Blow for full time", 20, { verb: "rule", ...base, arg: "fulltime" });
     push("Stop play", 15, { verb: "rule", ...base, arg: "stop" });
   }
+
+  // The naughty ways in.
+  if (atCellar(pc)) push(hasItem(s, pc, "wrench") || s.stadium!.flags.hatchOpen ? "Down the cellar and into the drain" : "Prise open the cellar hatch (needs a wrench)", 66, { verb: "drain", ...base });
+  if (atGrate(pc)) push("Back down the drain", 40, { verb: "drain", ...base });
+  if (atScaffold(pc)) push("Climb the scaffold onto the roof", 64, { verb: "scaffold", ...base });
 
   // The police horse.
   if (riding(w, pc)) push("Get off the horse", 60, { verb: "dismount", ...base });

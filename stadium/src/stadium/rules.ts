@@ -26,6 +26,7 @@ export const SHOPS: Record<string, { name: string; stock: Record<string, number>
   bar: { name: "Concourse bar", stock: { pint: 7, pie: 5 } },
   bookies: { name: "Bookmaker", stock: {} },
   charity: { name: "Second Hand Rose", stock: { flat_cap: 6, sunglasses: 5, moustache: 3, tracksuit: 12, chef_whites: 18, overalls: 15 } },
+  tout: { name: "Dodgy Del", stock: { ticket: 45 } },
   surplus: { name: "Army & Navy Surplus", stock: { balaclava: 10, hammer: 14, flare: 20, knife: 25 } },
 };
 
@@ -57,12 +58,22 @@ export function installRules(): void {
       const price = SHOPS[shop].stock[act.arg ?? ""];
       if (price === undefined) return "not sold here";
       if (actor.money < price) return "not enough money";
+      if (shop === "tout") return seller.pockets.some((id) => w.state.items[id]?.def === "ticket") ? null : "Del's sold out";
       if (act.arg === "ticket" && (w.state.match?.period ?? 1) >= 2) return "sold out";
       return null;
     },
     perform: (w, act, actor) => {
       const seller = targetActor(w, act)!, price = SHOPS[seller.npc!.shop!].stock[act.arg!];
       actor.money -= price;
+      if (seller.npc!.shop === "tout") {
+        // Del's tickets are real ones, out of his own pocket, and the cash goes in it.
+        seller.money += price;
+        const tk = seller.pockets.find((id) => w.state.items[id]?.def === "ticket")!;
+        moveItem(w.state, tk, actor.hand ? { k: "pocket", a: actor.id } : { k: "hand", a: actor.id });
+        w.state.items[tk].owner = actor.id;
+        say(w, seller, "Pleasure. You never saw me.");
+        return;
+      }
       const it = give(w, actor, act.arg!);
       if (act.arg === "ticket") it.owner = actor.id;
       say(w, seller, act.arg === "ticket" ? "There you go. Enjoy the game." : "Cheers.");
@@ -256,6 +267,8 @@ export function installRules(): void {
     check: strike.check,
     perform: (w, act, actor, item) => {
       const t = targetActor(w, act)!;
+      // Auto-target: you swing at who you meant, whichever way you were facing.
+      actor.facing = Math.atan2(t.y - actor.y, t.x - actor.x);
       if (sharpInHand(w, actor) && !t.dead) return stab(w, actor, t);
       const weapon = !!item && hasProp(item, "weapon") && actor.hand === item.id;
       const before = t.downUntil;

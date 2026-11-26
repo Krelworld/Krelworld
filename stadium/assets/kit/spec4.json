@@ -1,0 +1,68 @@
+{
+ "skip": {
+  "description": "yellow builder's skip full of rubbish and broken planks, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 112,
+  "h": 64,
+  "view": "low top-down"
+ },
+ "shed": {
+  "description": "small wooden groundsman's shed with a door and a window, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 104,
+  "h": 104,
+  "view": "low top-down"
+ },
+ "scaffold": {
+  "description": "steel scaffolding tower with planks and ladders against a wall, three levels, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 128,
+  "h": 200,
+  "view": "low top-down"
+ },
+ "obtruck": {
+  "description": "white TV outside broadcast truck with a satellite dish on the roof, side view, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 224,
+  "h": 128,
+  "view": "low top-down"
+ },
+ "parkedcar": {
+  "description": "dark blue estate car parked, seen from the side, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 152,
+  "h": 84,
+  "view": "low top-down"
+ },
+ "horsebox": {
+  "description": "police horsebox lorry, white with blue and yellow chequers, side view, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 200,
+  "h": 120,
+  "view": "low top-down"
+ },
+ "piestand": {
+  "description": "small match-day pie and burger kiosk with a counter and menu board, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 112,
+  "h": 104,
+  "view": "low top-down"
+ },
+ "medbed": {
+  "description": "hospital examination bed with a white sheet and a pillow, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 88,
+  "h": 56,
+  "view": "low top-down"
+ },
+ "hamper": {
+  "description": "wicker laundry hamper basket full of football kit, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 56,
+  "h": 52,
+  "view": "low top-down"
+ },
+ "grate": {
+  "description": "square iron drain grate in a tiled floor, top down, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 32,
+  "h": 32,
+  "view": "high top-down"
+ },
+ "hatch": {
+  "description": "wooden cellar trapdoor hatch with an iron ring handle in a pub floor, top down, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 44,
+  "h": 36,
+  "view": "high top-down"
+ }
+}

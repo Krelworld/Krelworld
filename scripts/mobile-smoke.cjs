@@ -100,7 +100,7 @@ const arg = (k, d) => {
 };
 const URL0 = arg("--url", "http://localhost:5202/");
 const SHOTS = arg("--shots", "");
-const ONLY = (arg("--only", "phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,together,review1,polish,platform,android,tapuse,mix3,desktop") || "").split(",").filter(Boolean);
+const ONLY = (arg("--only", "phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,together,review1,polish,platform,android,tapuse,tapfix,mix3,desktop") || "").split(",").filter(Boolean);
 const IOS_UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1";
 const IPHONE = { viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, userAgent: IOS_UA };
 const DESKTOP = { viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1, hasTouch: false, isMobile: false };
@@ -4632,6 +4632,177 @@ async function tapuse(browser) {
   }
 }
 
+/** Stage 3 fix round 1: the tap that closes a line, ACTION over the console, the MOVE ring, Kreddle's frontages. */
+async function tapfix(browser) {
+  console.log("TAP TO USE, fix round 1 (closing taps, ACTION over a thing, the MOVE ring, Kreddle's buildings)");
+  let { ctx, ph, errors } = await phoneAtTitle(browser);
+  const setIn = () => ph.ev(() => window.__krelMobile.setInsets({ top: 0, right: 47, bottom: 21, left: 47 }));
+  const busy = () => ph.ev(() => window.__krel.game.scene.getScene("Home").busy === true || window.__krel.active().includes("Dialogue"));
+  try {
+    check("Home reaches walk mode", await toWalk(ph, "Home"), await ph.mode());
+    await setIn();
+    await sleep(500);
+
+    // ---- P3: a still tap on the floor (in the stick's zone) leaves the MOVE ring where it rests
+    await homeMe(ph, 800, 500);
+    await sleep(500);
+    const ringAt = () => ph.ev(() => document.querySelector(".kt-stick").style.transform);
+    const rest0 = await ringAt();
+    // (a bit of floor in the zone with no thing near it: the laptop and the bed reach down to the floor)
+    const z = (await ph.snap()).zone;
+    const fp = await ph.ev((z) => {
+      const g = window.__krel.game;
+      const cam = g.scene.getScene("Home").cameras.main;
+      const cb = g.scale.canvasBounds;
+      const k = cb.width / 960;
+      const tp = (x, y) => ({ x: cb.x + ((x - cam.scrollX - cam.width / 2) * cam.zoom + cam.width / 2) * k, y: cb.y + ((y - cam.scrollY - cam.height / 2) * cam.zoom + cam.height / 2) * k });
+      const rects = window.__krelMobile.tapUse.debugTargets().map((t) => {
+        const a = tp(t.core.x, t.core.y);
+        const b = tp(t.core.x + t.core.w, t.core.y + t.core.h);
+        return { x: a.x - 28, y: a.y - 28, w: b.x - a.x + 56, h: b.y - a.y + 56 };
+      });
+      for (let wy = 520; wy >= 465; wy -= 5)
+        for (let wx = 360; wx >= 20; wx -= 6) {
+          const p = tp(wx, wy);
+          if (p.x < z.x + 10 || p.x > z.x + z.w - 10 || p.y > innerHeight - 25) continue;
+          if (!rects.some((r) => p.x >= r.x && p.x <= r.x + r.w && p.y >= r.y && p.y <= r.y + r.h)) return p;
+        }
+      return null;
+    }, z);
+    const fx = fp ? fp.x : z.x + z.w - 40;
+    const fy = fp ? fp.y : (await ph.g2c(0, 500))[1];
+    await ph.tapCss(fx, fy);
+    await tapDone(ph);
+    await sleep(500);
+    const rest1 = await ringAt();
+    const fl = await tapState(ph);
+    check("P3: a still tap on the floor does not move the MOVE ring to the tap", !!fp && fl.last.what === "arrived" && rest1 === rest0, { rest0, rest1, tap: [Math.round(fx), Math.round(fy)], last: fl.last });
+
+    // ---- P1: the window's line, closed by tapping over the window again and again: it closes and stays closed
+    await homeMe(ph, 420, 470);
+    await sleep(500);
+    // (the window's top half: the laptop on the sofa sits in front of its lower part)
+    const [wx, wy] = await ph.g2c(420, 130);
+    await ph.tapCss(wx, wy);
+    const win = { at: [wx, wy], now: { st: await tapState(ph) } };
+    await ph.until(() => window.__krel.game.scene.getScene("Home").busy === true || window.__krel.active().includes("Dialogue"), null, 5000, "the line").catch(() => 0);
+    check("tap the window (in reach): its line opens", (await busy()) && /window/.test(win.now.st.last.tag || ""), win.now.st.last);
+    // (tap the same spot over the window again and again, a second apart. A tap that lands while the line is open
+    // is the line's: it closes it and is never also a tap on the window. Before the fix it was both, so the line
+    // opened again at once, for ever. A tap with the line closed opens it again, as it should.)
+    const me0 = await ph.me();
+    const taps = [];
+    for (let i = 0; i < 6; i++) {
+      const open0 = await busy();
+      const a = (await tapState(ph)).stats.taps;
+      // (a finger's tap: down, a few frames, up. The game closes the line on the down, so by the up the room is
+      // walkable again: that is when the old code took the same touch as a tap on the window)
+      await ph.touch("touchStart", [{ x: win.at[0], y: win.at[1], id: 31 }]);
+      await sleep(160);
+      await ph.touch("touchEnd", []);
+      await sleep(1000);
+      taps.push({ open0, world: (await tapState(ph)).stats.taps - a, open1: await busy() });
+    }
+    const me1 = await ph.me();
+    const onOpen = taps.filter((t) => t.open0);
+    check("P1: a tap that closes the line is never a tap on the room (it closes and stays closed)", onOpen.length >= 2 && onOpen.every((t) => t.world === 0) && onOpen.some((t) => !t.open1), taps);
+    check("P1: ...and with the line closed a tap on the window opens it again", taps.some((t) => !t.open0 && t.world === 1 && t.open1), taps);
+    check("P1: ...and the player stays put", Math.abs(me1[0] - me0[0]) < 3 && Math.abs(me1[1] - me0[1]) < 3, { me0, me1 });
+    // after the line, a fresh tap works as before
+    if (await busy()) {
+      await ph.tapCss(win.at[0], win.at[1]);
+      await sleep(1000);
+    }
+    const after = await tapThing(ph, /Jukebox/);
+    check("P1: the next tap on a thing walks there as before", after.now.st.walking, after.now.st.last);
+    await tapDone(ph);
+    await ph.ev(() => {
+      const h = window.__krel.game.scene.getScene("Home");
+      if (h.__mfPanel && h.__mfPanel.close) h.__mfPanel.close();
+    });
+    check("home again", await toWalk(ph, "Home"));
+    await setIn();
+
+    // ---- P2: with a prompt up, the games console's picture beside ACTION's face is the console's
+    await homeMe(ph, 420, 470);
+    await sleep(800);
+    const geo = await ph.ev(() => {
+      const a = window.__krelMobile.layer.control("action").state();
+      return { shown: a.shown, face: a.face, hit: a.hit };
+    });
+    const con = (await tapTargets(ph)).find((t) => /games console/.test(t.tag));
+    let pt = null;
+    if (con && geo.hit) {
+      const cr = await ph.ev((c) => {
+        const g = window.__krel.game;
+        const cam = g.scene.getScene("Home").cameras.main;
+        const cb = g.scale.canvasBounds;
+        const k = cb.width / 960;
+        const tp = (x, y) => ({ x: cb.x + ((x - cam.scrollX - cam.width / 2) * cam.zoom + cam.width / 2) * k, y: cb.y + ((y - cam.scrollY - cam.height / 2) * cam.zoom + cam.height / 2) * k });
+        const a = tp(c.x, c.y);
+        const b = tp(c.x + c.w, c.y + c.h);
+        return { x: a.x, y: a.y, w: b.x - a.x, h: b.y - a.y };
+      }, con.core);
+      const vp = await ph.ev(() => ({ w: innerWidth, h: innerHeight }));
+      const inR = (r, x, y) => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h;
+      for (let y = cr.y + 2; y < Math.min(cr.y + cr.h, vp.h - 2) && !pt; y += 3)
+        for (let x = cr.x + 2; x < cr.x + cr.w - 2 && !pt; x += 3) if (inR(geo.hit, x, y) && !inR(geo.face, x, y)) pt = [x, y];
+    }
+    check("P2: ACTION shows (the window's prompt) and its touch area reaches over the console's picture", geo.shown && !!pt, { geo, con: con && con.page, pt });
+    if (pt) {
+      await ph.tapCss(pt[0], pt[1]);
+      const st = await tapState(ph);
+      await tapDone(ph);
+      await sleep(600);
+      const sw = await ph.ev(() => ({ busy: window.__krel.game.scene.getScene("Home").busy === true, active: window.__krel.active() }));
+      check("P2: a tap on the console beside ACTION's face goes to the console (not the window, not out the door)", (st.walking && /games console/.test(st.tag || "")) || /games console/.test(st.last.tag || ""), { st: st.last, walking: st.walking, tag: st.tag, sw });
+      check("P2: ...and the player is still at Home", sw.active.includes("Home") && !sw.active.includes("Hub"), sw.active);
+    }
+    // a tap on ACTION's face still does the prompt
+    check("home for ACTION", await toWalk(ph, "Home"));
+    await setIn();
+    await homeMe(ph, 420, 470);
+    await sleep(800);
+    const face = await ph.ev(() => window.__krelMobile.layer.control("action").state().face);
+    await ph.tapCss(face.x + face.w / 2, face.y + face.h / 2);
+    await ph.until(() => window.__krel.game.scene.getScene("Home").busy === true || window.__krel.active().includes("Dialogue"), null, 5000, "the line").catch(() => 0);
+    check("P2: a tap on ACTION's face still does the prompt (the window's line)", await busy());
+
+    // ---- P4: Kreddle's arcade and casino buildings mean their machines
+    check("Kreddle reaches walk mode", await toWalk(ph, "Kreddle"), await ph.mode());
+    await setIn();
+    await ph.ev(() => {
+      const k = window.__krel.game.scene.getScene("Kreddle");
+      k.me.setPosition(300, 600);
+    });
+    await sleep(1200);
+    const bld = (await tapTargets(ph)).filter((t) => /^bld:/.test(t.key)).map((t) => ({ key: t.key, tag: t.tag, page: t.page, core: t.core }));
+    check("P4: the ARCADE and the CASINO are tap targets (their machines)", bld.length === 2 && bld.some((b) => /KRAZY REELS/.test(b.tag)) && bld.some((b) => /THE KLAW/.test(b.tag)), bld);
+    const arc = bld.find((b) => /KRAZY REELS/.test(b.tag));
+    if (arc) {
+      // (the frontage's upper part, above the machines)
+      const pg = await ph.ev((c) => {
+        const g = window.__krel.game;
+        const cam = g.scene.getScene("Kreddle").cameras.main;
+        const cb = g.scale.canvasBounds;
+        const k = cb.width / 960;
+        const x = c.x + c.w / 2;
+        const y = c.y + c.h * 0.3;
+        return { x: cb.x + ((x - cam.scrollX - cam.width / 2) * cam.zoom + cam.width / 2) * k, y: cb.y + ((y - cam.scrollY - cam.height / 2) * cam.zoom + cam.height / 2) * k };
+      }, arc.core);
+      const vp = await ph.ev(() => ({ w: innerWidth, h: innerHeight }));
+      const onScreen = pg.x > 10 && pg.x < vp.w - 10 && pg.y > 40 && pg.y < vp.h - 10;
+      if (onScreen) await ph.tapCss(pg.x, pg.y);
+      const st = await tapState(ph);
+      check("P4: tap the ARCADE's frontage: walk to the slots", onScreen && st.walking && /KRAZY REELS/.test(st.tag || ""), { pg, onScreen, last: st.last, tag: st.tag });
+      await tapDone(ph);
+    }
+    check("tapfix: no page errors", errors.length === 0, errors.slice(0, 3));
+  } finally {
+    await ctx.close();
+  }
+}
+
 // ------------------------------------------------------------------ stage 3 wave 1 together (tap to use + the platform)
 
 /** Start a tapped walk to the telly from the far side of Home; returns the walker's state just after the tap. */
@@ -4795,6 +4966,7 @@ async function mix3(browser) {
       ["platform", platform],
       ["android", android],
       ["tapuse", tapuse],
+      ["tapfix", tapfix],
       ["mix3", mix3],
       ["desktop", desktop],
     ]) {

@@ -104,6 +104,25 @@ function imagesOf(sc: Bag, prefix: string): Rect | null {
   return u;
 }
 
+/** The image or sprite showing exactly this texture whose middle is nearest x (within `reach`): one of two the same. */
+function imageNear(sc: Bag, tex: string, x: number, reach = 250): Rect | null {
+  const list = ((sc.children as Bag | undefined)?.list as unknown[] | undefined) ?? [];
+  let best: Rect | null = null;
+  let bd = reach;
+  for (const o of list) {
+    const im = o as Spr & { texture?: { key?: string }; type?: string };
+    if ((im.type !== "Image" && im.type !== "Sprite") || im.texture?.key !== tex) continue;
+    const b = bounds(im);
+    if (!b) continue;
+    const d = Math.abs(b.x + b.w / 2 - x);
+    if (d < bd) {
+      bd = d;
+      best = b;
+    }
+  }
+  return best;
+}
+
 export function union(a: Rect, b: Rect): Rect {
   const x = Math.min(a.x, b.x);
   const y = Math.min(a.y, b.y);
@@ -267,6 +286,15 @@ const KREDDLE_PICTURES: readonly [RegExp, string][] = [
   [/KREDDLE KARDS/, "kd_m_cards"],
 ];
 
+/**
+ * The big frontages behind the machines (fix round P4): tapping THE ARCADE or THE CASINO means its machines. (The
+ * hotel and the Krunchers HQ have nothing to use: a tap there walks to the floor in front, like any backdrop.)
+ */
+const KREDDLE_BUILDINGS: readonly [RegExp, string][] = [
+  [/KRAZY REELS/, "kd_bld_arcade"],
+  [/THE KLAW/, "kd_bld_casino"],
+];
+
 /** Kreddle's floor (KreddleScene: x 30..W-30, y TOP 430..BOTTOM 680; W 2600). */
 const KREDDLE_AREA: Rect = { x: 30, y: 430, w: 2540, h: 250 };
 
@@ -282,7 +310,12 @@ function readKreddle(sc: Bag): WalkRead | null {
       const label = sp.label();
       const pic = KREDDLE_PICTURES.find(([re]) => re.test(label));
       const core = (pic && imagesOf(sc, pic[1])) || spotBox(sp.x, sp.y, Math.min(sp.r, 90));
-      targets.push({ src: sp, key: `spot:${i}`, is: (raw) => raw === sp.label(), tag: tagOf(label), core, goal: clampTo({ x: sp.x, y: sp.y }, KREDDLE_AREA) });
+      const goal = clampTo({ x: sp.x, y: sp.y }, KREDDLE_AREA);
+      targets.push({ src: sp, key: `spot:${i}`, is: (raw) => raw === sp.label(), tag: tagOf(label), core, goal });
+      // (its building: tapped where nothing smaller is, the machines' own picture winning where they overlap)
+      const bld = KREDDLE_BUILDINGS.find(([re]) => re.test(label));
+      const front = bld && imageNear(sc, bld[1], sp.x);
+      if (front) targets.push({ src: sp, key: `bld:${i}`, is: (raw) => raw === sp.label(), tag: tagOf(label), core: front, goal });
     } catch {
       /* skip */
     }

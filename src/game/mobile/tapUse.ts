@@ -14,7 +14,7 @@ import { pressInteract } from "./observe";
 import { verbFromPrompt, type ModeDecision } from "./modes";
 import type { Rect } from "./layout";
 import { haptic } from "./haptics";
-import { buildGrid, findPath, pickTarget, steer, type Pt } from "./tapLogic";
+import { buildGrid, findPath, isFree, pickTarget, steer, type Grid, type Pt } from "./tapLogic";
 import { readWalk, tapScene, type WalkRead, type WorldTarget } from "./tapTargets";
 import { registerModeController, TAP_MS, TAP_SLOP, type TouchLayer } from "./touchLayer";
 
@@ -23,8 +23,11 @@ export const TAP_MIN_CSS = 44;
 export const TAP_PAD_CSS = 6;
 /** Give up on a walk after this long (something keeps the player from getting there). */
 const WALK_MAX_MS = 15000;
-/** No nearer by 3 px in this long: stuck (route again, at most twice, then stop where you are). */
+/** No nearer by 3 px in this long: stuck (route again, then step aside and route again, then stop where you are). */
 const STUCK_MS = 650;
+/** Stuck this many times: stop. The 2nd and 3rd time a step aside comes first (someone walking in the way: P7). */
+const MAX_REPLANS = 4;
+const SIDE_STEP = 40;
 /** After arriving, how long to wait for the scene's prompt to name the thing before stopping. */
 const SETTLE_MS = 350;
 /** The stick counts as moved (and takes over) past this much of its travel. */
@@ -60,6 +63,15 @@ export class TapUse {
   private ringKey = "";
   private canvasTouches = new Map<number, { x0: number; y0: number; t0: number; moved: boolean }>();
   private wroteStick = false;
+  /**
+   * When the walking scene last became walkable (the layer entered "walk" for it). A touch that began before this
+   * was meant for what was on screen then (a dialogue box, the TV, a menu, which close on the finger's down): it is
+   * never a tap here (fix round P1: closing a line used to walk the player to whatever was under the box).
+   */
+  private walkSince = Infinity;
+  /** The town's grid, kept for the visit (its colliders don't move): built once, not on every route (R10). */
+  private gridKey = "";
+  private grid: Grid | null = null;
 
   constructor(game: Phaser.Game, layer: TouchLayer) {
     this.game = game;
@@ -79,8 +91,15 @@ export class TapUse {
     registerModeController({
       id: "tapuse",
       mode: "walk",
-      frame: () => this.frame(),
+      enter: () => {
+        this.walkSince = now();
+      },
+      frame: () => {
+        if (this.walkSince === Infinity) this.walkSince = now();
+        this.frame();
+      },
       leave: () => {
+        this.walkSince = Infinity;
         this.cancel("mode");
         if (!this.ring.classList.contains("used")) this.hideRing();
       },
@@ -101,9 +120,11 @@ export class TapUse {
    * A still tap on the page (CSS px) in a walking scene. Returns true if it meant something here (a thing, a person,
    * the floor); false leaves it to the game as before (a canvas button, a HUD tap).
    */
-  tap(x: number, y: number): boolean {
+  tap(x: number, y: number, t0?: number): boolean {
     const d = this.layer.decision;
     if (this.layer.held || !this.covers(d)) return false;
+    // (the finger came down on something else: a dialogue box, the TV, a menu that closed on its down)
+    if (t0 !== undefined && !(t0 >= this.walkSince)) return true;
     if (this.gameWants(x, y)) return false;
     const read = readWalk(this.game, d.scene);
     const sc = d.scene ? (this.game.scene.getScene(d.scene) as Phaser.Scene | null) : null;
@@ -149,6 +170,34 @@ export class TapUse {
     return true;
   }
 
+  /**
+   * Is a thing other than the prompt's under this point (CSS px)? ACTION's touch area reaches past its drawing; a tap
+   * there on another thing (Home's games console under the corner button: fix round P2) is that thing's, not ACTION's.
+   */
+  claims(x: number, y: number, face?: Rect): boolean {
+    const d = this.layer.decision;
+    if (this.layer.held || !this.covers(d) || this.gameWants(x, y)) return false;
+    const read = readWalk(this.game, d.scene);
+    const sc = d.scene ? (this.game.scene.getScene(d.scene) as Phaser.Scene | null) : null;
+    if (!read || !read.free || !sc) return false;
+    const w = this.toWorld(sc, x, y);
+    const k = this.pageScale(sc);
+    if (!w || !k) return false;
+    // (the picture itself only, no thumb-size growing: near the button's face the button wins)
+    const i = pickTarget(read.targets, w.x, w.y, 0, 0);
+    if (i < 0 || (read.prompt && read.targets[i].is(read.prompt))) return false;
+    // (a big thing the whole button sits on, a wall or a door behind it, is not "beside" it: the button wins there)
+    if (face) {
+      const c = read.targets[i].core;
+      const a = this.toPage(sc, c.x, c.y);
+      const b = this.toPage(sc, c.x + c.w, c.y + c.h);
+      const fx = face.x + face.w / 2;
+      const fy = face.y + face.h / 2;
+      if (a && b && fx >= a.x && fx <= b.x && fy >= a.y && fy <= b.y) return false;
+    }
+    return true;
+  }
+
   /** Something of the game's own is under this point (a canvas button): the game gets the tap, not the walker. */
   private gameWants(x: number, y: number): boolean {
     const cb = this.game.scale.canvasBounds;
@@ -182,7 +231,10 @@ export class TapUse {
     cv.addEventListener(
       "touchstart",
       (e) => {
-        for (const t of Array.from(e.changedTouches)) this.canvasTouches.set(t.identifier, { x0: t.clientX, y0: t.clientY, t0: now(), moved: false });
+        // (only touches that land while the scene is walkable: P1. The layer's decision is last frame's here, so a
+        // dialogue the game closed on this very touch's down still reads as "not walking")
+        const ok = this.covers(this.layer.decision) && this.walkSince !== Infinity;
+        for (const t of Array.from(e.changedTouches)) if (ok) this.canvasTouches.set(t.identifier, { x0: t.clientX, y0: t.clientY, t0: now(), moved: false });
       },
       { passive: true },
     );
@@ -200,7 +252,7 @@ export class TapUse {
       for (const t of Array.from(e.changedTouches)) {
         const c = this.canvasTouches.get(t.identifier);
         this.canvasTouches.delete(t.identifier);
-        if (c && !cancelled && !c.moved && now() - c.t0 < TAP_MS) this.tap(c.x0, c.y0);
+        if (c && !cancelled && !c.moved && now() - c.t0 < TAP_MS) this.tap(c.x0, c.y0, c.t0);
       }
     };
     cv.addEventListener("touchend", (e) => end(e, false), { passive: true });
@@ -225,15 +277,47 @@ export class TapUse {
     const t0 = now();
     const from = { x: read.me.x + read.off.x, y: read.me.y + read.off.y };
     if (!read.blockers.length) w.path = [{ x: Math.min(read.area.x + read.area.w, Math.max(read.area.x, w.goal.x)), y: Math.min(read.area.y + read.area.h, Math.max(read.area.y, w.goal.y)) }];
-    else {
-      const grid = buildGrid(read.area, read.blockers, read.half, 16);
-      w.path = findPath(grid, from, w.goal).points;
-    }
+    else w.path = findPath(this.gridFor(read), from, w.goal).points;
     w.idx = 0;
     w.best = Infinity;
     w.bestAt = now();
     this.stats.routes++;
     this.stats.routeMs = Math.max(this.stats.routeMs, now() - t0);
+  }
+
+  /** The scene's grid: built once per visit and per set of colliders (they don't move), not on every route. */
+  private gridFor(read: WalkRead): Grid {
+    let sum = 0;
+    for (const b of read.blockers) sum += b.x * 3 + b.y * 7 + b.w * 11 + b.h * 13;
+    const key = `${read.key}|${read.blockers.length}|${Math.round(sum)}|${read.area.x},${read.area.y},${read.area.w},${read.area.h}|${read.half.w},${read.half.h}`;
+    if (!this.grid || key !== this.gridKey) {
+      this.grid = buildGrid(read.area, read.blockers, read.half, 16);
+      this.gridKey = key;
+    }
+    return this.grid;
+  }
+
+  /**
+   * Stuck again on the way (someone walking about in the way, the follower: P7): a step to one side first, then the
+   * route from there. Alternates sides; only onto open floor.
+   */
+  private sideStep(read: WalkRead) {
+    const w = this.walk;
+    if (!w || !w.path.length) return;
+    const at = { x: read.me.x + read.off.x, y: read.me.y + read.off.y };
+    const next = w.path[Math.min(w.idx, w.path.length - 1)];
+    const dx = next.x - at.x;
+    const dy = next.y - at.y;
+    const d = Math.hypot(dx, dy) || 1;
+    const a = read.area;
+    const grid = read.blockers.length ? this.gridFor(read) : null;
+    for (const sgn of w.replans % 2 ? [1, -1] : [-1, 1]) {
+      const p = { x: Math.min(a.x + a.w, Math.max(a.x, at.x + (-dy / d) * SIDE_STEP * sgn)), y: Math.min(a.y + a.h, Math.max(a.y, at.y + (dx / d) * SIDE_STEP * sgn)) };
+      if (Math.hypot(p.x - at.x, p.y - at.y) < SIDE_STEP / 2 || (grid && !isFree(grid, p))) continue;
+      w.path = [p, ...w.path.slice(w.idx)];
+      w.idx = 0;
+      return;
+    }
   }
 
   private frame() {
@@ -288,8 +372,10 @@ export class TapUse {
       w.best = left;
       w.bestAt = t;
     } else if (t - w.bestAt > STUCK_MS) {
-      if (w.replans++ < 2) this.route(read);
-      else return this.finish("stuck");
+      if (w.replans++ < MAX_REPLANS) {
+        this.route(read);
+        if (w.replans >= 2) this.sideStep(read);
+      } else return this.finish("stuck");
     }
     if (t - w.t0 > WALK_MAX_MS) return this.finish("timeout");
     this.writeStick(s.x, s.y);

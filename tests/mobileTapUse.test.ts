@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildGrid, distToRect, findPath, grow, isFree, lineFree, nearestFree, pickTarget, steer, type Pt } from "../src/game/mobile/tapLogic";
+import { buildGrid, distToRect, findPath, grow, isFree, lineFree, nearestFree, pathScratchSize, pickTarget, steer, type Pt } from "../src/game/mobile/tapLogic";
 import { spotBox, standsOn, tagOf, union } from "../src/game/mobile/tapTargets";
 
 const R = (x: number, y: number, w: number, h: number) => ({ x, y, w, h });
@@ -134,16 +134,34 @@ describe("tap to use: the path-finder", () => {
     expect(findPath(full, { x: 5, y: 5 }, { x: 20, y: 20 }).points).toEqual([]);
   });
 
-  it("a big town (160 x 112 cells, a hundred buildings) routes fast", () => {
+  it("a big town (160 x 112 cells, a hundred buildings) routes with little work (counted, not timed: L1)", () => {
     const blockers = [];
     for (let i = 0; i < 100; i++) blockers.push(R(80 + (i % 10) * 240, 80 + Math.floor(i / 10) * 170, 150, 90));
     const g = buildGrid(R(0, 0, 2560, 1792), blockers, half);
-    const t0 = performance.now();
     const r = findPath(g, { x: 20, y: 20 }, { x: 2500, y: 1750 });
-    const ms = performance.now() - t0;
     expect(r.reached).toBe(true);
     walkable(g, { x: 20, y: 20 }, r.points);
-    expect(ms).toBeLessThan(60);
+    // (deterministic: 5,016 of the 17,920 cells today; well under a third, never the whole grid)
+    expect(r.expanded).toBeGreaterThan(0);
+    expect(r.expanded!).toBeLessThan((g.cols * g.rows) / 3);
+  });
+
+  it("routes reuse one set of buffers (no garbage per route: R10) and never see a stale search", () => {
+    const blockers = [];
+    for (let i = 0; i < 100; i++) blockers.push(R(80 + (i % 10) * 240, 80 + Math.floor(i / 10) * 170, 150, 90));
+    const g = buildGrid(R(0, 0, 2560, 1792), blockers, half);
+    const first = findPath(g, { x: 20, y: 20 }, { x: 2500, y: 1750 });
+    const cap = pathScratchSize();
+    expect(cap).toBeGreaterThanOrEqual(g.cols * g.rows);
+    // (other routes in between, on this grid and a small one, then the first again: the same answer)
+    findPath(g, { x: 2500, y: 20 }, { x: 20, y: 1750 });
+    const small = buildGrid(R(0, 0, 160, 160), [R(40, 0, 32, 120)], { w: 0, h: 0 }, 16);
+    const sr = findPath(small, { x: 8, y: 8 }, { x: 150, y: 8 });
+    expect(sr.reached).toBe(true);
+    walkable(small, { x: 8, y: 8 }, sr.points);
+    for (let i = 0; i < 50; i++) findPath(g, { x: 20 + i * 40, y: 20 }, { x: 2500 - i * 30, y: 1750 });
+    expect(findPath(g, { x: 20, y: 20 }, { x: 2500, y: 1750 })).toEqual(first);
+    expect(pathScratchSize()).toBe(cap);
   });
 });
 

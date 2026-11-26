@@ -140,6 +140,35 @@ export interface PathResult {
   points: Pt[];
   /** The goal itself can be reached (false: the path ends as close as it gets). */
   reached: boolean;
+  /** How many cells the search expanded (the work done: what the unit test bounds, not the clock). */
+  expanded?: number;
+}
+
+/**
+ * The search's working buffers, kept between routes (a route used to allocate ~370 KB of typed arrays over the town's
+ * grid, and the garbage collector's pause showed as a hitch while walking, fix-round R10). A generation stamp marks
+ * which cells this search has touched, so nothing is cleared between routes.
+ */
+const scratch = { cap: 0, gen: 0, g: new Float64Array(0), f: new Float64Array(0), came: new Int32Array(0), seen: new Uint32Array(0), closed: new Uint32Array(0), heap: [] as number[] };
+
+function scratchFor(n: number) {
+  if (n > scratch.cap || scratch.gen >= 0xfffffff0) {
+    scratch.cap = Math.max(n, scratch.cap);
+    scratch.g = new Float64Array(scratch.cap);
+    scratch.f = new Float64Array(scratch.cap);
+    scratch.came = new Int32Array(scratch.cap);
+    scratch.seen = new Uint32Array(scratch.cap);
+    scratch.closed = new Uint32Array(scratch.cap);
+    scratch.gen = 0;
+  }
+  scratch.gen++;
+  scratch.heap.length = 0;
+  return scratch;
+}
+
+/** For tests: the buffers are allocated once per grid size, not per route. */
+export function pathScratchSize(): number {
+  return scratch.cap;
 }
 
 /**
@@ -161,11 +190,13 @@ export function findPath(g: Grid, from: Pt, to: Pt, maxNodes = 40000): PathResul
   const s = cellOf(g, start);
   const t = cellOf(g, goal);
   const N = g.cols * g.rows;
-  const gScore = new Float64Array(N).fill(Infinity);
-  const came = new Int32Array(N).fill(-1);
-  const closed = new Uint8Array(N);
-  const heap: number[] = [];
-  const fOf = new Float64Array(N);
+  const S = scratchFor(N);
+  const gen = S.gen;
+  const { g: gScore, came, f: fOf, heap } = S;
+  const seenAt = S.seen;
+  const closedAt = S.closed;
+  // (a cell's gScore / came only count once this search has touched it)
+  const gOf = (i: number) => (seenAt[i] === gen ? gScore[i] : Infinity);
   const h = (i: number) => {
     const dc = Math.abs((i % g.cols) - t.c);
     const dr = Math.abs(Math.floor(i / g.cols) - t.r);
@@ -203,6 +234,8 @@ export function findPath(g: Grid, from: Pt, to: Pt, maxNodes = 40000): PathResul
   const si = s.r * g.cols + s.c;
   const ti = t.r * g.cols + t.c;
   gScore[si] = 0;
+  came[si] = -1;
+  seenAt[si] = gen;
   fOf[si] = h(si);
   push(si);
   let nearest = si;
@@ -210,8 +243,8 @@ export function findPath(g: Grid, from: Pt, to: Pt, maxNodes = 40000): PathResul
   let seen = 0;
   while (heap.length && seen < maxNodes) {
     const cur = pop();
-    if (closed[cur]) continue;
-    closed[cur] = 1;
+    if (closedAt[cur] === gen) continue;
+    closedAt[cur] = gen;
     seen++;
     if (cur === ti) {
       nearest = ti;
@@ -233,10 +266,11 @@ export function findPath(g: Grid, from: Pt, to: Pt, maxNodes = 40000): PathResul
         // (no cutting a corner: both side cells must be free for a diagonal step)
         if (dr && dc && (!free(g, cc + dc, cr) || !free(g, cc, cr + dr))) continue;
         const ni = nr * g.cols + nc;
-        if (closed[ni]) continue;
+        if (closedAt[ni] === gen) continue;
         const ng = gScore[cur] + (dr && dc ? Math.SQRT2 : 1);
-        if (ng < gScore[ni]) {
+        if (ng < gOf(ni)) {
           gScore[ni] = ng;
+          seenAt[ni] = gen;
           came[ni] = cur;
           fOf[ni] = ng + h(ni);
           push(ni);
@@ -249,7 +283,7 @@ export function findPath(g: Grid, from: Pt, to: Pt, maxNodes = 40000): PathResul
   for (let i = nearest; i !== -1 && i !== si; i = came[i]) cells.push(mid(g, i % g.cols, Math.floor(i / g.cols)));
   cells.reverse();
   if (reached) cells[cells.length - 1] = goal;
-  else if (!cells.length) return { points: [], reached: false };
+  else if (!cells.length) return { points: [], reached: false, expanded: seen };
   const out: Pt[] = [];
   let at = start;
   let k = 0;
@@ -261,7 +295,7 @@ export function findPath(g: Grid, from: Pt, to: Pt, maxNodes = 40000): PathResul
     k = j + 1;
   }
   if (start !== from) out.unshift(start);
-  return { points: out, reached };
+  return { points: out, reached, expanded: seen };
 }
 
 // ------------------------------------------------------------------ walking the route

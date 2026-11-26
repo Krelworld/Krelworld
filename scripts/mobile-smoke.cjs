@@ -4104,6 +4104,8 @@ async function platform(browser) {
     check("platform: texture memory after the boot is under 400 MB (the laptop holds about 920)", peak.mb < 400, peak);
     // (the JS heap too: texture bytes don't see what scripts hold; fix round R9)
     const heapMB = async () => {
+      // (after a full collection: what is really held, not garbage waiting to be collected)
+      await ph.cdp.send("HeapProfiler.collectGarbage").catch(() => {});
       const m = await ph.cdp.send("Performance.getMetrics").catch(() => null);
       const v = m && m.metrics.find((x) => x.name === "JSHeapUsedSize");
       return v ? Math.round(v.value / 1048576) : -1;
@@ -4514,7 +4516,8 @@ async function tapuse(browser) {
     await homeMe(ph, 700, 520);
     await sleep(300);
     await tapThing(ph, /^Sleep/);
-    await sleep(300);
+    // (soon: on a loaded machine a long frame can carry the walker into the bed's reach within 300 ms)
+    await sleep(120);
     const re1 = await tapThing(ph, /Jukebox/);
     check("a second tap on another thing re-targets", re1.now.st.walking && /Jukebox/.test(re1.now.st.tag || ""), re1.now.st);
     done = await tapDone(ph);

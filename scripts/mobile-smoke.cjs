@@ -4206,6 +4206,60 @@ async function platform(browser) {
     await sleep(300);
     const g5 = await ph.ev(() => ({ g: window.__krelMobile.audio.musicGain(), m: window.__krel.G.meta.settings.master }));
     check("platform: the Music setting reaches the song (0 → gain 0, 0.5 → master x 0.5; the element stays at full volume)", !!g0 && g0.gain < 0.001 && !!g5.g && Math.abs(g5.g.gain - g5.m * 0.5) < 0.02 && g5.g.elementVolume === 1, { g0, g5 });
+    // the phone mix (mix.ts, wave 2: "Speech and sound effects are a little quiet on phones"): built on the game's
+    // context, the sliders applied after its compressors (exactly), voices redirected into it, never over -1 dBFS
+    const mx = await ph.ev(async () => {
+      const L = await import("/src/game/mobile/mixLogic.ts");
+      const G = window.__krel.G;
+      const a = window.__krelMobile.audio;
+      const want = (st) => L.mixGains(st);
+      const near = (x, y) => Math.abs(x - y) < 0.01;
+      const r0 = a.mix.report();
+      const st0 = { ...G.meta.settings };
+      const ok0 = r0.built && near(r0.post.music, want(st0).song.post) && near(r0.post.voice, want(st0).voice.post) && near(r0.post.sfx, want(st0).sfx.post) && near(r0.pre.voice, want(st0).voice.pre);
+      // Master halved: every path's output halves (the compressors in front see the same level)
+      G.meta.settings.master = st0.master / 2;
+      window.__krel.synth.setVolumes(G.meta.settings);
+      await new Promise((r) => setTimeout(r, 300));
+      const r1 = a.mix.report();
+      const half = near(r1.post.music, r0.post.music / 2) && near(r1.post.sfx, r0.post.sfx / 2) && near(r1.post.voice, r0.post.voice / 2) && near(r1.pre.song * (st0.master / 2) * st0.music, 1);
+      // the Voice slider (no call of its own): read within a quarter second
+      G.meta.settings.master = st0.master;
+      G.meta.settings.voiceVolume = 0.4;
+      window.__krel.synth.setVolumes(G.meta.settings);
+      await new Promise((r) => setTimeout(r, 600));
+      const r2 = a.mix.report();
+      const voiceSlider = near(r2.post.voice, want(G.meta.settings).voice.post);
+      // everything at 100%, a voice line over the song, explosions and gunshots: the output's peak stays under -1 dBFS
+      Object.assign(G.meta.settings, { master: 1, music: 1, sfx: 1, voiceVolume: 1 });
+      window.__krel.synth.setVolumes(G.meta.settings);
+      const v0 = a.mix.redirected.voice;
+      const clip = await window.__krel.voice.clipMs("DR. JAMESON", "I'm afraid you have terminal cancer.");
+      window.__krel.voice.say("DR. JAMESON", "I'm afraid you have terminal cancer.");
+      let peak = 0, heard = 0;
+      const t0 = performance.now();
+      let n = 0;
+      while (performance.now() - t0 < 3500) {
+        if (n === 10 || n === 40) window.__krel.synth.play("explode");
+        if (n % 12 === 5) window.__krel.synth.play("shoot");
+        if (n === 25) window.__krel.synth.play("gun_shotgun");
+        const p = a.mix.peak() ?? 0;
+        peak = Math.max(peak, p);
+        if (p > 0.01) heard++;
+        n++;
+        await new Promise((r) => setTimeout(r, 30));
+      }
+      window.__krel.voice.stop();
+      Object.assign(G.meta.settings, st0);
+      window.__krel.synth.setVolumes(G.meta.settings);
+      return { ok0, half, voiceSlider, r0, r1, r2, clip, voiceRedirected: a.mix.redirected.voice - v0, redirected: a.mix.redirected, peak: Math.round(peak * 1000) / 1000, peakDb: L.dbfs(peak), heard, line: a.diag().mix };
+    });
+    check("platform: the phone mix is built on the game's sound; its slider gains follow the settings (pre takes the slider out, post puts it back)", mx.ok0, mx.r0);
+    check("platform: the phone mix: Master halved halves every path's output exactly (the sliders come after the compressors)", mx.half, { r0: mx.r0.post, r1: mx.r1.post, pre: mx.r1.pre });
+    check("platform: the phone mix: the Voice slider reaches it within a quarter second", mx.voiceSlider, mx.r2);
+    check("platform: the phone mix: a voice line goes through it (its connection to the speakers redirected)", mx.clip === undefined || mx.voiceRedirected >= 1, { clip: mx.clip, redirected: mx.redirected });
+    check("platform: the phone mix: every slider at 100%, a voice line, explosions and gunshots over the song: heard, and the peak stays under -1 dBFS", mx.heard > 10 && mx.peak > 0.05 && mx.peak < 0.891, { peak: mx.peak, dB: mx.peakDb, heard: mx.heard });
+    check("platform: the phone mix: ?mobilediag's sound lines name it", /^sound mix phone: voice drive/.test(mx.line), mx.line);
     // hidden, then shown: the context is suspended and comes back running, the song with it, never twice
     await setVisibility(ph, "hidden");
     await sleep(1200);

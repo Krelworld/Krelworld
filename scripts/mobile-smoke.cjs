@@ -2642,8 +2642,9 @@ async function combat(browser) {
     check("auto-fire kills a test enemy in range without a thumb on FIRE (M1)", victim !== null && killed, { victim });
     // ---- Settings > Firing (the auto-fire audit): LIGHT fires at a slower pace, STILL only while you stand still
     // (the player to an open spot first, inside the room with nothing solid within 200 px: HOLD and the auto-fire
-    // flavours only aim at what you can see, and the stick test above may have left you by a wall)
-    await ph.ev(async () => {
+    // flavours only aim at what you can see, and the stick tests may leave you by a wall, with the test enemy pinned
+    // beside you then inside the wall)
+    const toSpot = () => ph.ev(async () => {
       const d = window.__krel.game.scene.getScene("Dungeon");
       const p = d.player;
       const walls = (d.obstacles?.getChildren() ?? []).map((o) => o.body).filter(Boolean).map((b) => ({ x: b.x, y: b.y, w: b.width, h: b.height }));
@@ -2655,6 +2656,7 @@ async function combat(browser) {
       const at = best ?? { x: W / 2, y: H / 2 };
       p.spr.body.reset(at.x, at.y);
     });
+    await toSpot();
     await sleep(600);
     const dummy = await ph.ev(() => {
       const d = window.__krel.game.scene.getScene("Dungeon");
@@ -2731,7 +2733,8 @@ async function combat(browser) {
     }
     const moving = await shotsFor(900);
     await ph.touch("touchEnd", []);
-    await sleep(250);
+    await toSpot();
+    await sleep(600);
     const resting = await shotsFor(1200);
     check("Firing STILL: no auto-fire while you move, auto-fire once you stand still", moving.auto === 0 && resting.auto > 0.5 && resting.n > 0, { moving, resting });
     // HOLD: never by itself
@@ -2770,6 +2773,8 @@ async function combat(browser) {
           [dx, dy, facing, ms],
         );
       await ph.ev(() => window.__krelMobile.settings.set({ autoFire: false, firing: "auto" }));
+      await toSpot();
+      await sleep(600);
       const ahead = await aimFor(150, -20, 0);
       const behind = await aimFor(-150, 20, 0);
       const turned = await aimFor(-150, 20, Math.PI);

@@ -64,7 +64,9 @@ export const PHONE_MIX: PhoneMixPlan = {
   // the defaults, which an iPhone used to ignore (it played songs at 100%); since stage 3 the volume is honoured, so the
   // defaults sat about 9 dB under what the user was used to. 1.8 brings that back to about -3 dB; the song's gain is
   // capped at 1 (MUSIC_CAP), so higher sliders reach full level and never drive the ceiling)
-  out: { music: 1.8, sfx: 0.8, voice: 1.15 },
+  // (music 1.8 -> 2.1, about +1.3 dB: the user, "Music in phone to be increased just a little little bit
+  // comparative to sound effects")
+  out: { music: 2.1, sfx: 0.8, voice: 1.15 },
   lowCut: 110,
   presence: { freq: 3000, gain: 3, q: 0.8 },
   comp: {

@@ -30,7 +30,7 @@ import { Projection } from "./projection";
 import { Audio, PC_LINES, VOICES, type Clip } from "./audio";
 import { Drive3D, type DriveView } from "./drive3d";
 import { CELL, cellOf, dirIndex, FEET, feetOf, HEAD, SpriteBank, type Base, type Recolour } from "./sprites";
-import { buildings, placements, WorldArt, type Placement } from "./world";
+import { BLD_ART, buildings, placements, WorldArt, type Placement } from "./world";
 import { Stall } from "./stall";
 import { Fx } from "./fx";
 import { FirstPerson, type FpSprite } from "./fp";
@@ -579,6 +579,19 @@ class StadiumScene extends Phaser.Scene {
       if (FLOOR_OF[a.id] === "concourse") ts.setTint(0xb4b8bc);
       this.groundTiles.push(ts);
     }
+    // Light pools at the ways in: a soft radial glow, added on top of the ground.
+    if (!this.textures.exists("glow")) {
+      const cv = document.createElement("canvas"); cv.width = cv.height = 128;
+      const cx = cv.getContext("2d")!, gr = cx.createRadialGradient(64, 64, 0, 64, 64, 64);
+      gr.addColorStop(0, "rgba(255,255,255,0.55)"); gr.addColorStop(0.45, "rgba(255,255,255,0.22)"); gr.addColorStop(1, "rgba(255,255,255,0)");
+      cx.fillStyle = gr; cx.fillRect(0, 0, 128, 128);
+      this.textures.addCanvas("glow", cv);
+    }
+    for (const l of this.doorGlows()) {
+      const im = this.add.image(Math.round(P.sx(l.x, l.y)), Math.round(P.sy(l.x, l.y)), "glow").setDepth(0.6).setTint(l.col).setBlendMode(Phaser.BlendModes.ADD);
+      im.setDisplaySize(l.r * 2 * P.S, l.r * 1.3 * P.S);
+      this.groundTiles.push(im as unknown as Phaser.GameObjects.TileSprite);
+    }
     // Road markings.
     const detail = this.detailG; detail.clear();
     g = detail;
@@ -602,6 +615,7 @@ class StadiumScene extends Phaser.Scene {
     g.fillRect(...P.rect(-92, 83.8, 184, 0.25)).fillRect(...P.rect(-92, 92, 184, 0.25));
     g.fillRect(...P.rect(Math.min(mx(61.8), mx(62.05)), -50, 0.25, 134)).fillRect(...P.rect(Math.min(mx(71.8), mx(72.05)), -50, 0.25, 134));
     g.fillRect(...P.rect(-60, 59.9, 120, 0.2));
+    this.streetDetail(g, mx);
     g.fillStyle(0xe8e4d4, 0.8);
     for (let x = 46; x <= 60; x += 2.6) { g.fillRect(...P.rect(Math.min(mx(x), mx(x + 0.15)), 73.5, 0.15, 4)); g.fillRect(...P.rect(Math.min(mx(x), mx(x + 0.15)), 78, 0.15, 4)); }
     // Seat rows.
@@ -635,6 +649,102 @@ class StadiumScene extends Phaser.Scene {
       }
     }
     this.drawCrowd();
+  }
+
+  /** The street as a street: kerbs with a lit edge and a drop, double yellows, zebra crossings with
+   *  Belisha beacons, drains, gum and fag ends on the slabs, shadow along every frontage, and a warm
+   *  pool of light at every way in, so doors read from across the road. */
+  streetDetail(g: Phaser.GameObjects.Graphics, mx: (x: number) => number) {
+    const P = this.P;
+    const R = (x: number, y: number, w: number, h: number) => { const x0 = Math.min(mx(x), mx(x + w)); return P.rect(x0, y, w, h); };
+    // Kerbs: the pavement's lit edge, then the drop into the gutter.
+    const kerbH = (x0: number, x1: number, y: number, down: 1 | -1) => {
+      g.fillStyle(0xc9ccc4, 1).fillRect(...R(x0, down > 0 ? y - 0.16 : y, x1 - x0, 0.16));
+      g.fillStyle(0x2a2c2e, 0.55).fillRect(...R(x0, down > 0 ? y : y - 0.12, x1 - x0, 0.12));
+    };
+    const kerbV = (x: number, y0: number, y1: number, down: 1 | -1) => {
+      g.fillStyle(0xc9ccc4, 1).fillRect(...R(down > 0 ? x - 0.16 : x, y0, 0.16, y1 - y0));
+      g.fillStyle(0x2a2c2e, 0.55).fillRect(...R(down > 0 ? x : x - 0.12, y0, 0.12, y1 - y0));
+    };
+    kerbH(-92, 92, 84, 1); kerbH(-92, 92, 92, -1);
+    kerbV(62, -50, 84, 1); kerbV(72, -50, 84, -1);
+    // Double yellow lines, broken at the crossings.
+    const crossings = [-46, 2, 36];
+    g.fillStyle(0xe0b52a, 0.85);
+    for (const y of [84.3, 84.52, 91.38, 91.6]) {
+      let x = -92;
+      for (const cx of [...crossings, 200]) { const e = Math.min(92, cx - 2.6); if (e > x) g.fillRect(...R(x, y, e - x, 0.1)); x = cx + 2.6; }
+    }
+    for (const x of [62.3, 62.52, 71.38, 71.6]) g.fillStyle(0xe0b52a, 0.85).fillRect(...R(x, -48, 0.1, 130));
+    // Zebra crossings, with a Belisha beacon each end.
+    for (const cx of crossings) {
+      for (let y = 84.75; y < 91.3; y += 0.9) g.fillStyle(0xeeeae0, 0.9).fillRect(...R(cx - 1.8, y, 3.6, 0.5));
+      for (const y of [84.6, 91.4]) g.fillStyle(0xeeeae0, 0.7).fillRect(...R(cx - 2.2, y, 0.08, 0.05));
+      for (const [bx, by] of [[cx - 2.4, 83.6], [cx + 2.4, 92.6]]) {
+        g.fillStyle(0x000000, 0.25).fillEllipse(P.sx(mx(bx) + 0.15, by), P.sy(0, by), P.S * 0.5, P.S * 0.18);
+        for (let k = 0; k < 6; k++) g.fillStyle(k % 2 ? 0x111111 : 0xeeeeee, 1).fillRect(P.sx(mx(bx), 0) - 1.5, P.sy(0, by) - (k + 1) * P.S * 0.32, 3, P.S * 0.32);
+        g.fillStyle(0xf2a51a, 1).fillCircle(P.sx(mx(bx), 0), P.sy(0, by) - P.S * 2.05, P.S * 0.22);
+        g.fillStyle(0xffe08a, 1).fillCircle(P.sx(mx(bx), 0) - 1, P.sy(0, by) - P.S * 2.1, P.S * 0.08);
+      }
+    }
+    // Drains in the gutter every few metres.
+    const drain = (x: number, y: number) => {
+      g.fillStyle(0x1c1d1f, 1).fillRect(...R(x - 0.35, y, 0.7, 0.3));
+      g.fillStyle(0x5a5d60, 1);
+      for (let k = 0; k < 4; k++) g.fillRect(...R(x - 0.3 + k * 0.17, y + 0.04, 0.07, 0.22));
+    };
+    for (let x = -86; x < 90; x += 11) { if (crossings.every((c) => Math.abs(c - x) > 3)) { drain(x, 84.05); drain(x + 5, 91.6); } }
+    // Gum, fag ends, cracks: deterministic, thick by the pub, the bookies and the turnstiles.
+    let seed = 99;
+    const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+    const spots: [number, number, number, number, number][] = [[-60, 46, 120, 14, 380], [-62, 80.6, 154, 3.3, 260], [-92, 92.3, 184, 3.6, 160], [-48, 80.6, 8, 3, 90], [28, 72.6, 16, 2, 60]];
+    for (const [x0, y0, w, h, n] of spots) for (let i = 0; i < n; i++) {
+      const x = x0 + rnd() * w, y = y0 + rnd() * h, kind = rnd();
+      if (kind < 0.55) g.fillStyle(rnd() < 0.5 ? 0xb8b8b2 : 0x9a9a94, 0.8).fillRect(Math.round(P.sx(mx(x), 0)), Math.round(P.sy(0, y)), 2, 2);
+      else if (kind < 0.85) { g.fillStyle(0xe8e0cc, 0.9).fillRect(Math.round(P.sx(mx(x), 0)), Math.round(P.sy(0, y)), 3, 1); g.fillStyle(0xc87a3a, 0.9).fillRect(Math.round(P.sx(mx(x), 0)) + 3, Math.round(P.sy(0, y)), 1, 1); }
+      else { g.lineStyle(1, 0x55585b, 0.6); const sx = P.sx(mx(x), 0), sy = P.sy(0, y); g.lineBetween(sx, sy, sx + 6 + rnd() * 10, sy + rnd() * 4 - 2); }
+    }
+    // Shadow along the foot of every building front.
+    for (const b of buildings(VENUE)) {
+      const { x0, x1, y1 } = b.rect;
+      for (let k = 0; k < 4; k++) g.fillStyle(0x000000, 0.18 - k * 0.04).fillRect(Math.round(P.sx(x0, 0)), Math.round(P.sy(0, y1)) + k * 3, Math.round((x1 - x0) * P.S), 3);
+    }
+  }
+
+  /** The stadium's front, built from painted bays: cladding, a glazed stair tower, and the crest bay over
+   *  the turnstiles in the middle. One picture, made once per ground. */
+  stadiumFront(x0: number, x1: number): string | null {
+    const key = `stadfront-${VENUE.id}`;
+    if (this.textures.exists(key)) return key;
+    if (!["a", "b", "c"].every((k) => this.textures.exists(`w-bay-${k}`))) return null;
+    const S = PPM, W = Math.round((x1 - x0) * S), H = 9 * S;
+    const cv = document.createElement("canvas"); cv.width = W; cv.height = H;
+    const cx = cv.getContext("2d")!; cx.imageSmoothingEnabled = false;
+    const bay = (k: string, wx: number, flip: boolean) => {
+      const src = this.textures.get(`w-bay-${k}`).getSourceImage() as HTMLImageElement;
+      const px = Math.round((wx - x0) * S);
+      cx.save();
+      if (flip) { cx.translate(px + 16 * S, 0); cx.scale(-1, 1); cx.drawImage(src, 0, 0, src.width, src.height, 0, 0, 16 * S, H); }
+      else cx.drawImage(src, 0, 0, src.width, src.height, px, 0, 16 * S, H);
+      cx.restore();
+    };
+    // Out from the crest: cladding, stairs, cladding, and a part bay to finish each end.
+    const order = ["a", "b", "a", "b"];
+    for (let k = 0; k < 4; k++) { bay(order[k], -24 - 16 * k, false); bay(order[k], 8 + 16 * k, true); }
+    bay("c", -8, false);
+    this.textures.addCanvas(key, cv);
+    return key;
+  }
+
+  /** Warm light spilling out of every public way in (and the bookies' neon), so you can see the doors from across the road. */
+  doorGlows(): { x: number; y: number; col: number; r: number }[] {
+    const mx = (x: number) => (VENUE.id === "sf" ? -x : x);
+    const out = [
+      { x: -46, y: 81.4, col: 0xffb347, r: 2.6 }, { x: -12.6, y: 73.3, col: 0xffe0a0, r: 1.8 }, { x: 15, y: 73.3, col: 0xffe0a0, r: 1.8 },
+      { x: 36, y: 73.3, col: 0xc070ff, r: 2.2 }, { x: 82, y: -13, col: 0xfff0c0, r: 2.4 }, { x: 21, y: 50.6, col: 0x9ad0ff, r: 1.8 }, { x: -21, y: 50.6, col: 0xffd080, r: 1.8 },
+    ];
+    for (const t of SPOTS.turnstiles) out.push({ x: t.x, y: 46.2, col: 0xfff3b0, r: 1.6 });
+    return out.map((o) => ({ ...o, x: mx(o.x) }));
   }
 
   crowdImgs: { im: Phaser.GameObjects.Image; y: number; ph: number; sp: number; x: number; wy: number; fr: number; away: boolean }[] = [];
@@ -1635,7 +1745,36 @@ class StadiumScene extends Phaser.Scene {
       this.placed = { venue: VENUE.id, list: placements(VENUE) };
       this.blds = buildings(VENUE);
       for (const b of this.blds) {
+        // A painted building, if there is one: scaled to the footprint (and mirrored for the semi-final), its name on the board.
+        const art = BLD_ART[b.id], bk = `bldc-${VENUE.id}-${b.id}`;
+        if (art && this.textures.exists(`w-bld-${b.id}`) && !this.textures.exists(bk)) {
+          const src = this.textures.get(`w-bld-${b.id}`).getSourceImage() as HTMLImageElement;
+          const cw = Math.round((b.rect.x1 - b.rect.x0) * PPM), ch = Math.round((b.rect.y1 - b.rect.y0 + b.height) * PPM);
+          const cv = document.createElement("canvas"); cv.width = cw; cv.height = ch;
+          const cx = cv.getContext("2d")!; cx.imageSmoothingEnabled = false;
+          const mirror = VENUE.id === "sf";
+          // Trimmed to what's painted (no see-through margins), stretched to the footprint's width,
+          // bottom-aligned: the front wall sits on the footprint's front edge.
+          const probe = document.createElement("canvas"); probe.width = src.width; probe.height = src.height;
+          const pc2 = probe.getContext("2d", { willReadFrequently: true })!; pc2.drawImage(src, 0, 0);
+          const px = pc2.getImageData(0, 0, src.width, src.height).data;
+          let l = src.width, r = 0, t = src.height, bt = 0;
+          for (let y = 0; y < src.height; y++) for (let x = 0; x < src.width; x++) if (px[(y * src.width + x) * 4 + 3] > 40) { l = Math.min(l, x); r = Math.max(r, x); t = Math.min(t, y); bt = Math.max(bt, y); }
+          probe.width = probe.height = 0;
+          const bw = r - l + 1, bh = bt - t + 1, kx = cw / bw, dh = bh * kx;
+          cx.save();
+          if (mirror) { cx.translate(cw, 0); cx.scale(-1, 1); }
+          cx.drawImage(src, l, t, bw, bh, 0, ch - dh, cw, dh);
+          cx.restore();
+          const sg = art.sign, name = b.sign?.text;
+          if (sg && name) {
+            const sx = (sg.x - l) * kx, sw = sg.w * kx, sy = ch - dh + (sg.y - t) * kx, sh = sg.h * kx;
+            pixelTextOn(cx, name, mirror ? cw - sx - sw : sx, sy, sw, sh, sg.fg, 3, sg.shadow);
+          }
+          this.textures.addCanvas(bk, cv);
+        }
         const fk = `fac-${VENUE.id}-${b.id}`, rk = `roof-${VENUE.id}-${b.id}`;
+        if (this.textures.exists(bk)) continue; // painted: the boxy front and roof aren't needed
         if (!this.textures.exists(fk)) this.textures.addCanvas(fk, facade(b, (k) => this.world.img(k)));
         if (!this.textures.exists(rk)) this.textures.addCanvas(rk, roof(b));
       }
@@ -1653,7 +1792,22 @@ class StadiumScene extends Phaser.Scene {
     // Buildings: a front and a roof from outside; just low walls once you're in.
     const cut = new Set<string>();
     for (const b of this.blds) {
-      if (free && inRect(pc.x, pc.y, b.rect, 0.3)) { cut.add(b.id); continue; }
+      if (free && inRect(pc.x, pc.y, b.rect, 0.3)) {
+        cut.add(b.id);
+        // Inside: the back wall, painted, standing along the north side of the room.
+        const wk = `w-wall-${b.id}`;
+        if (this.textures.exists(wk)) {
+          const { x0, x1, y0 } = b.rect, wy = y0 + 0.5;
+          things.push({ d: wy + 1e-3, draw: () => {}, spr: (dep) => {
+            let ts = this.shellSprites.get(`bwall-${b.id}`);
+            const wpx = Math.round((x1 - x0) * S), hpx = 3 * S;
+            if (!ts) { ts = this.add.tileSprite(0, 0, wpx, hpx, wk).setOrigin(0, 1); this.shellSprites.set(`bwall-${b.id}`, ts); }
+            this.shellSeen.add(`bwall-${b.id}`);
+            ts.setPosition(Math.round(P.sx(x0, 0)), Math.round(P.sy(0, wy))).setDepth(dep).setVisible(true).setAlpha(1).setFlipX(VENUE.id === "sf");
+          } });
+        }
+        continue;
+      }
       const { x0, y0, x1, y1 } = b.rect, H = b.height;
       if (!onScreen((x0 + x1) / 2, (y0 + y1) / 2, 500 + (x1 - x0) * 8)) continue;
       // See-through while you're round the back of it.
@@ -1663,6 +1817,11 @@ class StadiumScene extends Phaser.Scene {
       // Its shadow falls to the bottom right: light from the top left, like every other thing here.
       this.shadowG.fillStyle(0x000000, 0.26).fillRect(Math.round(P.sx(x1, 0)), Math.round(P.sy(0, y0 + 1)), Math.round(Math.min(2.2, H * 0.4) * S), Math.round((y1 - y0 - 0.5) * S));
       this.shadowG.fillStyle(0x000000, 0.2).fillRect(Math.round(P.sx(x0, 0)), Math.round(P.sy(0, y1)), Math.round((x1 - x0) * S), 4);
+      const painted = `bldc-${VENUE.id}-${b.id}`;
+      if (this.textures.exists(painted)) {
+        things.push({ d: y1, draw: () => {}, spr: (dep) => image(`bld-${b.id}`, painted).setOrigin(0, 1).setPosition(Math.round(P.sx(x0, 0)), Math.round(P.sy(0, y1))).setDepth(dep).setAlpha(a) });
+        continue;
+      }
       things.push({ d: y1 - 1e-3, draw: () => {}, spr: (dep) => image(`roof-${b.id}`, `roof-${VENUE.id}-${b.id}`).setOrigin(0).setPosition(Math.round(P.sx(x0, 0)), Math.round(P.sy(0, y0) - H * S)).setDepth(dep).setAlpha(a) });
       things.push({ d: y1, draw: () => {}, spr: (dep) => image(`fac-${b.id}`, `fac-${VENUE.id}-${b.id}`).setOrigin(0, 1).setPosition(Math.round(P.sx(x0, 0)), Math.round(P.sy(0, y1))).setDepth(dep).setAlpha(a) });
     }
@@ -1713,7 +1872,13 @@ class StadiumScene extends Phaser.Scene {
         if (near) this.pcHidden = true;
         things.push({ d: b.y1 - 0.06, draw: () => {}, spr: (dep) => {
           tile(`roof${i}`, "mat-roofsteel", x, top, w, bot - top, dep);
-          tile(`face${i}`, b.front ? "mat-clad" : "mat-seats_h", x, bot, w, lift, dep + 0.1, near ? 0.45 : 1).setTint(b.front ? 0xffffff : 0x8a8f99);
+          const front = b.front ? this.stadiumFront(b.x0, b.x1) : null;
+          if (front) {
+            let im = this.shellSprites.get(`facepic${i}`) as unknown as Phaser.GameObjects.Image | undefined;
+            if (!im) { im = this.add.image(0, 0, front).setOrigin(0, 0); this.shellSprites.set(`facepic${i}`, im as unknown as Phaser.GameObjects.TileSprite); }
+            this.shellSeen.add(`facepic${i}`);
+            im.setPosition(x, bot).setDisplaySize(w, lift).setDepth(dep + 0.1).setVisible(true).setAlpha(near ? 0.45 : 1);
+          } else tile(`face${i}`, b.front ? "mat-clad" : "mat-seats_h", x, bot, w, lift, dep + 0.1, near ? 0.45 : 1).setTint(b.front ? 0xffffff : 0x8a8f99);
           // On the roof: skylights down the middle, air-con units, and the TV gantry on the main stand.
           const deco = (id: string, key: string, wx: number, wy: number) => {
             if (!this.textures.exists(`k-${key}-src`)) return;

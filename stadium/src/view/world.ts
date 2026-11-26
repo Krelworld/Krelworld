@@ -11,7 +11,8 @@ export const KIT_KEYS = ["barrier", "bench", "bigscreen", "bin", "bollard", "bur
   "lamppost", "litter", "merchstall", "pallets", "phonebox", "policevan", "portaloo", "programmes", "puddle", "staffdoor", "ticketbooth", "turnstile",
   "pubtable", "fruitmachine", "pooltable", "pubtv", "pumps", "clothesrail", "shelves", "betscreens", "tree", "statue", "binbags", "aboard", "desk", "kitbench", "kitchen", "lockers", "dugout", "tvcamera", "stretcher", "cart",
   "shed", "skip", "parkedcar", "hamper", "medbed", "grate", "hatch", "scaffold", "piestand", "obtruck", "horsebox", "ladder", "kitbag", "canopy",
-  "roofvent", "gantry", "skylight", "foodkiosk", "condiments", "tvpost", "urinal", "sinks", "massage", "tactics", "icebath", "boots", "showers", "kitpegs", "cornerflag", "pubchair", "detector"] as const;
+  "roofvent", "gantry", "skylight", "foodkiosk", "condiments", "tvpost", "urinal", "sinks", "massage", "tactics", "icebath", "boots", "showers", "kitpegs", "cornerflag", "pubchair", "detector",
+  "kegs", "busstop", "manhole", "chippaper", "pigeons", "gritbin", "flagpole", "newsboard", "scarf", "doormat", "smokerbin"] as const;
 export type KitKey = (typeof KIT_KEYS)[number];
 /** Eight-way pictures (S, SE, E, NE, N, NW, W, SW in a row) for things that turn. */
 export const WORLD_8 = ["coach", "lorry"] as const;
@@ -29,6 +30,18 @@ export interface Placement {
   room?: string;
 }
 
+/** The PixelLab buildings: one picture each, roof above and front below, painted to the footprint.
+ *  `px`: art pixels per world pixel (the pub and hotel are drawn at half size and doubled). `sign`: the
+ *  blank fascia board in the picture (its own pixels), where the name is painted on. */
+export const BLD_ART: Record<string, { px: number; sign?: { x: number; y: number; w: number; h: number; fg: string; shadow?: string } }> = {
+  charity: { px: 1, sign: { x: 26, y: 281, w: 428, h: 40, fg: "#2f5d50", shadow: "rgba(0,0,0,0.25)" } },
+  surplus: { px: 1, sign: { x: 64, y: 259, w: 374, h: 40, fg: "#2f3d22", shadow: "rgba(0,0,0,0.25)" } },
+  bookies: { px: 1, sign: { x: 160, y: 288, w: 220, h: 24, fg: "#f2c94c", shadow: "rgba(0,0,0,0.5)" } },
+  pub: { px: 2, sign: { x: 26, y: 237, w: 274, h: 14, fg: "#e8c25a", shadow: "rgba(0,0,0,0.5)" } },
+  hotel: { px: 2, sign: { x: 108, y: 421, w: 80, h: 12, fg: "#f4f1ea", shadow: "rgba(0,0,0,0.5)" } },
+  cabin: { px: 1, sign: { x: 206, y: 230, w: 54, h: 32, fg: "#1c2a1c" } },
+};
+
 export class WorldArt {
   /** The drawn part of each picture (px): left, right and the bottom row. */
   base: Record<string, { foot: number; left: number; right: number }> = {};
@@ -37,6 +50,9 @@ export class WorldArt {
 
   static preload(scene: Phaser.Scene): void {
     for (const k of KIT_KEYS) scene.load.image(`k-${k}-src`, `kit/${k}.png`);
+    for (const k of Object.keys(BLD_ART)) scene.load.image(`w-bld-${k}`, `world/bld-${k}.png`);
+    for (const k of ["a", "b", "c"]) scene.load.image(`w-bay-${k}`, `world/bld-bay-${k}.png`);
+    for (const k of ["pub", "charity", "surplus", "bookies", "hotel"]) scene.load.image(`w-wall-${k}`, `world/bld-wall-${k}.png`);
     scene.load.spritesheet("w-coach8", "world/coach-8.png", { frameWidth: 160, frameHeight: 160 });
     scene.load.spritesheet("w-lorry8", "world/lorry-8.png", { frameWidth: 128, frameHeight: 128 });
     scene.load.spritesheet("w-bike8", "world/bike-8.png", { frameWidth: 64, frameHeight: 64 });
@@ -75,14 +91,14 @@ export function buildings(venue: Venue): BuildingSpec[] {
     { id: "pub", rect: r(-62.5, 61.5, -34, 80.5), height: 4.2, mat: "brick", roof: "slate", front: "pub", chimney: true,
       doors: [{ x0: -48, x1: -44, kind: "pub" }], sign: { text: "THE THREE LIONS", bg: 0x1c2440, fg: 0xf2c94c } },
     { id: "charity", rect: r(-18.5, 61.5, -3.5, 72.5), height: 3.6, mat: "stock", roof: "slate", front: "charity",
-      doors: [{ x0: -13, x1: -9, kind: "shop" }], sign: { text: "SECOND HAND ROSE", bg: 0x2f5d50, fg: 0xf4efe0 }, awning: [0x2f5d50, 0xe8e0c8] },
+      doors: [{ x0: -14.6, x1: -10.6, kind: "shop" }], sign: { text: "SECOND HAND ROSE", bg: 0x2f5d50, fg: 0xf4efe0 }, awning: [0x2f5d50, 0xe8e0c8] },
     { id: "surplus", rect: r(7.5, 61.5, 22.5, 72.5), height: 3.6, mat: "stock", roof: "slate", front: "surplus",
       doors: [{ x0: 13, x1: 17, kind: "shop" }], sign: { text: "ARMY & NAVY", bg: 0xd9cfa8, fg: 0x2f3d22 } },
     { id: "bookies", rect: r(27.5, 61.5, 44.5, 72.5), height: 3.6, mat: "render", roof: "felt", front: "bookies",
       doors: [{ x0: 34, x1: 38, kind: "glass" }], sign: { text: "LUCKY LIONEL'S", bg: 0x3d2a6b, fg: 0xf2c94c } },
     { id: "hotel", rect: r(73.5, -40.5, 92, -14), height: 7, mat: "render", roof: "felt", front: "hotel",
       doors: [{ x0: 80, x1: 84, kind: "glass" }], sign: { text: "TEAM HOTEL", bg: 0x22262c, fg: 0xf4f1ea } },
-    { id: "cabin", rect: r(76, 50, 88, 58), height: 2.8, mat: "cabin", roof: "ribbed", front: "cabin", doors: [] },
+    { id: "cabin", rect: r(76, 50, 88, 58), height: 2.8, mat: "cabin", roof: "ribbed", front: "cabin", doors: [], sign: { text: "STEWARDS", bg: 0xf4f4f4, fg: 0x1c2a1c } },
   ];
   const list = venue.features.fanZone ? out.filter((b) => b.id !== "pub") : out;
   if (venue.id === "sf") for (const b of list) {
@@ -109,6 +125,17 @@ export function placements(venue: Venue): Placement[] {
   for (let x = -84; x <= 84; x += 24) out.push({ id: `lamp${x}`, key: "lamppost", x, y: 83.7 });
   for (const [i, x, y] of [[0, -2, 73.5], [1, 23.6, 73.5], [2, -33, 81.7], [3, 45.6, 73.5]] as const) out.push({ id: `bin${i}`, key: "bin", x, y });
   for (const [i, x, y] of [[0, -28, 72], [1, -28, 77.5]] as const) out.push({ id: `bench${i}`, key: "bench", x, y });
+  // Street life, so every frontage tells you what it is and the pavements look walked on.
+  out.push(
+    { id: "kegs0", key: "kegs", x: -24.5, y: 78.6 }, { id: "smoker0", key: "smokerbin", x: -50.6, y: 81.4 }, { id: "smoker1", key: "smokerbin", x: 32.4, y: 73.6 },
+    { id: "busstop", key: "busstop", x: 12, y: 94.6 }, { id: "news0", key: "newsboard", x: -9.5, y: 58.4 }, { id: "news1", key: "newsboard", x: 25.5, y: 82.8 },
+    { id: "flagw", key: "flagpole", x: -40, y: 46.4 }, { id: "flage", key: "flagpole", x: 40, y: 46.4, flip: true }, { id: "grit0", key: "gritbin", x: 60.2, y: 82.8 },
+    { id: "pige0", key: "pigeons", x: -15, y: 55.5 }, { id: "pige1", key: "pigeons", x: 34, y: 58.2, flip: true }, { id: "pige2", key: "pigeons", x: -64, y: 12 },
+  );
+  for (const [i, x, y] of [[0, -46, 81.1], [1, -12.6, 73.1], [2, 15, 73.1], [3, 36, 73.1], [4, 82, -13.3]] as const) out.push({ id: `mat${i}`, key: "doormat", x, y, flat: true });
+  for (const [i, x, y] of [[0, 5, 55.8], [1, -38, 57.4], [2, 40, 79.4], [3, -66, 10], [4, 66.8, 20], [5, -20, 82.4]] as const) out.push({ id: `mhole${i}`, key: "manhole", x, y, flat: true });
+  for (const [i, x, y] of [[0, 43.5, 57.2], [1, -19.5, 58.6], [2, 9, 82.2], [3, -40.5, 83.3], [4, 49, 55.6], [5, -3, 48.2]] as const) out.push({ id: `chips${i}`, key: "chippaper", x, y, flat: true });
+  for (const [i, x, y] of [[0, -5.5, 47.6], [1, 28.5, 58.8], [2, -52, 82.5]] as const) out.push({ id: `scarf${i}`, key: "scarf", x, y, flat: true });
   // Floodlights at the four corners of the ground.
   for (const [i, x, y] of [[0, -54.5, 43.5], [1, 54, 43.5], [2, -54.5, -37], [3, 54, -37]] as const) out.push({ id: `flood${i}`, key: "floodlight", x, y });
   // Clutter: things nobody walks into. Crates and pallets against walls, cones on the service road,

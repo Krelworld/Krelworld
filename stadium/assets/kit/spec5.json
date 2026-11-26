@@ -1,0 +1,68 @@
+{
+ "kegs": {
+  "description": "a stack of four dented aluminium beer kegs outside a pub, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 56,
+  "h": 56,
+  "view": "low top-down"
+ },
+ "busstop": {
+  "description": "a British bus stop shelter, glass panels with a red roof and a timetable panel and a bench inside, graffiti scratched on the glass, realistic, muted natural colours, detailed pixel art, not cartoon",
+  "w": 112,
+  "h": 80,
+  "view": "low top-down"
+ },
+ "manhole": {
+  "description": "a round cast iron manhole cover set in the pavement seen from directly above, flat on the ground, realistic, detailed pixel art",
+  "w": 32,
+  "h": 32,
+  "view": "high top-down"
+ },
+ "chippaper": {
+  "description": "a crumpled greasy chip paper and a polystyrene kebab box dropped on the ground with a few chips spilled, seen from above, flat on the ground, realistic, detailed pixel art",
+  "w": 44,
+  "h": 32,
+  "view": "high top-down"
+ },
+ "scarf": {
+  "description": "a dropped white and red England football scarf lying crumpled on the ground, seen from above, flat, realistic, detailed pixel art",
+  "w": 44,
+  "h": 32,
+  "view": "high top-down"
+ },
+ "pigeons": {
+  "description": "a small group of four scruffy grey London pigeons pecking at the ground, realistic, detailed pixel art, not cartoon",
+  "w": 48,
+  "h": 32,
+  "view": "low top-down"
+ },
+ "doormat": {
+  "description": "a worn brown coir doormat on the ground seen from above, flat, realistic, detailed pixel art",
+  "w": 40,
+  "h": 32,
+  "view": "high top-down"
+ },
+ "gritbin": {
+  "description": "a yellow plastic council grit salt bin by the kerb, realistic, muted natural colours, detailed pixel art, not cartoon",
+  "w": 36,
+  "h": 36,
+  "view": "low top-down"
+ },
+ "smokerbin": {
+  "description": "a stainless steel pub smoking bin ashtray on a post, with fag butts around it, realistic, detailed pixel art, not cartoon",
+  "w": 32,
+  "h": 44,
+  "view": "low top-down"
+ },
+ "flagpole": {
+  "description": "a tall white flagpole flying an English St George cross flag, realistic, detailed pixel art, not cartoon",
+  "w": 40,
+  "h": 112,
+  "view": "low top-down"
+ },
+ "newsboard": {
+  "description": "a newsagent's street A-frame headline board with a newspaper poster, realistic, muted natural colours, detailed pixel art, not cartoon, no readable text",
+  "w": 32,
+  "h": 48,
+  "view": "low top-down"
+ }
+}

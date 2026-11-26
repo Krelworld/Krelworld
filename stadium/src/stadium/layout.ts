@@ -156,7 +156,7 @@ const QF_WALLS: Wall[] = [
   // Charity shop and army surplus: shopfronts on the road side, shopkeepers behind counters at the back.
   wall(-18.5, 61.5, -3.5, 62, 3, 0x6a5a4a, 0x8a7a6a),
   wall(-18.5, 62, -18, 72.5, 3, 0x6a5a4a, 0x8a7a6a), wall(-4, 62, -3.5, 72.5, 3, 0x6a5a4a, 0x8a7a6a),
-  wall(-18.5, 72, -13, 72.5, 3, 0x6a5a4a, 0x8a7a6a), wall(-9, 72, -3.5, 72.5, 3, 0x6a5a4a, 0x8a7a6a),
+  wall(-18.5, 72, -14.6, 72.5, 3, 0x6a5a4a, 0x8a7a6a), wall(-10.6, 72, -3.5, 72.5, 3, 0x6a5a4a, 0x8a7a6a),
   wall(-16, 68.6, -6, 69.4, 1.1, 0x5a4a30, 0x7a6a50),
   wall(7.5, 61.5, 22.5, 62, 3, 0x4d5640, 0x6d7660),
   wall(7.5, 62, 8, 72.5, 3, 0x4d5640, 0x6d7660), wall(22, 62, 22.5, 72.5, 3, 0x4d5640, 0x6d7660),
@@ -232,8 +232,8 @@ export const QF_FURNITURE: Furniture[] = [
   f("showers", 24.3, -59.4, 3.3, 0.3, false, "dress_away"),
   // The approach and the car park: a scaffold on the corner, a pie stand, the TV truck, parked cars, the horsebox.
   f("scaffold", 47.5, 46.4, 3.6, 1.2, true), f("ladder", -36, 45.4, 1, 0.3, false), f("kitbag", 57.8, 73.2, 1.4, 0.8, false), f("piestand", -40, 54.5, 3.2, 1.6, true),
-  f("obtruck", 33, 66.4, 6.8, 2.6, true), f("horsebox", 40, 81, 6.2, 2.4, true),
-  f("parkedcar", 31, 73, 4.6, 1.8, true), f("parkedcar", 36.5, 77.6, 4.6, 1.8, true), f("parkedcar", 57.2, 77.6, 4.6, 1.8, true),
+  f("obtruck", 52.5, 65.2, 6.8, 2.6, true), f("horsebox", 40, 81, 6.2, 2.4, true),
+  f("parkedcar", 47.6, 77.6, 4.6, 1.8, true), f("parkedcar", 36.5, 77.6, 4.6, 1.8, true), f("parkedcar", 57.2, 77.6, 4.6, 1.8, true),
   // The street: trees in grates along the approach, a statue, bin bags and pavement boards.
   ...[-45.5, -32.5, -19.5, 19.5, 32.5, 45.5].map((x) => f("tree", x, 59.4, 0.5, 0.5, true, undefined, 3)),
   f("statue", -44, 53.2, 1.3, 1.0, true, undefined, 3),

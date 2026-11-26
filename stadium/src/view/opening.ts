@@ -12,7 +12,7 @@ const DESK = { studio: 129, presser: 158 };
 const PRES = { studio: { feet: 0.63, scale: 2.5 }, presser: { feet: 0.76, scale: 2.8 } };
 const ROOM_SCALE = 1.8, ROOM_X = (W - 400 * ROOM_SCALE) / 2;
 const R = (x: number, y: number) => ({ x: ROOM_X + x * ROOM_SCALE, y: y * ROOM_SCALE });
-const LINES = ["n1", "n2", "s1", "s2", "s3", "n3", "g1", "g2", "k1", "k2", "k3", "g3", "w1", "g4", "w2", "g5", "w3", "k4", "k5", "k6", "g6"];
+const LINES = ["n1", "n2", "s1", "s2", "s3", "n3", "g1", "g2", "k1", "k2", "k3", "g3", "w1", "g4", "w2", "g5", "w3", "k4", "k5", "k6", "g6", "g7", "w4", "g8", "g9"];
 const SFX = ["sting", "tvsmash", "snap", "wail", "door", "pubcheer", "crisps"];
 const CAST = ["fan", "shezleigh", "grozzyjr", "screnton"];
 const ANIMS = ["walk", "idle", "punch", "cheer", "rage", "snap", "throw", "shout", "cry", "tug"];
@@ -64,6 +64,7 @@ class OpeningScene extends Phaser.Scene {
     for (const k of LINES) this.load.audio(`op_${k}`, `audio/op_${k}.mp3`);
     for (const k of SFX) this.load.audio(`op_${k}`, `audio/op_${k}.mp3`);
     this.load.audio("kaching", "audio/kaching.mp3");
+    for (const k of ["glass_smash", "chair_smash", "wall_crash", "punch"]) this.load.audio(k, `audio/${k}.mp3`);
     this.load.image("pint", "icons/pint_glass.png");
     for (const b of CAST) {
       this.load.spritesheet(`${b}-rot`, `art/${b}-rot.png`, { frameWidth: 88, frameHeight: 88 });
@@ -81,6 +82,30 @@ class OpeningScene extends Phaser.Scene {
   // ---------- helpers ----------
   mark(m: string) { (window as unknown as { __op?: string }).__op = m; if (location.search.includes("trace")) console.warn("op", m, Math.round(performance.now())); }
   wait(ms: number) { return new Promise<void>((r) => this.time.delayedCall(ms, r)); }
+  /** Something gets smashed: bits everywhere (some stay on the floor), a jolt, a flash, a crash. */
+  smash(at: { x: number; y: number }, cols: number[], sound: string, big = false) {
+    this.sfx(sound, 0.9);
+    if (this.cache.audio.exists("punch")) this.sound.play("punch", { volume: 0.6, rate: 0.7 });
+    this.cameras.main.shake(big ? 260 : 160, big ? 0.016 : 0.01);
+    const flash = this.add.rectangle(W / 2, H / 2, W, H, 0xffffff, 0.25).setDepth(3000);
+    this.tweens.add({ targets: flash, alpha: 0, duration: 140, onComplete: () => flash.destroy() });
+    // Splintered: a few dark cracks left behind.
+    const g = this.add.graphics().setDepth(60);
+    g.lineStyle(2, 0x0d0907, 0.9);
+    for (let i = 0; i < (big ? 7 : 4); i++) {
+      let x = at.x, y = at.y, a = Math.random() * Math.PI * 2;
+      g.beginPath(); g.moveTo(x, y);
+      for (let k = 0; k < 3; k++) { a += (Math.random() - 0.5) * 0.9; x += Math.cos(a) * (8 + Math.random() * 14); y += Math.sin(a) * (5 + Math.random() * 9); g.lineTo(x, y); }
+      g.strokePath();
+    }
+    for (let i = 0; i < (big ? 46 : 30); i++) {
+      const c = cols[i % cols.length], sz = 3 + Math.random() * (big ? 9 : 6);
+      const bit = this.add.rectangle(at.x, at.y, sz, sz * (0.4 + Math.random() * 0.8), c).setDepth(400).setAngle(Math.random() * 360);
+      const dx = (Math.random() - 0.5) * (big ? 300 : 200), land = at.y + 20 + Math.random() * 90;
+      this.tweens.add({ targets: bit, x: at.x + dx, angle: bit.angle + (Math.random() - 0.5) * 900, duration: 520 + Math.random() * 300, ease: "Quad.out" });
+      this.tweens.add({ targets: bit, y: { from: at.y, to: land }, duration: 520 + Math.random() * 300, ease: "Bounce.out" });
+    }
+  }
   sfx(k: string, vol = 1) { if (this.cache.audio.exists(`op_${k}`) || this.cache.audio.exists(k)) this.sound.play(this.cache.audio.exists(`op_${k}`) ? `op_${k}` : k, { volume: vol }); }
   /** A voiced line, with a bubble over whoever says it (or a subtitle on the telly). Resolves when it's said. */
   say(k: string, text: string, who: Person | null, opts: { gap?: number; sub?: boolean } = {}): Promise<void> {
@@ -312,23 +337,23 @@ class OpeningScene extends Phaser.Scene {
     await shez.walk(300, 135, 95);
     shez.face(DIR.W); shez.play("shout");
     grozz.face(DIR.E);
-    await this.say("w1", "Grozz! What the fuck have you done?! That was off Cash Converters!", shez);
+    await this.say("w1", "GROZZ! What the FUCK have you done?! That was off Cash Converters, you fat fucking CUNT!", shez);
     shez.face(DIR.W);
     grozz.play(grozz.has("rage") ? "rage" : "cheer");
-    await this.say("g4", "Shut your fucking mouth and get me a fucking drink! It's time for me to finally do something to fucking change history! I could be the chosen one! Watch how you fucking talk to me!", grozz);
+    await this.say("g4", "Shut your fucking mouth, you dopey fucking bint, and get me a fucking drink! It's time for me to finally do something to fucking change history! I could be the chosen one! Watch how you fucking talk to me!", grozz);
     grozz.face(DIR.E);
     shez.play("shout");
-    await this.say("w2", "Change history? You can't even afford a fucking ticket, you fat useless lump!", shez);
+    await this.say("w2", "Change history?! You can't even afford a fucking TICKET, you fat useless fucking cunt!", shez);
     shez.face(DIR.W);
     await grozz.walk(270, 138, 90);
     grozz.face(DIR.E);
-    await this.say("g5", "Then I'll take your fucking benefit money. Which I deserve anyway, for being a good dad.", grozz);
+    await this.say("g5", "Then I'll take your fucking benefit money, you fucking slag. Which I deserve anyway, for being a good dad.", grozz);
     grozz.play("punch", false, 12);
     this.sound.play("kaching");
     this.popup(grozz.sp.x, grozz.sp.y - 130, "+£40", "#f2c94c");
     await this.wait(500);
     shez.play("shout");
-    await this.say("w3", "That's me nails money! I'm getting me nails done Thursday! Grozz!", shez);
+    await this.say("w3", "That's me NAILS money! I'm getting me nails done Thursday! You fat... fucking... CUNT!", shez);
     // The kids, and one packet of crisps between them.
     jr.face(DIR.E); scr.face(DIR.W);
     const crisps = this.add.rectangle(R(142, 132).x, R(142, 132).y, 16, 20, 0xc8102e).setStrokeStyle(2, 0xf2c94c).setDepth(300);
@@ -343,6 +368,39 @@ class OpeningScene extends Phaser.Scene {
     crisps.destroy();
     grozz.face(DIR.S);
     await this.say("g6", "Right. I've fucking had enough.", grozz);
+    // And on the way out, he does the front room.
+    this.mark("smash");
+    const rage = () => grozz.play(grozz.has("rage") ? "rage" : "punch", false, 14);
+    rage();
+    await this.say("g7", "RAAAARGH!", grozz, { gap: 0 });
+    await grozz.walk(298, 172, 150);
+    grozz.face(DIR.E); grozz.play("punch", false, 14);
+    await this.wait(180);
+    this.smash(R(318, 182), [0x2a3f8a, 0xb8c0cc, 0x8a1010, 0xd9d9d9], "glass_smash");
+    await this.wait(350);
+    await grozz.walk(218, 168, 150);
+    grozz.face(DIR.S); grozz.play("punch", false, 14);
+    await this.wait(180);
+    this.smash(R(215, 205), [0x4a2a1a, 0x6b3e26, 0x2a1a12, 0x9a9a9a], "chair_smash", true);
+    jr.face(DIR.S); jr.play("cry"); scr.face(DIR.S); scr.play("cry"); this.sfx("wail", 0.7);
+    await this.wait(300);
+    await grozz.walk(210, 138, 150);
+    grozz.face(DIR.N); grozz.play("punch", false, 14);
+    await this.wait(180);
+    this.smash(R(210, 106), [0x3a2216, 0x5a3422, 0x111111, 0xc0c8d0], "wall_crash", true);
+    shez.face(DIR.W); shez.play("shout");
+    const scream = this.say("w4", "Not the fucking telly cabinet! You fat fucking CUNT! I'm ringing me mum! I'm ringing me MUM!", shez);
+    await this.wait(900);
+    grozz.play("punch", false, 14);
+    this.smash(R(240, 112), [0x3a2216, 0x111111, 0xc0c8d0], "glass_smash");
+    await scream;
+    await grozz.walk(330, 112, 120);
+    grozz.face(DIR.S);
+    await this.wait(400);
+    await this.say("g8", "You'll see...", grozz);
+    rage();
+    this.cameras.main.shake(300, 0.012);
+    await this.say("g9", "They'll all fucking SEE!", grozz);
     await grozz.walk(352, 96, 110);
     grozz.sp.setVisible(false);
     this.sfx("door");

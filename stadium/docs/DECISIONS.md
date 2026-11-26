@@ -625,3 +625,9 @@ From play on an iPhone: the take-down "didn't work" on ordinary fans, he got loc
 - **Walkie-talkies**: every steward carries one. Take it and, near a body: *"I've had to knock out a fan"* / *"I've had to kill a fan"*. Two stewards come from the back corridor, say they'll help cover it up, and take the body away; nobody raises the alarm, and the office door's held open. The clean-up crew never count as witnesses.
 - **Stamp on a head**: out cold or dead, it bursts: blood every way, bits, a pool, a crunch, Grozz has a word. Once per head.
 - **Memory, round two**: the source artwork stays as plain images and never goes to the graphics card, and outfits nobody has been drawn in for four seconds are let go and remade when they come back (60 MB allowance). After a tour of the whole map: 98 MB of pictures, down from 275.
+
+## Shezleigh's voice, the row, the front room, and a mouth on him
+
+- Shezleigh is now "Ruby B", an authentic Cockney London woman from the ElevenLabs voice library (library voices take no voice slot, so nothing was deleted), screeching, pitched up a semitone and made tinnier. She calls him a fat fucking cunt; he calls her a dopey fucking bint and a fucking slag.
+- On his way out he smashes up the front room: the cans, the coffee table, the telly cabinet. Bits everywhere, crashes, the kids crying, Shezleigh ringing her mum. Then at the door: "You'll see... They'll all fucking SEE!"
+- Grozz has 34 things to shout when he hits someone now (24 new, his own voice): "Take that, you cunt!", "Prick!", "Fuckin' 'ave it, you slag!", "Dopey cunt!", "That's for FIFA, you cunt!" and so on.

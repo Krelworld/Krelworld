@@ -762,3 +762,22 @@ A screenshot of the pub showed six speech bubbles, three rows of HUD (the speed 
   - Under it are the blow and the throw, with short labels ("Punch Kev", "Throw at Kev").
   - More, Phone and Bag are small utility buttons along the bottom.
   - The Bet button is gone: bet with the phone's betting app or at the bookies.
+
+## Side-on rooms: only where a side view is the better game
+
+**Verdict: side-on only for short linear passages.**
+- **Ordinary rooms: no.** Every room is a walkable space other people path through (stewards come in after you, fans queue at the bar), so it has to obey the same two-axis movement and map as everywhere else. Showing one room from the side would mean:
+  - squashing its depth into a strip;
+  - turning the joystick's up and down into nothing;
+  - making the radar and the doors disagree with what's on screen.
+- **Short linear passages: yes.** That's where games that mix the two do it well: Link's Awakening drops into side view for underground passages, and the cubicle close-up already works here.
+- **First case: the pub-cellar drain to the England dressing room.**
+  - It's now a side-on crawl through a Victorian brick sewer (hold Crawl).
+  - Rats come at you: tap one to boot it, or it bites and you stop.
+  - A long-dead fan in an '86 shirt is slumped against the wall with his wallet (£20, once).
+  - A ladder goes up through the shower grate.
+  - The world waits while you're down there. The simulation still moves you in one step, so routes, timings and tests are unchanged; the crawl is the view's.
+- **Other candidates if this lands:**
+  - the scaffold-and-roof run to the tunnel;
+  - the laundry hamper ride into the kit room;
+  - the inside of the beer lorry.

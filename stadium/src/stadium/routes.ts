@@ -32,6 +32,11 @@ export function installRoutes(): void {
       w.bus.emit({ type: "crawled", t: s.tick, by: actor.id, to: down ? "grate" : "cellar" });
     },
   });
+  // Down the drain there's a long-dead fan in an '86 shirt. His wallet's still in his pocket.
+  registerVerb("drainwallet", {
+    check: (w) => (w.state.stadium!.flags.drainWallet ? "already had it" : null),
+    perform: (w, _act, actor) => { w.state.stadium!.flags.drainWallet = 1; actor.money += 20; w.bus.emit({ type: "stole", t: w.state.tick, by: actor.id, from: "", what: "cash", amount: 20 }); },
+  });
   registerVerb("scaffold", {
     check: (_w, _act, actor) => (atScaffold(actor) ? null : "nothing to climb"),
     perform: (w, _act, actor) => {

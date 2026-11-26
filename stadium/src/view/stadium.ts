@@ -14,6 +14,7 @@ import type { TeamIdx } from "../football/types";
 import { playing } from "../football/util";
 import { Announcer } from "../stadium/announcer";
 import { isNaked } from "../stadium/naked";
+import { Drain } from "./drain";
 import { roofHeight, roofs } from "../stadium/roofs";
 import { RIFLE_RANGE, rifleOf, windowBroken, windows } from "../stadium/missiles";
 import { FIXES, fixesDone, isHint } from "../stadium/fixes";
@@ -523,6 +524,7 @@ class StadiumScene extends Phaser.Scene {
         // The long way round: a fade to black, the sound of it, and a caption.
         const f = $("fade"); f.classList.add("on"); setTimeout(() => f.classList.remove("on"), 700);
         if (e.type === "crawled") { a.play("drain", 1); this.startCine(2200, { zoomAdd: 1, caption: e.to === "grate" ? "Up through the shower drain" : "Back down the drain" }); }
+        if (e.type === "crawled" && e.by === pcId) this.startDrain();
         else if (e.type === "roof_run") { a.play("ladder", 1); this.startCine(2200, { zoomAdd: 1, caption: "Over the roof and down the tunnel ladder" }); }
         else { a.play("groan", 1); this.startCine(2600, { zoomAdd: 1, caption: "Stretchered to the medical room" }); }
         break;
@@ -1037,6 +1039,29 @@ class StadiumScene extends Phaser.Scene {
     $("fpBtn").classList.toggle("on", on);
     // In first person the button's the way back out; otherwise it lives in the menu.
     $("fpBtn").hidden = !on || this.scoped;
+  }
+
+  // ---------- The drain, side on ----------
+  drain: Drain | null = null;
+  drainFrom: number | null = null;
+  startDrain() {
+    if (!this.drain) this.drain = new Drain({
+      grozz: () => {
+        const pc = this.pc; if (!pc) return null;
+        const { base, rc } = this.spriteFor(pc), tk = `${this.bank.variant(base, rc)}-rot`;
+        if (!this.textures.exists(tk)) return null;
+        const fr = this.textures.getFrame(tk, dirIndex(0));
+        return { img: fr.source.image as CanvasImageSource, sx: fr.cutX, sy: fr.cutY, sw: fr.cutWidth, sh: fr.cutHeight, foot: feetOf(base) };
+      },
+      play: (c, v) => this.audio.play(c as Clip, v ?? 1, { minGap: 0.05 }),
+      bark: (t) => { const h = $("hint"); h.hidden = false; h.textContent = t; clearTimeout(this.hintTimer); this.hintTimer = window.setTimeout(() => { h.hidden = true; }, 1800); },
+      wallet: () => { dispatch(this.w, { verb: "drainwallet", actor: this.pc.id }); },
+      done: () => { if (this.drainFrom !== null) { this.setSpeed(this.drainFrom); this.drainFrom = null; } },
+    });
+    if (this.drain.open) return;
+    this.closeSheet(); this.closeRing();
+    this.drainFrom = this.speed || 1; this.setSpeed(0);
+    this.drain.start();
   }
 
   // ---------- The rifle ----------

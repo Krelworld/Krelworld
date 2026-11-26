@@ -230,3 +230,5 @@ To resume: `Workflow({scriptPath: "<script>", resumeFromRunId: "wf_574a5950-314"
 - Follow-up s4b (fight cluster right-edge grid, SPECIAL feedback, screen re-fit) done by an agent, all checks passed on s4b.
 - Pre-merged branch `final` (final-wt) = s4 2c6a8df3 + live 89c9143f + s4b -> e2a0646c, tsc + new tests OK.
 - When the gate passes: run mobile/work/fullcheck.sh on final-wt (once), then push `final` to live + alt build.
+
+## 23:21 UTC: STAGE 4 PUBLISHED. LIVE = 9f2f26fc (s4 2c6a8df3 gate PASS + live sound/nuke + s4b cluster/special/refit + smoke mix fix). Alt build triggered. Leftovers: N1-N3 750x340 layout nits (s4-05-gate.md), finisher SPARE over ACTION, wave2 smoke BONGO check stale.

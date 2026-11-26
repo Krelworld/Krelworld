@@ -130,6 +130,8 @@ export class PhoneMix {
   /** Connections redirected so far (for the smoke test). */
   readonly redirected: Record<string, number> = { master: 0, voice: 0 };
   private applied = "";
+  /** The slider gains last set (a gain's .value lags its glide, and an idle path's is not updated at all). */
+  private gains: MixGains | null = null;
   /** The mix's own connection to the speakers is being made (leave it alone). */
   private building = false;
 
@@ -219,7 +221,8 @@ export class PhoneMix {
     const key = `${st.master}|${st.music}|${st.sfx}|${st.voiceVolume}`;
     if (key === this.applied) return;
     this.applied = key;
-    setGains(gr, mixGains(st, this.plan));
+    this.gains = mixGains(st, this.plan);
+    setGains(gr, this.gains);
   }
 
   /** Where a routed song or slowed voice element's gain node goes (audio.ts). */
@@ -252,14 +255,15 @@ export class PhoneMix {
     return mixLine(this.plan, this.squeeze(), this.peak());
   }
 
-  /** For the smoke test: how the game's graph is wired and what the slider gains are now. */
+  /** For the smoke test: how the game's graph is wired and the slider gains it was last given. */
   report() {
     const gr = this.graph;
-    const v = (n: GainNode) => Math.round(n.gain.value * 1000) / 1000;
+    const k = this.gains;
+    const v = (n: number) => Math.round(n * 1000) / 1000;
     return {
       built: !!gr,
-      pre: gr ? { song: v(gr.entry.song), chip: v(gr.entry.chip), sfx: v(gr.entry.sfx), voice: v(gr.entry.voice) } : null,
-      post: gr ? { music: v(gr.post.music), sfx: v(gr.post.sfx), voice: v(gr.post.voice) } : null,
+      pre: gr && k ? { song: v(k.song.pre), chip: v(k.chip.pre), sfx: v(k.sfx.pre), voice: v(k.voice.pre) } : null,
+      post: gr && k ? { music: v(k.song.post), sfx: v(k.sfx.post), voice: v(k.voice.post) } : null,
       redirected: { ...this.redirected },
     };
   }

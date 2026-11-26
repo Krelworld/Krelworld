@@ -60,7 +60,11 @@ export const PHONE_MIX: PhoneMixPlan = {
   drive: { music: 1, sfx: 2, voice: 3 },
   // (sfx 1.1 -> 0.8, fight 1.3 -> 1.2: the user, after playing it: "Sound effects are now too loud"; about -2.8 dB
   // in town and -3.5 dB in fights, still well above the live build the user found "very quiet")
-  out: { music: 0.85, sfx: 0.8, voice: 1.15 },
+  // (music 0.85 -> 1.8: the user: "The music is still way too quiet". A song's element plays master x music, 0.4 at
+  // the defaults, which an iPhone used to ignore (it played songs at 100%); since stage 3 the volume is honoured, so the
+  // defaults sat about 9 dB under what the user was used to. 1.8 brings that back to about -3 dB; the song's gain is
+  // capped at 1 (MUSIC_CAP), so higher sliders reach full level and never drive the ceiling)
+  out: { music: 1.8, sfx: 0.8, voice: 1.15 },
   lowCut: 110,
   presence: { freq: 3000, gain: 3, q: 0.8 },
   comp: {
@@ -141,6 +145,10 @@ export function fightLevels(c: SceneLevels = {}): { sfx: number; music: number; 
   return { sfx: sc, music: bo, fight: sc < 1 || bo > 1 };
 }
 
+/** A song never plays above its own full level on a phone (the music trim is above 1). */
+export const MUSIC_CAP = 1;
+const capPost = (g: PathGains): PathGains => ({ pre: g.pre, post: Math.min(MUSIC_CAP, g.post) });
+
 /** Every slider-dependent gain of the mix (and the fight's, see PhoneMixPlan.fight). */
 export function mixGains(s: SoundSettings, plan: PhoneMixPlan = PHONE_MIX, scene: SceneLevels = {}): MixGains {
   const l = sliderLevels(s);
@@ -149,8 +157,8 @@ export function mixGains(s: SoundSettings, plan: PhoneMixPlan = PHONE_MIX, scene
   const fs = f.fight ? plan.fight.sfx : 1;
   return {
     // (the song element's level is clamped at 1 by the game: master x music x lift, at most 1; review R2)
-    song: pathGains(Math.min(1, l.music * f.music), l.music, plan.out.music * fm),
-    chip: pathGains(c01(s.music, 0.5) * f.music, l.music, plan.out.music * fm),
+    song: capPost(pathGains(Math.min(1, l.music * f.music), l.music, plan.out.music * fm)),
+    chip: capPost(pathGains(c01(s.music, 0.5) * f.music, l.music, plan.out.music * fm)),
     sfx: pathGains(c01(s.sfx, 0.8) * f.sfx, l.sfx, plan.out.sfx * fs),
     voice: pathGains(l.voice, l.voice, plan.out.voice),
   };

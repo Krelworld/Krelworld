@@ -1,16 +1,16 @@
 // Stage 3 wave 2, the phone's sound mix: the gain plan (mixLogic.ts). The graph itself is checked by the phone smoke
 // test's "platform" section and measured offline (report s3-08-sound.md).
 import { describe, expect, it } from "vitest";
-import { ceilingCurve, dbfs, fightLevels, MAX_PEAK, mixGains, mixLine, OFF, pathGains, PHONE_MIX, sliderLevels } from "../src/game/mobile/mixLogic";
+import { ceilingCurve, dbfs, fightLevels, MAX_PEAK, mixGains, mixLine, MUSIC_CAP, OFF, pathGains, PHONE_MIX, sliderLevels } from "../src/game/mobile/mixLogic";
 
 const DEFAULTS = { master: 0.8, music: 0.5, sfx: 0.8, voiceVolume: 0.8 };
 
 describe("phone mix: the plan", () => {
-  it("voices and effects are pushed harder than songs; songs sit a little lower than on a laptop", () => {
+  it("voices and effects are pushed harder than songs; songs get back the level an iPhone used to play them at", () => {
     expect(PHONE_MIX.drive.voice).toBeGreaterThan(1);
     expect(PHONE_MIX.drive.sfx).toBeGreaterThan(1);
-    expect(PHONE_MIX.out.music).toBeLessThan(1);
-    expect(PHONE_MIX.out.music).toBeGreaterThan(0.5);
+    expect(PHONE_MIX.out.music).toBeGreaterThan(1);
+    expect(PHONE_MIX.out.music).toBeLessThan(2.5);
     // the voice path ends louder than the music path relative to the laptop
     expect(PHONE_MIX.drive.voice * PHONE_MIX.out.voice).toBeGreaterThan(PHONE_MIX.drive.music * PHONE_MIX.out.music);
   });
@@ -176,5 +176,16 @@ describe("phone mix: a fight at high sliders (review R2)", () => {
     // at the defaults (0.8 x 0.5 x 1.35 = 0.54, no clamp) the lift is taken out exactly
     const dd = mixGains({ master: 0.8, music: 0.5 }, PHONE_MIX, { musicBoost: 1.35 });
     expect(0.54 * dd.song.pre).toBeCloseTo(1);
+  });
+});
+
+describe("phone mix: songs never above full level", () => {
+  it("the song and chip post gains are capped at MUSIC_CAP, and the defaults sit near full level", () => {
+    const max = mixGains({ master: 1, music: 1, sfx: 1, voiceVolume: 1 } as never);
+    expect(max.song.post).toBeLessThanOrEqual(MUSIC_CAP);
+    expect(max.chip.post).toBeLessThanOrEqual(MUSIC_CAP);
+    const def = mixGains({} as never);
+    expect(def.song.post).toBeGreaterThan(0.6);
+    expect(def.song.post).toBeLessThanOrEqual(MUSIC_CAP);
   });
 });

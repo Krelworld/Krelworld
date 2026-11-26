@@ -651,3 +651,9 @@ From play on an iPhone: the take-down "didn't work" on ordinary fans, he got loc
 - **Inside**: each enterable building shows a painted back wall (pub back-bar, charity shelves, surplus pegboard, bookies' screens, hotel reception).
 - **Street**: kerbs with a lit edge and a drop, double yellows, three zebra crossings with Belisha beacons, drains, gum, fag ends and cracks (thickest by the pub and turnstiles), a shadow along every frontage, a warm light pool at every public way in (purple at the bookies), and new props: kegs, smokers' bins, bus shelter, newsboards, flagpoles, grit bin, pigeons, doormats, manholes, chip papers, dropped scarves.
 - The OB truck, which had ended up inside the bookies, and a car parked across its door are now in the car park.
+
+## The person menu: a ring, not a list
+
+The tap-a-person menu was a full-screen list, several of its lines near enough the same thing (punch, haymaker, takedown). Phone games with lots of actions on one character mostly do one of two things: a ring of icon bubbles round the character, so the world stays visible (Sims Mobile and FreePlay), or one button that does the sensible thing with the variations behind a hold (GTA's weapon wheel, Don't Starve on phone). Hitman Sniper and GO offer one contextual action at a time.
+
+So: tap someone and a ring of icon buttons opens round them, following them as they move. Attack (big, red, at the bottom nearest your thumb) does the sensible blow: what's in your hand; a choke if he's turned away; else a punch. Hold it and the ring turns into the variations: punch, haymaker, choke, and a button for every weapon on you (glass, stab, chair, hit with). Then Talk, Pickpocket, Bribe, and Throw if you're holding something. Someone down gets Stamp, Search, Drag, Radio, and Face and Hands if you've a blade. Tap anywhere else to put it away. New PixelLab icons for each action.

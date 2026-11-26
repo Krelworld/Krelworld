@@ -69,6 +69,7 @@ interface TickerLine { text: string; src: string; big: boolean }
 /** A PixelLab picture of an item, if there is one. */
 const ICONS = new Set(["pint", "pie", "knife", "whistle", "ticket", "wallet", "laxative", "powder", "shirt_eng", "shirt_por", "shirt_bra", "shirt_arg", "police_uniform", "kit_eng", "kit_opp",
   "staff_pass", "radio", "hivis", "ref_kit", "police_hat", "mask", "flat_cap", "sunglasses", "moustache", "tracksuit", "chef_whites", "overalls", "balaclava", "hammer", "flare", "betslip", "face", "hands", "censored_bar", "wrench", "kit_card", "parachute", "mascot_suit", "press_pass", "bottle", "pint_glass", "chair", "corner_flag", "wig", "long_wig", "dress"]);
+interface RingItem { label: string; icon: string; kind: string; item?: string; arg?: string; main?: boolean; glyph?: string }
 const icon = (def: string) => (ICONS.has(def) ? `<img class="ico" src="${assetURL(`icons/${def}.png`)}" alt="" onerror="this.remove()">` : `<span class="ico none"></span>`);
 
 /** The main button's words: short enough for a thumb. The full sentence is still in More. */
@@ -2329,6 +2330,7 @@ class StadiumScene extends Phaser.Scene {
     if (st.detainedUntil) { eye.hidden = false; eye.textContent = `Detained · ${Math.ceil((st.detainedUntil - s.tick) / 60)}s`; eye.classList.add("hot"); }
     if (st.flags.heatMode === 3 && !pc.heldBy) { eye.hidden = false; eye.textContent = "Out of sight: stay hidden"; eye.classList.remove("hot"); }
     if (s.tick % 2 === 0) this.drawRadar();
+    this.placeRing();
     // The music follows how hot it is.
     if (s.tick % 20 === 0 && this.started && !st.ending) {
       const hm = st.flags.heatMode ?? 0;
@@ -2434,6 +2436,7 @@ class StadiumScene extends Phaser.Scene {
 
   // ---------- Sheets ----------
   sheet(kind: string, html: string) {
+    this.closeRing();
     const el = $("sheet");
     this.sheetKind = kind;
     el.innerHTML = html + `<button class="close" data-close="1">Close</button>`;
@@ -2515,34 +2518,99 @@ class StadiumScene extends Phaser.Scene {
   personItems: { label: string; kind: string; item?: string; arg?: string; id: string }[] = [];
 
   /** Tapped someone: everything you could do to them, whatever's in your pockets. Pick one and he walks over and does it. */
-  openPerson(id: string) {
+  /** Tapped someone: a ring of icon buttons round them. Attack does the sensible thing (what's in your
+   *  hand; a choke if he's turned away; else a punch); hold it for the variations: punch, haymaker,
+   *  takedown, any weapon in your pockets. Down people get pockets, drag, stamp, radio, knife work. */
+  ring: { id: string; items: RingItem[]; sub: boolean } | null = null;
+  openPerson(id: string, sub = false) {
     const s = this.s, pc = this.pc, a = s.actors[id];
     if (!a || !pc || !this.started) return;
-    const name = personName(a), down = incapacitated(this.w, a), out: typeof this.personItems = [];
-    const add = (label: string, kind: string, extra: { item?: string; arg?: string } = {}) => out.push({ label, kind, id, ...extra });
+    const down = incapacitated(this.w, a), out: RingItem[] = [];
     const n = a.npc, mine = [pc.hand, ...pc.pockets].filter((x): x is string => !!x).map((x) => s.items[x]).filter(Boolean);
-    if (!down) {
-      if (!a.fb) add(`Take ${name} down from behind`, "takedown");
-      add(`Punch ${name}`, "punch");
-      add(`Haymaker ${name}`, "haymaker");
-      for (const it of mine) {
-        if (!hasProp(it, "weapon")) continue;
-        const nm = itemName(it).toLowerCase();
-        add(hasProp(it, "sharp") ? `Stab ${name} (${nm})` : it.def === "bottle" || it.def === "pint_glass" ? `Glass ${name}` : it.def === "chair" ? `Chair ${name}` : `Hit ${name} with the ${nm}`, "weapon", { item: it.id });
-      }
-      if (pc.hand && (hasProp(s.items[pc.hand], "throwable") || defOf(s.items[pc.hand]).size === "small")) add(`Throw the ${itemName(s.items[pc.hand]).toLowerCase()} at ${name}`, "throw");
-      if (n && n.job !== "player" && n.job !== "official") add(`Talk to ${name}`, "talk");
-      if (n && n.job !== "player" && n.job !== "official" && !n.shop) add(`Pickpocket ${name}`, "pickpocket");
-      if (pc.money > 0) add(`Offer ${name} money`, "bribe");
+    const ico = (def: string) => (ICONS.has(def) ? assetURL(`icons/${def}.png`) : "");
+    const act = (k: string) => assetURL(`icons/act_${k}.png`);
+    if (sub) {
+      out.push({ label: "Punch", icon: act("attack"), kind: "punch" }, { label: "Haymaker", icon: act("haymaker"), kind: "haymaker" });
+      if (!a.fb) out.push({ label: "Choke", icon: act("takedown"), kind: "takedown" });
+      for (const it of mine) if (hasProp(it, "weapon")) out.push({ label: hasProp(it, "sharp") ? "Stab" : it.def === "bottle" || it.def === "pint_glass" ? "Glass" : it.def === "chair" ? "Chair" : itemName(it).split(" ").slice(-1)[0], icon: ico(it.def), kind: "weapon", item: it.id });
+      out.push({ label: "Back", icon: "", glyph: "‹", kind: "back" });
+    } else if (!down) {
+      out.push({ label: "Attack", icon: act("attack"), kind: "attack", main: true });
+      if (n && n.job !== "player" && n.job !== "official") out.push({ label: "Talk", icon: act("talk"), kind: "talk" });
+      if (n && n.job !== "player" && n.job !== "official" && !n.shop) out.push({ label: "Pickpocket", icon: act("pickpocket"), kind: "pickpocket" });
+      if (pc.money > 0) out.push({ label: "Bribe", icon: act("money"), kind: "bribe" });
+      if (pc.hand && (hasProp(s.items[pc.hand], "throwable") || defOf(s.items[pc.hand]).size === "small")) out.push({ label: "Throw", icon: act("throw"), kind: "throw" });
     } else {
-      add(`Go through ${name}'s pockets`, "loot");
-      add(`Drag ${name}`, "drag");
-      if (!a.splat) add(`Stamp on ${name}'s head`, "stamp");
-      if (hasRadio(this.w, pc)) add(`Radio it in: "I've had to ${a.dead ? "kill" : "knock out"} a fan"`, "radio");
-      if (a.dead && mine.some((it) => hasProp(it, "sharp"))) { add(`Cut off ${name}'s face`, "flay", { arg: "face" }); add(`Cut off ${name}'s hands`, "flay", { arg: "hands" }); }
+      if (!a.splat) out.push({ label: "Stamp", icon: act("stamp"), kind: "stamp", main: true });
+      out.push({ label: "Search", icon: act("search"), kind: "loot" }, { label: "Drag", icon: act("drag"), kind: "drag" });
+      if (hasRadio(this.w, pc)) out.push({ label: "Radio", icon: ico("radio"), kind: "radio" });
+      if (a.dead && mine.some((it) => hasProp(it, "sharp"))) out.push({ label: "Face", icon: ico("face"), kind: "flay", arg: "face" }, { label: "Hands", icon: ico("hands"), kind: "flay", arg: "hands" });
     }
-    this.personItems = out;
-    this.sheet("person", `<h2>${esc(name)}${a.dead ? " (dead)" : down ? " (out cold)" : ""}</h2><div class="list">${out.map((o, i) => `<button data-pm="${i}">${esc(o.label)}</button>`).join("")}</div>`);
+    this.closeRing();
+    this.ring = { id, items: out, sub };
+    const el = document.createElement("div"); el.id = "ring";
+    const who = document.createElement("div"); who.className = "who";
+    who.textContent = `${personName(a)}${a.dead ? " · dead" : down ? " · out cold" : ""}`;
+    el.appendChild(who);
+    out.forEach((it, i) => {
+      const b = document.createElement("button");
+      b.className = `rb${it.main ? " main" : ""}`;
+      b.innerHTML = `${it.icon ? `<img src="${it.icon}" alt="">` : `<b style="font:800 26px/1 var(--display);color:#fff">${it.glyph ?? "?"}</b>`}<span>${esc(it.label)}</span>`;
+      b.style.animationDelay = `${i * 18}ms`;
+      // A tap does it; holding the main Attack fans out the variations.
+      let held = 0, timer = 0;
+      b.addEventListener("pointerdown", (e) => {
+        e.stopPropagation();
+        held = performance.now();
+        if (it.kind === "attack") timer = window.setTimeout(() => { b.classList.add("charging"); this.audio.play("tap", 0.6); this.openPerson(id, true); }, 320);
+      });
+      b.addEventListener("pointerup", (e) => {
+        e.stopPropagation();
+        clearTimeout(timer);
+        if (!held || !this.ring || this.ring.id !== id || this.ring.items !== out) return;
+        held = 0;
+        this.audio.play("tap", 0.6);
+        if (it.kind === "back") { this.openPerson(id); return; }
+        this.closeRing();
+        this.choosePerson({ id, kind: it.kind === "attack" ? this.smartAttack(a).kind : it.kind, item: it.kind === "attack" ? this.smartAttack(a).item : it.item, arg: it.arg });
+      });
+      b.addEventListener("pointercancel", () => clearTimeout(timer));
+      el.appendChild(b);
+    });
+    $("app").appendChild(el);
+    this.placeRing();
+  }
+
+  /** The sensible blow: whatever's in your hand; a choke if he's turned away from you; else a punch. */
+  smartAttack(a: Actor): { kind: string; item?: string } {
+    const pc = this.pc, held = pc.hand ? this.s.items[pc.hand] : undefined;
+    if (held && hasProp(held, "weapon")) return { kind: "weapon", item: held.id };
+    const away = Math.cos(Math.atan2(pc.y - a.y, pc.x - a.x) - a.facing) < 0.25;
+    return { kind: !a.fb && away ? "takedown" : "punch" };
+  }
+
+  closeRing() { document.getElementById("ring")?.remove(); this.ring = null; }
+
+  /** Keep the ring round them as they move (and on screen). */
+  placeRing() {
+    const r = this.ring, el = document.getElementById("ring");
+    if (!r || !el) return;
+    const a = this.s.actors[r.id];
+    if (!a || a.hiddenIn) { this.closeRing(); return; }
+    const cam = this.cameras.main, P = this.P, rect = this.game.canvas.getBoundingClientRect();
+    let x = rect.left + ((P.sx(a.x, a.y) - cam.worldView.x) * cam.zoom) / DPR;
+    let y = rect.top + ((P.sy(a.x, a.y) - P.S * 0.9 - cam.worldView.y) * cam.zoom) / DPR;
+    const n = r.items.length, rad = n > 5 ? 86 : 76;
+    x = Math.max(rad + 34, Math.min(window.innerWidth - rad - 34, x));
+    y = Math.max(rad + 70, Math.min(window.innerHeight - rad - 40, y));
+    const kids = el.querySelectorAll<HTMLElement>(".rb");
+    kids.forEach((b, i) => {
+      // Spread round the circle from the top; the main one sits at the bottom, nearest your thumb.
+      const ang = n === 1 ? Math.PI / 2 : Math.PI / 2 + (i / n) * Math.PI * 2;
+      b.style.left = `${Math.round(x + Math.cos(ang) * rad)}px`; b.style.top = `${Math.round(y + Math.sin(ang) * rad)}px`;
+    });
+    const who = el.querySelector<HTMLElement>(".who")!;
+    who.style.left = `${Math.round(x)}px`; who.style.top = `${Math.round(y - rad - 34)}px`;
   }
 
   choosePerson(m: { kind: string; item?: string; arg?: string; id: string }) {
@@ -2870,6 +2938,8 @@ class StadiumScene extends Phaser.Scene {
     const canvas = this.game.canvas;
     canvas.addEventListener("pointerdown", (e) => {
       if (!this.started) return;
+      // Any other tap puts the ring away (a tap on someone opens theirs instead).
+      this.closeRing();
       const rect = canvas.getBoundingClientRect();
       const x = e.clientX - rect.left, y = e.clientY - rect.top;
       if (x < rect.width * 0.45 && this.joyId === -1) {

@@ -1,0 +1,12 @@
+{
+ "act_attack": {"description": "a clenched fist punching forward, single item icon, bold, detailed pixel art, game UI icon", "w": 48, "h": 48, "view": "low top-down"},
+ "act_haymaker": {"description": "a huge wind-up fist with motion speed lines and an impact star, single item icon, bold, detailed pixel art, game UI icon", "w": 48, "h": 48, "view": "low top-down"},
+ "act_takedown": {"description": "a muscular arm wrapped round a neck in a chokehold from behind, single item icon, bold, detailed pixel art, game UI icon", "w": 48, "h": 48, "view": "low top-down"},
+ "act_talk": {"description": "a white comic speech bubble with three dots, single item icon, bold, detailed pixel art, game UI icon", "w": 48, "h": 48, "view": "low top-down"},
+ "act_pickpocket": {"description": "a sneaky hand pulling a brown leather wallet out of a jeans back pocket, single item icon, detailed pixel art, game UI icon", "w": 48, "h": 48, "view": "low top-down"},
+ "act_money": {"description": "a fan of folded British pound banknotes, single item icon, detailed pixel art, game UI icon", "w": 48, "h": 48, "view": "low top-down"},
+ "act_search": {"description": "a hand rummaging in an open jacket pocket with a magnifying glass, single item icon, detailed pixel art, game UI icon", "w": 48, "h": 48, "view": "low top-down"},
+ "act_drag": {"description": "a hand gripping a trainer by the ankle, dragging, single item icon, detailed pixel art, game UI icon", "w": 48, "h": 48, "view": "low top-down"},
+ "act_stamp": {"description": "the sole of a heavy work boot stamping down with a red splat, single item icon, bold, detailed pixel art, game UI icon", "w": 48, "h": 48, "view": "low top-down"},
+ "act_throw": {"description": "a hand throwing a glass bottle with a curved motion arrow, single item icon, detailed pixel art, game UI icon", "w": 48, "h": 48, "view": "low top-down"}
+}

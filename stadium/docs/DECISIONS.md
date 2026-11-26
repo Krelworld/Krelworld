@@ -597,3 +597,12 @@ start-up behind a progress bar and answers its own requests from memory: Phaser'
 the sound loader (fetch) and the HTML icons (blob URLs). The published page is now six files, so
 there's no limit to worry about. Loose files still exist for local development. The bundles are
 named .pack.mp3 only because the host serves a fixed list of file types; they're raw bytes.
+
+## Hosting: its own GitHub repo
+
+The game lives on its own at https://krelworld.github.io/Glory-Quest/, deployed from the
+Krelworld/Glory-Quest repo by its own Pages workflow, so it can never affect the Krelworld site
+or the other games. That repo only holds the built game (`site/`: the page, the code, the asset
+packs). To update it: `node build.mjs` in stadium/, then `tools/deploy-repo.sh <clone of
+Glory-Quest>`; the push redeploys the site in about a minute. The match intro card now starts
+hidden, so nothing stale shows while the packs download.

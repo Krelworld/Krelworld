@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Put the built game in its own repo (Krelworld/glory-quest), which deploys itself to
-# https://krelworld.github.io/glory-quest/ and touches nothing else.
+# Put the built game in its own repo (Krelworld/Glory-Quest), which deploys itself to
+# https://krelworld.github.io/Glory-Quest/ and touches nothing else.
 # Usage, from stadium/ after `node build.mjs`:  tools/deploy-repo.sh /path/to/knockout-day-clone
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -10,15 +10,13 @@ rm -rf "$SITE"; mkdir -p "$SITE" "$REPO/.github/workflows"
 cp tools/site/pages.yml "$REPO/.github/workflows/pages.yml"
 cp dist/stadium/local.html "$SITE/index.html"
 cp dist/stadium/game.js "$SITE/"
-for d in art audio icons kit tiles scenes world; do
-  mkdir -p "$SITE/$d"
-  find "dist/stadium/$d" -maxdepth 1 \( -name '*.png' -o -name '*.mp3' \) -exec cp {} "$SITE/$d/" \;
-done
+# The assets as three bundles plus an index: one download with a progress bar.
+cp -r dist/stadium/packs "$SITE/packs"
 touch "$SITE/.nojekyll"
 cat > "$REPO/README.md" <<'MD'
 # Knockout Day
 
-A darkly comic football-day sandbox. Play it at https://krelworld.github.io/glory-quest/
+A darkly comic football-day sandbox. Play it at https://krelworld.github.io/Glory-Quest/
 
 This repo only holds the built game in `site/`; the source is in `stadium/` on the
 `claude/determined-lamport-hhdywr` branch of Krelworld/Krelworld, deployed here by
@@ -30,4 +28,4 @@ git diff --cached --quiet && { echo "nothing changed"; exit 0; }
 git commit -q -m "Deploy Knockout Day build${DEPLOY_TRAILER:+
 
 $DEPLOY_TRAILER}"
-git push -q -u origin HEAD:main && echo "pushed: https://krelworld.github.io/glory-quest/"
+git push -q -u origin HEAD:main && echo "pushed: https://krelworld.github.io/Glory-Quest/"

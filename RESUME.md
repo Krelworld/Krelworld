@@ -223,3 +223,10 @@ To resume: `Workflow({scriptPath: "<script>", resumeFromRunId: "wf_574a5950-314"
 - Child session still doing branches cut-flashbacks (204e0f0, fingerprints pending) and music-gaps; merge + publish them when reported (re-record baselines in one separate commit only if differences are that feature).
 - STAGE 4 workflow wf_27552fbe-01e (task wrd6hk2ic), script mobile/work/s4.js, worktree s4-wt branch s4. QA x3 -> fix -> gate (up to 3 rounds). On pass: push s4 to live, trigger alt build.
 - Cleaned merged worktrees (disk was 1 GB free; now 8 GB).
+
+## 21:15 UTC
+- LIVE = 89c9143f (mixdown 8c6428cc sfx -3 dB, 00de38d4 music back up, 89c9143f nuke animation).
+- s4 gate round 1 running (wf_27552fbe-01e) on s4 head 2c6a8df3.
+- Follow-up s4b (fight cluster right-edge grid, SPECIAL feedback, screen re-fit) done by an agent, all checks passed on s4b.
+- Pre-merged branch `final` (final-wt) = s4 2c6a8df3 + live 89c9143f + s4b -> e2a0646c, tsc + new tests OK.
+- When the gate passes: run mobile/work/fullcheck.sh on final-wt (once), then push `final` to live + alt build.

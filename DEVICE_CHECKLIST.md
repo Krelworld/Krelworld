@@ -70,12 +70,20 @@ Take a screenshot of the box at the start, at home, and in town (Krelford).
    **INSTALL** button, or written steps? Either is fine: tell us which.
 3. **Install it** (INSTALL, or the steps). Open it from the Home Screen: full screen, sideways? Any save you made in
    Chrome should still be there (CONTINUE on the title).
-4. **Back gesture**: swipe in from the side (or press Back). The game should pause, not close.
+4. **Back gesture**: swipe in from the side (or press Back). The game should pause, not close. Swipe again: the pause
+   menu closes and the game carries on (it should never leave the game). During a TV show, Back switches the telly off.
 5. **Vibration**: tap the action button bottom right when it appears. Do you feel a tiny buzz?
 6. **Play for ten minutes** as on the iPhone (home, telly, town). Any reload by itself? Hot? Stuttering?
 7. If you leave full screen (swipe down from the top), a small square button should appear top right to go back in.
 
 ## Extra, if you have time
+
+- **The posse** (stage 4): after Chapter 1, walking round town, a lad may say "Let's beat up ...". Follow the arrow;
+  at the victim, three big buttons show (SHOVE left, PUNCH and KICK right). Tap the one that glows. Does it feel fair?
+  The two bars (top right) pause it.
+- **The Wonk-Off** (the Club): it should wait under a "WONK-OFF / Tap to start" card, not start under your last tap.
+- **Silent switch, older iPhones (iOS 16)**: with the ringer switch on silent, do you hear the game's sound effects?
+  (We could not test this without a device: tell us yes or no, and your iOS version.)
 
 - **From a chat app**: send yourself the link in Instagram, Messenger or WhatsApp and open it there. The box should say
   "Open KRELWORLD in Safari first" (or Chrome). Try the COPY LINK button. Screenshot it.

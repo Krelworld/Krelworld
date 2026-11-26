@@ -781,3 +781,10 @@ A screenshot of the pub showed six speech bubbles, three rows of HUD (the speed 
   - the scaffold-and-roof run to the tunnel;
   - the laundry hamper ride into the kit room;
   - the inside of the beer lorry.
+
+**Detention, side on.** Being held in the security office is now a side-on scene: you're on a plastic chair, the head of security is by his desk under the CCTV, the door is behind him, and a clock runs down to the police (or to being thrown out).
+- **The choices:**
+  - **Bribe him:** up to £60, and he might take it.
+  - **Talk:** one sob story per detention; a 30% chance he lets you go if the police haven't been called, and a put-down otherwise.
+  - **Get up:** back to the office top down, to try it the hard way (the door, the walkie, or him).
+- **The office itself stays top down,** because people walk in and out of it and you can break into it. The scene is only for the moment you're sat still facing one man. The world carries on underneath, so the clock is real.

@@ -38,6 +38,8 @@ export const SHOPS: Record<string, { name: string; stock: Record<string, number>
 };
 
 const near = (a: Actor, b: { x: number; y: number }, r: number) => Math.hypot(a.x - b.x, a.y - b.y) <= r;
+/** Held in the security office, the chief's always within earshot. */
+const heldBy = (w: World, a: Actor, t: Actor) => !!w.state.stadium!.detainedUntil && a.id === w.state.stadium!.pc && t.npc?.job === "chief" && Math.hypot(a.x - t.x, a.y - t.y) < 12;
 const targetActor = (w: World, act: Action) => (act.target?.k === "actor" ? w.state.actors[act.target.id] : undefined);
 const targetItem = (w: World, act: Action) => (act.target?.k === "item" ? w.state.items[act.target.id] : undefined);
 
@@ -96,9 +98,21 @@ export function installRules(): void {
   });
 
   registerVerb("talk", {
-    check: (w, act, actor) => { const t = targetActor(w, act); return t?.npc && near(actor, t, 3.6) ? null : "nobody to talk to"; },
+    check: (w, act, actor) => { const t = targetActor(w, act); return t?.npc && (near(actor, t, 3.6) || heldBy(w, actor, t)) ? null : "nobody to talk to"; },
     perform: (w, act, actor) => {
       const t = targetActor(w, act)!, n = t.npc!;
+      // Held in his office: a sob story. Once. He might just be sick of the sight of you.
+      const st0 = w.state.stadium!;
+      if (n.job === "chief" && st0.detainedUntil && actor.id === st0.pc) {
+        if (st0.flags.sobStory) { say(w, t, pick(w.state.rng.world, ["Heard it.", "Save it for the magistrate.", "No."]), 3); return; }
+        st0.flags.sobStory = 1;
+        if (!st0.policeCalled && chance(w.state.rng.world, 0.3)) {
+          say(w, t, "...Oh, for God's sake. Go on. Get out of my sight before I change my mind.", 4);
+          st0.detainedUntil = 0; st0.gates.officedoor = { until: w.state.tick + 600, for: actor.id };
+          w.bus.emit({ type: "released", t: w.state.tick, who: actor.id });
+        } else say(w, t, pick(w.state.rng.world, ["Your nan's not ill. Sit down.", "Crying won't help. It's making it worse, if anything.", "That's the third dead grandad today."]), 4);
+        return;
+      }
       // Fans and locals: a proper exchange. Anyone with their own story (the dog's owner, say) tells it first.
       const own = n.lines?.length && n.lines !== STAFF_LINES.local && n.lines !== FAN_POOL && (n.said ?? 0) < n.lines.length;
       if ((n.job === "fan" || n.job === "local") && !n.shop && !own) { talkTo(w, actor, t); n.nextBark = w.state.tick + 300; return; }
@@ -118,7 +132,7 @@ export function installRules(): void {
     check: (w, act, actor) => {
       const t = targetActor(w, act);
       if (!t || (!t.npc && !t.fb && !t.off)) return "nobody to bribe";
-      if (!near(actor, t, 2.2)) return "too far";
+      if (!near(actor, t, 2.2) && !heldBy(w, actor, t)) return "too far";
       if ((act.amount ?? 0) <= 0 || actor.money < (act.amount ?? 0)) return "not enough money";
       return null;
     },

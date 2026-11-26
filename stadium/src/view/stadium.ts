@@ -15,6 +15,7 @@ import { playing } from "../football/util";
 import { Announcer } from "../stadium/announcer";
 import { isNaked } from "../stadium/naked";
 import { Drain } from "./drain";
+import { Detain } from "./detain";
 import { roofHeight, roofs } from "../stadium/roofs";
 import { RIFLE_RANGE, rifleOf, windowBroken, windows } from "../stadium/missiles";
 import { FIXES, fixesDone, isHint } from "../stadium/fixes";
@@ -241,6 +242,7 @@ class StadiumScene extends Phaser.Scene {
         if (a && Math.hypot(a.x - this.pc.x, a.y - this.pc.y) < 5.5 && e.text.length > 12 && !this.log.some((l) => l.text === e.text)) this.say(e.text, a.name, false, false);
       }
       if (e.type === "action_failed" && e.action.actor === this.s.stadium!.pc) this.hint(e.reason);
+      if (e.type === "say" && this.detain?.open && this.s.actors[e.by]?.npc?.job === "chief") this.detain.line(e.text);
       if (e.type === "action" && e.action.actor === this.s.stadium!.pc && (e.action.verb === "talk" || e.action.verb === "threaten" || e.action.verb === "bribe") && e.action.target?.k === "actor") this.talkedTo = { id: e.action.target.id, at: performance.now() };
       if (e.type === "fb_goal" || e.type === "caught" || e.type === "fb_foul" && e.penalty) this.setSpeed(1);
       if (e.type === "fb_goal") { this.crowdJump = 120 * (e.team === 0 ? 1 : -1); this.crowdUpUntil = performance.now() + 6000; this.crowdUpSide = e.team === 0 ? "home" : "away"; }
@@ -1011,6 +1013,7 @@ class StadiumScene extends Phaser.Scene {
       const slow = now < this.reflexUntil ? 0.22 : now < this.slowUntil ? 0.3 : eye ? 0.2 : 1;
       if (performance.now() >= this.hitStopUntil) this.stepper.advance((dms * slow) / 1000, () => { stepGame(this.game2); ann.tick(); this.applyInput(); }, 24);
     }
+    this.updateDetain();
     if (st.ending && $("ending").hidden && !this.endingShown) { this.endingShown = true; this.showEnding(); }
     if (!st.ending) this.endingShown = false;
     this.draw(dms);
@@ -1039,6 +1042,36 @@ class StadiumScene extends Phaser.Scene {
     $("fpBtn").classList.toggle("on", on);
     // In first person the button's the way back out; otherwise it lives in the menu.
     $("fpBtn").hidden = !on || this.scoped;
+  }
+
+  // ---------- Held in the security office, side on ----------
+  detain: Detain | null = null;
+  chiefActor(): Actor | undefined { return Object.values(this.s.actors).find((a) => a.npc?.job === "chief"); }
+  updateDetain() {
+    const st = this.s.stadium!;
+    if (!st.detainedUntil && !this.detain) return;
+    if (!this.detain) this.detain = new Detain({
+      figure: (who, right) => {
+        const a = who === "pc" ? this.pc : this.chiefActor(); if (!a) return null;
+        const { base, rc } = this.spriteFor(a), tk = `${this.bank.variant(base, rc)}-rot`;
+        if (!this.textures.exists(tk)) return null;
+        const fr = this.textures.getFrame(tk, dirIndex(right ? 0 : Math.PI));
+        return { img: fr.source.image as CanvasImageSource, sx: fr.cutX, sy: fr.cutY, sw: fr.cutWidth, sh: fr.cutHeight, foot: feetOf(base) };
+      },
+      state: () => {
+        const s = this.s, st2 = s.stadium!, ch = this.chiefActor();
+        return { held: !!st2.detainedUntil && !st2.ending, left: Math.max(0, (st2.detainedUntil - s.tick) / 60), police: !!st2.policeCalled, chief: ch ? personName(ch) : "Security", chiefUp: !!ch && !ch.dead && ch.downUntil <= s.tick && !ch.hiddenIn, money: this.pc.money };
+      },
+      bribe: () => {
+        const ch = this.chiefActor(); if (!ch) return;
+        const amount = Math.min(this.pc.money, 60);
+        const r = dispatch(this.w, { verb: "bribe", actor: this.pc.id, target: { k: "actor", id: ch.id }, amount });
+        if (!r.ok) this.detain?.line(r.reason === "too far" ? "Come here and say that." : r.reason ?? "No.");
+      },
+      talk: () => { const ch = this.chiefActor(); if (ch) { const r = dispatch(this.w, { verb: "talk", actor: this.pc.id, target: { k: "actor", id: ch.id } }); if (!r.ok) this.detain?.line("I'm not talking to you from there."); } },
+      getUp: () => this.hint("Up you get. He's watching the door."),
+    });
+    this.detain.update();
   }
 
   // ---------- The drain, side on ----------

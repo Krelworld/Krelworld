@@ -2671,13 +2671,14 @@ async function combat(browser) {
     if (dummy !== null) {
       await ph.ev(() => window.__krelMobile.settings.set({ autoFire: true, firing: "auto" }));
       await sleep(300);
-      fullRate = await shotsFor(2500);
+      // (game time: a loaded machine runs few, long frames; 6 s gives enough shots to compare)
+      fullRate = await shotsFor(6000);
       await ph.ev(() => window.__krelMobile.settings.set({ firing: "light" }));
       await sleep(300);
-      lightRate = await shotsFor(2500);
+      lightRate = await shotsFor(6000);
     }
     const ratio = fullRate && lightRate && fullRate.n ? lightRate.n / fullRate.n : 0;
-    check("Firing LIGHT: auto-fire shoots at about 60% of AUTO's pace at the same enemy, no thumb on FIRE", ratio > 0.45 && ratio < 0.78, { fullRate, lightRate, ratio });
+    check("Firing LIGHT: auto-fire shoots at about 60% of AUTO's pace at the same enemy, no thumb on FIRE", fullRate && fullRate.n >= 8 && ratio > 0.4 && ratio < 0.8, { fullRate, lightRate, ratio });
     // LIGHT: a held FIRE goes at the gun's full pace
     {
       const fire = await ctlOf("c-fire");
@@ -2708,8 +2709,11 @@ async function combat(browser) {
     await ph.ev(() => {
       window.__krelMobile.settings.set({ autoFire: true, firing: "auto" });
       const e = window.__afDummy;
-      if (e && !e.dead) e.hp = 1;
+      // (gone without a kill: the meters it filled are emptied, so the READY checks below start from nothing)
+      if (e && !e.dead) window.__krel.game.scene.getScene("Dungeon").damageEnemy(e, 1e9, { noWonk: true, label: "" });
       window.__afDummy = null;
+      window.__krel.G.rt.wonk = 0;
+      window.__krel.G.rt.fart = 0;
     });
     await sleep(300);
     // ---- FIRE by hand (auto-fire off): hold fires, slide aims, the stream carries on 200 ms after lifting

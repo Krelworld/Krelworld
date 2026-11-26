@@ -156,7 +156,7 @@ export class DiagOverlay {
   private audioLines(): string[] {
     const a = this.extras.audio?.();
     if (!a) return [];
-    return [`sound route ${a.route} · session ${a.session} · playing: music ${a.music}, voice ${a.voice}, loops ${a.loops}`, `last resume: ${a.lastResume} (${a.resumes} so far)${a.doubles ? ` · doubled songs stopped ${a.doubles}` : ""}`];
+    return [`sound route ${a.route} · session ${a.session} · playing: music ${a.music}, voice ${a.voice}, loops ${a.loops}`, `last resume: ${a.lastResume} (${a.resumes} so far)${a.doubles ? ` · doubled songs stopped ${a.doubles}` : ""}`, a.mix];
   }
 
   private moreLines(): string[] {

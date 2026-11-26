@@ -102,6 +102,13 @@ export const TOUCH_WORDING: WordingRule[] = [
   // (and shorter, so it fits left of the coin counter at the phone's text size: P14)
   { id: "rack-order", re: /^Drag to set your order \(or ▲▼\)\. #1 is what you start a dungeon holding;/, to: "Drag to order (or ▲▼). #1 is what you start with;" },
   { id: "rack-keys", re: /^↑↓ pick · SHIFT\+↑↓ move · B buy ammo(?: · )?/, to: "" },
+  // the raid's objective line (HUD): "(HOLD attack to spray chemical fire)", "(hold attack)": the phone's button is FIRE
+  // (only these HUD endings: takeon.ts's narrator line "SHOOT (hold attack). Walk EAST..." stays as it is)
+  { id: "raid-hold", re: /(All of them\. \(hold|\(HOLD) attack( to spray chemical fire)?\)$/, to: "$1 FIRE$2)" },
+  // the rout's objective: "▶ EAST! Take Kreddle! (hold attack to shoot)"
+  { id: "rout-hold", re: /^(▶ EAST! Take Kreddle! \(hold) attack to shoot\)$/, to: "$1 FIRE to shoot)" },
+  // Night of Freedom's HUD: "SLOPPY 100% — R!" (R lets Sloppy loose; on a phone it's the SLOPPY button)
+  { id: "drive-sloppy", re: /(SLOPPY \d+%) — R!$/, to: "$1 — tap SLOPPY!" },
   // the Lair: "Esc: skip scene" (the label is a button on a phone: screens.ts)
   { id: "lair-skip", re: /^Esc: skip scene$/, to: "SKIP SCENE ▸▸" },
   // the Kreddle Exchange: "Drinking pussy juice (Q) knocks everything around you flying." (HEAL drinks it on a phone)

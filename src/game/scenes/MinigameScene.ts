@@ -23,6 +23,8 @@ import { runescape } from "./minigame/runescape";
 import { isAlt } from "../variant";
 import { BOOTH_NAME, boothTarget } from "../systems/sanmik";
 import { BOOTH_ALT } from "../../content/alt";
+import { isMobile } from "../mobile/flag";
+import { phoneHooks } from "../mobile/boot";
 
 const MIKEY_BARKS = [
   "Mikey here.",
@@ -219,7 +221,7 @@ export class MinigameScene extends Phaser.Scene {
     let hits = 0;
     const firstTime = !G.s.flags.mg_bully_won;
     const timeLimit = 20;
-    const end = this.time.now + timeLimit * 1000;
+    let end = this.time.now + timeLimit * 1000;
     if (alt) this.box.play([alt.intro, alt.barks[0]]);
     else this.box.play([dir(proxy ? "Mikey is busy (being you). Proctus has been asked to stand in. Proctus did not agree to this." : "The Booth. Mikey has been strung up as a heavy bag. He seems fine with it. He is never fine with it."), say(target, barks[0])]);
     const swing = () => {
@@ -254,6 +256,8 @@ export class MinigameScene extends Phaser.Scene {
       delay: 200,
       loop: true,
       callback: () => {
+        // PHONE MODE: the clock waits while the intro is on screen (hits are refused then; reading-size boxes page)
+        if (isMobile() && this.box.active && !this.ended) end += 200;
         const left = Math.max(0, Math.ceil((end - this.time.now) / 1000));
         this.hud.setText(`TIME ${left}s   HITS ${hits}`);
         if (left <= 0 && !this.ended && alt) this.finish(false, [dir(`Time. You are still frustrated. ${altName} looks smug, which somehow makes it worse.`), alt.barks[alt.barks.length - 1]]);
@@ -1027,7 +1031,7 @@ export class MinigameScene extends Phaser.Scene {
       if (this.ended || this.box.active || !live) return;
       const n = nextNote();
       if (!n) return;
-      const err = (now() - n.t) / 1000;
+      const err = (now() - n.t) / 1000 - (isMobile() ? (phoneHooks()?.rhythmLag?.() ?? 0) : 0);
       if (err < -0.32) return;
       const d = want === "auto" ? n.dir : want;
       if (d !== n.dir) return judge(n, "miss", err, d === "down" ? "WRONG WAY: UP!" : "WRONG WAY: DOWN!");
@@ -1895,7 +1899,7 @@ export class MinigameScene extends Phaser.Scene {
     };
     const judge = (k: "L" | "R" | "C") => {
       if (this.ended || this.box.active) return;
-      const t = songT();
+      const t = songT() - (isMobile() ? (phoneHooks()?.rhythmLag?.() ?? 0) : 0);
       const n = notes.find((x) => !x.done && this.inWindow(t - x.t, WIN));
       move([you], k, t >= DOUBLE_T);
       if (!n) return;

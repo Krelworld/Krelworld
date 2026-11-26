@@ -138,15 +138,18 @@ html.mobile input,html.mobile textarea{-webkit-user-select:text;user-select:text
 .kah-rot .kah-svg{width:24px;height:24px}
 
 /* ---- ?mobilediag (diag.ts): touches go straight through it to the game, except on its little MOVE tab */
-.kdiag{position:fixed;right:max(4px,env(safe-area-inset-right,0px));top:64px;z-index:50;max-width:min(380px,62vw);background:rgba(0,0,0,.66);
-  color:#b8ffb0;font:10.5px/1.3 ui-monospace,Menlo,Consolas,monospace;padding:4px 7px 4px 7px;border-radius:6px;
+.kdiag{position:fixed;right:max(4px,env(safe-area-inset-right,0px));top:64px;z-index:50;max-width:min(400px,46vw);background:rgba(0,0,0,.66);
+  color:#b8ffb0;font:10px/1.25 ui-monospace,Menlo,Consolas,monospace;padding:4px 7px 4px 7px;border-radius:6px;
   pointer-events:none;touch-action:none}
-.kdiag-t{white-space:pre-wrap}
-.kdiag-h{position:absolute;right:0;bottom:-30px;min-width:64px;height:30px;line-height:30px;padding:0 10px;border-radius:0 0 6px 6px;
+/* (the read-out and its MOVE tab stay on a landscape phone's screen in every corner: the text is capped, and on the
+   right under pause the tab sits beside the box's top, not under it, where a tall read-out pushed it off the screen) */
+.kdiag-t{white-space:pre-wrap;max-height:calc(100vh - 80px);overflow:hidden}
+.kdiag-h{position:absolute;right:100%;top:0;min-width:64px;height:30px;line-height:30px;padding:0 10px;border-radius:6px 0 0 6px;
   background:rgba(0,0,0,.8);color:#ffd23f;font:700 12px/30px system-ui,sans-serif;text-align:center;pointer-events:auto;touch-action:none}
 .kdiag.pos1{top:4px;right:auto;left:max(4px,env(safe-area-inset-left,0px))}
+.kdiag.pos1 .kdiag-h{right:0;top:auto;bottom:-30px;border-radius:0 0 6px 6px}
 .kdiag.pos2{top:auto;bottom:40px;right:auto;left:max(4px,env(safe-area-inset-left,0px))}
-.kdiag.pos2 .kdiag-h,.kdiag.pos3 .kdiag-h{bottom:auto;top:-30px;border-radius:6px 6px 0 0}
+.kdiag.pos2 .kdiag-h,.kdiag.pos3 .kdiag-h{right:0;bottom:auto;top:-30px;border-radius:6px 6px 0 0}
 .kdiag.pos3{top:auto;bottom:40px}
 .kdiag b{color:#ffd23f;font-weight:700}
 .kdiag .bad{color:#ff8a8a}

@@ -3,6 +3,7 @@ import type { Line } from "../../data/types";
 import { G } from "../G";
 import { synth } from "../audio/Synth";
 import { dir, say } from "../../content/dsl";
+import { isMobile } from "../mobile/flag";
 
 /**
  * The golden juice squeeze. A woman who's up for it (a dancer's private dance, or one of the new
@@ -95,7 +96,9 @@ function squeezeGame(scene: Phaser.Scene, her: Phaser.GameObjects.Sprite, me: Ph
     const bar = fix(scene.add.rectangle(260, 132, 1, 12, 0xfacc15).setOrigin(0, 0.5));
     const clock = fix(scene.add.text(700, 52, "", { fontFamily: "monospace", fontSize: "16px", color: "#ffffff" }).setOrigin(1, 0.5));
     ui.add([barBg, bar, clock]);
-    const btn = fix(scene.add.circle(480, 96, 24, 0xfde047).setStrokeStyle(4, 0x000000).setInteractive({ useHandCursor: true }));
+    // (phones: a bigger circle that says TAP, and a tap anywhere squeezes: research M14)
+    const phone = isMobile();
+    const btn = fix(scene.add.circle(480, 96, phone ? 32 : 24, 0xfde047).setStrokeStyle(4, 0x000000).setInteractive({ useHandCursor: true }));
     const btnTxt = fix(scene.add.text(480, 96, "", { fontFamily: "Impact, sans-serif", fontSize: "20px", color: "#000000" }).setOrigin(0.5));
     ui.add([btn, btnTxt]);
     let meter = 0;
@@ -109,7 +112,7 @@ function squeezeGame(scene: Phaser.Scene, her: Phaser.GameObjects.Sprite, me: Ph
       let k = SQ_KEYS[Math.floor(Math.random() * SQ_KEYS.length)];
       if (k === want) k = SQ_KEYS[(SQ_KEYS.indexOf(k) + 1) % SQ_KEYS.length];
       want = k;
-      btnTxt.setText(k.label).setFontSize(k.label.length > 1 ? 13 : 22);
+      btnTxt.setText(phone ? "TAP" : k.label).setFontSize(phone ? 18 : k.label.length > 1 ? 13 : 22);
       btn.setScale(1.3);
       scene.tweens.add({ targets: btn, scale: 1, duration: 120 });
     };
@@ -140,7 +143,8 @@ function squeezeGame(scene: Phaser.Scene, her: Phaser.GameObjects.Sprite, me: Ph
       hit(want.codes.includes(e.code));
     };
     const onTap = () => hit(true);
-    btn.on("pointerdown", onTap);
+    if (phone) scene.input.on("pointerdown", onTap);
+    else btn.on("pointerdown", onTap);
     window.addEventListener("keydown", onKey, true);
     const tick = scene.time.addEvent({
       delay: 50,
@@ -158,6 +162,7 @@ function squeezeGame(scene: Phaser.Scene, her: Phaser.GameObjects.Sprite, me: Ph
       done = true;
       tick.remove();
       window.removeEventListener("keydown", onKey, true);
+      if (phone) scene.input.off("pointerdown", onTap);
       bar.width = 4.4 * (win ? 100 : meter);
       scene.time.delayedCall(win ? 250 : 500, () => {
         ui.destroy();

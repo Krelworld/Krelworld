@@ -41,7 +41,7 @@ export class WorldArt {
     scene.load.spritesheet("w-lorry8", "world/lorry-8.png", { frameWidth: 128, frameHeight: 128 });
     scene.load.spritesheet("w-bike8", "world/bike-8.png", { frameWidth: 64, frameHeight: 64 });
     // Cars for the ring road, 168 px frames at 1:1.
-    for (const k of EIGHT) if (k !== "coach" && k !== "lorry") scene.load.spritesheet(`w-${k}8`, `world/${k}-8.png`, { frameWidth: 168, frameHeight: 168 });
+    for (const k of EIGHT) if (k !== "coach" && k !== "lorry" && k !== "bike") scene.load.spritesheet(`w-${k}8`, `world/${k}-8.png`, { frameWidth: 168, frameHeight: 168 });
   }
 
   img(k: string): HTMLImageElement | null {

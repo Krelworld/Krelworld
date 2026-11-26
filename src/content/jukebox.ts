@@ -34,6 +34,8 @@ export const JUKEBOX: JukeboxTrack[] = [
   { ids: ["ominous"], title: "Something's Not Right", where: "Ominous moments (and the Ministry)" },
   { ids: ["crobley"], title: "Nibble on a Crobley", where: "The Crobley advert" },
   { ids: ["news"], title: "KrelTV News at Ten", where: "KrelTV news" },
+  { ids: ["news_bed"], title: "And Now, The News", where: "Under the KrelTV news bulletins" },
+  { ids: ["cut_chapter"], title: "The Story So Far", where: "The chapter cutscenes" },
   { ids: ["doc"], title: "Exile", where: "Exile" },
   // ---------------------------------------------------------------- dungeons
   { ids: ["crandle"], title: "Wildern Academy", where: "Wildern Academy" },
@@ -45,6 +47,7 @@ export const JUKEBOX: JukeboxTrack[] = [
   { ids: ["luke_mind"], title: "Kill the Pedo in Luke", where: "Inside Lulon's mind" },
   { ids: ["wiki"], title: "Da Drongus's Lair", where: "The top of Da Drongus Dungeon" },
   { ids: ["dungeon_rise"], title: "Da Drongus Dungeon Rises", where: "The night the tower came up" },
+  { ids: ["ch7_morning"], title: "The Morning After", where: "Crawling out of the Town Hall rubble" },
   { ids: ["c7_ascent"], title: "The Ascent", where: "Chapter 7" },
   { ids: ["c7_dungeon"], title: "Da Drongus Dungeon", where: "The Foyer and Da Drongus Corridor" },
   { ids: ["c7_stairs"], title: "The Final Stairs", where: "Chapter 7" },
@@ -57,9 +60,11 @@ export const JUKEBOX: JukeboxTrack[] = [
   { ids: ["c7_transform"], title: "Transformation", where: "The finale" },
   { ids: ["crystal"], title: "The Crystal Is Yours", where: "Winning a crystal" },
   { ids: ["krelworld_orch"], title: "Krelworld (Full Orchestra)", where: "The epilogue" },
+  { ids: ["ending_prompt"], title: "Before The End", where: "The final choice" },
   { ids: ["ending"], title: "The End?", where: "The ending" },
   // ---------------------------------------------------------------- bosses
   { ids: ["boss", "boss_rival"], title: "Boss Fight", where: "Bosses (and Chad Deltoid)" },
+  { ids: ["vig_awkward"], title: "Well, That Happened", where: "After Robbo and Chad Deltoid" },
   { ids: ["boss_troll"], title: "Alistair Swamp", where: "Boss: Alistair Swamp" },
   { ids: ["boss_flatmate", "boss_arena"], title: "Robbo / The Arena", where: "Boss: Robbo, and the arena fights" },
   { ids: ["boss_krandall"], title: "Kranky Krandall", where: "Boss: Kranky Krandall" },

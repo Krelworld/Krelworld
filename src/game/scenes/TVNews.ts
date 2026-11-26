@@ -621,6 +621,10 @@ export class NewsDirector {
     switch (b.type) {
       case "titleCard":
         return this.title(b.text);
+      case "music":
+        // the show's own opening jingle has faded: the bed comes in under the desk (the beat's length is unchanged)
+        if (b.mode !== "start") this.bed();
+        return 0;
       case "shot":
         return this.shot(b.set);
       case "speaker":
@@ -659,6 +663,7 @@ export class NewsDirector {
       this.started = true;
       const ms = this.chrome.ident();
       this.later(ms - 300, () => {
+        this.bed();
         this.chrome.bug();
         this.chrome.ticker(this.cfg.ticker);
         // the studio comes up under the end of the ident
@@ -706,6 +711,7 @@ export class NewsDirector {
       case "desk":
         this.chrome.live("");
         this.studioWide();
+        this.bed();
         return 900;
       case "presser":
       case "hall":
@@ -898,8 +904,20 @@ export class NewsDirector {
       const sting = (this.sting = new NewsChrome(this.sc, this.r, BRANDS[this.cfg.brand], 7));
       sting.ui.setMask(this.layer.mask!);
       sting.ident(true);
+      // the bed goes, and the closing sting rings out over the end card
+      this.closed = true;
+      if (synth.currentMusic() === "news_bed") synth.stopMusic();
+      synth.play("news_outro", 1, 1);
     }, false);
     return at + 2200;
+  }
+
+  /** The news bed under the bulletin (quiet, so the presenter sits on top). Never over a show's own music. */
+  private closed = false;
+  private bed() {
+    if (this.closed) return;
+    const now = synth.currentMusic();
+    if (!now || now === "news_bed") synth.music("news_bed");
   }
 
   get began() {

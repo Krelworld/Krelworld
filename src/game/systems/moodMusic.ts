@@ -27,7 +27,7 @@ const TOWN = new Set([
 ]);
 
 /** The old dungeons, briefings and Kreddle's Strip: something's not right. */
-const DUNGEON = new Set(["meeting", "archive", "school", "mansion", "industrial", "temple", "prison", "wiki", "crandle", "stockport", "crobley_factory", "cronny", "luke_mind", "kreddle"]);
+const DUNGEON = new Set(["meeting", "cut_chapter", "archive", "school", "mansion", "industrial", "temple", "prison", "wiki", "crandle", "stockport", "crobley_factory", "cronny", "luke_mind", "kreddle"]);
 
 /** The old boss and fight themes: the Krunch Protocol's (dark, driving) instead. */
 const FIGHT = new Set([

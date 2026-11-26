@@ -101,7 +101,7 @@ export function goNext(from: Phaser.Scene, next: Next | null | undefined) {
 
 /** NEW GAME: prologue meeting → the song → Krelford. */
 /** After the prologue meeting: the Great Silence, then the emergency session, then out into town. */
-export const AFTER_PROLOGUE = { scene: "Cutscene", data: { script: "ch1_intro", bg: "messenger", music: "meeting", next: { scene: "Meeting", data: { id: "emergency_reaction_session", next: { scene: "Hub", data: { at: "TOWN_HALL", chain: true } } } } } };
+export const AFTER_PROLOGUE = { scene: "Cutscene", data: { script: "ch1_intro", bg: "messenger", music: "cut_chapter", next: { scene: "Meeting", data: { id: "emergency_reaction_session", next: { scene: "Hub", data: { at: "TOWN_HALL", chain: true } } } } } };
 
 /** A new game starts at home. */
 export function startNewRun(from: Phaser.Scene, player: PlayableId, ngPlus = 0, difficulty?: number, banter?: BanterLevel) {

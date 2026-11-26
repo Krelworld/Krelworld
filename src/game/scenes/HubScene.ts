@@ -2908,7 +2908,7 @@ You are required by law to sign the Sex Offenders Register.`, {
           this.go("Meeting", { id: a.id, next });
         } else if (a.kind === "outro") {
           s.flags[`ch${s.chapter}_outro`] = true;
-          this.go("Cutscene", { script: `ch${s.chapter}_outro`, bg: "townhall", music: "meeting", next: { scene: "Hub", data: { at: "TOWN_HALL", advance: true } } });
+          this.go("Cutscene", { script: `ch${s.chapter}_outro`, bg: "townhall", music: "cut_chapter", next: { scene: "Hub", data: { at: "TOWN_HALL", advance: true } } });
         } else if (a.kind === "fact") this.go("Hub", { at: "TOWN_HALL", advance: true });
         else {
           const q = canTurnIn(s, "TOWN_HALL");
@@ -3873,7 +3873,7 @@ You are required by law to sign the Sex Offenders Register.`, {
     cam.stopFollow();
     cam.centerOn(cx, cy - 40);
     this.av.setVisible(false);
-    synth.stopMusic();
+    synth.music("ch7_morning");
     // rubble heaps with the Krew under them
     const ids = [s.player, ...LADS.filter((p) => p !== s.player)].filter((p) => this.textures.exists(`spr_${p}`));
     const lads = ids.map((id, i) => {

@@ -258,6 +258,7 @@ export class NewsChrome {
       this.sc.tweens.add({ targets: hi, fillAlpha: 0.22, duration: 150, yoyo: true, repeat: 2, delay: 600 });
     }
     synth.play("alarm");
+    synth.play("news_breaking", 1, 1);
     this.later(2300, () =>
       this.sc.tweens.add({
         targets: c,

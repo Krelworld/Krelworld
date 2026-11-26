@@ -1184,6 +1184,7 @@ export class VignetteScene extends Phaser.Scene {
   // ---------------------------------------------------------------- ROBBO
 
   private async flatmate() {
+    synth.music("vig_awkward");
     if (!backdrop(this, "bg_flat", { depth: -10 })) {
       this.add.tileSprite(0, 0, 960, 540, "tile_mansion").setOrigin(0);
       this.add.rectangle(480, 470, 900, 120, 0x7a1f2b, 0.85);
@@ -1316,6 +1317,7 @@ export class VignetteScene extends Phaser.Scene {
   // ---------------------------------------------------------------- CHAD DELTOID
 
   private async rival() {
+    synth.music("vig_awkward");
     if (!backdrop(this, "bg_gym", { depth: -10 })) this.add.tileSprite(0, 0, 960, 540, "tile_industrial").setOrigin(0);
     const brick = this.add.sprite(480, 380, "boss_rival", 0).setScale(3.2).setDepth(10);
     const bar = this.add.image(480, 300, "p_barbell").setScale(3).setDepth(11);

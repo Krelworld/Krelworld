@@ -1012,12 +1012,22 @@ export class Player {
       case "nuclear_option": {
         const t = c.aimPoint();
         const waves = s.upgrades.mk2 ? 2 : 1;
+        const sc = this.world.sc;
+        // (the drop, so it reads: a radiation sign flashes over the target, a little bomb falls onto each spot as its
+        // mark shows, and a small mushroom cloud rises when the last one lands; the timing and the damage are unchanged)
+        const warn = sc.add.text(t.x, t.y - 24, "☢", { fontFamily: "sans-serif", fontSize: "36px", color: "#ffd23f", stroke: "#000000", strokeThickness: 6 }).setOrigin(0.5).setDepth(966);
+        sc.tweens.add({ targets: warn, scale: { from: 0.4, to: 1.3 }, alpha: { from: 1, to: 0 }, duration: 750, ease: "Quad.easeOut", onComplete: () => warn.destroy() });
         for (let w = 0; w < waves; w++) {
           for (let i = 0; i < 7; i++) {
             const bx = t.x + (Math.random() - 0.5) * 220;
             const by = t.y + (Math.random() - 0.5) * 220;
             this.world.sc.time.delayedCall(w * 900 + i * 110, () => {
               const mark = this.world.sc.add.circle(bx, by, 50, 0xffd23f, 0.25).setDepth(4);
+              const bomb = sc.add.graphics({ x: bx, y: by - 210 }).setDepth(966);
+              bomb.fillStyle(0x23232b, 1).fillEllipse(0, 0, 11, 18);
+              bomb.fillStyle(0xffd23f, 1).fillRect(-5, -3, 10, 3);
+              bomb.fillStyle(0x23232b, 1).fillTriangle(-6, -13, 6, -13, 0, -6);
+              sc.tweens.add({ targets: bomb, y: by, duration: 250, ease: "Quad.easeIn", onComplete: () => bomb.destroy() });
               this.world.sc.time.delayedCall(260, () => {
                 mark.destroy();
                 synth.play("explode");
@@ -1027,6 +1037,10 @@ export class Player {
             });
           }
         }
+        sc.time.delayedCall((waves - 1) * 900 + 6 * 110 + 300, () => {
+          vfx(sc, "vfx_mushroom", t.x, t.y + 10, { scale: 1.1, depth: 640 });
+          this.world.shake(260, 0.012);
+        });
         this.world.floatText(this.x, this.y - 50, "THE NUCLEAR OPTION", "#ffa500", 16);
         break;
       }

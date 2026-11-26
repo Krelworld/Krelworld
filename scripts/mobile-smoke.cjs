@@ -108,7 +108,7 @@ const arg = (k, d) => {
 };
 const URL0 = arg("--url", "http://localhost:5202/");
 const SHOTS = arg("--shots", "");
-const ONLY = (arg("--only", "phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,together,review1,polish,platform,android,tapuse,tapfix,mix3,games,scenes,desktop") || "").split(",").filter(Boolean);
+const ONLY = (arg("--only", "phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,together,review1,polish,platform,android,tapuse,tapfix,mix3,games,scenes,wave2,desktop") || "").split(",").filter(Boolean);
 const IOS_UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1";
 const IPHONE = { viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, userAgent: IOS_UA };
 const DESKTOP = { viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1, hasTouch: false, isMobile: false };
@@ -6103,6 +6103,135 @@ async function mix3(browser) {
   }
 }
 
+// ------------------------------------------------------------------ wave2 (stage 3 wave 2 merged: the parts together)
+/**
+ * Stage 3 wave 2 together (iPhone 14): tap to use into a minigame (Home's console), played by touch, the phone locked
+ * mid-game (its pause menu on return, RESUME by touch); the sound mix in that minigame and in a TV show; a fight's stick
+ * and pocket buttons as the thumb-feel round left them.
+ */
+async function wave2(browser) {
+  console.log("WAVE 2 TOGETHER (tap to use into a minigame, played by touch, paused on lock; the mix in a minigame and a TV show; the fight's stick and pocket)");
+  const { ctx, ph, errors } = await phoneAtTitle(browser);
+  const shot = async (n) => {
+    if (SHOTS) await ph.page.screenshot({ path: `${SHOTS}/wave2-${n}.png` }).catch(() => 0);
+  };
+  const setVis = (v) =>
+    ph.ev((v) => {
+      Object.defineProperty(document, "visibilityState", { configurable: true, get: () => v });
+      Object.defineProperty(document, "hidden", { configurable: true, get: () => v === "hidden" });
+      document.dispatchEvent(new Event("visibilitychange"));
+    }, v);
+  try {
+    // ---- 1. Home: tap the games console (tap to use), pick a replay by touch
+    check("wave2: Home reaches walk mode", await toWalk(ph, "Home"), await ph.mode());
+    await ph.ev(() => { window.__krel.G.s.flags.mg_bully_played = true; });
+    await ph.ev(() => window.__krelMobile.setInsets({ top: 0, right: 47, bottom: 21, left: 47 }));
+    await homeMe(ph, 700, 520);
+    await sleep(400);
+    const tt = await tapThing(ph, /games console/);
+    await ph.until(() => window.__krel.game.scene.getScene("Home").busy === true, null, 25000, "the console panel").catch(() => 0);
+    await sleep(800);
+    const via = await tapState(ph);
+    check("wave2: a tap on the games console (tap to use) walks there and opens it", (await ph.ev(() => window.__krel.game.scene.getScene("Home").busy === true)) && /games console/.test((via.last && via.last.tag) || tt.t.tag), { last: via.last, tag: tt.t.tag });
+    await shot("console-panel");
+    // (the first game button: x 480-190, y 140, 360x40 in game px, as HomeScene.consolePanel lays it out)
+    const btn = { x: 290, y: 140 };
+    await ph.tapGame(btn.x, btn.y);
+    const inMg = await ph.until(() => window.__krel.game.scene.isActive("Minigame"), null, 30000, "the minigame").then(() => true).catch(() => false);
+    check("wave2: the console's game button (a tap) starts the minigame", !!btn && inMg, { btn, active: await ph.active() });
+    await sleep(900);
+    for (let i = 0; i < 12 && (await mgNow(ph)).talking; i++) {
+      await ph.tapCss(422, 120);
+      await sleep(450);
+    }
+    const dec = await ph.ev(() => { const s = window.__krelMobile.snapshot(); return { mode: s.mode, scene: s.decision && s.decision.scene, game: s.decision && s.decision.game, pause: s.decision && s.decision.pause, ids: s.controls.filter((c) => c.shown).map((c) => c.id) }; });
+    dec.layer = await ph.mode();
+    check("wave2: in the minigame the layer is tap mode with the game named, the menu pause and II", /^tap/.test(String(dec.layer)) && dec.game === "bully" && dec.pause === "menu" && dec.ids.includes("pause"), dec);
+    // ---- played by touch: two thumbs
+    const hud0 = (await mgNow(ph)).hud;
+    await twoThumbs(ph, 8);
+    const m1 = await mgNow(ph);
+    check("wave2: the minigame plays by touch (two thumbs move its count)", m1.hud !== hud0 || m1.ended, { hud0, hud1: m1.hud, ended: m1.ended });
+    // ---- the sound mix in the minigame
+    const mixMg = await ph.ev(async () => {
+      const a = window.__krelMobile.audio;
+      try { window.__krel.synth && window.__krel.synth.sfx && window.__krel.synth.sfx("hit"); } catch (e) {}
+      await new Promise((r) => setTimeout(r, 300));
+      return { report: a.mix.report(), line: a.mix.line(), peak: a.mix.peak() };
+    });
+    check("wave2: the phone sound mix is built and wired during the minigame", mixMg.report.built && !!mixMg.report.post && mixMg.report.redirected.master >= 1, mixMg);
+    await shot("minigame");
+    // ---- the lock (page hidden) and back: the minigame's pause menu, not a drop straight in
+    if (!m1.ended) {
+      await setVis("hidden");
+      await sleep(700);
+      const hid = await ph.loop();
+      await setVis("visible");
+      await sleep(1500);
+      const back = await ph.ev(() => ({ active: window.__krel.active(), mgPaused: window.__krel.game.scene.isPaused("Minigame"), shell: window.__krelMobile.shellState() }));
+      check("wave2: locked mid-minigame, the loop sleeps; back, the minigame is paused under its pause menu", !hid.running && back.mgPaused && back.active.some((k) => /^(Menu|Pause)/.test(k)) && back.shell.lastWake === "pause", { hid, back });
+      await shot("paused");
+      // carry on by touch
+      const res = (await ph.find("RESUME")) || (await ph.find("Resume")) || (await ph.find("CARRY ON"));
+      if (res) await ph.tapGame(res.x, res.y);
+      await sleep(800);
+      const again = await ph.ev(() => ({ mgPaused: window.__krel.game.scene.isPaused("Minigame"), active: window.__krel.active() }));
+      check("wave2: RESUME by touch carries the minigame on", !!res && !again.mgPaused, { res, again });
+      await twoThumbs(ph, 300, async () => (await mgNow(ph)).ended);
+    }
+    // (taps through the outcome only while the minigame is up and not fading: a tap landing in Home would be tap to use)
+    for (let i = 0; i < 60; i++) {
+      const st = await ph.ev(() => { const g = window.__krel.game; const m = g.scene.getScene("Minigame"); return { home: g.scene.isActive("Home"), mg: g.scene.isActive("Minigame"), fading: !!(m && m.cameras && m.cameras.main && m.cameras.main.fadeEffect.isRunning) }; });
+      if (st.home || !st.mg) break;
+      if (!st.fading) await ph.tapCss(422, 120);
+      await sleep(500);
+    }
+    await ph.until(() => window.__krel.game.scene.isActive("Home"), null, 20000, "home").catch(() => {});
+    await sleep(1500);
+    check("wave2: the console replay ends back home", await ph.ev(() => window.__krel.game.scene.isActive("Home")), await ph.active());
+
+    // ---- 2. a TV show: the mix carries its voices
+    const before = await ph.ev(() => window.__krelMobile.audio.mix.report().redirected.voice);
+    await ph.ev(() => { const g = window.__krel.game; for (const sc of g.scene.getScenes(true)) if (sc.sys.settings.key !== "UI") g.scene.stop(sc.sys.settings.key); g.scene.start("TV", { fromTitle: true, episode: "tcc_ep7" }); });
+    await ph.scene("TV");
+    let tvMix = null;
+    for (let i = 0; i < 40; i++) {
+      tvMix = await ph.ev(() => ({ report: window.__krelMobile.audio.mix.report(), peak: window.__krelMobile.audio.mix.peak(), line: window.__krelMobile.audio.mix.line() }));
+      if (tvMix.report.redirected.voice > before) break;
+      await sleep(500);
+    }
+    check("wave2: a TV show's voices go through the phone mix", tvMix.report.built && tvMix.report.redirected.voice > before, { before, tvMix });
+    await shot("tv");
+    await ph.ev(() => window.__krel.game.scene.stop("TV"));
+
+    // ---- 3. a fight: the stick stays where the thumb lands; the pocket buttons
+    const ok = await toFight(ph, "drongus", 1, 1);
+    check("wave2: a fight reached", ok, await ph.mode());
+    await sleep(800);
+    await ph.ev(async () => {
+      const st = await import("/src/game/systems/stats.ts");
+      const k = window.__krel; const s = k.G.s; const d = k.game.scene.getScene("Dungeon");
+      for (const e of d.enemies) if (!e.dead && !e.isBoss) e.setPosition(-5000, -5000);
+      s.bongos = 2; s.bottles = 2; s.hp = Math.round(st.maxHp(s) * 0.3); k.G.rt.fart = 55;
+      if (d.player) d.player.iframesUntil = d.now() + 8000;
+    });
+    await sleep(1500);
+    const pk = await ph.ev(() => window.__krelMobile.snapshot().controls.filter((c) => c.shown && /^c-(bongo|fart|heal)$/.test(c.id)).map((c) => ({ id: c.id, w: Math.round(c.face.w), h: Math.round(c.face.h), right: c.face.x + c.face.w / 2 > innerWidth / 2 })));
+    check("wave2: the fight's pocket buttons (💨 🍺 HEAL) are 60 px on the right", ["c-bongo", "c-fart", "c-heal"].every((id) => pk.some((c) => c.id === id)) && pk.every((c) => c.right && Math.min(c.w, c.h) >= (c.id === "c-heal" ? 51.5 : 59.5)), pk);
+    await ph.touch("touchStart", [{ x: 150, y: 260, id: 31 }]);
+    for (let i = 1; i <= 8; i++) { await ph.touch("touchMove", [{ x: 150 + i * 25, y: 260, id: 31 }]); await sleep(25); }
+    await sleep(150);
+    const sn = await ph.snap();
+    const ts = await ph.touchState();
+    await ph.touch("touchEnd", []);
+    check("wave2: in the fight the stick's base stays where the thumb landed (200 px of drag later), full speed", !!sn.stick && Math.abs(sn.stick.x - 150) < 1 && Math.abs(sn.stick.y - 260) < 1 && ts.mx > 0.9, { base: sn.stick, mx: ts.mx });
+    await shot("fight");
+    check("wave2: no page errors", errors.length === 0, errors.slice(0, 3));
+  } finally {
+    await ctx.close();
+  }
+}
+
 (async () => {
   const t0 = Date.now();
   let browser;
@@ -6139,6 +6268,7 @@ async function mix3(browser) {
       ["mix3", mix3],
       ["games", games],
       ["scenes", scenesSection],
+      ["wave2", wave2],
       ["desktop", desktop],
     ]) {
       if (!ONLY.includes(id)) continue;

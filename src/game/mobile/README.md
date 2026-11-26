@@ -1063,7 +1063,7 @@ npx vitest run tests/mobile tests/desktopNotPhone.test.ts   # flag, modes, layou
 
 npx vite --port 5202 --strictPort &                       # normal build
 VITE_KREL_ALT=1 npx vite --port 5212 --strictPort &       # ALT build
-node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,together,review1,polish,platform,android,tapuse,tapfix,mix3,games,scenes,desktop]
+node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,together,review1,polish,platform,android,tapuse,tapfix,mix3,games,scenes,wave2,desktop]
 node scripts/mobile-smoke.cjs --url http://localhost:5212/
 # (tapuse: at Home the telly, the book and the gun rack from the far side of the room, the stick stopping a walk, a
 #  second tap re-targeting, the floor, in reach = at once; a person and the Krezz Arms in the town; a Kreddle local;
@@ -1075,6 +1075,9 @@ node scripts/mobile-smoke.cjs --url http://localhost:5212/
 # (scenes: Night of Freedom by finger, ROCKET with a second thumb, SLOPPY, the drawbridge's mash and SKIP; Beep Beep's stick,
 #  BOOST / BRAKE / HORN and a win; the cannon; the finale card's SKIP SCENE; the advert's SKIP; the telly's paged
 #  subtitles; the raid's FIRE; the how-to pages' SKIP; the Lair; tests/mobileScenes.test.ts the rules)
+# (wave2: the parts together: Home's console by tap to use into a minigame, played by two thumbs, the phone locked
+#  mid-game and back to its pause menu, RESUME by touch; the phone mix in that minigame and a TV show; a fight's stick
+#  base where the thumb landed and its 60 px pocket buttons)
 # tests/mobileWordingScan.test.ts: no touch-wording rule may match any character line in the game
 # (platform: the sound route and the Music setting, the phone mix (wiring, sliders, peak under -1 dBFS), resume after a hidden page, one song at a time, the texture ceiling
 #  over six scenes, pause in a minigame and the finale, the in-app download hold; tests/mobilePlatform.test.ts the rules)

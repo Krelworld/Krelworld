@@ -196,3 +196,9 @@ To resume: `Workflow({scriptPath: "<script>", resumeFromRunId: "wf_574a5950-314"
   Donut art done (28e402e8..16fc2bcb) BUT the room change (no SanChz companion in Job Centre Plus, SANMIK "Where da fuck is SanChz?",
   drop his "Signing on" line) was NOT done: COORDINATOR MUST DO IT after the donut gate finishes, before publishing.
   User said "I already had the cutscene made": told them the scene's words are kept and art plays behind them; awaiting reply.
+- 08:40 user: trailer NOT needed any more (already done elsewhere). Approved: (1) spread work over sessions, (2) full laptop
+  check once per publish (not in every agent), (3) queue new requests until s3 first half + bike are live.
+  Wave 2 workflow (wf_6b15b0a5-008) STOPPED; its review/fix/gate + the louder-effects tuning moved to child session
+  session_01VMaYe3QBTD6c23kmufj59J on branch s3-wave2 (from s3-games 8ab9690f). It messages back here when gated.
+  Then: merge origin/s3-wave2 (and s3-tap final, game-adds, aim, donut) at publish time, run the full check once, push.
+  Stage 4 can also go to a child session.

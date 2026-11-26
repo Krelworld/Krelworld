@@ -2532,7 +2532,7 @@ async function dungeon(browser) {
     const fmix = await mixNow();
     {
       const r = fmix.report, n = fmix.nodes || {};
-      const want = { preSfx: 1 / (fmix.sfx * 0.68), postSfx: fmix.master * fmix.sfx * 1.1 * fmix.plan.sfx, preSong: 1 / Math.min(1, fmix.master * fmix.music * 1.35) };
+      const want = { preSfx: 1 / (fmix.sfx * 0.68), postSfx: fmix.master * fmix.sfx * 0.8 * fmix.plan.sfx, preSong: 1 / Math.min(1, fmix.master * fmix.music * 1.35) };
       check("in the fight: the phone mix plays it as a fight (effects louder, the song's dungeon lift taken out), on its real gain nodes",
         r.built && r.fight && close(n.preSfx, want.preSfx) && close(n.postSfx, want.postSfx) && close(n.preSong, want.preSong), { fmix, want });
     }
@@ -2629,7 +2629,7 @@ async function dungeon(browser) {
     {
       const m = await mixNow();
       const n = m.nodes || {};
-      check("out of the dungeon (to the town): the phone mix is out of fight mode, its gains the town's", !m.report.fight && close(n.preSfx, 1 / m.sfx) && close(n.postSfx, m.master * m.sfx * 1.1), m);
+      check("out of the dungeon (to the town): the phone mix is out of fight mode, its gains the town's", !m.report.fight && close(n.preSfx, 1 / m.sfx) && close(n.postSfx, m.master * m.sfx * 0.8), m);
     }
     check("dungeon: no page errors", errors.length === 0, errors.slice(0, 3));
   } finally {

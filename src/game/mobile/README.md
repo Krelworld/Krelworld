@@ -320,7 +320,7 @@ same rules. You aim by turning with the stick; with nothing in front, FIRE shoot
 aims anywhere by hand, and snaps only onto an enemy you can see. EASY keeps the old aim exactly (all round you, centre
 within 16 px of the screen, through pillars, as shots really fly through them).
 
-**Auto-fire** (research M1, on by default for the first device test): only at an enemy in the gun's own range (each
+**Auto-fire** (research M1; Settings > Firing > EASY, off by default since `ga-08`): only at an enemy in the gun's own range (each
 gun's `range`, modded; the Fart Blaster's), on screen, and never through a live barrel within 115 px of you (it would
 blow up in your face). Never at barrels or crates, never a special, never in the mash overlay, the picker, a pause,
 a conversation or a scripted moment, never while golden (the golden attack is a lunging melee: auto-fire never moves

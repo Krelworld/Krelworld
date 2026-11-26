@@ -657,8 +657,10 @@ export class NewsDirector {
     const brand = BRANDS[this.cfg.brand];
     if (t.toUpperCase() === brand.name) {
       this.started = true;
+      synth.play("news_ident", 1, 1);
       const ms = this.chrome.ident();
       this.later(ms - 300, () => {
+        this.bed();
         this.chrome.bug();
         this.chrome.ticker(this.cfg.ticker);
         // the studio comes up under the end of the ident
@@ -706,6 +708,7 @@ export class NewsDirector {
       case "desk":
         this.chrome.live("");
         this.studioWide();
+        this.bed();
         return 900;
       case "presser":
       case "hall":
@@ -898,8 +901,17 @@ export class NewsDirector {
       const sting = (this.sting = new NewsChrome(this.sc, this.r, BRANDS[this.cfg.brand], 7));
       sting.ui.setMask(this.layer.mask!);
       sting.ident(true);
+      // the bed goes, and the closing sting rings out over the end card
+      if (synth.currentMusic() === "news_bed") synth.stopMusic();
+      synth.play("news_outro", 1, 1);
     }, false);
     return at + 2200;
+  }
+
+  /** The news bed under the bulletin (quiet, so the presenter sits on top). Never over a show's own music. */
+  private bed() {
+    const now = synth.currentMusic();
+    if (!now || now === "news_bed") synth.music("news_bed");
   }
 
   get began() {

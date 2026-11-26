@@ -322,7 +322,8 @@ HOLD; AUTO is the default until the user picks). Every style keeps FIRE by hand 
 aim assist, slide = aim by hand), so the right thumb's job never changes; only what happens with no thumb on FIRE does:
 AUTO as above; LIGHT waits out the gun's cooldown and then 2/3 of it again after each auto shot (`AutoPace`); STILL
 fires only while the stick rests (under 0.2 push for 120 ms, not mid-dodge; `StillGate`), in side rooms too; HOLD never.
-LIGHT, STILL and HOLD give FIRE the 200 ms grace after the thumb lifts. The Controls picture's FIRE line follows the
+LIGHT, STILL and HOLD give FIRE the 200 ms grace after the thumb lifts. Smoke: the last part of `combat` (on a page of
+its own; `--only firing` runs it alone). The Controls picture's FIRE line follows the
 style (`fireLine`, combatWording.ts). `combat.snapshot()` adds `autoShooting` (auto-fire shooting this frame, after
 LIGHT's pace and STILL's gate; `autoFiring` is the wish, which FIRE's glow shows) and `firing`.
 
@@ -834,7 +835,7 @@ npx vitest run tests/mobile tests/desktopNotPhone.test.ts   # flag, modes, layou
 
 npx vite --port 5202 --strictPort &                       # normal build
 VITE_KREL_ALT=1 npx vite --port 5212 --strictPort &       # ALT build
-node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,together,review1,polish,android,desktop]
+node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,firing,side,brawl,together,review1,polish,android,desktop]
 node scripts/mobile-smoke.cjs --url http://localhost:5212/
 # (polish: the fight screen measured at four phone sizes: no caption or word over anything, only usable controls shown,
 #  JUMP plain over the first pit, the room name clear of the HUD, the Leave card above the home-indicator strip)

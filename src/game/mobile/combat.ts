@@ -725,6 +725,15 @@ export class CombatControls {
     this.active = false;
     // (a control under a thumb stays until the thumb lifts: research M3 / S1)
     for (const c of Object.values(this.c)) if (!c.pressed) c.show(false);
+    // ... and goes once it has lifted, if the fight hasn't come back meanwhile (USE on a door that opens a cutscene
+    // at once: the mode changes under the thumb, and no fight frame is left to hide it)
+    const held = Object.values(this.c).filter((c) => c.pressed);
+    const sweep = () => {
+      if (this.active) return;
+      for (const c of held) if (!c.pressed && c.shown) c.show(false);
+      if (held.some((c) => c.pressed)) window.setTimeout(sweep, 120);
+    };
+    if (held.length) window.setTimeout(sweep, 120);
     this.mash.classList.remove("show");
     this.autoFiring = false;
     this.target = null;

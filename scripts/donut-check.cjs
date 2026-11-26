@@ -169,6 +169,14 @@ const LINES = [
       return { paused: g.scene.isPaused("Dungeon"), pos: d.enemies.filter((e) => !e.dead).map((e) => [Math.round(e.x), Math.round(e.y)]), hp: window.__krel.G.s.hp };
     });
     check("the room is paused under the cutscene", frozen0.paused, frozen0.paused);
+    if (phone) {
+      await sleep(1500);
+      const m = await ev(() => {
+        const s = window.__krelMobile.snapshot();
+        return { mode: s.decision.mode, scene: s.decision.scene, shown: s.controls.filter((c) => c.shown).map((c) => c.id) };
+      });
+      check("phone: no game controls over the cutscene (touch mode none; the box's own pills only)", m.mode === "none" && m.shown.filter((id) => /^c-/.test(id)).length === 0, m);
+    }
     // the moment the room comes back (before its next frame): how long the grace is, and a hit inside it
     await ev(() => {
       const d = window.__krel.game.scene.getScene("Dungeon");

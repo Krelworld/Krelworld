@@ -38,9 +38,11 @@ export type DonutCue = "dn_door" | "dn_room" | "dn_reveal" | "dn_freeze" | "dn_r
 const K = 3.75;
 /**
  * SanChz (128x160 art, his soles on row 149): where his feet stand (behind the dialogue box, the anchor he sways from)
- * and his scale. The donut lands at about y 290, his hat at about y 70: all of it above the box (y 362).
+ * and his scale. The donut lands at about y 288, his hat at about y 85: all of it above the box (y 362), and the donut
+ * left of x 650, where a phone puts the box's AUTO / LOG / SKIP pills (on its top edge, right end); the tealights on
+ * the cistern stay in view to his left.
  */
-const CHZ = { x: 625, y: 388, k: 2.4, feet: 149 };
+const CHZ = { x: 595, y: 380, k: 2.25, feet: 149 };
 /** The donut in his art, in art pixels (centre, radius): the hearts, the jam and the motion lines come from here. */
 const DONUT = { x: 68, y: 108, r: 18 };
 /** Tealights (art pixels of the backdrop) for the flicker: five on the cistern, one by the sink, one on the shelf. */

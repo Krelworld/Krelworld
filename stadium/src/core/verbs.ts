@@ -150,7 +150,7 @@ export const VERBS: Record<VerbId, VerbDef> = {
     // Bare hands, or whatever is in hand. Kicking the ball is handled by the match.
     check: (w, a, actor) => {
       const to = targetActor(w.state, a);
-      return to && near(actor, to.x, to.y) ? null : "nobody in reach";
+      return to && Math.hypot(actor.x - to.x, actor.y - to.y) <= REACH + 0.5 ? null : "nobody in reach";
     },
     perform: (w, a, actor) => {
       const to = targetActor(w.state, a)!;

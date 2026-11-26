@@ -16,6 +16,8 @@ import { installKickoff, stepKickoff } from "./kickoff";
 import { installKnife, stepArmed } from "./knife";
 import { installGloryHole } from "./gloryhole";
 import { stepTraffic } from "./traffic";
+import { installCombat, stepCombat } from "./combat";
+import { installHorse, stepHorse, takeReins } from "./horse";
 import { installReactions, installRules, SHOPS, stepRules } from "./rules";
 import { isSecurity, stepDetention, stepSecurity } from "./security";
 import type { StadiumState } from "./state";
@@ -38,7 +40,7 @@ export const HALF_SECONDS = 450;
 export const HALFTIME_SECONDS = 150;
 
 export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: Campaign = newCampaign()): Game {
-  if (!rulesInstalled) { installRules(); installBetting(); installPolice(); installBus(); installDog(); installKickoff(); installKnife(); installGloryHole(); rulesInstalled = true; }
+  if (!rulesInstalled) { installRules(); installBetting(); installPolice(); installBus(); installDog(); installKickoff(); installKnife(); installGloryHole(); installCombat(); installHorse(); rulesInstalled = true; }
   setVenue(venueId);
   const oppKey = VENUE.opp;
   const opp = TEAMS[oppKey];
@@ -247,9 +249,11 @@ export function stepGame(g: Game): void {
     void wired;
     if (f.stamina <= 0.02 && !f.winded) { f.winded = 1; g.w.bus.emit({ type: "winded", t: s.tick, who: pc.id }); }
     if (f.winded && f.stamina > 0.35) f.winded = 0;
-    pc.speed = (run ? 6.4 : 4.4) * (wired ? 1.15 : 1) * (drunk ? 0.92 : 1) * (f.winded ? 0.75 : 1);
+    pc.speed = (run ? 6.4 : 4.4) * (wired ? 1.15 : 1) * (drunk ? 0.92 : 1) * (f.winded ? 0.75 : 1) * (pc.dragging ? 0.45 : 1);
   }
+  const reins = takeReins(w);
   stepWorld(w);
+  stepHorse(w, reins);
   if (pc) pc.speed = pcSpeed;
 
   for (const id in s.actors) {
@@ -273,6 +277,7 @@ export function stepGame(g: Game): void {
   stepKit(w);
   stepKickoff(w);
   stepTraffic(w);
+  stepCombat(w);
   stepArmed(w);
   stepRules(w);
   stepTipoffs(w);

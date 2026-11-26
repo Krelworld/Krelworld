@@ -34,11 +34,15 @@ import { buildings, placements, WorldArt, type Placement } from "./world";
 import { Stall } from "./stall";
 import { Fx } from "./fx";
 import { holeState, inCubicle, knifeOn } from "../stadium/gloryhole";
+import { incapacitated, knockedOut, lootable } from "../stadium/combat";
 import { CAP, ensureFloor, ensureMaterials, facade, floodlight, matOf, adBoard, banner, pixelText as pixelTextOn, PPM, roof, TILE_FILES, type BuildingSpec } from "./build";
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 /** The canvas draws at the screen's real pixels (sharp text, and each art pixel a whole number of them). */
 const DPR = Math.max(1, Math.min(3, window.devicePixelRatio || 1));
+/** The game's faces: a pixel font for things in the world, the condensed face for captions. */
+const FONT_POP = '"Silkscreen", "Pixelify Sans", monospace';
+const FONT_TALK = '"Pixelify Sans", "Silkscreen", monospace';
 /** Zoom levels, as camera zooms: whole screen pixels per art pixel (32 art pixels to the metre). The first
  *  shows about 22 screen points to the metre on a phone and 32 on anything bigger; then closer, then further. */
 function zoomSteps(): number[] {
@@ -66,6 +70,7 @@ function shortLabel(o: Option): string {
   if (o.sheet?.kind === "bet") return "Bet";
   if (o.sheet?.kind === "bribe") return "Offer money";
   if (o.sheet?.kind === "report") return "Tip off";
+  if (o.sheet?.kind === "loot") return "Search";
   const map: Record<string, string> = { talk: "Talk", show: "Show ticket", drive: "Drive the bus", getout: "Get out", hide: "Hide inside", unhide: "Climb out", sit: "Sit down", stand: "Stand up",
     untie: "Untie the dog", release: "Let the dog go", leash: "Grab the dog", sic: "Set the dog on him", servicedog: "\"Service dog\"", alarm: "Pull the fire alarm", vault: "Climb over",
     struggle: "Struggle", take: "Pick up", takeout: "Take it", horn: "Beep", arrest: "Arrest", pickpocket: "Pickpocket", tamper: "Tamper with it" };
@@ -140,7 +145,7 @@ class StadiumScene extends Phaser.Scene {
     this.P.S = PPM; this.P.tiltK = 1; this.P.tiltKZ = 1;
     ensureMaterials(this);
     if (!this.textures.exists("floodlight")) this.textures.addCanvas("floodlight", floodlight());
-    document.fonts?.ready.then(() => { this.drawStatic(); for (const b of this.bubbles) b.setFontFamily('"Barlow Condensed", "Arial Narrow", sans-serif'); });
+    document.fonts?.ready.then(() => { this.drawStatic(); for (const b of this.bubbles) b.setFontFamily(FONT_TALK); });
     this.world.prepare();
     this.pitchG = this.add.graphics().setDepth(0.25);
     this.staticG = this.add.graphics().setDepth(0);
@@ -168,8 +173,8 @@ class StadiumScene extends Phaser.Scene {
     } catch { /* no filters on this renderer */ }
     for (let i = 0; i < 10; i++) {
       this.bubbles.push(this.add.text(0, 0, "", {
-        fontFamily: '"Barlow Condensed", "Arial Narrow", sans-serif', fontSize: `${Math.round(15 * DPR)}px`, fontStyle: "600", color: "#10140f", backgroundColor: "#f4f1ea",
-        padding: { x: 6 * DPR, y: 3 * DPR }, wordWrap: { width: 180 * DPR }, align: "center",
+        fontFamily: FONT_TALK, fontSize: `${Math.round(15 * DPR)}px`, color: "#12151a",
+        padding: { x: 7 * DPR, y: 4 * DPR }, wordWrap: { width: 170 * DPR }, align: "center", lineSpacing: 1 * DPR,
       }).setOrigin(0.5, 1).setDepth(1e7 + 1).setVisible(false));
     }
     this.newGame();
@@ -341,6 +346,7 @@ class StadiumScene extends Phaser.Scene {
         // the camera jolts, the victim flashes white and flies back spraying blood.
         const by = s.actors[e.by], who = s.actors[e.who];
         if (!by || !who) break;
+        if (e.horse) { a.play("trample", 0.4 + near(who.x, who.y, 35) * 0.6, { minGap: 0.1 }); this.impact(e.by, e.who, e.dx, e.dy, 1.2, near(who.x, who.y, 35)); break; }
         const v = near(who.x, who.y, 35);
         a.play("whoosh", 0.25 + v * 0.5, { minGap: 0.05, rate: 0.9 + Math.random() * 0.25 });
         a.play(e.weapon ? "weaponhit" : (["hit1", "hit2", "hit3"] as const)[Math.floor(Math.random() * 3)], 0.35 + v * 0.65, { minGap: 0.05, rate: 0.9 + Math.random() * 0.2 });
@@ -376,6 +382,17 @@ class StadiumScene extends Phaser.Scene {
       case "armed_challenge": { const o = s.actors[e.by]; if (o) a.play("armed_police", 0.4 + near(o.x, o.y, 35) * 0.6, { minGap: 3 }); break; }
       case "disarmed": a.play("stw_knife", 1); break;
       case "glory_hole": this.stall.event(e.what); break;
+      case "knockout": {
+        const who = s.actors[e.who];
+        if (who) { this.popup(who.x, who.y, e.quiet ? "TAKEDOWN" : "KO!", e.quiet ? "#f2c94c" : "#ff4d5e"); if (e.quiet) a.play("bodyfall", 0.6, { minGap: 0.1 }); }
+        if (e.who === pcId) this.say(`You're out cold. You come round${e.lost ? ` £${e.lost} lighter` : ""}.`, "", true);
+        break;
+      }
+      case "looted": { const who = s.actors[e.who]; if (who && e.money) { this.popup(who.x, who.y, `+£${e.money}`, "#f2c94c"); a.play("kaching", 0.7); } break; }
+      case "unseated": a.play("whinny", 1); a.play("bodyfall", 0.9); this.popup(e.x, e.y, "UNSEATED!", "#ff4d5e"); break;
+      case "mounted": a.play("whinny", 0.8); if (e.by === pcId) this.startCine(1600, { zoomAdd: 0, caption: "Tally ho" }); break;
+      case "horse_jump": a.play("whinny", 0.4, { minGap: 2 }); break;
+      case "hid_body": a.play(e.where?.startsWith("bin") ? "zip_bin" : "bag", 1); this.say(e.where?.startsWith("bin") ? "Into the bin he goes." : "Out of sight.", "", false); break;
       case "car_horn": { const v = near(e.x, e.y, 40); if (v > 0) a.play("horn", (0.2 + v * 0.6) * (e.long ? 1 : 0.6), { minGap: 1.5, rate: e.long ? 0.9 : 1.15 }); break; }
       case "armed_called": case "armed_deployed": a.play("siren", 0.6, { minGap: 8 }); break;
       case "dog_sicced": a.play("pit_bark", 1, { minGap: 0.3 }); break;
@@ -506,7 +523,7 @@ class StadiumScene extends Phaser.Scene {
     for (const t of this.labels) t.destroy();
     this.labels = [];
     const label = (text: string, x: number, y: number, size = 11) => {
-      this.labels.push(this.add.text(P.sx(x, y), P.sy(x, y), text.toUpperCase(), { fontFamily: '"Barlow Condensed", "Arial Narrow", sans-serif', fontSize: `${size + 2}px`, fontStyle: "800", color: "#ffffff", letterSpacing: 1.5 } as Phaser.Types.GameObjects.Text.TextStyle)
+      this.labels.push(this.add.text(P.sx(x, y), P.sy(x, y), text.toUpperCase(), { fontFamily: '"Silkscreen", "Pixelify Sans", monospace', fontSize: `${size + 2}px`, fontStyle: "800", color: "#ffffff", letterSpacing: 1.5 } as Phaser.Types.GameObjects.Text.TextStyle)
         .setOrigin(0.5).setAlpha(0.55).setResolution(Math.ceil(DPR * 2)).setDepth(1));
     };
     const SIGNED = new Set(["STAFF ENTRANCE", "THE THREE LIONS", "TICKETS", "MERCHANDISE", "TURNSTILES", "STEWARDS", "SECOND HAND ROSE", "ARMY & NAVY", "BOOKMAKER", "TEAM HOTEL", "FAN ZONE", "BIG SCREEN"]);
@@ -635,16 +652,36 @@ class StadiumScene extends Phaser.Scene {
     ($("viewBtn") as HTMLElement).hidden = !driving;
     ($("hornBtn") as HTMLElement).hidden = !driving;
     this.audio.engineOn(driving && !st.ending, st.vehicles.bus?.speed ?? 0);
+    if (st.horse?.rider === this.pc?.id && st.horse!.speed > 3) this.audio.play("hooves", 0.25 + st.horse!.speed / 20, { minGap: 2.6 });
     if (this.inCab()) this.d3.draw(this.s, this.driveView, this.scale.width / DPR, this.scale.height / DPR, (a) => this.styleOf(a), this.pc.drive?.steer ?? 0, this.cameras.main.zoom, DPR);
     else { this.d3.hide(); this.d3.hideSpeed(); }
     this.drawHud();
     this.stepCine();
+    this.stepPopups();
     if ((this.s.tick & 15) === 0) this.updateCrowd();
     if (this.pc) this.stall.update(inCubicle(this.pc) && !this.pc.hiddenIn && !st.ending, holeState(this.w), !!knifeOn(this.w, this.pc));
   }
 
   /** Behind the wheel, in one of the 3D views? */
   inCab(): boolean { return this.s.stadium!.vehicles.bus?.drivenBy === this.pc?.id && this.driveView !== "map"; }
+
+  // ---------- Floating words over people ("KO!", "+£20") ----------
+  popups: { x: number; y: number; text: string; colour: string; at: number; obj: Phaser.GameObjects.Text }[] = [];
+  popup(x: number, y: number, text: string, colour = "#ffffff"): void {
+    const obj = this.add.text(0, 0, text, { fontFamily: FONT_POP, fontSize: `${Math.round(18 * DPR)}px`, color: colour, stroke: "#0b0d10", strokeThickness: Math.round(4 * DPR) })
+      .setOrigin(0.5, 1).setDepth(1e7 + 2);
+    this.popups.push({ x, y, text, colour, at: performance.now(), obj });
+  }
+  stepPopups(): void {
+    const now = performance.now(), P = this.P, z = this.cameras.main.zoom;
+    this.popups = this.popups.filter((p) => {
+      const t = (now - p.at) / 1100;
+      if (t >= 1) { p.obj.destroy(); return false; }
+      const pop = t < 0.12 ? 0.6 + t * 4 : 1;
+      p.obj.setPosition(P.sx(p.x, p.y), P.sy(p.x, p.y, 2.2) - t * 30).setScale(pop / z).setAlpha(t > 0.7 ? (1 - t) / 0.3 : 1);
+      return true;
+    });
+  }
 
   // ---------- Violence: hit-stop, shake, flash, spray ----------
   /** Camera trauma (0-1): the shake is trauma squared, and it drains away. */
@@ -660,6 +697,7 @@ class StadiumScene extends Phaser.Scene {
   decalG!: Phaser.GameObjects.Graphics;
   kick = { x: 0, y: 0 };
   pcHidden = false;
+  bubbleG: Phaser.GameObjects.Graphics | null = null;
   flashesUntil = 0;
   stall!: Stall;
   fx!: Fx;
@@ -1070,10 +1108,30 @@ class StadiumScene extends Phaser.Scene {
       } });
     }
 
+    // The police horse on its own (riderless, or with you up top).
+    const hs = st.horse;
+    if (hs && sprites && onScreen(hs.x, hs.y, 200)) {
+      const base: Base = hs.rider ? (this.bank.has("horsefan") ? "horsefan" : "horse") : this.bank.has("horsefree") ? "horsefree" : "horse";
+      if (this.bank.has(base)) {
+        this.shadowG.fillStyle(0x000000, 0.3).fillEllipse(Math.round(P.sx(hs.x, hs.y)), Math.round(P.sy(hs.x, hs.y)), 2.6 * P.S, 0.9 * P.S);
+        things.push({ d: hs.y, draw: () => {}, spr: (dep) => {
+          const key = this.bank.variant(base, {});
+          let sp = this.spritePool.get("horse-entity");
+          if (!sp) { sp = this.add.sprite(0, 0, `${key}-rot`, 0); this.spritePool.set("horse-entity", sp); }
+          seenSprites.add("horse-entity");
+          const di = dirIndex(hs.facing), anim = hs.speed > 6 && this.textures.exists(`${key}-run`) ? "run" : hs.speed > 0.4 && this.textures.exists(`${key}-walk`) ? "walk" : this.textures.exists(`${key}-idle`) ? "idle" : null;
+          if (anim) { const n = this.frames(`${key}-${anim}`); sp.setTexture(`${key}-${anim}`, di * n + Math.floor(tick * (anim === "run" ? 0.25 : anim === "walk" ? 0.15 : 0.08)) % n); }
+          else sp.setTexture(`${key}-rot`, di);
+          sp.setOrigin(0.5, feetOf(base) / cellOf(base)).setPosition(Math.round(P.sx(hs.x, hs.y)), Math.round(P.sy(hs.x, hs.y))).setDepth(dep).setVisible(true).setAlpha(1).setAngle(0).setScale(1).setCrop().clearTint();
+        } });
+      }
+    }
+
     // People.
     for (const id in s.actors) {
       const a = s.actors[id];
       if (a.hiddenIn || (a.fb && a.fb.status === "gone" && !a.dead)) continue;
+      if (st.horse?.rider === a.id) continue; // drawn as the horse
       if (!onScreen(a.x, a.y)) continue;
       if (a.dead) things.push({ d: a.y - 0.4, draw: () => g.fillStyle(0x6a0a0a, 0.85).fillEllipse(P.sx(a.x, a.y), P.sy(a.x, a.y), P.S * 2.4, P.S * (P.standing ? 1.1 : 1.8)) });
       if (a.npc?.job === "dog") { things.push({ d: a.y, draw: () => this.drawDog(a, g) }); continue; }
@@ -1086,6 +1144,11 @@ class StadiumScene extends Phaser.Scene {
       if (st2.ring) sh.lineStyle(3, st2.ring, 1).strokeEllipse(gx, gy, Wd * 2.9, Wd * (P.standing ? 1.25 : 2.9));
       seenSprites.add(a.id);
       things.push({ d: a.y, draw: () => {}, spr: (depth) => this.placeSprite(a, st2, shiver, moving, depth) });
+      // Out cold: little stars going round; the dead lie still in their own blood.
+      if (knockedOut(this.w, a) && !a.dead) things.push({ d: a.y + 0.0003, draw: () => {
+        const cx = P.sx(a.x, a.y), cy = P.sy(a.x, a.y, 0.7), t = tick * 0.08 + Math.abs(hash(a.id)) % 7;
+        for (let i = 0; i < 3; i++) { const an = t + (i * Math.PI * 2) / 3; g.fillStyle(0xf2e94c, 1).fillRect(Math.round(cx + Math.cos(an) * 11) - 1, Math.round(cy + Math.sin(an) * 4) - 1, 3, 3); }
+      } });
       // Phones held up to film a fight, with the odd flash.
       const gk = a.npc?.gawk;
       if (gk?.filming && gk.until > tick && !a.seated && a.downUntil <= tick) things.push({ d: a.y + 0.0002, draw: () => {
@@ -1281,13 +1344,20 @@ class StadiumScene extends Phaser.Scene {
 
     // Speech bubbles near the player.
     const talkers = Object.values(s.actors).filter((a) => a.npc?.bubble && !a.hiddenIn && onScreen(a.x, a.y)).slice(0, this.bubbles.length);
+    if (!this.bubbleG) this.bubbleG = this.add.graphics().setDepth(1e7 + 0.5);
+    const bg = this.bubbleG.clear(), zz = this.cameras.main.zoom, px = DPR / zz;
     this.bubbles.forEach((bt, i) => {
       const a = talkers[i];
       if (!a) { bt.setVisible(false); return; }
-      // Same size on screen whatever the zoom.
-      bt.setVisible(true).setText(a.npc!.bubble!.text).setPosition(P.sx(a.x, a.y), headTop(P, a.x, a.y) - 4).setScale(1 / this.cameras.main.zoom);
+      // A comic bubble: same size on screen whatever the zoom, a black pixel outline and a tail.
+      const tx = Math.round(P.sx(a.x, a.y)), ty = Math.round(headTop(P, a.x, a.y) - 10 * px);
+      bt.setVisible(true).setText(a.npc!.bubble!.text).setPosition(tx, ty).setScale(1 / zz);
       const sec = a.npc!.mode !== "routine" && a.npc!.mode !== "escort";
-      bt.setBackgroundColor(sec ? "#ffd166" : "#f4f1ea");
+      const w2 = bt.displayWidth, h2 = bt.displayHeight, x0 = tx - w2 / 2, y0 = ty - h2;
+      bg.fillStyle(0x000000, 1).fillRect(x0 - 2 * px, y0 - 2 * px, w2 + 4 * px, h2 + 4 * px).fillRect(x0, y0 - 4 * px, w2, h2 + 8 * px);
+      bg.fillStyle(sec ? 0xffd166 : 0xf6f3ea, 1).fillRect(x0, y0, w2, h2).fillRect(x0 + 2 * px, y0 - 2 * px, w2 - 4 * px, h2 + 4 * px);
+      bg.fillStyle(0x000000, 1).fillTriangle(tx - 7 * px, ty + 1 * px, tx + 3 * px, ty + 1 * px, tx - 6 * px, ty + 10 * px);
+      bg.fillStyle(sec ? 0xffd166 : 0xf6f3ea, 1).fillTriangle(tx - 5 * px, ty, tx + 1 * px, ty, tx - 5 * px, ty + 6 * px);
     });
 
     // Camera: follow the player; sitting down gives the TV view of the pitch.
@@ -1610,7 +1680,18 @@ class StadiumScene extends Phaser.Scene {
       return;
     }
     sp.setAngle(0).setOrigin(0.5, feetOf(base) / cellOf(base)).clearTint().setTintMode(Phaser.TintModes.MULTIPLY);
-    if (moving && !a.seated) {
+    const dragged = a.dragging ? this.s.actors[a.dragging] : null;
+    if (dragged && has("drag")) {
+      // Hauling a body: bent over it, walking backwards.
+      const n = this.frames(`${key}-drag`), f = moving ? Math.floor((tick + Math.abs(hash(a.id)) % 50) * 0.12) % n : 0;
+      sp.setTexture(`${key}-drag`, dirIndex(Math.atan2(dragged.y - a.y, dragged.x - a.x)) * n + f);
+    } else if (a.id === this.s.stadium!.pc && this.sheetKind === "loot" && has("search")) {
+      const n = this.frames(`${key}-search`);
+      sp.setTexture(`${key}-search`, di * n + Math.floor(tick * 0.12) % n);
+    } else if (moving && !a.seated && has("run") && Math.hypot(a.vx, a.vy) > 4.8) {
+      const n = this.frames(`${key}-run`);
+      sp.setTexture(`${key}-run`, di * n + Math.floor((tick + Math.abs(hash(a.id)) % 50) * 0.22) % n);
+    } else if (moving && !a.seated) {
       // The walk cycle, paced to how fast they're going.
       const rate = Math.min(1.6, Math.hypot(a.vx, a.vy) / 2.2) * (base === "fan" || base === "fanbare" || base === "bigman" ? 0.13 : 0.18);
       const f = Math.floor((tick + Math.abs(hash(a.id)) % 50) * rate) % 8;
@@ -1881,7 +1962,7 @@ class StadiumScene extends Phaser.Scene {
   // ---------- Actions ----------
   run(opt: Option | null) {
     if (!opt || !this.started) return;
-    if (opt.sheet) { const k = opt.sheet.kind; k === "shop" ? this.openShop(opt.sheet.who) : k === "bet" ? this.openBet() : k === "report" ? this.openReport() : this.openBribe(opt.sheet.who); return; }
+    if (opt.sheet) { const k = opt.sheet.kind; k === "shop" ? this.openShop(opt.sheet.who) : k === "bet" ? this.openBet() : k === "report" ? this.openReport() : k === "loot" ? this.openLoot(opt.sheet.who) : this.openBribe(opt.sheet.who); return; }
     if (opt.action) {
       const before = this.pc.seated;
       const r = dispatch(this.w, opt.action);
@@ -1983,6 +2064,20 @@ class StadiumScene extends Phaser.Scene {
       <div class="list">${players.map((a) => btn(a, `${a.name}, ${m.teams[1].name} number ${a.fb!.number}${a.fb!.star ? " ★" : ""}`)).join("")}${nearby.map((a) => btn(a, a.name)).join("")}</div>`);
   }
 
+  /** Going through someone's pockets as they lie there: money, what they carry, what they're wearing. */
+  openLoot(who: string) {
+    const t = this.s.actors[who];
+    if (!t) return;
+    const items = lootable(this.w, t);
+    const rows = items.map((it) => {
+      const worn = it.loc.k === "worn";
+      return `<button class="ware" data-loot="${it.id}" data-who="${who}">${icon(it.def)}<span class="nm">${esc(itemName(it))}</span><span class="pr">${worn ? "Strip" : "Take"}</span></button>`;
+    }).join("");
+    this.sheet("loot", `<h2>${esc(personName(t))}${t.dead ? " · dead" : " · out cold"}</h2>
+      <div class="wares">${t.money > 0 ? `<button class="ware" data-loot="money" data-who="${who}"><span class="ico none">£</span><span class="nm">Cash</span><span class="pr">£${t.money}</span></button>` : ""}${rows || (t.money ? "" : "<p>Nothing worth having.</p>")}</div>
+      ${items.length || t.money ? `<button class="red" data-loot="all" data-who="${who}">Take everything</button>` : ""}`);
+  }
+
   openBribe(who: string) {
     const t = this.s.actors[who];
     const amounts = [10, 20, 50, 100, 200, 400].filter((a) => a <= this.pc.money);
@@ -2080,6 +2175,13 @@ class StadiumScene extends Phaser.Scene {
       }
       if (d.bet) { const r = dispatch(this.w, { verb: "bet", actor: this.pc.id, arg: d.bet, amount: +d.amt! }); if (!r.ok) this.hint(r.reason ?? ""); this.openBet(); return; }
       if (d.report) { const r = dispatch(this.w, { verb: "report", actor: this.pc.id, target: { k: "actor", id: d.report } }); if (!r.ok) this.hint(r.reason ?? ""); this.closeSheet(); return; }
+      if (d.loot) {
+        const r = dispatch(this.w, { verb: "loot", actor: this.pc.id, target: { k: "actor", id: d.who! }, arg: d.loot });
+        if (!r.ok) { this.hint(r.reason ?? ""); this.closeSheet(); return; }
+        this.audio.play("pickup", 0.9);
+        if (d.loot === "all") this.closeSheet(); else this.openLoot(d.who!);
+        return;
+      }
       if (d.bribe) { const r = dispatch(this.w, { verb: "bribe", actor: this.pc.id, target: { k: "actor", id: d.who! }, amount: +d.bribe }); if (!r.ok) this.hint(r.reason ?? ""); this.closeSheet(); return; }
       if (d.bag) {
         const o = ((this as any)[`bag_${d.bag}`] as Option[])[+d.i!];

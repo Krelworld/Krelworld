@@ -2,6 +2,8 @@
 // The view shows the best one on the action button and the rest in a list.
 import { alarmPointNear } from "./kickoff";
 import { sharpInHand } from "./knife";
+import { fromBehind, hidingPlaceNear, incapacitated, knockedOut } from "./combat";
+import { horseNear, mountedOfficer, riding } from "./horse";
 import { appearance } from "../core/identity";
 import { defOf, hasProp } from "../core/items";
 import type { Action, Actor, Item } from "../core/types";
@@ -16,7 +18,7 @@ export interface Option {
   priority: number;
   action?: Action;
   /** Opens a sheet instead of acting straight away. */
-  sheet?: { kind: "shop" | "bribe" | "bet" | "report"; who: string };
+  sheet?: { kind: "shop" | "bribe" | "bet" | "report" | "loot"; who: string };
 }
 
 const lc = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
@@ -77,7 +79,7 @@ export function options(w: World, pc: Actor, picked?: string | null): Option[] {
 
   // People.
   const people = Object.values(s.actors)
-    .filter((a) => a.id !== pc.id && !a.hiddenIn && !a.dead && a.npc?.job !== "dog" && (a.npc || a.fb || a.off) && (!a.fb || a.fb.status !== "gone"))
+    .filter((a) => a.id !== pc.id && !a.hiddenIn && !a.dead && !knockedOut(w, a) && a.npc?.job !== "dog" && (a.npc || a.fb || a.off) && (!a.fb || a.fb.status !== "gone"))
     .map((a) => ({ a, d: Math.hypot(a.x - pc.x, a.y - pc.y) }))
     .filter((p) => p.d < 3.6)
     .sort((p, q) => p.d - q.d)
@@ -102,7 +104,8 @@ export function options(w: World, pc: Actor, picked?: string | null): Option[] {
     if (n?.job === "police") out.push({ label: `Tip off ${name} about someone`, priority: 15, sheet: { kind: "report", who: a.id } });
     if (appearance(s, pc).role === "police" && n?.job !== "police") push(`Arrest ${name}`, 22 - d, { verb: "arrest", ...base, target: { k: "actor", id: a.id } });
     const weapon = hand && hasProp(hand, "weapon");
-    push(weapon ? `Stab ${name}` : `Punch ${name}`, -1, { verb: "strike", ...base, target: { k: "actor", id: a.id } });
+    const sneak = !weapon && !a.fb && fromBehind(pc, a);
+    push(weapon ? `Stab ${name}` : sneak ? `Take down ${name}` : `Punch ${name}`, sneak ? 30 : -1, { verb: "strike", ...base, target: { k: "actor", id: a.id } });
   }
 
   // Dressed as the referee, on the pitch: make some decisions.
@@ -114,6 +117,25 @@ export function options(w: World, pc: Actor, picked?: string | null): Option[] {
     push("Disallow their goal", 62, { verb: "rule", ...base, arg: "disallow" });
     push("Blow for full time", 20, { verb: "rule", ...base, arg: "fulltime" });
     push("Stop play", 15, { verb: "rule", ...base, arg: "stop" });
+  }
+
+  // The police horse.
+  if (riding(w, pc)) push("Get off the horse", 60, { verb: "dismount", ...base });
+  else if (horseNear(w, pc)) push("Get on the horse", 75, { verb: "mount", ...base });
+  else { const o = mountedOfficer(w); if (o && o.downUntil <= s.tick && Math.hypot(o.x - pc.x, o.y - pc.y) < 2.4) push(`Pull ${personName(o)} off his horse`, 72, { verb: "unseat", ...base }); }
+
+  // The knocked out and the dead: pockets, dragging, a stamp; somewhere to put them.
+  if (pc.dragging) {
+    const b = s.actors[pc.dragging];
+    const spot = hidingPlaceNear(w, pc);
+    if (spot) push(spot.startsWith("bin") ? `Stuff ${personName(b)} in the bin` : `Leave ${personName(b)} in here`, 70, { verb: "hidebody", ...base });
+    push(`Let go of ${personName(b)}`, 20, { verb: "drag", ...base });
+  } else for (const a of Object.values(s.actors)) {
+    if (a.id === pc.id || a.hiddenIn || !incapacitated(w, a) || a.npc?.job === "dog" || Math.hypot(a.x - pc.x, a.y - pc.y) > 2.4) continue;
+    const name = personName(a);
+    out.push({ label: `Go through ${name}'s pockets`, priority: 55, sheet: { kind: "loot", who: a.id } });
+    push(`Drag ${name}`, 50, { verb: "drag", ...base, target: { k: "actor", id: a.id } });
+    if (!a.dead) push(`Stamp on ${name}'s head`, 8, { verb: "finish", ...base, target: { k: "actor", id: a.id } });
   }
 
   // The dead, if you've a blade.

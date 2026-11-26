@@ -96,6 +96,12 @@ export interface Actor {
   money: number;
   /** Tick until which the actor is on the floor or otherwise out of action. */
   downUntil: number;
+  /** Blows taken since last knocked out. */
+  hurt?: number;
+  /** Their pockets have been made up (see combat.ts stock). */
+  looted?: boolean;
+  /** Dragging this body along. */
+  dragging?: Id;
   /** Thrown back by a blow: metres per second along the ground, until a tick (slows as it goes). */
   knock?: { vx: number; vy: number; from: number; until: number };
   /** Active effects with the tick they wear off, e.g. { drunk: 5400 }. */

@@ -29,6 +29,9 @@ export interface Npc {
   sitting: boolean;
   bubble: { text: string; until: number } | null;
   nextBark: number;
+  /** About to hit back at someone. */
+  retaliateAt?: number;
+  retaliateOn?: Id;
   /** A mounted officer (drawn on the horse). */
   mounted?: boolean;
   /** Standing about with others: the middle of the group, and what they're doing (chat, drink, smoke, cheer, idle). */
@@ -143,6 +146,8 @@ export interface StadiumState {
   doorPass: Id | null;
   /** One-off things that have happened. */
   flags: Record<string, number>;
+  /** The police horse, once its officer is off it. */
+  horse?: import("./horse").Horse;
   /** Cars going by on the ring road. */
   traffic?: import("./traffic").Car[];
   /** Detained in the security office until this tick (0 if not). */

@@ -10,7 +10,7 @@ import { removePlayer } from "../football/api";
 import { raiseSecurity } from "./kickoff";
 import { SPOTS, VENUE } from "./layout";
 import { follow, goTo, say, spawnStaff } from "./npc";
-import { canSee, crime, finishArrest, isSecurity } from "./security";
+import { alert, canSee, crime, finishArrest, isSecurity } from "./security";
 
 /** Seconds from the call to armed officers arriving. */
 const ARMED_DELAY = 40;
@@ -161,12 +161,26 @@ function discoverBodies(w: World): void {
   if (tick % 20 !== 0) return;
   for (const id in s.actors) {
     const b = s.actors[id];
-    if (!b.dead || st.flags[`found_${id}`]) continue;
+    const ko = !b.dead && (b.effects.ko ?? 0) > tick && b.npc?.job !== "dog";
+    if ((!b.dead && !ko) || b.hiddenIn || st.flags[`found_${id}`]) continue;
     for (const oid in s.actors) {
       const o = s.actors[oid];
       if (!o.npc || o.dead || o === b || o.npc.job === "dog" || o.npc.job === "player" || o.npc.job === "armed" || o.downUntil > tick) continue;
       if (!canSee(w, o, b, 12)) continue;
       st.flags[`found_${id}`] = 1;
+      if (ko) {
+        // Somebody out cold: "Man down!" Security come over, and anyone standing over him is the suspect.
+        say(w, o, pick(s.rng.world, ["Man down! Man down!", "Oi, he's spark out here!", "Someone's been battered!", "Is he alright? MATE?"]), 3);
+        w.bus.emit({ type: "ko_found", t: tick, who: id, by: o.id, x: b.x, y: b.y });
+        const pc = s.actors[st.pc];
+        for (const gid in s.actors) {
+          const g = s.actors[gid];
+          if (!isSecurity(g) || g.downUntil > tick || Math.hypot(g.x - b.x, g.y - b.y) > 25) continue;
+          if (pc && Math.hypot(pc.x - b.x, pc.y - b.y) < 4 && !pc.hiddenIn) alert(w, g, pc, 2, 1.3);
+          else if (g.npc!.mode === "routine") g.npc!.plan = [{ k: "go", x: b.x + 1, y: b.y, run: true }, { k: "wait", s: 6 }];
+        }
+        break;
+      }
       say(w, o, pick(s.rng.world, ["Oh my God. OH MY GOD.", "Is he... is he breathing?", "SOMEBODY CALL AN AMBULANCE!", "Jesus Christ, there's a body!"]), 3);
       w.bus.emit({ type: "body_found", t: tick, who: id, by: o.id, x: b.x, y: b.y, footballer: !!b.fb });
       callArmed(w, b.x, b.y);

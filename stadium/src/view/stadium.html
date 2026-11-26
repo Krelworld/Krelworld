@@ -2,7 +2,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,500;0,600;0,700;0,800;1,800&family=Barlow:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,500;0,600;0,700;0,800;1,800&family=Barlow:wght@400;500;600&family=Silkscreen:wght@400;700&family=Pixelify+Sans:wght@400;500;600;700&display=swap">
 <style>
   /* Match-day television: a score bug in the corner, caption straps for the tannoy and the
      commentary, condensed capitals, sharp edges. Single dark look: it sits over a floodlit game. */
@@ -213,6 +213,31 @@
     #score .clock { font-size: 15px; padding: 0 8px; }
   }
   @media (prefers-reduced-motion: reduce) { #ticker .line, #eye.hot { animation: none; } }
+
+  /* ---- Pixel game skin (over the broadcast look): pixel fonts, bevelled panels and buttons. ---- */
+  :root {
+    --display: "Silkscreen", "Pixelify Sans", monospace;
+    --body: "Pixelify Sans", "Silkscreen", monospace;
+    --night: #141a24; --night2: #1d2533; --rule: #000;
+  }
+  body { font: 500 16px/1.3 var(--body); -webkit-font-smoothing: none; font-smooth: never; }
+  button, .panel, #sheet, #ticker > *, #hint, #toast, #speed, #stallCap, .ware, #bug > * {
+    box-shadow: 0 0 0 2px #000, inset 2px 2px 0 rgba(255,255,255,0.16), inset -2px -2px 0 rgba(0,0,0,0.5) !important;
+  }
+  button { font: 700 14px/1 var(--display) !important; letter-spacing: 0.02em; border-bottom: 0 !important; background: var(--night2); text-shadow: 2px 2px 0 #000; }
+  button:active { transform: translateY(2px); box-shadow: 0 0 0 2px #000, inset -2px -2px 0 rgba(255,255,255,0.12), inset 2px 2px 0 rgba(0,0,0,0.5) !important; }
+  button.red, #act { background: #c81e32 !important; color: #fff !important; }
+  #act { font-size: 18px !important; clip-path: none !important; }
+  h2, h3, .tag, .eyebrow { font-family: var(--display) !important; letter-spacing: 0.02em; }
+  #sheet { background: #10151e !important; image-rendering: pixelated; }
+  #sheet h2 { background: #f5c400; color: #141414; text-shadow: none; padding: 8px 12px; }
+  .ware .nm { font-family: var(--body) !important; }
+  #cineCap { font-family: var(--display) !important; font-size: 26px; text-shadow: 3px 3px 0 #000; }
+  #stallCap { font-family: var(--body) !important; border-left-width: 6px; }
+  /* Running text in the readable pixel face; labels and buttons in the blocky one. */
+  #ticker .txt, #where, #hint, #toast, #sheet p, .ware .nm, #intro p, #intro li, #ending p { font-family: var(--body) !important; font-weight: 600 !important; letter-spacing: 0 !important; text-transform: none !important; }
+  #ticker .txt { font-size: 17px !important; }
+  #where { font-size: 16px !important; }
 </style>
 
 <div id="app">

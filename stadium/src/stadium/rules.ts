@@ -2,6 +2,7 @@
 // about "tricks": a pie that hits the referee distracts him because thrown things
 // that hit people distract them.
 import { sharpInHand, stab, staffHands } from "./knife";
+import { land } from "./combat";
 import { appearance } from "../core/identity";
 import { canPocket, defOf, hasProp, ITEM_DEFS, moveItem, spawnItem } from "../core/items";
 import { chance, pick, rndRange } from "../core/rng";
@@ -257,18 +258,23 @@ export function installRules(): void {
       const t = targetActor(w, act)!;
       if (sharpInHand(w, actor) && !t.dead) return stab(w, actor, t);
       const weapon = !!item && hasProp(item, "weapon") && actor.hand === item.id;
+      const before = t.downUntil;
       strike.perform(w, act, actor, item);
+      t.downUntil = before;
+      const result = land(w, actor, t, weapon);
       // The blow sends them back: a fist about a metre and a half, anything heavy further.
       const dx = t.x - actor.x, dy = t.y - actor.y, dl = Math.hypot(dx, dy) || 1, sp = weapon ? 17 : 14;
-      t.knock = { vx: (dx / dl) * sp, vy: (dy / dl) * sp, from: w.state.tick, until: w.state.tick + 26 };
+      // A choke from behind doesn't throw anyone; a knockout sends them less far than a stagger.
+      if (result !== "takedown") { const k = result === "ko" ? 0.55 : 1; t.knock = { vx: (dx / dl) * sp * k, vy: (dy / dl) * sp * k, from: w.state.tick, until: w.state.tick + 26 }; }
       w.bus.emit({ type: "struck", t: w.state.tick, by: actor.id, who: t.id, weapon, dx: dx / dl, dy: dy / dl });
       const official = !!t.off, player = !!t.fb && t.fb.status === "playing";
       if (player) t.fb!.stunUntil = w.state.tick + (weapon ? 900 : 160);
+      if (player && result !== "hurt") removePlayer(w, t.id, "injured");
       if (official) t.downUntil = w.state.tick + (weapon ? 1800 : 360);
       if (weapon && player) removePlayer(w, t.id, "injured");
       const sev = weapon ? 3 : official || player ? 3 : 2;
       crime(w, actor, weapon ? "an attack with a weapon" : official ? "assaulting the referee" : player ? "assaulting a player" : "assault", sev, t);
-      if (t.npc) {
+      if (t.npc && result === "hurt") {
         const OUCH = weapon ? ["Aaargh!", "My head! My fucking head!", "Help! Somebody help!"]
           : ["My nose! My fucking nose!", "Ow! You mad bastard!", "What the fuck was that for?", "Jesus Christ!", "Ugh... my teeth...", "You're dead, mate. Dead!"];
         say(w, t, pick(w.state.rng.world, OUCH));

@@ -876,3 +876,56 @@ test("you don't start with enough for a ticket", () => {
   const g = createGame("skint");
   assert.ok(pcOf(g).money < 60);
 });
+
+test("from behind, one blow knocks someone out; you can go through their pockets, drag them and bin them", () => {
+  const g = createGame("ko");
+  run(g, 20);
+  const s = g.w.state, pc = pcOf(g);
+  const v = find(g, (a) => a.npc?.job === "fan" && !a.seated);
+  v.x = 2; v.y = 74; v.facing = 0; v.npc!.plan = [{ k: "wait", s: 60 }]; v.npc!.group = undefined;
+  pc.x = 1.1; pc.y = 74; v.money = 33;
+  assert.equal(dispatch(g.w, { verb: "strike", actor: pc.id, target: { k: "actor", id: v.id } }).ok, true);
+  assert.ok((v.effects.ko ?? 0) > s.tick, "out cold");
+  const before = pc.money;
+  assert.equal(dispatch(g.w, { verb: "loot", actor: pc.id, target: { k: "actor", id: v.id }, arg: "money" }).ok, true);
+  assert.equal(pc.money, before + 33);
+  assert.equal(dispatch(g.w, { verb: "drag", actor: pc.id, target: { k: "actor", id: v.id } }).ok, true);
+  // Haul him to the bin by the charity shop (a wheelie bin at -2, 73.5).
+  pc.x = -2; pc.y = 74.6;
+  run(g, 0.5);
+  assert.ok(Math.hypot(v.x - pc.x, v.y - pc.y) < 1.2, "he came along");
+  assert.equal(dispatch(g.w, { verb: "hidebody", actor: pc.id }).ok, true);
+  assert.ok(v.hiddenIn, "in the bin");
+});
+
+test("face to face it takes a few blows, and some hit back", () => {
+  const g = createGame("brawl");
+  run(g, 20);
+  const s = g.w.state, pc = pcOf(g);
+  const v = find(g, (a) => a.npc?.job === "fan" && !a.seated);
+  v.x = 2; v.y = 74; v.facing = Math.PI; v.npc!.plan = [{ k: "wait", s: 60 }]; v.npc!.group = undefined;
+  pc.x = 1.1; pc.y = 74; pc.facing = 0;
+  dispatch(g.w, { verb: "strike", actor: pc.id, target: { k: "actor", id: v.id } });
+  assert.ok(!((v.effects.ko ?? 0) > s.tick), "still standing after one");
+  run(g, 1.2);
+  v.x = pc.x + 0.9; v.y = pc.y; v.facing = Math.PI;
+  for (let i = 0; i < 4 && !((v.effects.ko ?? 0) > s.tick); i++) { v.downUntil = 0; dispatch(g.w, { verb: "strike", actor: pc.id, target: { k: "actor", id: v.id } }); v.x = pc.x + 0.9; v.y = pc.y; }
+  assert.ok((v.effects.ko ?? 0) > s.tick, "down in the end");
+});
+
+test("pull the officer off his horse, ride it, and trample people", () => {
+  const g = createGame("horse");
+  run(g, 20);
+  const s = g.w.state, pc = pcOf(g), st = s.stadium!;
+  const o = find(g, (a) => !!a.npc?.mounted);
+  pc.x = o.x + 1; pc.y = o.y;
+  assert.equal(dispatch(g.w, { verb: "unseat", actor: pc.id }).ok, true);
+  assert.ok(st.horse && !o.npc!.mounted);
+  pc.x = st.horse!.x + 0.5; pc.y = st.horse!.y;
+  assert.equal(dispatch(g.w, { verb: "mount", actor: pc.id }).ok, true);
+  const v = find(g, (a) => a.npc?.job === "fan" && !a.seated && a.id !== o.id);
+  st.horse!.facing = 0; st.horse!.x = 0; st.horse!.y = 56; v.x = 8; v.y = 56; v.npc!.plan = [{ k: "wait", s: 60 }];
+  run(g, 1.5, () => { pc.moveX = 1; pc.moveY = 0; });
+  assert.ok(st.horse!.x > 5, "galloping");
+  assert.ok(v.downUntil > s.tick, "flattened");
+});

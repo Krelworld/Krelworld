@@ -2677,7 +2677,11 @@ async function combat(browser) {
             let frames = 0;
             const tick = () => {
               const e = window.__afDummy;
-              if (e && !e.dead) e.body.reset(d.player.x + 150, d.player.y - 20);
+              // (fully seen all along: some kinds flicker through a dash's wind-up, which the aim rightly skips)
+              if (e && !e.dead) {
+                e.body.reset(d.player.x + 150, d.player.y - 20);
+                e.setAlpha(1).setVisible(true);
+              }
               frames++;
               if (window.__krelMobile.combat.snapshot().autoShooting) auto++;
               if (d.player.attackAnimUntil !== last) {
@@ -2745,7 +2749,10 @@ async function combat(browser) {
               const t0 = d.time.now;
               const tick = () => {
                 const e = window.__afDummy;
-                if (e && !e.dead) e.body.reset(d.player.x + dx, d.player.y + dy);
+                if (e && !e.dead) {
+                  e.body.reset(d.player.x + dx, d.player.y + dy);
+                  e.setAlpha(1).setVisible(true);
+                }
                 // (only the dummy counts: the room's own enemies, and any the next wave brings, are kept out of it)
                 for (const o of d.enemies) if (o !== e && !o.dead) o.visible = false;
                 c.lastMove = facing;
@@ -2753,7 +2760,7 @@ async function combat(browser) {
                 d.events.off("postupdate", tick);
                 const sn = c.snapshot();
                 for (const o of d.enemies) if (o !== e && !o.dead) o.visible = true;
-                res({ target: sn.target ? sn.target.id : null, aim: sn.aim === null ? null : +sn.aim.toFixed(2), want: e ? e.uid : null, dist: e ? Math.round(Math.hypot(e.x - d.player.x, e.y - d.player.y)) : null });
+                res({ target: sn.target ? sn.target.id : null, aim: sn.aim === null ? null : +sn.aim.toFixed(2), want: e ? e.uid : null, dist: e ? Math.round(Math.hypot(e.x - d.player.x, e.y - d.player.y)) : null, me: [Math.round(d.player.x), Math.round(d.player.y)], view: ((v) => [v.x, v.y, v.width, v.height].map(Math.round))(d.cameras.main.worldView) });
               };
               d.events.on("postupdate", tick);
             }),

@@ -146,6 +146,12 @@ export interface ControlSpec {
   place?(layer: TouchLayer): Placed | null;
   /** A word under the face (first-time captions, research S10). */
   caption?: string;
+  /**
+   * Stage 3: a finger landing here (page CSS px) is not this control's (it does nothing on down); if it lifts as a
+   * still, quick tap, onPassTap gets it. ACTION in tap to use: a tap past its face on another thing.
+   */
+  passThrough?(c: TouchControl, x: number, y: number): boolean;
+  onPassTap?(x: number, y: number, t0: number): void;
 }
 
 interface Owned {
@@ -177,6 +183,8 @@ export class TouchControl {
   private dead = new Set<number>();
   private pressedAt = 0;
   private seeThrough = false;
+  /** Fingers passed through (spec.passThrough): where and when they landed, and whether they moved. */
+  private passing = new Map<number, Owned & { moved: boolean }>();
 
   constructor(
     readonly layer: TouchLayer,
@@ -343,7 +351,11 @@ export class TouchControl {
 
   /** A finger lands on it (or was routed to it from a neighbour in its group). */
   touchStart(t: { identifier: number; clientX: number; clientY: number }) {
-    if (this.live.has(t.identifier) || this.dead.has(t.identifier)) return;
+    if (this.live.has(t.identifier) || this.dead.has(t.identifier) || this.passing.has(t.identifier)) return;
+    if (this.shown && !this.layer.held && this.spec.passThrough?.(this, t.clientX, t.clientY)) {
+      this.passing.set(t.identifier, { x0: t.clientX, y0: t.clientY, t0: now(), moved: false });
+      return;
+    }
     // just appeared, switched off already, or the layer is holding: owned, but does nothing
     if (!this.shown || now() < this.armedAt || this.layer.held) {
       this.dead.add(t.identifier);
@@ -360,12 +372,23 @@ export class TouchControl {
   }
 
   touchMove(t: { identifier: number; clientX: number; clientY: number }) {
+    const p = this.passing.get(t.identifier);
+    if (p) {
+      if (Math.hypot(t.clientX - p.x0, t.clientY - p.y0) > TAP_SLOP) p.moved = true;
+      return;
+    }
     if (!this.spec.onSlide) return;
     const o = this.live.get(t.identifier);
     if (o) this.spec.onSlide(this, t.clientX - o.x0, t.clientY - o.y0, t.clientX, t.clientY);
   }
 
   touchEnd(t: { identifier: number }, cancelled: boolean) {
+    const p = this.passing.get(t.identifier);
+    if (p) {
+      this.passing.delete(t.identifier);
+      if (!cancelled && !p.moved && now() - p.t0 < TAP_MS && this.shown && !this.layer.held) this.spec.onPassTap?.(p.x0, p.y0, p.t0);
+      return;
+    }
     if (this.dead.delete(t.identifier)) return;
     if (!this.live.delete(t.identifier)) return;
     if (this.live.size) return;
@@ -391,6 +414,7 @@ export class TouchControl {
 
   /** Let go now: every finger on it does nothing more until it lifts (a new finger works at once). */
   letGo() {
+    this.passing.clear();
     for (const id of this.live.keys()) this.dead.add(id);
     this.live.clear();
     this.up(true);
@@ -482,7 +506,7 @@ export class TouchLayer {
    * Stage 3, tap to use (tapUse.ts): in the walking scenes it covers, a still tap on a thing, a person or the floor
    * walks there and uses it; the old "tap the prompt's thing" area gives way to it (the bubble stays ACTION).
    */
-  worldTap: { covers(d: ModeDecision): boolean; tap(x: number, y: number): boolean } | null = null;
+  worldTap: { covers(d: ModeDecision): boolean; tap(x: number, y: number, t0?: number): boolean; claims(x: number, y: number, face?: Rect): boolean } | null = null;
   private worldTapOn = false;
 
   /** Where a tap uses the thing the prompt is about (page CSS px; stage 1's generous area round it), or null. */
@@ -547,6 +571,9 @@ export class TouchLayer {
         slot: "prime",
         className: "kt-action",
         haptic: "press",
+        // (tap to use: outside the drawn button, a tap on another thing is that thing's: P2, Home's games console)
+        passThrough: (c, x, y) => !inRect(c.faceRect, x, y) && !!this.worldTap?.claims(x, y, c.faceRect),
+        onPassTap: (x, y, t0) => void this.worldTap?.tap(x, y, t0),
         onDown: (c) => {
           if (!cueSeen("action")) {
             markCue("action");
@@ -800,7 +827,7 @@ export class TouchLayer {
         else {
           const zt = this.zoneTaps.get(t.identifier);
           this.zoneTaps.delete(t.identifier);
-          if (zt && !cancelled && !zt.moved && now() - zt.t0 < TAP_MS) this.zoneTap(zt.x0, zt.y0);
+          if (zt && !cancelled && !zt.moved && now() - zt.t0 < TAP_MS) this.zoneTap(zt.x0, zt.y0, zt.t0);
         }
       }
     };
@@ -820,7 +847,8 @@ export class TouchLayer {
     this.stickEl.classList.add("live");
     this.updateGhost();
     this.stickEl.style.transform = `translate(${b.x}px,${b.y}px)`;
-    // (the element moved under the thumb: the resting place must be set again when it lifts)
+    // (the element left its resting place: the next placeGhost must put it back, even unchanged: fix round P3, the
+    // ring used to stay where a still tap had landed, over scenery, into the next scene)
     this.ghostKey = "";
     this.knobEl.style.transform = "translate(0px,0px)";
     if (fixed) this.moveStick(x, y);
@@ -879,7 +907,7 @@ export class TouchLayer {
     // (only a real walk brings the resting stick back for a moment: a tap doesn't flash it up)
     if (s.moved) this.stickFreeAt = now();
     this.updateGhost();
-    if (mayTap && !s.dead && !s.moved && now() - s.t0 < TAP_MS) this.zoneTap(s.x0, s.y0);
+    if (mayTap && !s.dead && !s.moved && now() - s.t0 < TAP_MS) this.zoneTap(s.x0, s.y0, s.t0);
   }
 
   /** The stick lets go now (its touch stays owned until it lifts, but does nothing more). */
@@ -919,13 +947,13 @@ export class TouchLayer {
    * A quick still tap in the stick zone. On the prompt bubble or the thing the prompt is about: ACTION. Anywhere else:
    * handed to the game as a tap at that point (tapping a canvas button on the left half).
    */
-  private zoneTap(x: number, y: number) {
+  private zoneTap(x: number, y: number, t0?: number) {
     if (this.tapActs(x, y)) {
       haptic("press");
       this.edge("interact");
       return;
     }
-    if (this.worldTap?.tap(x, y)) return;
+    if (this.worldTap?.tap(x, y, t0)) return;
     this.injectTap(x, y);
   }
 

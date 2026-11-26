@@ -94,11 +94,27 @@ Character lines in these scenes that mention a key: none (the "Tap" in VignetteS
   squeeze won by tapping off its circle; the Pit card. The timing games run on a stepped clock (the game's loop stepped 60
   frames per game second, frames not drawn) because this machine ran at load 16 and 7-20 fps: real-time bots landed
   every tap 150-250 ms late there (a re-run alone at 23 fps passed). `GAMES_ONLY=` runs a subset.
-  Result on 5502: 30 of 30 (1006 s).
+  Result on 5502 alone: 30 of 30 (1006 s); in the full runs see below.
 
 ## 6. Full check
 
-FULLCHECK_RESULTS
+Own servers 5502 / 5512 from this worktree, on the code as committed (game code unchanged since the check began;
+only the smoke's gig wait changed after). The machine ran at load average 16-40 with 2-7 GB free throughout.
+
+| Check | Result |
+|---|---|
+| (a) fingerprint `shell,front,newgame,hub,meeting,dungeon` | 40 of 40 states identical, DESKTOP FINGERPRINT: OK |
+| (a) fingerprint `boss,side,places,minigames,finale,alt` | 25 of 25 identical, OK |
+| (b) touchlaptop / ipad / fire7 (`front,newgame`) | 16 / 16 / 16 identical, OK each |
+| (b) androidtab (`front,newgame,hub`) | 29 of 29 identical, OK |
+| (c) `tests/desktopInvariants.test.ts` | 19 of 19; the file, `tests/fingerprints/` and index.html unedited |
+| (d) `npx tsc --noEmit` | clean |
+| (d) `npx vitest run` | 599 of 600: the tap-to-use path-finder speed test (175 ms vs 60 under load 27; wave 1's); alone right after: 21 of 21 |
+| (e) smoke main (full) | 512 of 518. Games 29 of 30: the gig's END GIG waited for in real time (70 s) while the game ran at 7 fps; fixed (waited for on the stepped clock), `GAMES_ONLY=gig` re-run 5 of 5. Others: SWAP tap, slide-to-pick, weapon chip tap, coyote, P2; re-run `--only combat,side,review1`: 73 of 75 (weapon chip tap and P2 again: both listed as load flakes in s3-01 / s3-03 / s2-10) |
+| (e) smoke ALT (full) | 466 of 473, games 30 of 30. Others: wording (the page crashed: 13 of 15 GB in use by other jobs), R9, coyote, P2, polish (timed out loading a room), two tap-to-use re-target checks; re-run `--only wording,dungeon,side,review1,polish,tapuse`: 125 of 127 (coyote: the test's own 140 ms window measured 159 ms at this frame rate, the jump was right; P2: pre-existing on ALT under load, s2-10) |
+
+None of the failing checks is in this track's code (they are the fights, side rooms and tap to use, which this branch
+does not touch); each one that failed is either a known load flake from earlier reports or passed on its re-run.
 
 ## 7. Judged against "mega intuitive and fun"
 

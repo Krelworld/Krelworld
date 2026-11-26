@@ -71,6 +71,17 @@ describe("the telly's subtitles paged at reading size (P5)", () => {
     expect(pages).toEqual(["one two\nthree four", "five six\nseven"]);
     expect(pages.join("\n")).toBe(lines.join("\n"));
   });
+  it("a one-word last page takes the last word of the page before (review P10), the words kept in order", () => {
+    const lines = ["DNC REP 1: We need someone", "strong, someone who can", "debate Trump head-on. Gavin", "Newsom?"];
+    const pages = pageLines(lines, 3);
+    expect(pages).toEqual(["DNC REP 1: We need someone\nstrong, someone who can\ndebate Trump head-on.", "Gavin Newsom?"]);
+    const words = (a: string[]) => a.join(" ").split(/\s+/);
+    expect(words(pages)).toEqual(words(lines));
+    // a full last page, or a one-word line before it, is left alone
+    expect(pageLines(["a b", "c d", "e f"], 2)).toEqual(["a b\nc d", "e f"]);
+    expect(pageLines(["a", "b c d"], 1)).toEqual(["a", "b c d"]);
+    expect(pageLines(["x", "y"], 1)).toEqual(["x", "y"]);
+  });
   it("the line's own time is shared by length, never under the minimum", () => {
     const t = pageTimes(["aaaa aaaa aaaa aaaa", "bbbb"], 6000);
     expect(t[0]).toBeGreaterThan(t[1]);

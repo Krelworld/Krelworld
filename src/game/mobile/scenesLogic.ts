@@ -108,6 +108,19 @@ export function pageLines(lines: readonly string[], per: number): string[] {
   const n = Math.max(1, Math.floor(per));
   const out: string[] = [];
   for (let i = 0; i < lines.length; i += n) out.push(lines.slice(i, i + n).join("\n"));
+  // a last page of one word reads oddly ("Newsom?" alone, review P10): the last word of the page before moves on to
+  // it (the same words, in order; the shorter page only gets shorter)
+  for (let k = 0; k < 2 && out.length > 1; k++) {
+    const last = out[out.length - 1];
+    if (last.includes("\n") || last.trim().split(/\s+/).length > 1) break;
+    const prev = out[out.length - 2].split("\n");
+    const words = prev[prev.length - 1].split(" ");
+    if (words.length < 2) break;
+    const w = words.pop() as string;
+    prev[prev.length - 1] = words.join(" ");
+    out[out.length - 2] = prev.join("\n");
+    out[out.length - 1] = `${w} ${last}`;
+  }
   return out;
 }
 

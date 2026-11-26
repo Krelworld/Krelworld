@@ -19,7 +19,7 @@ import { addSceneRule, SCENE_RULES, type ModeDecision, type SceneRule } from "./
 import { registerModeController, type TouchControl, type TouchLayer } from "./touchLayer";
 import { phoneHooks, setPhoneHooks } from "./boot";
 import { phoneSettings } from "./settings";
-import { NARRATOR_TIPS, touchWording } from "./wording";
+import { NARRATOR_TIPS, rawText, touchWording, wordText } from "./wording";
 import { cueSeen, markCue } from "./cues";
 import { setCardPause } from "./observe";
 import type { Shell } from "./shell";
@@ -271,6 +271,8 @@ class Gunner {
 
 /** The Drive scene as it is built: its canvas ROCKET / SLOPPY hidden (the phone's are bigger and multi-touch). */
 function onDriveCreate(sc: Bag) {
+  // the HUD's "SLOPPY 100% — R!" in touch words
+  if (sc.hud) wordText(sc.hud as Phaser.GameObjects.Text);
   for (const o of sc.children.list as Bag[]) {
     if (o.depth === 450 && o.type === "Arc" && Math.round(o.y) === 470) o.setVisible(false).disableInteractive();
     if (o.depth === 451 && o.type === "Text" && /^(?:ROCKET|SLOPPY)$/.test(o.text)) o.setVisible(false);
@@ -374,6 +376,9 @@ class RaidFire {
     // (ACTION has the corner when something can be used: FIRE steps left of it)
     this.c.setSlot(layer.control("action")?.shown ? "left" : "prime");
     this.c.show(true, true);
+    // its objective line's "(HOLD attack ...)" in touch words (a HUD line)
+    const obj = f.objective as Phaser.GameObjects.Text | undefined;
+    if (obj && obj.active) wordText(obj);
     const btn = f.fireBtn as Bag | undefined;
     if (btn?.visible) {
       btn.setVisible(false).disableInteractive();
@@ -616,6 +621,33 @@ export function installScenes(game: Phaser.Game, layer: TouchLayer, shell: Shell
         });
         stats.tutorialSkips++;
       }
+      if (key === "Finale") {
+        // the finale's "Esc: skip scene / fight" label (it sat under the II and did nothing when tapped, review P3): a
+        // pill left of the II that does what Esc does there (the scene's own finish(true))
+        const fin = sc as unknown as Bag;
+        const fix = () => {
+          const t = (sc.children.list as unknown as Bag[]).find((o) => o.type === "Text" && /^(?:Esc: skip (?:scene|fight)|SKIP (?:SCENE|FIGHT) ▸▸)$/i.test(rawText(o as never) || o.text));
+          if (!t || !t.active || typeof fin.finish !== "function") return;
+          if (!t.__mfSkip) {
+            t.__mfSkip = true;
+            const fight = /fight/i.test(rawText(t as never) || t.text);
+            pill(game, t, fight ? "SKIP FIGHT ▸▸" : "SKIP SCENE ▸▸");
+            t.setInteractive({ useHandCursor: true });
+            let down = false;
+            t.on("pointerdown", () => (down = true));
+            t.on("pointerup", () => {
+              if (!down || fin.ended) return;
+              down = false;
+              fin.finish(true);
+            });
+            stats.finaleSkips++;
+          }
+          const left = pauseLeftGame(game, layer);
+          t.setPosition(Math.min(960 - gpx(game, 12), left - gpx(game, 8)), gpx(game, 8));
+        };
+        fix();
+        for (const ms of [100, 600, 1500]) sc.time.delayedCall(ms, fix);
+      }
       if (key === "Minigame") {
         // the cannon's how-to line (a UI line) in touch words; its dark pill fitted to it again (the minigames' own
         // wording, games.ts, may have worded it "Tap: ..." first: the pill is fitted either way)
@@ -660,6 +692,18 @@ export function installScenes(game: Phaser.Game, layer: TouchLayer, shell: Shell
           vig.input?.keyboard?.emit("keydown-TAB", { key: "Tab", preventDefault() {} });
         });
         stats.advertPills++;
+      }
+    }
+    // a pseudo-3D shot's "SKIP ▸▸" (11 px, in the home-indicator strip; a tap anywhere skips): lifted clear of the
+    // strip and readable (review P8)
+    for (const sc of game.scene.getScenes(true) as unknown as Bag[]) {
+      const k = String(sc.sys?.settings?.key ?? "");
+      if (!k.startsWith("__p3d_shot_")) continue;
+      for (const o of sc.children.list as Bag[]) {
+        if (o.type !== "Text" || o.__mfLift || o.text !== "SKIP ▸▸" || o.depth !== 91) continue;
+        o.__mfLift = true;
+        o.setFontSize(gpx(game, 14)).setY(540 - gpx(game, 21 + 18));
+        stats.skip3d++;
       }
     }
     // the 3D epilogue's "skip ▶▶" (a DOM link, 11 px): a 44 px pill

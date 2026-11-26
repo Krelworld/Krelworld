@@ -221,7 +221,7 @@ export class MinigameScene extends Phaser.Scene {
     let hits = 0;
     const firstTime = !G.s.flags.mg_bully_won;
     const timeLimit = 20;
-    const end = this.time.now + timeLimit * 1000;
+    let end = this.time.now + timeLimit * 1000;
     if (alt) this.box.play([alt.intro, alt.barks[0]]);
     else this.box.play([dir(proxy ? "Mikey is busy (being you). Proctus has been asked to stand in. Proctus did not agree to this." : "The Booth. Mikey has been strung up as a heavy bag. He seems fine with it. He is never fine with it."), say(target, barks[0])]);
     const swing = () => {
@@ -256,6 +256,8 @@ export class MinigameScene extends Phaser.Scene {
       delay: 200,
       loop: true,
       callback: () => {
+        // PHONE MODE: the clock waits while the intro is on screen (hits are refused then; reading-size boxes page)
+        if (isMobile() && this.box.active && !this.ended) end += 200;
         const left = Math.max(0, Math.ceil((end - this.time.now) / 1000));
         this.hud.setText(`TIME ${left}s   HITS ${hits}`);
         if (left <= 0 && !this.ended && alt) this.finish(false, [dir(`Time. You are still frustrated. ${altName} looks smug, which somehow makes it worse.`), alt.barks[alt.barks.length - 1]]);

@@ -23,7 +23,7 @@ import { NARRATOR_TIPS, STORY_UI_LINES, UI_TEXTS, addWording } from "./wording";
 import { liveScene } from "./listScenes";
 import { phoneSettings } from "./settings";
 import { phoneHooks, setPhoneHooks } from "./boot";
-import { GAME_CUE_KEY, GAME_CUE_MS, GAME_NARRATOR_TIPS, GAME_STORY_LINES, GAME_UI_TEXTS, GAME_WORDING, clearOfPause, cueFor, crocColumn, liftOutOfStrip, rhythmLag, rsButtons, rsWord, type RsState } from "./gamesLogic";
+import { GAME_CUE_KEY, GAME_CUE_MS, GAME_NARRATOR_TIPS, GAME_STORY_LINES, GAME_UI_TEXTS, GAME_WORDING, clearOfPause, cueFor, crocColumn, liftOutOfStrip, PAUSE_CLEAR_X, rhythmLag, rsButtons, rsWord, type RsState } from "./gamesLogic";
 import { synth } from "../audio/Synth";
 import { storageKey } from "../variant";
 
@@ -251,8 +251,27 @@ export class PhoneGames {
         o.__mgRing = true;
         this.ringHit(o, 40);
       }
-    if (mode === "crocodile" && !sc.__mgHud && sc.hud) {
-      sc.__mgHud = true;
+    // the burpees' ROUND CLOCK panel and Facebrook's "Logged in as" ran under the II (review P4, P5): moved left of it
+    // (flags on the objects: the scene is reused by the next minigame and the console replays)
+    if (mode === "burpees") {
+      const dx = PAUSE_CLEAR_X - 944;
+      for (const o of list) if (!o.__mgTR && (o.type === "Rectangle" || o.type === "Text") && o.depth >= 100 && o.depth <= 102 && o.x >= 640 && o.y <= 100) {
+        o.__mgTR = true;
+        o.setX(o.x + dx);
+        this.note("top-right:burpees");
+      }
+    }
+    if (mode === "facebook" || mode === "modulator")
+      for (const o of list) {
+        if (o.__mgTR || o.type !== "Text" || !/^Logged in as: /.test(o.text)) continue;
+        o.__mgTR = true;
+        const b = o.getBounds() as Phaser.Geom.Rectangle;
+        const dx = clearOfPause({ x: b.x, y: b.y, w: b.width, h: b.height });
+        if (dx) o.setX(o.x + dx);
+        this.note(`top-right:${mode}`);
+      }
+    if (mode === "crocodile" && sc.hud && !sc.hud.__mgHud) {
+      sc.hud.__mgHud = true;
       // the score line: from between the pads up to just under the note lane
       sc.hud.setY(154);
     }

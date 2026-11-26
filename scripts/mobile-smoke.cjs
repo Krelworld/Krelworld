@@ -2898,7 +2898,7 @@ async function combat(browser) {
         return { right: v.x + v.width - d.player.x, w: v.width };
       });
       const offs = await aimFor(view.right + 30, 0, 0);
-      check("HOLD: never locks onto an enemy off screen, even right in front", offs.target === null, { offs, view });
+      check("HOLD: never locks onto an enemy off screen, even right in front (a barrel it can see may still be picked)", offs.target !== offs.want, { offs, view });
       // a pillar between you and it
       await ph.ev(() => {
         const d = window.__krel.game.scene.getScene("Dungeon");
@@ -2915,7 +2915,7 @@ async function combat(browser) {
         if (window.__pillar) d.obstacles.remove(window.__pillar, true, true);
         window.__pillar = null;
       });
-      check("HOLD: never locks onto an enemy behind a wall or pillar", walled.target === null, walled);
+      check("HOLD: never locks onto an enemy behind a wall or pillar", walled.target !== walled.want, walled);
       check("EASY (the old auto-fire): still aims all round you and through pillars", easyBehind.target === easyBehind.want && easyWalled.target === easyWalled.want, { easyBehind, easyWalled });
     }
     await ph.ev(() => {

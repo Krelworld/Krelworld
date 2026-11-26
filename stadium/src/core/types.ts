@@ -11,7 +11,7 @@ export const DT = 1 / TICK_HZ;
 export type Prop =
   | "sharp" | "throwable" | "liquid" | "consumable" | "food" | "alcohol" | "spikable"
   | "substance" | "wearable" | "weapon" | "metal" | "illicit" | "credential" | "container"
-  | "valuable" | "noisy" | "sinister" | "smoke" | "grisly" | "breakable" | "rideable";
+  | "valuable" | "noisy" | "sinister" | "smoke" | "grisly" | "breakable" | "rideable" | "gun";
 export type WearSlot = "head" | "face" | "outer" | "inner" | "body";
 export type Role =
   | "fan" | "steward" | "police" | "cleaner" | "catering" | "medic" | "broadcaster"
@@ -39,6 +39,8 @@ export interface ItemDef {
   faceCover?: number;
   /** Price in pounds where it is sold. */
   price?: number;
+  /** How far it can be thrown, in metres (heavier things not as far). */
+  range?: number;
 }
 
 export type ItemLoc =
@@ -70,6 +72,10 @@ export interface Item {
   of?: Id;
   /** A name of its own, e.g. "Steward Alan's face". */
   label?: string;
+  /** Rounds left (a gun). */
+  ammo?: number;
+  /** Lying on a roof (only reachable from up there). */
+  onRoof?: string;
   /** Which way it points (a bike), and whether it's lying on its side. */
   facing?: number;
   fallen?: boolean;
@@ -107,6 +113,8 @@ export interface Actor {
   dragging?: Id;
   /** Up the maintenance ladder, on the stand roof. */
   roof?: boolean;
+  /** Which roof (roofs.ts). */
+  roofId?: string;
   /** Coming down under a parachute: from, to, and when. */
   chute?: { x0: number; y0: number; x1: number; y1: number; t0: number; t1: number };
   /** A woman (her name, her body, her voice). */

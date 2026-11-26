@@ -17,7 +17,7 @@ export const CLIPS = [
   "tannoy_display_off", "tannoy_lenny", "tannoy_lenny_off", "tannoy_card", "tannoy_press", "glass_smash", "chair_smash", "haymaker",
   "tannoy_welcome_final", "tannoy_facerec", "tannoy_detector", "stw_slot", "stw_knob", "stw_odd", "stw_bar", "detector_ok", "detector_alarm",
   "radio_squelch", "head_splat", "heat_alert", "heat_clear", "car_alarm", "car_door", "car_crash", "car_kick", "stw_copy", "stw_cover", "stw_cover_dead",
-  "gh_offer", "gh_no", "gh_yes", "gh_rude", "gh_chop", "gh_after", "gh_knock",
+  "alert_sting", "fart", "gh_offer", "gh_no", "gh_yes", "gh_rude", "gh_chop", "gh_after", "gh_knock",
 ] as const;
 /** Voiced lines (ElevenLabs stock British voices): what's said -> clip; a woman says the `_f` take. */
 import VOICES_JSON from "../../assets/audio/voices.json";
@@ -208,7 +208,9 @@ export class Audio {
     const src = ctx.createBufferSource(), gain = ctx.createGain();
     src.buffer = buf; src.loop = loop;
     gain.gain.value = 0;
-    gain.gain.setTargetAtTime(this.musicVol, ctx.currentTime, 0.5);
+    // Alert music slams in, louder; the calm stuff sits under everything.
+    const vol = ({ mus_alert: 0.55, mus_evasion: 0.42, mus_caution: 0.36 } as Record<string, number>)[name] ?? this.musicVol;
+    gain.gain.setTargetAtTime(vol, ctx.currentTime, name === "mus_alert" ? 0.08 : 0.5);
     src.connect(gain).connect(this.master);
     src.start();
     this.tune = { name, src, gain };

@@ -1,5 +1,6 @@
 // What stewards and police notice, how suspicious they get, and what they do about it.
 import { maybeSnitch } from "./witness";
+import { climb, ladderNear, roofOf, roofs } from "./roofs";
 import { appearance, looksPermitted } from "../core/identity";
 import { defOf, hasProp, moveItem } from "../core/items";
 import { chance } from "../core/rng";
@@ -25,19 +26,24 @@ export function canSee(w: World, v: Actor, t: Actor, range = 14): boolean {
   const ta = areaAt(t.x, t.y);
   if (ta.private && areaAt(v.x, v.y).id !== ta.id) return false;
   const dx = t.x - v.x, dy = t.y - v.y, d = Math.hypot(dx, dy);
+  // Up on a roof (or looking down from one): walls don't get in the way, but people rarely look up,
+  // so a man on a roof is only seen from nearer, and well in front of them (Dishonored's squashed cone).
+  const above = !!t.roof !== !!v.roof || (t.roof && v.roof);
+  if (t.roof && !v.roof) range = Math.min(range, isSecurity(v) ? 20 : 12);
   if (d > range) return false;
   if (d > (isSecurity(v) ? 4.5 : 2.5)) {
     const ang = Math.atan2(dy, dx) - v.facing;
     const c = Math.cos(ang);
-    if (c < 0.2) return false; // roughly 160 degrees of vision
+    if (c < (t.roof && !v.roof ? 0.55 : 0.2)) return false; // roughly 160 degrees of vision; less looking up
   }
-  if (!lineOfSight(v.x, v.y, t.x, t.y)) return false;
+  if (!above && !lineOfSight(v.x, v.y, t.x, t.y)) return false;
   return !smokeBetween(w, v.x, v.y, t.x, t.y);
 }
 
 /** Does a smoke cloud lie between two points (or swallow either)? */
 export function smokeBetween(w: World, ax: number, ay: number, bx: number, by: number): boolean {
   for (const c of w.state.stadium!.smoke) {
+    if (c.kind === "stench") continue; // you can see through a smell
     if (c.until < w.state.tick) continue;
     const dx = bx - ax, dy = by - ay, l2 = dx * dx + dy * dy || 1;
     const t = Math.max(0, Math.min(1, ((c.x - ax) * dx + (c.y - ay) * dy) / l2));
@@ -117,9 +123,11 @@ export function crime(w: World, by: Actor, what: string, severity: number, victi
   w.bus.emit({ type: "incident", t: s.tick, what, by: by.id, blamed: ap.team, severity, seen: seen.length, victim: victim?.id });
   if (!seen.length) return 0;
   if (inVest(w, by)) st.flags.vestBlown = s.tick + 60 * 240;
+  // From a roof, unless somebody was close, all they saw was a fat bloke up there: no face to go on.
+  const faceless = !!by.roof && !seen.some((a) => Math.hypot(a.x - by.x, a.y - by.y) < 9);
   st.wanted.push({
-    face: ap.faceId, team: ap.team, role: ap.role, outer: by.worn.outer ? s.items[by.worn.outer].def : null, look: ap.look,
-    severity: Math.min(1, 0.35 + severity * 0.25), until: s.tick + 60 * 300, what,
+    face: faceless ? "" : ap.faceId, team: ap.team, role: ap.role, outer: by.worn.outer ? s.items[by.worn.outer].def : null, look: ap.look,
+    severity: Math.min(1, 0.35 + severity * 0.25) * (faceless ? 0.5 : 1), until: s.tick + 60 * (faceless ? 120 : 300), what,
   });
   let shouted = false;
   let radioed = false;
@@ -249,6 +257,8 @@ function warnDestination(w: World, t: Actor): { x: number; y: number } {
 export function stepSecurity(w: World, g: Actor): void {
   const s = w.state, n = g.npc!, tick = s.tick, st = s.stadium!;
   if (g.downUntil > tick) { g.moveX = g.moveY = 0; return; }
+  // Left up a roof with nobody to chase: back down.
+  if (g.roof && n.mode !== "chase" && n.mode !== "escort") { const t0 = n.target ? s.actors[n.target] : undefined; roofChase(w, g, t0 ?? g, false); return; }
 
   // Perception, staggered so not everybody looks on the same tick.
   if ((tick + g.id.length * 7 + g.id.charCodeAt(g.id.length - 1)) % 6 === 0) {
@@ -307,6 +317,9 @@ export function stepSecurity(w: World, g: Actor): void {
         n.sus[t.id] = 0.3;
         return setMode(w, g, "routine");
       }
+      // Up a roof: get to the foot of his ladder, wait a moment, then go up after him. Up there,
+      // straight at him; if he's dropped off, back down the way you came.
+      if (roofChase(w, g, t, visible)) return;
       const tx = visible ? t.x : n.lastSeen!.x, ty = visible ? t.y : n.lastSeen!.y;
       const d = Math.hypot(tx - g.x, ty - g.y);
       const run = n.crime >= 1 || Math.hypot(t.vx, t.vy) > 2.6 || areaAt(t.x, t.y).pitch === true;
@@ -530,10 +543,60 @@ export function stepHeat(w: World): void {
     if ((st.flags.cautionUntil ?? 0) > tick) mode = 2;
     else if (after.some((a) => a.npc!.mode !== "routine")) mode = 1;
   }
-  let heat = mode === 4 ? 3 : mode === 3 ? 2 : mode;
-  if (mode >= 3 && police) heat++;
+  // Stars go with what they've seen you do (GTA's rule): a pickpocket is one star however hard they
+  // chase you; a punch is two; something serious is three; a killing four; armed police five. The
+  // police joining in, or a spree (four crimes seen in two minutes), adds one, never past four.
+  const spree = st.incidents.filter((i) => i.by === pc.id && i.seenBy > 0 && tick - i.t < 60 * 120).length >= 4;
+  const sev = Math.max(1, Math.min(4, worst));
+  let heat = mode >= 3 ? sev + ((police && sev >= 2) || spree ? 1 : 0) : mode === 2 ? 1 : mode;
+  heat = Math.min(4, heat);
   if (st.flags.armedAt && (mode >= 3 || s.tick - st.flags.armedAt < 60 * 120)) heat = 5;
   if (mode !== st.flags.heatMode) w.bus.emit({ type: "heat", t: tick, mode, was: st.flags.heatMode ?? 0 });
   st.flags.heatMode = mode;
   st.flags.heat = Math.min(5, heat);
+}
+
+/** Chasing someone onto (or off) a roof. True if it took over this step. */
+function roofChase(w: World, g: Actor, t: Actor, visible: boolean): boolean {
+  const n = g.npc!, tick = w.state.tick;
+  if (g.roof) {
+    if (t.roof && t.roofId === g.roofId) {
+      const dx = t.x - g.x, dy = t.y - g.y, d = Math.hypot(dx, dy) || 1;
+      g.speed = 4.2; g.moveX = dx / d; g.moveY = dy / d;
+      if (d < 1.15 && visible) {
+        // Collared on the roof: both of you back down the ladder, then he walks you off.
+        const r = roofOf(g)!, l = r.ladders[0];
+        g.roof = t.roof = false; g.roofId = t.roofId = undefined;
+        t.x = l.bx; t.y = l.by; g.x = l.bx + 0.6; g.y = l.by + 0.3;
+        apprehend(w, g, t);
+      }
+      return true;
+    }
+    // He's gone: back down the ladder.
+    const r = roofOf(g);
+    const l = r?.ladders[0];
+    if (!r || !l) { g.roof = false; g.roofId = undefined; return false; }
+    if (t === g) { /* nobody to chase: just go down */ }
+    if (Math.hypot(g.x - l.tx, g.y - l.ty) < 1.2) { climb(w, g, false, r, l); return true; }
+    const dx = l.tx - g.x, dy = l.ty - g.y, d = Math.hypot(dx, dy) || 1;
+    g.speed = 4.2; g.moveX = dx / d; g.moveY = dy / d;
+    return true;
+  }
+  if (!t.roof) return false;
+  const r = roofs().find((x) => x.id === t.roofId);
+  if (!r) return false;
+  const l = r.ladders.reduce((b, x) => (Math.hypot(x.bx - g.x, x.by - g.y) < Math.hypot(b.bx - g.x, b.by - g.y) ? x : b));
+  const d = Math.hypot(l.bx - g.x, l.by - g.y);
+  if (d > 1.5) {
+    if (!n.goal || tick % 30 === 0) goTo(g, l.bx, l.by, true);
+    follow(w, g);
+    n.roofWait = 0;
+    return true;
+  }
+  g.moveX = g.moveY = 0;
+  g.facing = Math.atan2(t.y - g.y, t.x - g.x);
+  // A few seconds at the bottom ("Come down, you idiot!"), then up he comes.
+  if (!n.roofWait) { n.roofWait = tick + 60 * 4; say(w, g, "Come down from there, you idiot!", 2.5); }
+  if (tick >= n.roofWait && ladderNear(g)) { n.roofWait = 0; climb(w, g, true, r, l); }
+  return true;
 }

@@ -75,6 +75,10 @@ export interface Npc {
   lines?: string[];
   /** Times you've talked to them, and what they've said (so they don't repeat it). */
   talked?: number;
+  /** Waiting at the foot of a ladder before going up after someone (a tick). */
+  roofWait?: number;
+  /** Getting away from a stench until this tick. */
+  stenchUntil?: number;
   heard?: string[];
 }
 
@@ -118,7 +122,7 @@ export interface Wanted {
   what: string;
 }
 
-export interface Smoke { x: number; y: number; r: number; until: number }
+export interface Smoke { x: number; y: number; r: number; until: number; /** A stink bomb: clears people out, doesn't hide anything. */ kind?: "stench" }
 
 /** A hole knocked in a wall: anything within r of the centre is no longer solid. */
 export interface Breach { x: number; y: number; r: number; t: number }

@@ -20,6 +20,10 @@ export class FirstPerson {
   private floor: Uint32Array | null = null;
   private floorKey = "";
   punchAt = 0;
+  /** Field of view (narrow through a scope), eye height (higher on a roof), and how far it draws. */
+  fov = FOV;
+  eye = EYE;
+  far = 40;
 
   constructor(host: HTMLElement) {
     this.cv = document.createElement("canvas");
@@ -59,7 +63,7 @@ export class FirstPerson {
   /** Draw a frame from the player's eyes. */
   draw(s: WorldState, pc: Actor, sprites: FpSprite[], outside: boolean, venue: string, hand: CanvasImageSource | null): void {
     const px = pc.x, py = pc.y, dir = pc.facing, d = this.img.data;
-    const dx = Math.cos(dir), dy = Math.sin(dir), plane = Math.tan(FOV / 2), pxl = -dy * plane, pyl = dx * plane;
+    const dx = Math.cos(dir), dy = Math.sin(dir), plane = Math.tan(this.fov / 2), pxl = -dy * plane, pyl = dx * plane;
     const proj = W / 2 / plane;
     const horizon = H / 2 + 10;
     // Sky and floor.
@@ -70,7 +74,7 @@ export class FirstPerson {
         for (let x = 0; x < W; x++) { const i = (y * W + x) * 4; d[i] = r; d[i + 1] = gg; d[i + 2] = b; d[i + 3] = 255; }
         continue;
       }
-      const rowDist = (EYE * proj) / (y - horizon + 0.5);
+      const rowDist = (this.eye * proj) / (y - horizon + 0.5);
       const fade = Math.max(0.25, 1 - rowDist / 45);
       const lx0 = px + rowDist * (dx - pxl), ly0 = py + rowDist * (dy - pyl);
       const stx = (rowDist * 2 * pxl) / W, sty = (rowDist * 2 * pyl) / W;
@@ -85,7 +89,7 @@ export class FirstPerson {
       }
     }
     // Walls: each column, every wall the ray hits (nearest few), drawn far to near so low walls show what's behind.
-    const near = SOLID.filter((wl) => Math.abs(wl.x + wl.w / 2 - px) < 40 + wl.w / 2 && Math.abs(wl.y + wl.h / 2 - py) < 40 + wl.h / 2);
+    const near = SOLID.filter((wl) => Math.abs(wl.x + wl.w / 2 - px) < this.far + wl.w / 2 && Math.abs(wl.y + wl.h / 2 - py) < this.far + wl.h / 2);
     const hits: { t: number; wl: Wall; u: number }[] = [];
     for (let x = 0; x < W; x++) {
       const cam = (2 * x) / W - 1, rx = dx + pxl * cam, ry = dy + pyl * cam;
@@ -96,7 +100,7 @@ export class FirstPerson {
         let t1 = (wl.x - px) * ix, t2 = (wl.x + wl.w - px) * ix, t3 = (wl.y - py) * iy, t4 = (wl.y + wl.h - py) * iy;
         const tminX = Math.min(t1, t2), tmaxX = Math.max(t1, t2), tminY = Math.min(t3, t4), tmaxY = Math.max(t3, t4);
         const tmin = Math.max(tminX, tminY), tmax = Math.min(tmaxX, tmaxY);
-        if (tmax < 0 || tmin > tmax || tmin > 40 || tmin < 0.05) continue;
+        if (tmax < 0 || tmin > tmax || tmin > this.far || tmin < 0.05) continue;
         const hx = px + rx * tmin, hy = py + ry * tmin;
         const u = tminX > tminY ? hy - wl.y : hx - wl.x;
         hits.push({ t: tmin, wl, u });
@@ -105,9 +109,9 @@ export class FirstPerson {
       let zb = 99;
       for (const h of hits.slice(-4)) {
         const wl = h.wl, ht = Math.min(wl.h3, 4.5), dist = h.t; // perpendicular already (camera-plane rays)
-        const top = Math.round(horizon - ((ht - EYE) * proj) / dist), bot = Math.round(horizon + (EYE * proj) / dist);
+        const top = Math.round(horizon - ((ht - this.eye) * proj) / dist), bot = Math.round(horizon + (this.eye * proj) / dist);
         const m = this.mat(wl.prop ? "steel" : matOf(wl.colour, wl.h3, wl.gate));
-        const shade = Math.max(0.3, 1 - dist / 40) * (Math.abs(h.u - Math.round(h.u)) < 0.02 ? 0.85 : 1);
+        const shade = Math.max(0.3, 1 - dist / this.far) * (Math.abs(h.u - Math.round(h.u)) < 0.02 ? 0.85 : 1);
         const tu = Math.floor(((h.u * 32) % m.w + m.w) % m.w);
         const y0 = Math.max(0, top), y1 = Math.min(H - 1, bot);
         for (let y = y0; y <= y1; y++) {
@@ -118,7 +122,7 @@ export class FirstPerson {
         }
         // The cap: a lighter line along the top edge.
         if (top >= 0 && top < H) { const c = CAP[matOf(wl.colour, wl.h3, wl.gate)] ?? 0x999999, i = (top * W + x) * 4; d[i] = ((c >> 16) & 255) * shade; d[i + 1] = ((c >> 8) & 255) * shade; d[i + 2] = (c & 255) * shade; }
-        if (ht >= EYE) zb = Math.min(zb, dist);
+        if (ht >= this.eye) zb = Math.min(zb, dist);
       }
       this.zbuf[x] = zb;
     }
@@ -128,12 +132,12 @@ export class FirstPerson {
       const inv = 1 / (pxl * dy - dx * pyl);
       const tx = inv * (dy * o.rx - dx * o.ry), tz = inv * (-pyl * o.rx + pxl * o.ry);
       return { ...o, tx, tz };
-    }).filter((o) => o.tz > 0.3 && o.tz < 40).sort((a, b) => b.tz - a.tz);
+    }).filter((o) => o.tz > 0.3 && o.tz < this.far).sort((a, b) => b.tz - a.tz);
     for (const o of list) {
       const sxc = (W / 2) * (1 + o.tx / o.tz), hpx = (o.sp.mh * proj) / o.tz, wpx = hpx * (o.sp.sw / o.sp.sh);
-      const footY = horizon + (EYE * proj) / o.tz;
+      const footY = horizon + (this.eye * proj) / o.tz;
       const x0 = Math.round(sxc - wpx / 2), x1 = Math.round(sxc + wpx / 2);
-      const k = Math.max(0.35, 1 - o.tz / 40);
+      const k = Math.max(0.35, 1 - o.tz / this.far);
       this.cx.globalAlpha = 1;
       this.cx.filter = k < 0.98 ? `brightness(${k.toFixed(2)})` : "none";
       if (o.sp.cheap) {

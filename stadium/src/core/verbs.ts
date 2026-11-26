@@ -37,11 +37,13 @@ export const VERBS: Record<VerbId, VerbDef> = {
       if (!item) return "nothing to take";
       if (item.loc.k !== "ground") return "not lying around";
       if (!near(actor, item.loc.x, item.loc.y)) return "too far";
+      if ((item.onRoof ?? "") !== (actor.roof ? actor.roofId ?? "" : "")) return item.onRoof ? "it's up on the roof" : "it's down there";
       if (defOf(item).props.includes("rideable")) return "ride it, don't carry it";
       if (defOf(item).size === "huge") return "too big to carry";
       return null;
     },
     perform: (w, a, actor, item) => {
+      item!.onRoof = undefined;
       if (!actor.hand) moveItem(w.state, item!.id, { k: "hand", a: actor.id });
       else if (canPocket(actor, item!)) moveItem(w.state, item!.id, { k: "pocket", a: actor.id });
       else intoHand(w.state, actor, item!);
@@ -99,7 +101,9 @@ export const VERBS: Record<VerbId, VerbDef> = {
     },
     perform: (w, a, actor, item) => {
       // Aimed at a distance: enough speed to land there, given the arc.
-      const sp = a.dist !== undefined ? Math.min(Math.max(a.dist / 0.95, 4), 19) : 9 + 7 * (a.power ?? 0.7);
+      // How far it'll go: its own range (a brick's no pint), further from up on a roof.
+      const def = defOf(item!), max = (def.range ?? (def.size === "small" ? 14 : 10)) * (actor.roof ? 1.4 : 1);
+      const sp = Math.min(max / 0.95, a.dist !== undefined ? Math.max(a.dist / 0.95, 4) : 9 + 7 * (a.power ?? 0.7));
       const l = Math.hypot(a.dirX ?? 0, a.dirY ?? 0);
       const dx = l ? a.dirX! / l : Math.cos(actor.facing), dy = l ? a.dirY! / l : Math.sin(actor.facing);
       actor.facing = Math.atan2(dy, dx);

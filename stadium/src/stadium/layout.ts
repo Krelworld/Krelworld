@@ -220,6 +220,9 @@ export const QF_FURNITURE: Furniture[] = [
   f("tvpost", -26, 39.3, 0.5, 0.4, true, undefined, 2.5), f("tvpost", 22, 39.3, 0.5, 0.4, true, undefined, 2.5),
   f("tvpost", -53, -10, 0.5, 0.4, true, undefined, 2.5), f("tvpost", 53, 10, 0.5, 0.4, true, undefined, 2.5),
   f("condiments", -54.6, 14, 0.6, 0.4, true), f("condiments", 54.6, -14, 0.6, 0.4, true),
+  // Ladders up onto the roofs (roofs.ts), and brick piles (missiles.ts).
+  f("ladder_s", -38, 80.9, 1, 0.3, false), f("ladder_s", -6, 72.9, 1, 0.3, false), f("ladder_s", 20.2, 72.9, 1, 0.3, false), f("ladder", 76.2, -13.6, 1, 0.3, false),
+  f("bricks", 50, 48.6, 1.8, 0.8, false), f("bricks", -66, 30.4, 1.8, 0.8, false), f("bricks", 52, 79.4, 1.8, 0.8, false), f("bricks", -24.5, 76.4, 1.8, 0.8, false),
   // Concourse life: a programme seller, bins, litter, a sandwich board.
   f("programmes", 33, 39.9, 1.8, 0.8, true), f("bin", -28.6, 39.1, 0.6, 0.6, true), f("bin", 27.2, 39.1, 0.6, 0.6, true), f("bin", -53.8, 20, 0.6, 0.6, true), f("bin", 53.8, -20, 0.6, 0.6, true),
   f("litter", -10, 43.2, 1, 0.6, false), f("chippaper", 17.5, 42.7, 0.8, 0.5, false), f("litter", -44, 42.5, 1, 0.6, false), f("chippaper", -53, -18, 0.8, 0.5, false),

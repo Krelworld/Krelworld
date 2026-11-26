@@ -5,12 +5,14 @@ import { sharpInHand } from "./knife";
 import { fromBehind, hidingPlaceNear, incapacitated, knockedOut } from "./combat";
 import { hasRadio, reportable } from "./coverup";
 import { isWoman } from "./lech";
+import { edgeDrop, ladderNear } from "./roofs";
+import { windowNear } from "./missiles";
 import { snitchOf } from "./witness";
 import { isSecurity } from "./security";
 import { carsNear } from "./cars";
 import { horseNear, mountedOfficer, riding } from "./horse";
 import { atCellar, atGrate, atScaffold } from "./routes";
-import { atLadder, hasChute } from "./entries";
+import { hasChute } from "./entries";
 import { detectorGate, dogWithYou, hasBar } from "./detector";
 const hasItem = (s: { items: Record<string, Item> }, a: Actor, def: string) => [a.hand, ...a.pockets].some((id) => id && s.items[id]?.def === def);
 import { appearance } from "../core/identity";
@@ -27,7 +29,7 @@ export interface Option {
   priority: number;
   action?: Action;
   /** Opens a sheet instead of acting straight away. */
-  sheet?: { kind: "shop" | "bribe" | "bet" | "report" | "loot" | "phone"; who: string };
+  sheet?: { kind: "shop" | "bribe" | "bet" | "report" | "loot" | "phone" | "scope"; who: string };
 }
 
 const lc = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
@@ -60,12 +62,24 @@ export function options(w: World, pc: Actor, picked?: string | null): Option[] {
       out.push(...det);
     }
   }
+  const hand0 = pc.hand ? s.items[pc.hand] : undefined;
   if (pc.roof) {
-    // On the roof of the South Stand, the wind in your face, the whole ground below you.
-    const roof: Option[] = [{ label: "Climb back down", priority: 80, action: { verb: "ladder", ...base } }];
-    roof.push(hasChute(w, pc) ? { label: "Jump, and pull the cord", priority: 100, action: { verb: "jump", ...base } } : { label: "Jump (no parachute)", priority: 50, action: { verb: "jump", ...base } });
+    // Up top: the way down (the ladder, or over the edge), and the parachute off the stand.
+    const roof: Option[] = [];
+    if (ladderNear(pc)) roof.push({ label: "Climb back down the ladder", priority: 80, action: { verb: "ladder", ...base } });
+    const e = edgeDrop(pc);
+    if (e && e.d < 1.6) roof.push({ label: VENUE.inside(e.x, e.y) ? "Drop down into the ground" : "Drop off the edge", priority: 60, action: { verb: "dropdown", ...base } });
+    if (hand0 && hasProp(hand0, "gun")) roof.push({ label: "Look through the scope", priority: 90, sheet: { kind: "scope", who: pc.id } });
+    if (pc.roofId === "stand") roof.push(hasChute(w, pc) ? { label: "Jump, and pull the cord", priority: 100, action: { verb: "jump", ...base } } : { label: "Jump (no parachute)", priority: 20, action: { verb: "jump", ...base } });
     return roof;
   }
+  // A window in the concourse wall: a brick through it, then climb in.
+  if (!pc.seated && windowNear(pc) >= 0) {
+    push(`Put the ${hand0 ? lc(itemName(hand0)) : "brick"} through the window`, 72, { verb: "smashwindow", ...base });
+    push(VENUE.inside(pc.x, pc.y) ? "Climb out through the window" : "Climb in through the window", 75, { verb: "climbwindow", ...base });
+  }
+  if (hand0 && hasProp(hand0, "gun")) out.push({ label: "Look through the scope", priority: 66, sheet: { kind: "scope", who: pc.id } });
+  if (!pc.seated && ladderNear(pc)) push(`Climb the ladder: ${ladderNear(pc)!.roof.name.replace(/^The /, "the ")}`, 70, { verb: "ladder", ...base });
   if (pc.seated) out.push({ label: "Stand up", priority: 90, action: { verb: "stand", ...base } });
 
   const hand = pc.hand ? s.items[pc.hand] : undefined;
@@ -180,7 +194,6 @@ export function options(w: World, pc: Actor, picked?: string | null): Option[] {
   if (atCellar(pc)) push(hasItem(s, pc, "wrench") || s.stadium!.flags.hatchOpen ? "Down the cellar and into the drain" : "Prise open the cellar hatch (needs a wrench)", 66, { verb: "drain", ...base });
   if (atGrate(pc)) push("Back down the drain", 40, { verb: "drain", ...base });
   if (atScaffold(pc)) push("Climb the scaffold onto the roof", 64, { verb: "scaffold", ...base });
-  if (atLadder(pc)) push("Climb the maintenance ladder", 64, { verb: "ladder", ...base });
 
   // The police horse.
   if (riding(w, pc)) push("Get off the horse", 60, { verb: "dismount", ...base });

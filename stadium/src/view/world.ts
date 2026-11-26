@@ -13,7 +13,7 @@ export const KIT_KEYS = ["barrier", "bench", "bigscreen", "bin", "bollard", "bur
   "shed", "skip", "parkedcar", "hamper", "medbed", "grate", "hatch", "scaffold", "piestand", "obtruck", "horsebox", "ladder", "kitbag", "canopy",
   "roofvent", "gantry", "skylight", "foodkiosk", "condiments", "tvpost", "urinal", "sinks", "massage", "tactics", "icebath", "boots", "showers", "kitpegs", "cornerflag", "pubchair", "detector",
   "kegs", "busstop", "manhole", "chippaper", "pigeons", "gritbin", "flagpole", "newsboard", "scarf", "doormat", "smokerbin",
-  "headless_fan", "headless_steward", "headless_woman"] as const;
+  "headless_fan", "headless_steward", "headless_woman", "bricks", "window", "window_broken", "ladder_s"] as const;
 export type KitKey = (typeof KIT_KEYS)[number];
 /** Eight-way pictures (S, SE, E, NE, N, NW, W, SW in a row) for things that turn. */
 export const WORLD_8 = ["coach", "lorry"] as const;

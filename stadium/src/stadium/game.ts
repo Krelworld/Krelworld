@@ -25,6 +25,8 @@ import { installCoverup, stepCoverups } from "./coverup";
 import { FEMALE_LOCALS } from "./npc";
 import { installLech } from "./lech";
 import { stepChat } from "./chatter";
+import { clampToRoof, installRoofs } from "./roofs";
+import { installMissiles, spawnBricks, stepStench } from "./missiles";
 import { installWitness, stepSnitches } from "./witness";
 import { installPhone, stepPhone } from "./phone";
 import { installNaked, stepNaked } from "./naked";
@@ -53,7 +55,7 @@ export const HALF_SECONDS = 450;
 export const HALFTIME_SECONDS = 150;
 
 export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: Campaign = newCampaign()): Game {
-  if (!rulesInstalled) { installRules(); installBetting(); installPolice(); installBus(); installDog(); installKickoff(); installKnife(); installGloryHole(); installCombat(); installHorse(); installRoutes(); installEntries(); installDetector(); installCoverup(); installBike(); installLech(); installCars(); installWitness(); installPhone(); installNaked(); rulesInstalled = true; }
+  if (!rulesInstalled) { installRules(); installBetting(); installPolice(); installBus(); installDog(); installKickoff(); installKnife(); installGloryHole(); installCombat(); installHorse(); installRoutes(); installEntries(); installDetector(); installCoverup(); installBike(); installLech(); installCars(); installWitness(); installPhone(); installNaked(); installRoofs(); rulesInstalled = true; }
   setVenue(venueId);
   const oppKey = VENUE.opp;
   const opp = TEAMS[oppKey];
@@ -153,6 +155,7 @@ export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: 
   spawnItem(s, "burner", { k: "ground", x: SPOTS.pubYard.x + 2.2, y: SPOTS.pubYard.y + 1.6 });
   spawnEntries(w, staff);
   spawnScenarios(w);
+  spawnBricks(w);
   // Things to hit people with: empties on the pub tables and round the bins, chairs in the pub,
   // pint glasses on the concourse bar, and the corner flags.
   const mx = (x: number) => (VENUE.id === "sf" ? -x : x);
@@ -209,6 +212,7 @@ export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: 
 
   createDog(w);
   installReactions(w);
+  installMissiles(w);
   w.bus.on((e) => { if (e.type === "knockout") noteKnockout(w, e.who, e.by); });
   installSettlement(w);
   const g: Game = { w, checkpoints: [], opp: oppKey, venue: venueId, campaign };
@@ -306,6 +310,7 @@ export function stepGame(g: Game): void {
       else { const k = (a.knock.until - s.tick) / (a.knock.until - a.knock.from); a.x += (a.knock.vx * k * k) / 60; a.y += (a.knock.vy * k * k) / 60; }
     }
     if ((a.fb && !a.fb.controlled && !a.knock) || a.off || a.hiddenIn || a.heldBy) continue;
+    if (a.roof && clampToRoof(a)) continue; // up on a roof: no walls, just the edges
     collide(w, a);
   }
   for (const id in st.vehicles) {
@@ -323,6 +328,7 @@ export function stepGame(g: Game): void {
   stepEntries(w);
   stepCoverups(w);
   stepChat(w);
+  stepStench(w);
   stepSnitches(w);
   stepPhone(w);
   stepNaked(w);

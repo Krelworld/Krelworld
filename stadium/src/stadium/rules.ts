@@ -33,8 +33,8 @@ export const SHOPS: Record<string, { name: string; stock: Record<string, number>
   bookies: { name: "Bookmaker", stock: {} },
   charity: { name: "Second Hand Rose", stock: { flat_cap: 6, sunglasses: 5, moustache: 3, wig: 9, long_wig: 12, dress: 15, tracksuit: 12, chef_whites: 18, overalls: 15 } },
   tout: { name: "Dodgy Del", stock: { ticket: 45 } },
-  surplus: { name: "Army & Navy Surplus", stock: { balaclava: 10, hammer: 14, flare: 20, knife: 25 } },
-  dealer: { name: "Spliff Ricky", stock: { powder: 30, laxative: 12, burner: 25 } },
+  surplus: { name: "Army & Navy Surplus", stock: { balaclava: 10, hammer: 14, flare: 20, knife: 25, fart_can: 15 } },
+  dealer: { name: "Spliff Ricky", stock: { powder: 30, laxative: 12, burner: 25, fart_can: 15 } },
 };
 
 const near = (a: Actor, b: { x: number; y: number }, r: number) => Math.hypot(a.x - b.x, a.y - b.y) <= r;

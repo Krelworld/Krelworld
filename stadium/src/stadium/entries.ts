@@ -52,27 +52,11 @@ export function hearLead(w: World, line: string): void {
 }
 
 export function installEntries(): void {
-  registerVerb("ladder", {
-    check: (_w, _act, actor) => (actor.roof || atLadder(actor) ? null : "no ladder here"),
-    perform: (w, _act, actor) => {
-      const s = w.state;
-      if (actor.roof) {
-        // Back down.
-        actor.roof = false; actor.downUntil = s.tick + 30;
-        w.bus.emit({ type: "roof", t: s.tick, by: actor.id, up: false });
-        return;
-      }
-      const l = sp().ladder;
-      actor.x = l.x; actor.y = l.y; actor.roof = true; actor.moveX = actor.moveY = 0; actor.dragging = undefined;
-      w.bus.emit({ type: "roof", t: s.tick, by: actor.id, up: true });
-      crime(w, actor, "climbing up the outside of the stand", 1);
-    },
-  });
   registerVerb("jump", {
-    check: (_w, _act, actor) => (actor.roof ? null : "nowhere to jump from"),
+    check: (_w, _act, actor) => (actor.roof && actor.roofId === "stand" ? null : "nowhere to jump from"),
     perform: (w, _act, actor) => {
       const s = w.state, st = s.stadium!;
-      actor.roof = false;
+      actor.roof = false; actor.roofId = undefined;
       if (hasChute(w, actor)) {
         // Over the edge, the canopy opens, and the wind takes you over the stand and down onto the pitch.
         const id = [actor.hand, ...actor.pockets, actor.worn.body].find((i) => i && s.items[i]?.def === "parachute")!;
@@ -100,7 +84,6 @@ export function stepEntries(w: World): void {
   const s = w.state, st = s.stadium!, tick = s.tick;
   const pc = s.actors[st.pc];
   if (!pc) return;
-  if (pc.roof) { pc.moveX = 0; pc.moveY = 0; pc.vx = 0; pc.vy = 0; }
   if (pc.chute) {
     const c = pc.chute, k = Math.min(1, (tick - c.t0) / (c.t1 - c.t0)), e = k * k * (3 - 2 * k);
     pc.x = c.x0 + (c.x1 - c.x0) * e + Math.sin(k * 9) * 1.5 * (1 - k);

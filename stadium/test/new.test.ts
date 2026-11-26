@@ -99,3 +99,62 @@ test("walkie decoy sends nearby stewards off", () => {
   const e = ev.find((x) => x.type === "radio_decoy");
   assert.ok(e && e.sent > 0, JSON.stringify(e));
 });
+
+test("up a ladder onto the pub roof: walk about, nobody below can make out your face, drop off the edge", () => {
+  const g = createGame("roof1"), s = g.w.state, pc = pcOf(g);
+  pc.x = -38; pc.y = 81.3;
+  assert.equal(dispatch(g.w, { verb: "ladder", actor: pc.id }).ok, true);
+  assert.equal(pc.roofId, "pub");
+  run(g, 1);
+  // Walk across the roof: no walls stop you, the edges do.
+  run(g, 3, () => { pc.moveX = -1; pc.moveY = 0; });
+  pc.moveX = 0;
+  assert.ok(pc.x < -40 && pc.x > -62.3, `on the roof at ${pc.x}`);
+  // A brick from up here: the wanted description has no face (nobody was close).
+  const b = spawnItem(s, "brick", { k: "hand", a: pc.id });
+  const fan = find(g, (a) => a.npc?.job === "fan" && !a.npc.shop);
+  pc.y = 70; run(g, 0.1);
+  fan.x = pc.x; fan.y = 84; fan.facing = -Math.PI / 2; fan.npc!.plan = [{ k: "wait", s: 99 }];
+  const before = s.stadium!.wanted.length;
+  dispatch(g.w, { verb: "throw", actor: pc.id, item: b.id, dirX: fan.x - pc.x, dirY: fan.y - pc.y, dist: Math.hypot(fan.x - pc.x, fan.y - pc.y) });
+  run(g, 2);
+  const added = s.stadium!.wanted.slice(before);
+  for (const wd of added) assert.equal(wd.face, "");
+  // Off the edge: on your backside for a moment, then on the street.
+  pc.x = -40; pc.y = 80; run(g, 0.1);
+  assert.equal(dispatch(g.w, { verb: "dropdown", actor: pc.id }).ok, true);
+  assert.equal(!!pc.roof, false);
+  assert.ok(pc.y > 80.5);
+});
+
+test("a brick through a concourse window, then climb in", () => {
+  const g = createGame("win1"), s = g.w.state, pc = pcOf(g);
+  pc.x = -40; pc.y = 46;
+  spawnItem(s, "brick", { k: "hand", a: pc.id });
+  assert.equal(dispatch(g.w, { verb: "smashwindow", actor: pc.id }).ok, true);
+  assert.equal(dispatch(g.w, { verb: "climbwindow", actor: pc.id }).ok, true);
+  assert.ok(pc.y < 44, "inside");
+});
+
+test("a fart canister clears people out", () => {
+  const g = createGame("fart1"), s = g.w.state, pc = pcOf(g);
+  const fans = Object.values(s.actors).filter((a) => a.npc?.job === "fan" && !a.npc.shop).slice(0, 4);
+  fans.forEach((a, i) => { a.x = 10 + i; a.y = 52; a.npc!.plan = [{ k: "wait", s: 99 }]; a.seated = false; });
+  pc.x = 0; pc.y = 52;
+  const c = spawnItem(s, "fart_can", { k: "hand", a: pc.id });
+  dispatch(g.w, { verb: "throw", actor: pc.id, item: c.id, dirX: 1, dirY: 0, dist: 11.5 });
+  run(g, 6);
+  assert.ok(s.stadium!.smoke.some((k) => k.kind === "stench"));
+  const still = fans.filter((a) => Math.hypot(a.x - 11.5, a.y - 52) < 6).length;
+  assert.ok(still <= 1, `${still} still in the cloud`);
+});
+
+test("the rifle: three rounds, a kill, armed police called", () => {
+  const g = createGame("rifle1"), s = g.w.state, pc = pcOf(g);
+  const rf = spawnItem(s, "rifle", { k: "hand", a: pc.id }); rf.ammo = 3;
+  const t = find(g, (a) => a.npc?.job === "fan" && !a.npc.shop);
+  t.x = pc.x + 10; t.y = pc.y;
+  assert.equal(dispatch(g.w, { verb: "shoot", actor: pc.id, target: { k: "actor", id: t.id } }).ok, true);
+  assert.equal(rf.ammo, 2);
+  assert.ok(s.stadium!.flags.armedAt);
+});

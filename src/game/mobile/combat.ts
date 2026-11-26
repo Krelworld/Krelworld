@@ -942,7 +942,8 @@ export class CombatControls {
     // ---- the chips
     show("chip", fight);
     if (fight) this.weaponChip();
-    show("bongo", fight && s.bongos > 0, true);
+    // (stage 4, M3: a fizzy bongo waits while HEAL is up: one drink button at a time, and the cluster stays smaller)
+    show("bongo", fight && s.bongos > 0 && !hs, true);
     const lv = fartLevel();
     // (at IBS READY says it, big, on the right: the 💨 chip steps aside so one ability has one button; P11)
     show("fart", fight && lv >= 1 && this.readyId !== "ibs", true);
@@ -1012,7 +1013,9 @@ export class CombatControls {
   /** The pocket buttons' faces: icon, the word inside, the bongo count. Only touches the DOM when something changed. */
   private pocketFaces(lv: number) {
     const s = G.s;
-    const names = ["", "FAIRY", "BEANS", "CABBAGE", "IBS!"];
+    // (stage 4, s4-01 M3: one fixed word, FART. The level's name changed under the thumb (FAIRY → BEANS → IBS!) and a
+    // first-timer couldn't tell what the button does; the level shows on the HUD's fart meter)
+    const names = ["", "FART", "FART", "FART", "FART"];
     const key = `${s.bongos}|${lv}`;
     if (key === this.pocketKey) return;
     this.pocketKey = key;
@@ -1115,6 +1118,16 @@ export class CombatControls {
       const z = page(r.x + r.w, r.y + r.h);
       out.push({ x: a.x, y: a.y, w: z.x - a.x, h: z.y - a.y });
     }
+    // (stage 4, s4-01 M3) explosive barrels and pickups: a button over one goes see-through, so nothing worth walking to
+    // or shooting hides under the cluster
+    const box = (x: number, y: number, r: number) => {
+      const a = page(x - r, y - r);
+      const z = page(x + r, y + r);
+      out.push({ x: a.x, y: a.y, w: z.x - a.x, h: z.y - a.y });
+    };
+    const d = dun as unknown as { spice?: { breakables?: { dead?: boolean; kind?: string; x: number; y: number; r?: number }[] }; pickups?: { spr?: { active?: boolean; visible?: boolean; x: number; y: number } }[] };
+    for (const b of d.spice?.breakables ?? []) if (!b.dead && b.kind !== "hostage") box(b.x, b.y, (b.r || 14) + 4);
+    for (const k of d.pickups ?? []) if (k.spr?.active && k.spr.visible !== false) box(k.spr.x, k.spr.y, 14);
     return out;
   }
 

@@ -369,6 +369,26 @@ function layoutCards(sc: Phaser.Scene & Bag) {
 function layoutSlots(sl: Phaser.Scene & Bag) {
   const list = (sl.root?.list as Bag[]) ?? [];
   const rows = list.filter((o) => o.type === "Rectangle" && o.width >= 600 && o.height >= 80 && o.height <= 100);
+  // (stage 4, s4-03 F9: the 44 px BACK sat over the lower half of SLOT 3. The rows close up, 4 px apart, each a little
+  // shorter, so the last one ends above BACK; everything in a row moves with it)
+  rows.sort((a, b) => a.y - b.y);
+  rows.forEach((bg, k) => {
+    if (bg.__mfShift) return;
+    bg.__mfShift = true;
+    const dy = -SLOT_CLOSE_UP * k;
+    const y0 = bg.y - bg.height / 2 - 1;
+    const y1 = bg.y + bg.height / 2 + 1;
+    for (const o of list) {
+      if (o === bg || o.__mfShift || typeof o.y !== "number" || o.y < y0 || o.y > y1) continue;
+      if (o.type === "Rectangle" && o.width >= 900) continue;
+      o.__mfShift = true;
+      o.setY(o.y + dy);
+    }
+    bg.setY(bg.y + dy);
+    bg.setSize(bg.width, SLOT_ROW_H);
+    const ha = (bg.input as Bag | undefined)?.hitArea as Bag | undefined;
+    if (ha && typeof ha.height === "number") ha.height = SLOT_ROW_H;
+  });
   for (const bg of rows) {
     const y = bg.y;
     const left = bg.x - bg.width / 2;
@@ -405,6 +425,10 @@ function layoutSlots(sl: Phaser.Scene & Bag) {
 }
 
 // ------------------------------------------------------------------ the title
+
+/** The save list's rows on a phone: this much closer each (game px), and this tall (F9). */
+const SLOT_CLOSE_UP = 10;
+const SLOT_ROW_H = 84;
 
 function layoutTitle(t: Phaser.Scene) {
   const list = t.children.list as Bag[];

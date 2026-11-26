@@ -174,7 +174,7 @@ function promptTarget(game: Phaser.Game, key: string, sc: Bag): { x: number; y: 
 }
 
 /** World → page (CSS px) through a scene's main camera, the way Phaser draws it (zoom about the camera's middle). */
-function toPage(game: Phaser.Game, sc: Phaser.Scene, x: number, y: number, sf = 1): { x: number; y: number; k: number } | null {
+export function toPage(game: Phaser.Game, sc: Phaser.Scene, x: number, y: number, sf = 1): { x: number; y: number; k: number } | null {
   const cam = sc.cameras?.main;
   if (!cam) return null;
   const zoom = cam.zoom || 1;

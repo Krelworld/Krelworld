@@ -366,7 +366,7 @@ describe("phone combat: touch wording for the fights (UI hints only)", async () 
   });
   it("the weapon picker's how-to line and the finale's inject hint speak touch", () => {
     expect(touchWording("(the world's slowed right down) · Tap one · or ←/→ and SPACE · or 1–9 · or let go of SWAP on it · ESC to cancel", rules)).toBe("(the world's slowed right down) · Tap one, or slide onto one and let go · ✕ to close");
-    expect(touchWording("Inject each of the lads (walk up, press E). Don't get hit.", rules)).toBe("Inject each of the lads (walk up, tap ACTION). Don't get hit.");
+    expect(touchWording("Inject each of the lads (walk up, press E). Don't get hit.", rules)).toBe("Inject each of the lads (walk up, tap INJECT). Don't get hit.");
   });
 });
 
@@ -384,7 +384,7 @@ describe("phone combat: the fights' toasts and narrated control tips (merged wit
   const src = (f: string) => SRC[f];
   it("fight toasts name the phone's buttons", () => {
     expect(touchWording("WONK FULL. KREZZ FULL. Press R.", rules)).toBe("WONK FULL. KREZZ FULL. Tap WONK!");
-    expect(touchWording("A weapons crate appeared. Press E to open it.", rules)).toBe("A weapons crate appeared. Tap ACTION to open it.");
+    expect(touchWording("A weapons crate appeared. Press E to open it.", rules)).toBe("A weapons crate appeared. Walk up and tap OPEN.");
     expect(touchWording("Get to Bob first and press E, or he'll cuddle them for health.", rules)).toBe("Get to Bob first and tap ACTION, or he'll cuddle them for health.");
     expect(touchWording("Alistair is dazed. Get close and HEADBUTT him (F / right click)!", rules)).toBe("Alistair is dazed. Get close and HEADBUTT him (tap HEADBUTT)!");
   });

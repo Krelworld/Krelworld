@@ -42,6 +42,8 @@ import { PhoneAudio } from "./audio";
 import { PhonePerf } from "./perf";
 import { askToKeepSaves, bootLoadHeld, holdBootLoad, storageState } from "./storage";
 import { installScenes } from "./scenes";
+import { installPosse } from "./posse";
+import { installQaFixes } from "./qaFixes";
 
 export { isMobile, setMobileForTests, mobileWhy, rememberPhoneMode } from "./flag";
 export { registerModeController, unregisterModeController, type ModeController, type ModeContext, type ControlSpec, TouchControl, TouchLayer } from "./touchLayer";
@@ -132,6 +134,10 @@ export function installMobile(game: Phaser.Game) {
   brawl.pauseCard = (extra) => shell.pauseCard(extra);
   // the bike's RIDE / WALK button in the walking controls (town and the Kreddle Strip)
   installBikeButton(layer);
+  // stage 4: the posse's "BEAT UP <name>!" fight in town (SHOVE / PUNCH / KICK under the thumbs, and the II)
+  const posse = installPosse(game, layer);
+  // stage 4: the phone QA's small fixes (qaFixes.ts)
+  const qa = installQaFixes(game, shell, layer);
   const picture = new ControlsPicture(layer);
   const pad = new PadHandover();
   pad.start((fn) => {
@@ -292,6 +298,8 @@ export function installMobile(game: Phaser.Game) {
     scenes,
     brawl,
     games: { state: () => ({ ...games.state }), lag: () => games.lag() },
+    posse,
+    qa,
     pad,
     picture,
     dialogue,

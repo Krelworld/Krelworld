@@ -90,7 +90,7 @@ export const TOUCH_WORDING: WordingRule[] = [
   // the story stills: "click / Tab: skip"
   { id: "cine-skip", re: /^click \/ Tab: skip$/, to: "tap: skip" },
   // the flyovers: "SKIP  ▸▸   (Space / Esc / tap)"
-  { id: "flyover-skip", re: /^SKIP\s+▸▸\s+\(Space \/ Esc \/ tap\)$/, to: "SKIP ▸▸ (tap)" },
+  { id: "flyover-skip", re: /^SKIP\s+▸▸\s+\(Space \/ Esc \/ tap\)$/, to: "SKIP ▸▸" },
   // the pause menu's fullscreen row (only on a phone already on the home screen): "⛶ FULLSCREEN   (Alt+Enter)"
   { id: "alt-enter", re: /\s*\(Alt\+Enter\)/g, to: "" },
   // the telly's guide: "↑↓ pick · ←→ channel · ENTER watch · ESC whatever's on"
@@ -119,6 +119,18 @@ export const TOUCH_WORDING: WordingRule[] = [
   { id: "charsel-sanmik", re: /\bPress [A-Za-z0-9]{1,8} to become SANMIK whenever you like\./g, to: "Tap the SANMIK button to become SANMIK whenever you like." },
   // chapter select's toggles: "PLAYING AS: X  (C)", "DIFFICULTY 3/5: Normal  (V)", the debug menu's "(tap to change)"
   { id: "chsel-keys", re: /\s+\((?:C|V|tap to change)\)$/, to: "" },
+  // ---- stage 4 (the phone QA): UI text that still named a key
+  // the HUD in town after the golden juice: "⚡ GOLDEN JUICE (T to transform)" (in a fight GOLD pops up on the right)
+  { id: "golden-hud", re: /\(T to transform\)/g, to: "(GOLD in a fight)" },
+  // the first new gun's toast: "X / GUN swaps back to the Fart Blaster (infinite ammo).", later "X / GUN cycles weapons."
+  { id: "gun-swap-back", re: /\bX \/ GUN swaps back to the Fart Blaster\b/g, to: "SWAP (or tap your gun up top) swaps back to the Fart Blaster" },
+  { id: "gun-cycle", re: /\bX \/ GUN cycles weapons\./g, to: "SWAP cycles weapons." },
+  // the drugs pills: town's "💊  PRESS  D  TO TAKE DRUGS" with "(or tap the button)" under it, the cockpit's "💊  PRESS  D"
+  { id: "drugs-town", re: /^💊\s+PRESS\s+D\s+TO TAKE DRUGS$/, to: "💊  TAP TO TAKE DRUGS" },
+  { id: "drugs-town-or", re: /^\(or tap the button\)$/, to: "" },
+  { id: "drugs-cockpit", re: /^💊\s+PRESS\s+D$/, to: "💊  TAP HERE" },
+  // the finale's spirit-bomb mash: "any key · click · tap" under MASH!
+  { id: "finale-mash", re: /^any key · click · tap$/, to: "tap tap tap" },
 ];
 
 /**
@@ -145,6 +157,8 @@ export const NARRATOR_TIPS: WordingRule[] = [
   { id: "sanmik-again", re: /\bPress it again to go back to being you\b/g, to: "Tap it again to go back to being you" },
   // the Kreddle raid: "HOLD the attack button (mouse / J / the fire button) to spray CHEMICAL FIRE."
   { id: "raid-fire", re: /\(mouse \/ J \/ the fire button\)/g, to: "(the fire button)" },
+  // (stage 4) Home's gun-rack tips: "🔫 Every gun you own is on it, ... Point at a gun to see its stats, ..."
+  { id: "rack-point", re: /\bPoint at a gun to see\b/g, to: "Tap a gun to see" },
 ];
 
 /** A narrator line as a phone shows it (pure: the table walk). Only ever called for NARRATOR / stage-direction lines. */
@@ -236,7 +250,7 @@ export const UI_TEXTS: Record<string, RegExp[]> = {
   Slots: [/^↑↓ choose · Enter load/, /↑↓ · Enter · Del · Esc$/],
   // ---- stage 2, part 2 (checked on every setText, not only when the text is made: these signs change as you play)
   // the playground side quest's sign over the fence
-  Hub: [/^KIDS DISTRACTED: \d+s\n📸 Snap the cameras \(E\)/, /^🍬 Stand by the fence and press E to throw a sweetie\n/],
+  Hub: [/^KIDS DISTRACTED: \d+s\n📸 Snap the cameras \(E\)/, /^🍬 Stand by the fence and press E to throw a sweetie\n/, /^💊\s+PRESS\s+D\s+TO TAKE DRUGS$/, /^\(or tap the button\)$/],
   // the kards machine's "Higher or lower? (↑ / ↓)"
   Pit: [/^←\/→ \(or tap ◀ ▶\) sets the Heat:/],
   Menu: [/\(Alt\+Enter\)$/],
@@ -257,6 +271,10 @@ export const STORY_UI_LINES: Record<string, RegExp[]> = {
   // the Lair's and the Citadel roof's "Esc: skip scene" (a button on a phone: screens.ts)
   Lair: [/^Esc: skip scene$/],
   RoofCutscene: [/^Esc: skip scene$/],
+  // (stage 4) the cockpit's pill (Flight KR-069)
+  Vignette: [/^💊\s+PRESS\s+D$/],
+  // (stage 4) the finale's spirit-bomb mash hint
+  Finale: [/^any key · click · tap$/],
   // the ending's "(click, or press 1 · 2 · 3 · 4)", "(click, or press 1 / 2)", "click to skip"
   Ending: [/^\(click, or press 1(?: · 2 · 3 · 4| \/ 2)\)$/, /^click to skip$/],
   // the story stills' "click / Tab: skip" (gfx/Cine.ts) and the flyovers' "SKIP  ▸▸   (Space / Esc / tap)" (hub/flyover.ts),

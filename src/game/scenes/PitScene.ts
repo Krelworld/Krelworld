@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { isMobile } from "../mobile/flag";
 import { G, type PitResult } from "../G";
 import { switchTo } from "../Flow";
 import { synth } from "../audio/Synth";
@@ -199,8 +200,9 @@ export class PitScene extends Phaser.Scene {
     const X = 24;
     const W = 560;
     const top = 92;
-    const RH = 62;
-    const VIS = 6;
+    // (phones, Bigger text: a description runs to two lines, so the rows are taller and one fewer shows at once: P7)
+    const RH = isMobile() ? 74 : 62;
+    const VIS = isMobile() ? 5 : 6;
     if (this.sel < this.scroll) this.scroll = this.sel;
     if (this.sel >= this.scroll + VIS) this.scroll = this.sel - VIS + 1;
     const add = <T extends Phaser.GameObjects.GameObject>(o: T) => {

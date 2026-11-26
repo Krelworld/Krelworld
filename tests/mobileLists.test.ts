@@ -101,7 +101,7 @@ describe("the touch wording sweep (stage 2 part 2)", () => {
     ["(click, or press 1 / 2)", "(tap one)"],
     ["click to skip", "tap to skip"],
     ["click / Tab: skip", "tap: skip"],
-    ["SKIP  ▸▸   (Space / Esc / tap)", "SKIP ▸▸ (tap)"],
+    ["SKIP  ▸▸   (Space / Esc / tap)", "SKIP ▸▸"],
     ["⛶ FULLSCREEN   (Alt+Enter)", "⛶ FULLSCREEN"],
     ["↑↓ pick · ←→ channel · ENTER watch · ESC whatever's on", ""],
     ["DONE (ESC)", "DONE"],

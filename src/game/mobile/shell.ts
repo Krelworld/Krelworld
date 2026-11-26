@@ -533,13 +533,15 @@ export class Shell {
         return;
       }
     }
-    // a back while the pause menu is showing leaves the game (the guard is already gone: go back past it)
+    // a back while the pause menu is showing closes it, as its RESUME does (stage 4, DEFERRED R3: Android's edge swipe
+    // is easily doubled, and the second Back used to leave KRELWORLD for the page before it, mid-fight or mid-scene)
     if (this.pauseMenuShowing()) {
       try {
-        history.back();
+        (this.game.scene.getScene("Menu") as unknown as { close?: () => void }).close?.();
       } catch {
-        /* nowhere to go back to */
+        /* the menu went on its own */
       }
+      this.armGuard();
       return;
     }
     // otherwise it pauses where the game can, and does nothing where it can't (the title, a conversation, a menu):

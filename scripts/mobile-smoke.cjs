@@ -112,7 +112,10 @@ const arg = (k, d) => {
 };
 const URL0 = arg("--url", "http://localhost:5202/");
 const SHOTS = arg("--shots", "");
-const ONLY = (arg("--only", "phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,bike,dungeon,combat,side,brawl,together,review1,polish,platform,android,tapuse,tapfix,platfix,mix3,games,scenes,wave2,desktop") || "").split(",").filter(Boolean);
+// (the s4 section's parts, for a quicker look at one: --s4 posse,back,wonk,tv,...)
+const S4PART = (arg("--s4", "") || "").split(",").filter(Boolean);
+const s4part = (p) => !S4PART.length || S4PART.includes(p);
+const ONLY = (arg("--only", "phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,bike,dungeon,combat,side,brawl,together,review1,polish,platform,android,tapuse,tapfix,platfix,mix3,games,scenes,wave2,s4,desktop") || "").split(",").filter(Boolean);
 const IOS_UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1";
 const IPHONE = { viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, userAgent: IOS_UA };
 const DESKTOP = { viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1, hasTouch: false, isMobile: false };
@@ -805,13 +808,20 @@ async function phone(browser) {
     b = await ph.me();
     check("and a new drag walks again", a[0] - b[0] >= 30, { from: a, to: b });
     check("no page errors", errors.length === 0, errors.slice(0, 3));
-    // a Back while the pause menu is showing leaves the game (the one way out by Back)
+    // stage 4 (DEFERRED R3): a Back while the pause menu is showing closes it (RESUME); a second Back pauses again, and
+    // the page is never left by Back
     s = await ph.snap();
     await ph.tapCss(s.slots.pause.cx, s.slots.pause.cy);
     await ph.until(() => window.__krel.active().includes("Menu"), null, 8000, "the pause menu").catch(() => 0);
     await ph.ev(() => history.back());
-    await sleep(2500);
-    check("Back while the pause menu shows leaves the game", ph.page.url() !== url0, ph.page.url());
+    await sleep(1500);
+    const bk1 = await ph.ev(() => ({ menu: window.__krel.game.scene.isActive("Menu"), guard: window.__krelMobile.shellState().guard }));
+    await ph.ev(() => history.back());
+    await sleep(1500);
+    const bk2 = await ph.ev(() => ({ menu: window.__krel.game.scene.isActive("Menu") }));
+    await ph.ev(() => history.back());
+    await sleep(1500);
+    check("Back on the pause menu resumes; Back again pauses; Back again resumes; the page is never left", ph.page.url() === url0 && !bk1.menu && bk1.guard && bk2.menu && !(await ph.ev(() => window.__krel.game.scene.isActive("Menu"))), { url: ph.page.url(), bk1, bk2 });
   } finally {
     await ctx.close();
   }
@@ -2852,17 +2862,17 @@ async function combat(browser) {
         ms,
       );
     let fullRate = null;
-    let lightRate = null;
     if (dummy !== null) {
       await ph.ev(() => window.__krelMobile.settings.set({ autoFire: true, firing: "auto" }));
       await sleep(300);
       fullRate = await shotsFor(2500);
       await ph.ev(() => window.__krelMobile.settings.set({ firing: "light" }));
       await sleep(300);
-      lightRate = await shotsFor(2500);
     }
-    const ratio = fullRate && lightRate && fullRate.n ? lightRate.n / fullRate.n : 0;
-    check("Firing LIGHT: auto-fire shoots at about 60% of AUTO's pace at the same enemy, no thumb on FIRE", ratio > 0.45 && ratio < 0.78, { fullRate, lightRate, ratio });
+    // (stage 4, s4-03 F11: the old "LIGHT shoots at about 60% of AUTO's pace" check is retired. Its 2.5 s window
+    // counted 0 to 3 shots on this machine, so the ratio was noise (it failed 2 runs of 2 with AUTO 3 vs LIGHT 1, then
+    // AUTO 0 vs LIGHT 2), and LIGHT is no longer offered in Settings: no player can choose it. The pace rule itself is
+    // AutoPace, unit-tested in tests/mobileFiring.test.ts.)
     // LIGHT: a held FIRE goes at the gun's full pace
     {
       const fire = await ctlOf("c-fire");
@@ -6812,6 +6822,196 @@ async function wave2(browser) {
   }
 }
 
+// ------------------------------------------------------------------ stage 4 (the full phone QA's fixes)
+
+/** Tap through whatever conversation is up (real taps on the canvas), until none is. */
+async function talkThrough(ph, ms = 30000) {
+  const t0 = Date.now();
+  while (Date.now() - t0 < ms) {
+    const on = await ph.ev(() => window.__krel.game.scene.isActive("Dialogue"));
+    if (!on) return true;
+    await ph.tapCss(560, 200);
+    await sleep(350);
+  }
+  return false;
+}
+
+/** The middle of a shown layer control (CSS px), or null. */
+function ctlAt(ph, id) {
+  return ph.ev((id) => {
+    const c = window.__krelMobile.snapshot().controls.find((c) => c.id === id && c.shown);
+    return c ? { x: c.face.x + c.face.w / 2, y: c.face.y + c.face.h / 2, w: c.face.w, h: c.face.h } : null;
+  }, id);
+}
+
+async function s4fix(browser) {
+  console.log("STAGE 4 FIXES (the full phone QA)");
+  const { ctx, ph, errors } = await phoneAtTitle(browser, { ...IPHONE });
+  const shot = (n) => ph.shot(`s4-${n}`);
+  try {
+    await ph.ev(() => window.__krelMobile.setInsets({ top: 0, right: 47, bottom: 21, left: 47 }));
+    check("s4: into town, walking", await toWalk(ph, "Hub"));
+    // ---- B1: the posse's BEAT UP fight by touch
+    if (s4part("posse")) {
+    await ph.ev(() => {
+      const h = window.__krel.game.scene.getScene("Hub");
+      h.beatup.start(window.__krel.G.s.player === "CRONGUS" ? "FLENKY" : "CRONGUS");
+    });
+    await sleep(1500);
+    await talkThrough(ph);
+    await ph.until(() => window.__krel.game.scene.getScene("Hub").beatup.state === "hunt", null, 20000, "the hunt");
+    await ph.ev(() => {
+      const h = window.__krel.game.scene.getScene("Hub");
+      const v = h.beatup.victim.spr;
+      h.av.body.reset(v.x - 40, v.y);
+    });
+    await ph.until(() => window.__krel.game.scene.getScene("Hub").beatup.state === "fight", null, 20000, "the fight");
+    await ph.until(() => window.__krelMobile.posse.state().fight && window.__krelMobile.snapshot().decision.mode === "tap", null, 10000, "the posse buttons");
+    await sleep(900);
+    const st0 = await ph.ev(() => {
+      const s = window.__krelMobile.snapshot();
+      const h = window.__krel.game.scene.getScene("Hub");
+      return { mode: `${s.decision.mode}:${s.decision.scene}`, pause: s.buttons.pause, shown: window.__krelMobile.posse.state().shown, canvasBtns: Object.values(h.beatup.btns).some((b) => b.c.visible || b.t.visible) };
+    });
+    check("s4 B1: the posse fight shows SHOVE / PUNCH / KICK and the II (tap mode), the canvas circles with [E] [F] [SPACE] hide", st0.mode === "tap:Hub" && st0.pause && st0.shown.length === 3 && !st0.canvasBtns, st0);
+    const pos = { shove: await ctlAt(ph, "posse-shove"), punch: await ctlAt(ph, "posse-punch"), kick: await ctlAt(ph, "posse-kick") };
+    check("s4 B1: SHOVE sits under the left thumb, PUNCH and KICK under the right, each at least 60 px", pos.shove && pos.punch && pos.kick && pos.shove.x < 300 && pos.punch.x > 544 && pos.kick.x > pos.punch.x && Math.min(pos.shove.w, pos.punch.w, pos.kick.w) >= 59.5, pos);
+    await shot("posse");
+    // the II pauses it (the pause menu over the town), RESUME carries on
+    await ph.tapSel(".kt-btn.kt-pause");
+    await sleep(1200);
+    const paused = await ph.ev(() => ({ menu: window.__krel.game.scene.isActive("Menu"), hub: window.__krel.game.scene.isPaused("Hub") }));
+    check("s4 B1: the II during the fight opens the pause menu over the town", paused.menu && paused.hub, paused);
+    await ph.ev(() => {
+      const g = window.__krel.game;
+      g.scene.stop("Menu");
+      g.scene.resume("Hub");
+    });
+    await sleep(800);
+    // play it: tap whichever button is lit, until the victim goes flying (each prompt's window is held open while the
+    // test reads the screen: this machine is far slower than a thumb, and the windows are the game's own)
+    let taps = 0;
+    let landed = 0;
+    const t0 = Date.now();
+    while (Date.now() - t0 < 90000) {
+      const s = await ph.ev(() => {
+        const b = window.__krel.game.scene.getScene("Hub").beatup;
+        if (b.promptUntil) b.promptUntil = b.h.time.now + 60000;
+        return { st: window.__krelMobile.posse.state(), phase: b.state === "fight" && b.ui ? "fight" : "won" };
+      });
+      if (s.phase !== "fight") break;
+      if (s.st.want) {
+        const at = pos[s.st.want];
+        const h0 = s.st.hits;
+        await ph.tapCss(at.x, at.y);
+        taps++;
+        await sleep(300);
+        const h1 = await ph.ev(() => window.__krel.game.scene.getScene("Hub").beatup.hits);
+        if (h1 > h0 || h1 === undefined) landed++;
+      } else await sleep(80);
+    }
+    const end = await ph.ev(() => {
+      const b = window.__krel.game.scene.getScene("Hub").beatup;
+      return { phase: b.state === "fight" && b.ui ? "fight" : "won", presses: window.__krelMobile.posse.stats.presses };
+    });
+    check("s4 B1: tapping the lit buttons wins the fight (the victim goes flying, the town walks again)", end.phase !== "fight" && landed >= 14, { taps, landed, ...end });
+    await talkThrough(ph, 20000);
+    await ph.until(() => window.__krelMobile.snapshot().decision.mode !== "tap", null, 20000, "the buttons to go").catch(() => {});
+    check("s4 B1: the posse buttons are gone afterwards", !(await ph.ev(() => window.__krelMobile.snapshot().controls.some((c) => /^posse-/.test(c.id)))));
+    }
+    // ---- M1: the HUD chip after the golden juice
+    await ph.ev(() => (window.__krel.G.s.flags.golden_charge = true));
+    await sleep(800);
+    const chip = await ph.ev(() => window.__krel.game.scene.getScene("UI").statT.text);
+    check("s4 M1: the town HUD says GOLD, not T, after the golden juice", /GOLDEN JUICE \(GOLD in a fight\)/.test(chip) && !/T to transform/.test(chip), chip);
+    await ph.ev(() => (window.__krel.G.s.flags.golden_charge = false));
+    // ---- R3 / F3: Back on the pause menu resumes (never leaves the page); Back twice, three times, stays
+    const url0 = ph.page.url();
+    if (s4part("back")) {
+    await ph.ev(() => history.back());
+    await sleep(1500);
+    const b1 = await ph.ev(() => window.__krel.game.scene.isActive("Menu"));
+    await ph.ev(() => history.back());
+    await sleep(1500);
+    const b2 = await ph.ev(() => window.__krel.game.scene.isActive("Menu"));
+    await ph.ev(() => history.back());
+    await sleep(1500);
+    const b3 = await ph.ev(() => window.__krel.game.scene.isActive("Menu"));
+    check("s4 R3: in town Back pauses, Back again resumes, Back again pauses; the page is never left", ph.page.url() === url0 && b1 && !b2 && b3, { url: ph.page.url(), b1, b2, b3 });
+    await ph.ev(() => history.back());
+    await sleep(1200);
+    }
+    // ---- P9: the Club's Wonk-Off: a "tap to start" card that ignores the last line's taps, then the II while it runs
+    if (s4part("wonk")) {
+    check("s4 P9: into the Club, walking", await toWalk(ph, "Club"));
+    await ph.ev(() => {
+      const c = window.__krel.game.scene.getScene("Club");
+      c.wonkOff();
+    });
+    await sleep(1200);
+    // tap through the lines at a thumb's pace (the Club talks in its own box), and keep tapping past the last one
+    {
+      const t0 = Date.now();
+      while (Date.now() - t0 < 45000 && !(await ph.ev(() => !!document.querySelector(".kt-gocard")))) {
+        await ph.tapCss(422, 200);
+        await sleep(350);
+      }
+      for (let i = 0; i < 2; i++) {
+        await ph.tapCss(422, 200);
+        await sleep(120);
+      }
+    }
+    const w0 = await ph.ev(() => {
+      const c = window.__krel.game.scene.getScene("Club");
+      const texts = c.sys.displayList.list.filter((o) => o.type === "Container").flatMap((o) => o.list).filter((o) => o.type === "Text").map((o) => o.text).filter((t) => /WONK/.test(t));
+      return { card: !!document.querySelector(".kt-gocard"), paused: window.__krel.game.scene.isPaused("Club"), wonk: window.__krelMobile.qa.wonk(), busy: c.busy, texts, active: window.__krel.active() };
+    });
+    await sleep(400);
+    for (let i = 0; i < 2; i++) await ph.tapCss(422, 200);
+    await sleep(300);
+    const w1 = await ph.ev(() => ({ card: !!document.querySelector(".kt-gocard"), paused: window.__krel.game.scene.isPaused("Club") }));
+    const wk = await ph.ev(() => window.__krelMobile.qa.wonk());
+    check("s4 P9: the Wonk-Off waits under a WONK-OFF / Tap to start card (the Club paused), and no tap within 650 ms of it starts it", wk.shown > 0 && wk.pausedUnder && (!wk.started || wk.started - wk.shown >= 650), { wk, w0, w1 });
+    await sleep(800);
+    await ph.tapCss(422, 200);
+    await sleep(900);
+    const w2 = await ph.ev(() => {
+      const s = window.__krelMobile.snapshot();
+      return { card: !!document.querySelector(".kt-gocard"), running: window.__krel.game.scene.isActive("Club"), mode: `${s.decision.mode}:${s.decision.scene}`, pause: s.buttons.pause };
+    });
+    check("s4 P9: a fresh tap starts it; while it runs the II shows (tap mode)", !w2.card && w2.running && w2.mode === "tap:Club" && w2.pause, w2);
+    await shot("wonkoff");
+    await ph.tapSel(".kt-btn.kt-pause");
+    await sleep(1200);
+    const w3 = await ph.ev(() => ({ menu: window.__krel.game.scene.isActive("Menu"), club: window.__krel.game.scene.isPaused("Club") }));
+    check("s4 P9: the II pauses the Wonk-Off (the pause menu over the Club)", w3.menu && w3.club, w3);
+    await ph.ev(() => {
+      const g = window.__krel.game;
+      g.scene.stop("Menu");
+      g.scene.resume("Club");
+    });
+    await sleep(500);
+    }
+    // ---- F10: Back on the telly switches it off (what Esc does)
+    if (s4part("tv")) {
+    await ph.ev(() => {
+      const g = window.__krel.game;
+      for (const sc of g.scene.getScenes(true)) if (sc.sys.settings.key !== "UI") g.scene.stop(sc.sys.settings.key);
+      g.scene.start("TV", { fromTitle: true, episode: "tcc_ep7" });
+    });
+    await ph.until(() => window.__krel.game.scene.getScene("TV").mode === "playing", null, 30000, "the show").catch(() => {});
+    await sleep(1500);
+    await ph.ev(() => history.back());
+    await sleep(2500);
+    const tv = await ph.ev(() => ({ tv: window.__krel.game.scene.isActive("TV"), n: window.__krelMobile.qa.stats.tvBack, url: location.href }));
+    check("s4 F10: Back during a show switches the telly off, as Esc does (and stays on the page)", !tv.tv && tv.n >= 1 && tv.url === url0, tv);
+    }
+    check("s4: no page errors", errors.length === 0, errors.slice(0, 3));
+  } finally {
+    await ctx.close();
+  }
+}
+
 (async () => {
   const t0 = Date.now();
   let browser;
@@ -6851,6 +7051,7 @@ async function wave2(browser) {
       ["games", games],
       ["scenes", scenesSection],
       ["wave2", wave2],
+      ["s4", s4fix],
       ["desktop", desktop],
     ]) {
       if (!ONLY.includes(id)) continue;

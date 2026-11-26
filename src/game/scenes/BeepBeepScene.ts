@@ -310,7 +310,8 @@ export class BeepBeepScene extends Phaser.Scene {
     this.hud = this.add.text(24, 50, "", st(20, "#f472b6")).setOrigin(0, 0.5).setDepth(520);
     this.timerTx = this.add.text(W - 24, 22, "", st(26, "#ffffff")).setOrigin(1, 0.5).setDepth(520);
     this.comboTx = this.add.text(W - 24, 56, "", st(18, "#fde047")).setOrigin(1, 0.5).setDepth(520);
-    this.mphTx = this.add.text(W - 92, 478, "", st(18, "#7dd3fc")).setOrigin(0.5).setDepth(520);
+    // (phones: the dial sits left of the BRAKE / BOOST pedals, which cover the corner: P12)
+    this.mphTx = this.add.text(isMobile() ? W - 290 : W - 92, 478, "", st(18, "#7dd3fc")).setOrigin(0.5).setDepth(520);
     this.banner = this.add.text(W / 2, 22, "", { ...st(15, "#fde047"), wordWrap: { width: 560 }, align: "center" }).setOrigin(0.5, 0.5).setDepth(520);
     this.hint = this.add.text(92, 508, "SHIFT BOOST · E HORN", st(12, "#e5e7eb")).setOrigin(0.5).setDepth(520);
     title(this, 92, 22, "BEEP BEEP", 22, "#f472b6").setDepth(520);
@@ -1040,7 +1041,7 @@ export class BeepBeepScene extends Phaser.Scene {
       g.fillStyle(0xfde047, 1).fillRect(W - 178, 74, (154 * Math.max(0, this.comboT)) / COMBO_WINDOW, 4);
     }
     // speedometer: a dial on the dash
-    const cx = W - 92;
+    const cx = isMobile() ? W - 290 : W - 92;
     const cy = 440;
     const r = 46;
     g.fillStyle(0x0b1020, 0.92).fillCircle(cx, cy, r + 6);

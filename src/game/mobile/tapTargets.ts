@@ -205,6 +205,9 @@ interface HubIt {
   __throw?: unknown;
 }
 
+/** Town spots that are on the ground in front of a building, never the building itself (tapped on their own circle). */
+export const GROUND_SPOT = /^E: Plant a bomb\b/;
+
 function readHub(sc: Bag): WalkRead | null {
   const av = sc.av as (Spr & { body?: { center: Pt; width: number; height: number } }) | undefined;
   const list = sc.interactables as HubIt[] | undefined;
@@ -233,7 +236,9 @@ function readHub(sc: Bag): WalkRead | null {
       const label = `E: ${it.label()}`;
       const npc = it.__npc;
       const box = spotBox(it.x, it.y, Math.min(it.r, 80));
-      const on = npc ? null : standsOn(it.x, it.y, blockers);
+      // (a spot on the ground, not a building's: the bombs round Wildern sit just in front of the school's doors, and
+      // grown to the school they lost to its door, the smaller picture winning: s4-01 M4)
+      const on = npc || GROUND_SPOT.test(label) ? null : standsOn(it.x, it.y, blockers);
       const pic = npc?.spr ? bounds(npc.spr) : on ? union(box, on) : null;
       targets.push({
         src: it,

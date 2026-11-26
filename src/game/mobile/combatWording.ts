@@ -65,11 +65,14 @@ export const BRAWL_TEXTS: RegExp[] = [/^MASH FOR A FLURRY\. HOLD R TO BLAST KI/,
  * hint(); this file never routes dialogue).
  */
 export const COMBAT_WORDING_FIRST: WordingRule[] = [
-  { id: "walk-up-press-e", re: /\(walk up, press E\)/g, to: "(walk up, tap ACTION)" },
+  // (the Cronster's hostages; the finale's lads have their own row below, whichever order the rows run in)
+  { id: "walk-up-press-e", re: /(?<!each of the lads )\(walk up, press E\)/g, to: "(walk up, tap ACTION)" },
   { id: "mash-attack-dodge", re: /\bMash ATTACK \/ DODGE if he gets you\b/g, to: "Mash FIRE / DODGE if he gets you" },
   // the fights' own toasts (system hints, G "toast"; matched whole so no other "Press E" line is reached)
   { id: "crate-walk-over", re: /^Something glowing dropped in\. Walk over and press E\.$/, to: "Something glowing dropped in. Walk over and tap ACTION." },
-  { id: "crate-open", re: /^A weapons crate appeared\. Press E to open it\.$/, to: "A weapons crate appeared. Tap ACTION to open it." },
+  { id: "crate-open", re: /^A weapons crate appeared\. Press E to open it\.$/, to: "A weapons crate appeared. Walk up and tap OPEN." },
+  // (stage 4) the finale's inject toast: the button says INJECT there (modes.ts VERB_OVERRIDES)
+  { id: "inject-hint", re: /\bInject each of the lads \(walk up, press E\)/g, to: "Inject each of the lads (walk up, tap INJECT)" },
   { id: "wonk-full", re: /^WONK FULL\. KREZZ FULL\. Press R\.$/, to: "WONK FULL. KREZZ FULL. Tap WONK!" },
   { id: "ibs-ready", re: /^Press G \(or the 💨 button\) to unleash it\.$/, to: "Tap IBS! (on the right) to unleash it." },
   { id: "krezz-shield", re: /\bhit him with a KREZZ BURST \(R\) to break the shield\./g, to: "hit him with a KREZZ BURST (WONK!) to break the shield." },
@@ -125,6 +128,28 @@ export const COMBAT_NARRATOR_TIPS: WordingRule[] = [
     to: "In a dungeon: tap GOLD to transform. FIRE becomes a huge golden mega melee. CUME fires the CUMEHAMEHA.",
   },
   { id: "golden-ready", re: /\bPress T in your next dungeon\./g, to: "Tap GOLD in your next dungeon." },
+  // (stage 4) data/dungeons.ts: the Crobley factory's and the plane aisle's run-and-gun legends ("... S drop through ·
+  // aim and fire as normal." / "... S drop · aim and fire as normal."), the Cuddle Tower's climb, the colon's bombs
+  {
+    id: "run-and-gun-ad",
+    re: /\bA \/ D run · W jump \(again in the air to double jump\) · S drop(?: through)? · aim and fire as normal\./g,
+    to: "drag left / right to run · JUMP (again in the air to double jump) · hold the stick down to drop through · FIRE shoots.",
+  },
+  {
+    id: "climb-tower",
+    re: /^CLIMB: W jump \(again in the air to double jump\) · A \/ D move · S drop through · shoot as normal\./,
+    to: "CLIMB: JUMP (again in the air to double jump) · drag left / right to move · hold the stick down to drop through · FIRE shoots.",
+  },
+  { id: "colon-bombs", re: /\(E on the red circles\)/g, to: "(tap PLANT on the red circles)" },
+  // data/dungeons.ts (SanMik and SanChz join): "When you krezz (R), SanMik does his version"
+  { id: "krezz-r", re: /\bWhen you krezz \(R\),/g, to: "When you krezz (WONK!)," },
+  // DungeonScene (the golden juice, said after the Mollor room and when you have none)
+  {
+    id: "golden-next",
+    re: /\bIn your next dungeon, press T \(or ⚡T\) to TRANSFORM, once: ATTACK becomes a huge golden mega melee and C \(or CUME\) fires the CUMEHAMEHA\./g,
+    to: "In your next dungeon, tap GOLD to TRANSFORM, once: FIRE becomes a huge golden mega melee and CUME fires the CUMEHAMEHA.",
+  },
+  { id: "golden-press-t", re: /\bthen press T in it to TRANSFORM\./g, to: "then tap GOLD in it to TRANSFORM." },
 ];
 
 

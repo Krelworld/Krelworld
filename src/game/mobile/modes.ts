@@ -241,6 +241,9 @@ export const VERB_OVERRIDES: readonly [RegExp, string][] = [
   [/\bVending\b/i, "BUY"],
   [/^Rummage\b/i, "SEARCH"],
   [/^(?:Inspect|Examine)\b/i, "LOOK"],
+  // (stage 4) the finale's "Inject <lad>" (its toast says INJECT), the Job Centre's "Talk to STAFF TOILET (ENGAGED)"
+  [/^Inject\b/i, "INJECT"],
+  [/^Talk to STAFF TOILET\b/i, "OPEN"],
 ];
 
 export function verbFromPrompt(text: string | null | undefined): string | null {

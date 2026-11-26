@@ -100,7 +100,7 @@ const arg = (k, d) => {
 };
 const URL0 = arg("--url", "http://localhost:5202/");
 const SHOTS = arg("--shots", "");
-const ONLY = (arg("--only", "phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,together,review1,polish,platform,android,tapuse,tapfix,mix3,desktop") || "").split(",").filter(Boolean);
+const ONLY = (arg("--only", "phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,together,review1,polish,platform,android,tapuse,tapfix,platfix,mix3,desktop") || "").split(",").filter(Boolean);
 const IOS_UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1";
 const IPHONE = { viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, userAgent: IOS_UA };
 const DESKTOP = { viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1, hasTouch: false, isMobile: false };
@@ -4081,14 +4081,16 @@ async function platform(browser) {
       return { paused: el?.paused, t: el?.currentTime ?? 0 };
     });
     check("platform: a rhythm song starts straight away, with no tap (pooled element unlocked by the first tap)", croc.paused === false && croc.t > 0.5, croc);
+    const d0 = await ph.ev(() => window.__krelMobile.audio.diag().doubles);
     await ph.ev(() => {
       const a = new Audio(window.__krel.synth.musicEl().src);
       a.play().catch(() => {}); // (stopped by the phone straight away: its promise rejects)
       window.__stray = a;
     });
-    await sleep(1200);
+    // (a song just handed out is given RETIRE_MS before it counts as a stray: fix round R8)
+    await sleep(2200);
     const stray = await ph.ev(() => ({ paused: window.__stray.paused, d: window.__krelMobile.audio.diag() }));
-    check("platform: never two songs at once (a stray second song is stopped)", stray.paused === true && stray.d.music === 1 && stray.d.doubles >= 1, stray);
+    check("platform: never two songs at once (a stray second song is stopped)", stray.paused === true && stray.d.music === 1 && stray.d.doubles - d0 === 1, { ...stray, d0 });
     const lines = await ph.ev(() => window.__krelMobile.diag.lines().join("\n"));
     check("platform: ?mobilediag shows the sound route, the last resume, the parked pictures and the saves' storage", /sound route web audio/.test(lines) && /last resume: page shown/.test(lines) && /parked \d+/.test(lines) && /saves kept by the browser/.test(lines), lines.split("\n").filter((l) => /sound|resume|parked|saves/.test(l)));
 
@@ -4100,6 +4102,15 @@ async function platform(browser) {
       return m;
     };
     check("platform: texture memory after the boot is under 400 MB (the laptop holds about 920)", peak.mb < 400, peak);
+    // (the JS heap too: texture bytes don't see what scripts hold; fix round R9)
+    const heapMB = async () => {
+      const m = await ph.cdp.send("Performance.getMetrics").catch(() => null);
+      const v = m && m.metrics.find((x) => x.name === "JSHeapUsedSize");
+      return v ? Math.round(v.value / 1048576) : -1;
+    };
+    await ph.cdp.send("Performance.enable").catch(() => {});
+    const heap0 = await heapMB();
+    check("platform: the JS heap after the boot is under 400 MB", heap0 > 0 && heap0 < 400, heap0);
     await toWalk(ph, "Home");
     await note("home");
     await ph.ev(() => window.__krel.go("Hub"));
@@ -4140,6 +4151,8 @@ async function platform(browser) {
       } else check(`platform: ${label} reached (${m} MB of textures)`, ok, m);
     }
     check("platform: the texture peak over home, town, a TV show, the Hoard and the concept boss stays under 500 MB", peak.mb < 500, peak);
+    const heap1 = await heapMB();
+    check("platform: the JS heap after home, town, a TV show and two boss rooms is under 500 MB", heap1 > 0 && heap1 < 500, { boot: heap0, now: heap1 });
 
     // 3. pause in a minigame: the II opens the pause menu; coming back to the phone opens it too
     await ph.ev(() => {
@@ -4154,7 +4167,7 @@ async function platform(browser) {
     await tapPause(ph);
     await ph.until(() => window.__krel.game.scene.isActive("Menu"), null, 15000, "the pause menu").catch(() => {});
     let st = await ph.ev(() => ({ menu: window.__krel.game.scene.isActive("Menu"), paused: window.__krel.game.scene.isPaused("Minigame"), song: window.__krel.synth.musicEl()?.paused }));
-    check("platform: the II in a minigame opens the pause menu, the minigame and its song hold", st.menu && st.paused && st.song !== false, st);
+    check("platform: the II in a minigame opens the pause menu, the minigame and its song hold", st.menu && st.paused && st.song === true, st);
     await ph.ev(() => window.__krel.game.scene.getScene("Menu").close());
     await sleep(800);
     await setVisibility(ph, "hidden");
@@ -4632,6 +4645,148 @@ async function tapuse(browser) {
   }
 }
 
+/** Stage 3 fix round 1: parked pictures that come back blank, offline or late (R1-R4), and the sound pool (R5-R8). */
+async function platfix(browser) {
+  console.log("PLATFORM, fix round 1 (a boss's sheets together, the VS card waits, the offline copy, the sound pool)");
+  let { ctx, ph, errors } = await phoneAtTitle(browser);
+  try {
+    // ---- R3: the kneel at the kill, on a boss whose fighting sheet is up: its death sheet is already in
+    const kneel = await ph.ev(async () => {
+      const g = window.__krel.game;
+      const a = window.__krelMobile.art;
+      const sc = g.scene.getScene("Title");
+      const id = "troll";
+      const fight = sc.add.sprite(300, 250, `bossanim_${id}`, 0).setDepth(9999);
+      await new Promise((r) => setTimeout(r, 2500));
+      a.sweep(0); // (whatever nothing holds is parked now: the family stays)
+      const key = `bossdie_${id}`;
+      const tex = g.textures.get(key);
+      const down = sc.add.sprite(500, 250, key, 0).setDepth(9999);
+      fight.setVisible(false);
+      let blank = 0;
+      const t0 = performance.now();
+      await new Promise((res) => {
+        const step = () => {
+          if (a.isParked(key) || !(tex.getSourceImage() instanceof HTMLImageElement)) blank++;
+          if (performance.now() - t0 < 800) requestAnimationFrame(step);
+          else res();
+        };
+        requestAnimationFrame(step);
+      });
+      fight.destroy();
+      down.destroy();
+      a.sweep(0);
+      return { blank, parkedAfter: a.isParked(key) && a.isParked(`bossanim_${id}`) };
+    });
+    check("R3: a boss's death sheet is in while its fighting sheet is (the kneel never shows a blank frame)", kneel.blank === 0, kneel);
+    check("R3: ...and the whole family is parked again once nothing holds it", kneel.parkedAfter, kneel);
+
+    // ---- R4: the VS card waits for its faces instead of opening blank
+    const vs = await ph.ev(async () => {
+      const g = window.__krel.game;
+      const a = window.__krelMobile.art;
+      const ks = ["vs_FLENKY", "vs_brand"];
+      const before = ks.map((k) => a.isParked(k));
+      const h0 = a.report().holds;
+      window.__krel.vs("brand");
+      let blankRunning = 0;
+      const t0 = performance.now();
+      await new Promise((res) => {
+        const step = () => {
+          const sc = g.scene.getScene("VsSplash");
+          if (sc && sc.sys.isActive() && !sc.sys.isPaused() && ks.some((k) => a.isParked(k) || !(g.textures.get(k).getSourceImage() instanceof HTMLImageElement))) blankRunning++;
+          if (performance.now() - t0 < 3500) requestAnimationFrame(step);
+          else res();
+        };
+        requestAnimationFrame(step);
+      });
+      const r = a.report();
+      return { before, blankRunning, holds: r.holds - h0, longestHoldMs: r.longestHoldMs };
+    });
+    check("R4: the VS card holds (paused, a moment at most) until both faces are in: no running frame without them", vs.before.every(Boolean) && vs.blankRunning === 0 && vs.holds === 1 && vs.longestHoldMs <= 1300, vs);
+
+    // ---- R2: the offline copy (the loader's own downloads, then the browser's cache): a parked picture comes back
+    // with no signal; one not in the copy is retried after a pause that grows, not on every frame
+    const pick = await ph.ev(async () => {
+      const g = window.__krel.game;
+      const a = window.__krelMobile.art;
+      for (let i = 0; i < 150; i++) {
+        const ks = Object.keys(g.textures.list).filter((x) => x.startsWith("tvface_") && a.isParked(x));
+        const inC = ks.find((k) => a.inCopy(k));
+        const outC = ks.find((k) => !a.inCopy(k));
+        if (inC && outC) return { inC, outC, offline: a.report().offline };
+        await new Promise((r) => setTimeout(r, 1000));
+      }
+      return { offline: a.report().offline };
+    });
+    check("R2: the offline copy is filling (CacheStorage, named after the art)", !!pick.inC && pick.offline.stored > 0 && /^(filling|waiting|done)$/.test(pick.offline.state), pick);
+    if (pick.inC && pick.outC) {
+      await ctx.setOffline(true);
+      const off = await ph.ev(async (pick) => {
+        const g = window.__krel.game;
+        const sc = g.scene.getScene("Title");
+        const a = window.__krelMobile.art;
+        const res = {};
+        for (const k of [pick.inC, pick.outC]) {
+          const before = a.report();
+          const im = sc.add.image(400, 200, k).setDepth(9999);
+          await new Promise((r) => setTimeout(r, 3000));
+          const after = a.report();
+          res[k === pick.inC ? "inCopy" : "notInCopy"] = { k, failed: after.failed - before.failed, fromCopy: after.fromCopy - before.fromCopy, live: !a.isParked(k) && g.textures.get(k).getSourceImage() instanceof HTMLImageElement };
+          im.destroy();
+        }
+        return res;
+      }, pick);
+      await ctx.setOffline(false);
+      check("R2: offline, a parked picture in the copy comes back (from the copy, no network)", off.inCopy.live && off.inCopy.fromCopy >= 1 && off.inCopy.failed === 0, off.inCopy);
+      check("R2: offline, one not in the copy fails a couple of times in 3 s, not once a frame", !off.notInCopy.live && off.notInCopy.failed >= 1 && off.notInCopy.failed <= 3, off.notInCopy);
+    }
+
+    // ---- R5 / R8: songs asked for in a rush: none is stopped as a stray, the pool keeps its size
+    const rush = await ph.ev(async () => {
+      const { MUSIC_FILES } = await import("/src/game/audio/Synth.ts");
+      const ids = Object.keys(MUSIC_FILES).filter((k, i, a) => a.findIndex((x) => MUSIC_FILES[x] === MUSIC_FILES[k]) === i).slice(1, 5);
+      const au = window.__krelMobile.audio;
+      const d0 = au.diag().doubles;
+      for (const id of ids.slice(0, 3)) {
+        window.__krel.synth.music(id, true);
+        await new Promise((r) => setTimeout(r, 120));
+      }
+      await new Promise((r) => setTimeout(r, 2500));
+      const el = window.__krel.synth.musicEl();
+      const p = au.items.find((x) => x.el === el);
+      return { doubles: au.diag().doubles - d0, playing: au.diag().music, pooledCurrent: p ? p.pooled : null, items: au.items.length };
+    });
+    check("R5/R8: three songs in quick turns: one plays, on an element the first tap unlocked, and no fade-out counts as a stray", rush.doubles === 0 && rush.playing === 1 && rush.pooledCurrent === true, rush);
+    // ---- R6: voice lines that can't play free their element; the pool doesn't grow line after line
+    const voices = await ph.ev(async () => {
+      const au = window.__krelMobile.audio;
+      for (let i = 0; i < 3; i++) {
+        const u = URL.createObjectURL(new Blob([new Uint8Array([1, 2, 3, 4])], { type: "audio/mpeg" }));
+        const el = new Audio(u);
+        el.play().catch(() => {});
+      }
+      await new Promise((r) => setTimeout(r, 1500));
+      const n0 = au.items.length;
+      const r = await fetch("audio/krel_world.mp3");
+      const slice = (await r.arrayBuffer()).slice(0, 60000);
+      for (let i = 0; i < 8; i++) {
+        const el = new Audio(URL.createObjectURL(new Blob([slice], { type: "audio/mpeg" })));
+        el.playbackRate = 1.2;
+        await el.play().catch(() => {});
+        await new Promise((r) => setTimeout(r, 120));
+        el.pause();
+      }
+      await new Promise((r) => setTimeout(r, 300));
+      return { n0, n1: au.items.length, busyVoices: au.items.filter((x) => x.kind === "voice" && x.busy).length };
+    });
+    check("R6: bad voice lines free their element, and eight more lines reuse the pool (no new element each time)", voices.busyVoices === 0 && voices.n1 <= voices.n0 + 1, voices);
+    check("platfix: no page errors", errors.length === 0, errors.slice(0, 3));
+  } finally {
+    await ctx.close();
+  }
+}
+
 /** Stage 3 fix round 1: the tap that closes a line, ACTION over the console, the MOVE ring, Kreddle's frontages. */
 async function tapfix(browser) {
   console.log("TAP TO USE, fix round 1 (closing taps, ACTION over a thing, the MOVE ring, Kreddle's buildings)");
@@ -4838,8 +4993,24 @@ async function mix3(browser) {
     check("mix3: the TV show's faces came in, and are parked again when nothing uses them (memory released)", live1 > 0 && parked.live === 0, { live1, parked });
     const st = await homeWalkToTelly(ph);
     check("mix3: back in Home, a tap on the telly from the far side starts the walk", st.walking && st.tag === "Watch KrelTV", st);
-    const cores = await ph.ev(() => window.__krelMobile.tapUse.debugTargets().map((t) => [t.tag, Math.round(t.core.w), Math.round(t.core.h)]));
-    check("mix3: every tappable thing in Home keeps its real picture size (none read as a parked 1x1)", cores.length > 5 && cores.every((c) => c[1] > 8 && c[2] > 8), cores.filter((c) => c[1] <= 8 || c[2] <= 8));
+    // (a TileSprite made on a parked picture: the kart track in the Mario Kart clip, R1. It copies its picture when it is
+    // made, so it must be copied again once the picture is back)
+    const kart = await ph.ev(async () => {
+      const g = window.__krel.game;
+      const a = window.__krelMobile.art;
+      const sc = g.scene.getScene("Home");
+      const was = a.isParked("tvc_kart_track");
+      const ts = sc.add.tileSprite(0, 0, 300, 150, "tvc_kart_track").setDepth(-1).setAlpha(0.01);
+      for (let i = 0; i < 40 && a.isParked("tvc_kart_track"); i++) await new Promise((r) => setTimeout(r, 200));
+      await new Promise((r) => setTimeout(r, 300));
+      const c = ts.fillCanvas;
+      const px = c.getContext("2d").getImageData(0, 0, c.width, c.height).data;
+      let n = 0;
+      for (let i = 3; i < px.length; i += 4) if (px[i] > 0) n++;
+      ts.destroy();
+      return { was, opaque: n, of: c.width * c.height };
+    });
+    check("mix3: a tiled picture made while parked (the kart track) shows once it is back (R1)", kart.was && kart.opaque > kart.of * 0.5, kart);
     const done = await tapDone(ph);
     await ph.until(() => window.__krel.active().includes("TV"), null, 8000, "the telly").catch(() => 0);
     check("mix3: ...the walk ends at the telly and uses it (KrelTV opens)", done.st.last.what === "use" && (await ph.active()).includes("TV"), done.st.last);
@@ -4926,8 +5097,25 @@ async function mix3(browser) {
     await ph.touch("touchEnd", []);
     await sleep(300);
     check("mix3: in town the stick stops a tapped walk at once (the stick walks)", !far.err && hb.walking && !ha.walking && ha.last.what === "stick", far.err || { before: hb.walking, after: ha.last });
-    const cull = await ph.ev(() => ({ culled: window.__krelMobile.perf.lastCulled, drawn: window.__krelMobile.perf.lastDrawn }));
-    check("mix3: the town draws with the off-screen skip on (tap to use and culling together)", cull.drawn > 0, cull);
+    const cull = await ph.ev(() => {
+      const sc = window.__krel.game.scene.getScene("Hub");
+      const cam = sc.cameras.main;
+      const v = cam.worldView;
+      const wrong = [];
+      let inView = 0;
+      for (const o of sc.children.list) {
+        if (!o.visible || !o.alpha || typeof o.getBounds !== "function" || typeof o.willRender !== "function") continue;
+        if ((o.scrollFactorX ?? 1) !== 1 || (o.scrollFactorY ?? 1) !== 1) continue;
+        const b = o.getBounds();
+        if (!(b.width > 0 && b.height > 0)) continue;
+        // (well inside the view: the skip only ever drops what is wholly outside it plus a margin)
+        if (b.right < v.x + 4 || b.x > v.right - 4 || b.bottom < v.y + 4 || b.y > v.bottom - 4) continue;
+        inView++;
+        if (!o.willRender(cam)) wrong.push(`${o.type}:${o.texture ? o.texture.key : ""}`);
+      }
+      return { culled: window.__krelMobile.perf.lastCulled, drawn: window.__krelMobile.perf.lastDrawn, inView, wrong: wrong.slice(0, 8) };
+    });
+    check("mix3: the town's off-screen skip runs and never skips a thing on screen", cull.culled > 0 && cull.inView > 10 && cull.wrong.length === 0, cull);
     check("mix3: no page errors", errors.length === 0, errors.slice(0, 3));
   } finally {
     await ctx.close();
@@ -4967,6 +5155,7 @@ async function mix3(browser) {
       ["android", android],
       ["tapuse", tapuse],
       ["tapfix", tapfix],
+      ["platfix", platfix],
       ["mix3", mix3],
       ["desktop", desktop],
     ]) {

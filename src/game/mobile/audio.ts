@@ -18,7 +18,7 @@
 //    stopped; a song the pause menu holds stays held.
 import Phaser from "phaser";
 import { synth } from "../audio/Synth";
-import { audioKind, routeSilent, sessionType, volumePlan } from "./audioLogic";
+import { audioKind, isStray, MUSIC_POOL, pickSlot, routeSilent, sessionType, sparesToDrop, VOICE_POOL, volumePlan } from "./audioLogic";
 import { onPhoneSettingsChange, phoneSettings } from "./settings";
 
 type Bag = Record<string, any>;
@@ -32,7 +32,15 @@ interface Pooled {
   /** The volume the game set (applied to the gain node when routed). */
   vol: number;
   gain: GainNode | null;
+  /** Its Web Audio source (disconnected with the gain when a spare is let go: R5). */
+  node: MediaElementAudioSourceNode | null;
   listeners: [string, EventListenerOrEventListenerObject, unknown][];
+  /** Has played at least once (a spare that played is unlocked, like a pooled one). */
+  played: boolean;
+  /** Handed out (take) count, and when; when it was last the game's current song (R8). */
+  gen: number;
+  takenAt: number;
+  lastCurrentAt: number;
 }
 
 const MEDIA = HTMLMediaElement.prototype;
@@ -100,8 +108,8 @@ export class PhoneAudio {
     private held: () => boolean,
   ) {
     this.OrigAudio = window.Audio;
-    for (let i = 0; i < 3; i++) this.items.push(this.make("music", true));
-    for (let i = 0; i < 2; i++) this.items.push(this.make("voice", true));
+    for (let i = 0; i < MUSIC_POOL; i++) this.items.push(this.make("music", true));
+    for (let i = 0; i < VOICE_POOL; i++) this.items.push(this.make("voice", true));
     // the game's `new Audio(url)`: one of the pool's elements (a function that returns an object makes `new` return it)
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this;
@@ -129,7 +137,7 @@ export class PhoneAudio {
   private make(kind: "music" | "voice", pooled: boolean, url?: string): Pooled {
     const el = new this.OrigAudio();
     el.preload = "auto";
-    const p: Pooled = { el, kind, busy: false, pooled, vol: 1, gain: null, listeners: [] };
+    const p: Pooled = { el, kind, busy: false, pooled, vol: 1, gain: null, node: null, listeners: [], played: false, gen: 0, takenAt: 0, lastCurrentAt: 0 };
     Object.defineProperty(el, "volume", {
       configurable: true,
       get: () => p.vol,
@@ -153,6 +161,10 @@ export class PhoneAudio {
         if (!v && p.kind === "music") p.busy = false;
       },
     });
+    // (it played: from now on it can play without a tap, pooled or not; the first tap's silent start doesn't count)
+    add("playing", () => {
+      if (!SRC.get!.call(el).startsWith("data:")) p.played = true;
+    });
     if (kind === "voice") {
       const pause = el.pause.bind(el);
       el.pause = () => {
@@ -160,6 +172,19 @@ export class PhoneAudio {
         p.busy = false;
       };
       add("ended", () => (p.busy = false));
+      // a line that cannot load, or whose play() is refused, frees its element too (R6: it never ends, so it used
+      // to stay busy for good, and every later line made a new element)
+      add("error", () => (p.busy = false));
+      const play = el.play.bind(el);
+      el.play = () => {
+        const gen = p.gen;
+        const r = play();
+        if (r && typeof r.catch === "function")
+          r.catch(() => {
+            if (p.gen === gen && el.paused) p.busy = false;
+          });
+        return r;
+      };
     }
     if (url) SRC.set!.call(el, url);
     this.route(p);
@@ -169,14 +194,25 @@ export class PhoneAudio {
   /** `new Audio(url)` from the game: a free pooled element, reset, with this source. */
   private take(url?: string): HTMLAudioElement {
     const kind = audioKind(url);
-    // (once the route proved silent, songs play straight from a new element: the game's own tap fallback starts it)
-    let p = this.routeOk || kind === "voice" ? this.items.find((x) => x.pooled && x.kind === kind && !x.busy) : undefined;
+    // a free element that can play without a tap (pooled, or a spare that has played); once the route proved silent,
+    // only one that is not routed (songs and voices: R7), else a new one (the game's own tap fallback starts it)
+    const slots = () => this.items.map((x) => ({ kind: x.kind, busy: x.busy, pooled: x.pooled, played: x.played, routed: !!x.gain }));
+    const i = pickSlot(slots(), kind, this.routeOk);
+    let p = i >= 0 ? this.items[i] : undefined;
     if (!p) {
       p = this.make(kind, false);
       this.items.push(p);
-      // (spares made on the spot: forget them once they are done, keep the list short)
-      this.items = this.items.filter((x) => x.pooled || x.busy || x === p);
+      // (spares: keep the ones that have played, as many as the pool; let the others go, with their Web Audio nodes)
+      const drop = new Set(sparesToDrop(slots()));
+      const mine = p;
+      this.items = this.items.filter((x, k) => {
+        if (x === mine || !drop.has(k)) return true;
+        this.unroute(x);
+        return false;
+      });
     }
+    p.gen++;
+    p.takenAt = performance.now();
     const el = p.el;
     for (const [type, fn, opts] of p.listeners) el.removeEventListener(type, fn, opts as EventListenerOptions);
     p.listeners = [];
@@ -194,12 +230,26 @@ export class PhoneAudio {
     return el;
   }
 
+  /** A spare let go: its nodes are disconnected (they used to stay for good: R5). */
+  private unroute(p: Pooled) {
+    try {
+      p.node?.disconnect();
+      p.gain?.disconnect();
+    } catch {
+      /* already */
+    }
+    p.node = null;
+    p.gain = null;
+  }
+
   /** Through its own gain node (and, for songs, the self-test's listener). Once per element; needs the context. */
   private route(p: Pooled) {
     const ctx = synth.ctx;
-    if (!ctx || p.gain || (!this.routeOk && p.kind === "music")) return;
+    // (once the route proved silent, nothing new goes through it, voices included: R7)
+    if (!ctx || p.gain || p.node || !this.routeOk) return;
     try {
       const node = ctx.createMediaElementSource(p.el);
+      p.node = node;
       const g = ctx.createGain();
       node.connect(g);
       if (p.kind === "music") {
@@ -311,9 +361,11 @@ export class PhoneAudio {
     const cur = synth.musicEl();
     const fading = (s.fading as Set<HTMLAudioElement> | undefined) ?? new Set<HTMLAudioElement>();
     for (const p of this.items) {
-      if (p.kind !== "music" || p.el.paused) continue;
-      // never two songs at once
-      if (p.el !== cur && !fading.has(p.el) && SRC.get!.call(p.el) !== "" && !SRC.get!.call(p.el).startsWith("data:")) {
+      if (p.kind !== "music") continue;
+      if (p.el === cur) p.lastCurrentAt = now;
+      if (p.el.paused) continue;
+      // never two songs at once (an old song still in its fade-out, or one just asked for, is not a stray: R8)
+      if (isStray({ current: p.el === cur, fading: fading.has(p.el), src: SRC.get!.call(p.el), now, lastCurrentAt: p.lastCurrentAt, takenAt: p.takenAt })) {
         p.el.pause();
         this.doubles++;
       }

@@ -475,7 +475,7 @@ export function installReactions(w: World): void {
       if (t.off && weapon) t.downUntil = s.tick + 1200;
       if (t.fb) t.fb.stunUntil = s.tick + (weapon ? 600 : 50);
       if (t.npc) { say(w, t, weapon ? "Aargh!" : "Oi!"); if (weapon) t.downUntil = s.tick + 900; }
-      const what = weapon ? "throwing a knife" : `throwing a ${defOf(it).name.toLowerCase()}`;
+      const what = hasProp(it, "sharp") ? "throwing a knife" : `throwing a ${defOf(it).name.toLowerCase()}`;
       crime(w, by, what, weapon ? 3 : t.off || t.fb ? 2 : 1, t.npc ? t : undefined);
     }
     if (e.type === "action" && e.action.verb === "show") turnstileCheck(w, e.action);

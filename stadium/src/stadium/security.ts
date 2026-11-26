@@ -29,7 +29,12 @@ export function canSee(w: World, v: Actor, t: Actor, range = 14): boolean {
   // Up on a roof (or looking down from one): walls don't get in the way, but people rarely look up,
   // so a man on a roof is only seen from nearer, and well in front of them (Dishonored's squashed cone).
   const above = !!t.roof !== !!v.roof || (t.roof && v.roof);
-  if (t.roof && !v.roof) range = Math.min(range, isSecurity(v) ? 20 : 12);
+  if (t.roof && !v.roof) {
+    range = Math.min(range, isSecurity(v) ? 20 : 12);
+    // Nobody indoors sees through their own ceiling.
+    const r = roofOf(t);
+    if (r && v.x > r.x0 && v.x < r.x1 && v.y > r.y0 && v.y < r.y1) return false;
+  }
   if (d > range) return false;
   if (d > (isSecurity(v) ? 4.5 : 2.5)) {
     const ang = Math.atan2(dy, dx) - v.facing;
@@ -97,9 +102,9 @@ function wantedMatch(w: World, v: Actor, t: Actor): number {
 const STAFFISH = new Set(["worker", "driver", "barman", "cook", "cleaner", "seller"]);
 
 /** Who could see a spot. `everyone` false means only staff and security care. */
-export function witnessesOf(w: World, x: number, y: number, exclude: Id[], everyone = true): Actor[] {
+export function witnessesOf(w: World, x: number, y: number, exclude: Id[], everyone = true, of?: Actor): Actor[] {
   const out: Actor[] = [];
-  const probe = { x, y, hiddenIn: undefined } as unknown as Actor;
+  const probe = { x, y, hiddenIn: undefined, roof: of?.roof, roofId: of?.roofId } as unknown as Actor;
   for (const id in w.state.actors) {
     const a = w.state.actors[id];
     if (!a.npc || exclude.includes(id) || a.downUntil > w.state.tick) continue;
@@ -116,7 +121,7 @@ export function witnessesOf(w: World, x: number, y: number, exclude: Id[], every
  */
 export function crime(w: World, by: Actor, what: string, severity: number, victim?: Actor, everyone = true): number {
   const s = w.state, st = s.stadium!;
-  const seen = witnessesOf(w, by.x, by.y, [by.id, ...(victim ? [victim.id] : [])], everyone);
+  const seen = witnessesOf(w, by.x, by.y, [by.id, ...(victim ? [victim.id] : [])], everyone, by);
   if (victim?.npc && victim.npc.job !== "player" && victim.npc.job !== "official" && victim.downUntil <= s.tick) seen.push(victim);
   const ap = appearance(s, by);
   st.incidents.push({ t: s.tick, what, by: by.id, blamed: ap.team, severity, seenBy: seen.length });

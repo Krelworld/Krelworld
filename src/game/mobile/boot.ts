@@ -34,6 +34,19 @@ export function homeScreenEntryWanted(): boolean {
   }
 }
 
+/**
+ * Pause menu (phones only, stage 4 s4-03 F5): the game is already running from the home screen (the Add to Home Screen
+ * entry is not wanted there), so its FULLSCREEN row has nothing to do and goes. False on a laptop.
+ */
+export function phoneOnHomeScreen(): boolean {
+  if (!isMobile() || !entry) return false;
+  try {
+    return !entry.homeScreenEntryWanted();
+  } catch {
+    return false;
+  }
+}
+
 /** Title / pause menu (phones only): open the Add to Home Screen guide. Does nothing on a laptop. */
 export function openHomeScreenGuide(from: GuideFrom = "title") {
   entry?.openHomeScreenGuide(from);

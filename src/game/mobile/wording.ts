@@ -129,6 +129,8 @@ export const TOUCH_WORDING: WordingRule[] = [
   { id: "drugs-town", re: /^💊\s+PRESS\s+D\s+TO TAKE DRUGS$/, to: "💊  TAP TO TAKE DRUGS" },
   { id: "drugs-town-or", re: /^\(or tap the button\)$/, to: "" },
   { id: "drugs-cockpit", re: /^💊\s+PRESS\s+D$/, to: "💊  TAP HERE" },
+  // town, playing as Mikey: the toast "Press V any time to become SanMik (and back). Whoever you are, you stay that way."
+  { id: "sanmik-any-time", re: /\bPress [A-Za-z0-9]{1,8} any time to become SanMik \(and back\)\./g, to: "Tap the SANMIK button any time to become SanMik (and back)." },
   // the finale's spirit-bomb mash: "any key · click · tap" under MASH!
   { id: "finale-mash", re: /^any key · click · tap$/, to: "tap tap tap" },
 ];

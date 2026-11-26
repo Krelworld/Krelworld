@@ -1,6 +1,6 @@
 import { canFullscreen, fullscreenLabel, toggleFullscreen } from "../systems/fullscreen";
 import { isMobile } from "../mobile/flag";
-import { homeScreenEntryWanted, openHomeScreenGuide, phoneHooks } from "../mobile/boot";
+import { homeScreenEntryWanted, openHomeScreenGuide, phoneHooks, phoneOnHomeScreen } from "../mobile/boot";
 import { afterKreddle } from "../systems/moodMusic";
 import { dialogueLog } from "../ui/dialogueLog";
 import Phaser from "phaser";
@@ -307,6 +307,8 @@ export class MenuScene extends Phaser.Scene {
             else G.emit("toast", { title: "FULLSCREEN ON iPHONE", text: "Safari can't do it from inside a page. Tap Share ⬆ then \"Add to Home Screen\": the game then opens full screen, no browser bars." });
           }],
         ];
+        // (a phone already running from the home screen: it is full screen; the row goes)
+        if (isMobile() && phoneOnHomeScreen()) items.splice(5, 1);
         if (s) items.push([`DIFFICULTY: ${difficultyLabel(s.difficulty)}${this.inDungeon() ? "  🔒" : ""}`, () => this.render("difficulty")]);
         if (s) items.push([`BANTER: ${banterLabel(s.banter)}`, () => this.render("banter")]);
         if (s && this.caller !== "Title") {

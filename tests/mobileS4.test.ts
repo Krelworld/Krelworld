@@ -6,6 +6,7 @@ import vignetteSrc from "../src/game/scenes/VignetteScene.ts?raw";
 import drugsSrc from "../src/game/scenes/hub/drugs.ts?raw";
 import finaleSrc from "../src/game/scenes/FinaleScene.ts?raw";
 import finaleKSrc from "../src/content/finaleKrelford.ts?raw";
+import hubSrc from "../src/game/scenes/HubScene.ts?raw";
 import { TOUCH_WORDING, UI_TEXTS, STORY_UI_LINES, touchWording } from "../src/game/mobile/wording";
 import { COMBAT_WORDING, COMBAT_WORDING_FIRST, BRAWL_WORDING } from "../src/game/mobile/combatWording";
 import { GAME_WORDING } from "../src/game/mobile/gamesLogic";
@@ -27,11 +28,12 @@ describe("stage 4: UI text that named a key (s4-01 M1, s4-02 F2 F4 F6)", () => {
     [vignetteSrc, "💊  PRESS  D", "💊  TAP HERE"],
     [finaleSrc, "any key · click · tap", "tap tap tap"],
     [finaleKSrc, "Inject each of the lads (walk up, press E). Don't get hit.", "Inject each of the lads (walk up, tap INJECT). Don't get hit."],
+    [hubSrc, "Press V any time to become SanMik (and back). Whoever you are, you stay that way.", "Tap the SANMIK button any time to become SanMik (and back). Whoever you are, you stay that way."],
   ];
   for (const [src, from, to] of cases) {
     it(`${from} → ${to || "(nothing)"}`, () => {
       // (the game still says it: a renamed string fails here instead of silently showing a key)
-      const probe = from.replace(/^Now in your hand\. /, "").replace(/ Don't get hit\.$/, "");
+      const probe = from.replace(/^Now in your hand\. /, "").replace(/ Don't get hit\.$/, "").replace(/^Press V /, "");
       expect(src.includes(probe), probe).toBe(true);
       expect(touchWording(from, RULES)).toBe(to);
       expect(KEYS.test(to), to).toBe(false);

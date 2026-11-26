@@ -14,7 +14,8 @@ import type Phaser from "phaser";
 import { addSceneRule, type SceneRule } from "./modes";
 import { registerModeController, type TouchControl, type TouchLayer } from "./touchLayer";
 import { haptic } from "./haptics";
-import type { Placed } from "./layout";
+import type { Placed, Rect } from "./layout";
+import { toPage } from "./observe";
 import { UI_TEXTS, addWording } from "./wording";
 import { BRAWL_TEXTS, BRAWL_WORDING } from "./combatWording";
 import { MashQueue } from "./combatLogic";
@@ -191,6 +192,18 @@ export class BrawlControls {
     this.mash.classList.toggle("show", rush);
     if (rush) this.feedMash();
     else this.mashQ.clear();
+    // (stage 4, s4-02 F8) a button the Super Saiyan stands under goes see-through, as in the other fights
+    this.layer.occluders = b ? this.meRect(b) : [];
+  }
+
+  /** The player's fighter on the page (CSS px), for the see-through rule. */
+  private meRect(b: BrawlLike): Rect[] {
+    const spr = (b as unknown as { p?: { spr?: Phaser.GameObjects.Sprite } }).p?.spr;
+    if (!spr?.active || typeof spr.getBounds !== "function") return [];
+    const r = spr.getBounds();
+    const a = toPage(this.game, b.sc, r.x, r.y);
+    const z = toPage(this.game, b.sc, r.right, r.bottom);
+    return a && z ? [{ x: a.x, y: a.y, w: z.x - a.x, h: z.y - a.y }] : [];
   }
 
   leave() {

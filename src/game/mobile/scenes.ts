@@ -628,6 +628,13 @@ export function installScenes(game: Phaser.Game, layer: TouchLayer, shell: Shell
         const fix = () => {
           const t = (sc.children.list as unknown as Bag[]).find((o) => o.type === "Text" && /^(?:Esc: skip (?:scene|fight)|SKIP (?:SCENE|FIGHT) ▸▸)$/i.test(rawText(o as never) || o.text));
           if (!t || !t.active || typeof fin.finish !== "function") return;
+          // (stage 4, s4-02 F5: in the brawl the corner's SKIP FIGHT sat over the boss's name, and the II's PAUSED card
+          // already offers SKIP FIGHT: the corner label goes on a phone)
+          if (/fight/i.test(rawText(t as never) || t.text)) {
+            if (t.visible) t.setVisible(false);
+            if (t.input) t.disableInteractive();
+            return;
+          }
           if (!t.__mfSkip) {
             t.__mfSkip = true;
             const fight = /fight/i.test(rawText(t as never) || t.text);

@@ -86,8 +86,18 @@ export function platformFrom(env: PlatformEnv): PlatformInfo {
   return { ios, android, standalone, inApp: inAppName !== null, inAppName, browser: browserFrom(ua, ios) };
 }
 
+/** Seen running from the home screen once: it stays so for the visit (s4-03 F5: an installed Android app in element
+ *  fullscreen stopped reading as installed, and its pause row turned into ADD TO HOME SCREEN). */
+let homeScreenSeen = false;
+
 export function currentPlatform(): PlatformInfo {
   if (typeof navigator === "undefined") return { ios: false, android: false, standalone: false, inApp: false, inAppName: null, browser: "other" };
+  const p = platformNow();
+  if (p.standalone) homeScreenSeen = true;
+  return homeScreenSeen && !p.standalone ? { ...p, standalone: true } : p;
+}
+
+function platformNow(): PlatformInfo {
   return platformFrom({
     ua: navigator.userAgent,
     maxTouchPoints: navigator.maxTouchPoints,

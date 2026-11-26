@@ -9,7 +9,9 @@
 //  - coming back to a fight (from any of the above): never straight into live action. Where the game has a pause
 //    route it opens the pause menu; where it has none (the finale, the minigames) the loop stays asleep behind a
 //    "tap to carry on" card. Town carries straight on;
-//  - Safari's bars collapsing (visualViewport) and rotations: the game re-measures;
+//  - Safari's bars collapsing (visualViewport) and rotations: the game re-measures; and a few times after launch, a
+//    rotation, pageshow and coming back, and whenever the screen differs from what the canvas was fitted to, it checks
+//    the fit again (s4b: a home-screen launch once drew the game in a smaller box with a black strip at the bottom);
 //  - Android: the Enter-gate tap asks for fullscreen and locks landscape, and a small control offers it again if the
 //    player leaves fullscreen (iPhone has no fullscreen: the Add to Home Screen guide, homeScreen.ts, is its route).
 //    Messages the game pins to <body> (the crash guard's notices) are moved into the fullscreen element so they show;
@@ -36,6 +38,30 @@ export function wakeCare(d: Pick<ModeDecision, "live" | "pause" | "scene"> | nul
   return d.pause && d.scene ? "pause" : "card";
 }
 
+/** After launch, a rotation or resize, pageshow and coming back: the fit is checked again at these times (ms). */
+export const REFIT_MS: readonly number[] = [0, 250, 750, 1500];
+/** How often a running game compares the screen with what the canvas was fitted to (ms). */
+export const FIT_CHECK_MS = 500;
+
+/**
+ * Is the canvas drawn at another size than Phaser's FIT gives for its box (pure; unit-tested)? `canvas` and `box` are
+ * page CSS px; the game is 960x540.
+ */
+export function fitStale(canvas: { w: number; h: number }, box: { w: number; h: number }, game = { w: 960, h: 540 }, tol = 1.5): boolean {
+  if (!(box.w > 0) || !(box.h > 0)) return false;
+  const k = Math.min(box.w / game.w, box.h / game.h);
+  return Math.abs(canvas.w - game.w * k) > tol || Math.abs(canvas.h - game.h * k) > tol;
+}
+
+/**
+ * The game's box (#game, 100% / 100dvh) is not the screen (pure): iOS can work out 100dvh for a home-screen app before
+ * its status bar and home indicator settle, leaving the box short until something else re-lays the page.
+ */
+export function boxStale(box: { w: number; h: number }, screen: { w: number; h: number }, tol = 1.5): boolean {
+  if (!(screen.w > 0) || !(screen.h > 0)) return false;
+  return Math.abs(box.h - screen.h) > tol || Math.abs(box.w - screen.w) > tol;
+}
+
 export class Shell {
   readonly platform: PlatformInfo;
   readonly rotate: RotateOverlay;
@@ -44,6 +70,14 @@ export class Shell {
   private heldAudio = false;
   private pausedMusic = false;
   private resizeTimer = 0;
+  /** The re-fit checks pending, the screen size the canvas was last fitted to, when it was last compared. */
+  private refitTimers: number[] = [];
+  private fitKey = "";
+  private nextFitCheck = 0;
+  /** The box's height had to be set from the screen (100dvh was wrong): it follows the screen from then on. */
+  private boxPinned = false;
+  /** Tests and ?mobilediag: how many checks ran, and how many found the fit wrong and put it right. */
+  readonly refits = { checks: 0, fixes: 0, pins: 0, last: "" };
   private fsEntered = false;
   private gateTapped = false;
   /** Touches that started while the Enter gate was up (the gate acts on touch-down; fullscreen needs a touchend). */
@@ -89,7 +123,10 @@ export class Shell {
   // ------------------------------------------------------------------ listening
 
   private listen() {
-    const onResize = () => this.scheduleResize();
+    const onResize = () => {
+      this.scheduleResize();
+      this.refitSoon("resize");
+    };
     window.addEventListener("resize", onResize);
     window.addEventListener("orientationchange", onResize);
     window.visualViewport?.addEventListener("resize", onResize);
@@ -98,13 +135,17 @@ export class Shell {
     } catch {
       /* old Safari: resize covers it */
     }
-    document.addEventListener("visibilitychange", () => this.setHold("hidden", document.visibilityState === "hidden"));
+    document.addEventListener("visibilitychange", () => {
+      this.setHold("hidden", document.visibilityState === "hidden");
+      if (document.visibilityState === "visible") this.refitSoon("visible");
+    });
     window.addEventListener("pagehide", () => {
       this.setHold("hidden", true);
       this.save();
     });
     window.addEventListener("pageshow", () => {
       if (document.visibilityState !== "hidden") this.setHold("hidden", false);
+      this.refitSoon("pageshow");
     });
     // losing focus (a call, the notification shade): let go of every control
     window.addEventListener("blur", () => this.layer?.releaseAll());
@@ -124,6 +165,7 @@ export class Shell {
         /* keep Phaser's default */
       }
       this.scheduleResize();
+      this.refitSoon("launch");
     });
     this.game.scale.on("enterfullscreen", () => {
       this.fsEntered = true;
@@ -153,6 +195,67 @@ export class Shell {
   frame() {
     // the art finished loading while the phone was upright: now the loop can sleep
     if (this.holds.size && !this.slept && !this.booting()) this.applyHolds();
+    // (twice a second: has the screen changed from what the canvas was fitted to, with no event to say so?)
+    const t = performance.now();
+    if (t >= this.nextFitCheck) {
+      this.nextFitCheck = t + FIT_CHECK_MS;
+      if (this.fitKey && this.screenKey() !== this.fitKey) this.refitSoon("drift");
+    }
+  }
+
+  // ------------------------------------------------------------------ the fit, checked again (s4b)
+
+  /** The screen as the page sees it now (the visual viewport where there is one), as a key. */
+  private screenKey(): string {
+    const vv = window.visualViewport;
+    return `${Math.round(vv?.width ?? window.innerWidth)}x${Math.round(vv?.height ?? window.innerHeight)}`;
+  }
+
+  /** Check the fit now and a few times more (REFIT_MS): a launch, a rotation, pageshow or coming back can settle late. */
+  private refitSoon(why: string) {
+    for (const id of this.refitTimers) window.clearTimeout(id);
+    this.refitTimers = REFIT_MS.map((ms) => window.setTimeout(() => this.refit(why), ms));
+  }
+
+  /**
+   * Measure, and put right only what is wrong (so nothing flickers): the box (#game) against the screen, then the
+   * canvas against its box and Phaser's idea of it; then the touch layer's layout follows.
+   */
+  private refit(why: string) {
+    this.refits.checks++;
+    this.fitKey = this.screenKey();
+    const parent = this.parent;
+    let fixed = false;
+    try {
+      const sw = window.innerWidth;
+      const sh = window.innerHeight;
+      let box = parent.getBoundingClientRect();
+      if (boxStale({ w: box.width, h: box.height }, { w: sw, h: sh }) && (this.boxPinned || box.height < sh)) {
+        // (100dvh came out short: the box takes the screen's height in px, and keeps following it)
+        parent.style.height = `${sh}px`;
+        if (!this.boxPinned) this.refits.pins++;
+        this.boxPinned = true;
+        box = parent.getBoundingClientRect();
+        fixed = true;
+      }
+      const cv = this.game.canvas?.getBoundingClientRect();
+      const ps = this.game.scale.parentSize;
+      const phaserStale = !!ps && (Math.abs(ps.width - box.width) > 1.5 || Math.abs(ps.height - box.height) > 1.5);
+      if (fixed || phaserStale || (cv && fitStale({ w: cv.width, h: cv.height }, { w: box.width, h: box.height }))) {
+        this.checkOrientation();
+        // (refresh() alone keeps Phaser's last idea of the box: it is measured again first)
+        this.game.scale.getParentBounds();
+        this.game.scale.refresh();
+        this.layer?.layout();
+        fixed = true;
+      }
+    } catch {
+      /* not booted yet: the next check */
+    }
+    if (fixed) {
+      this.refits.fixes++;
+      this.refits.last = why;
+    }
   }
 
   // ------------------------------------------------------------------ size and orientation
@@ -552,7 +655,7 @@ export class Shell {
 
   /** Tests: the shell's state. */
   snapshot() {
-    return { holds: [...this.holds], slept: this.slept, card: this.card.classList.contains("show"), guard: this.guardArmed, gate: this.gateTapped, lastWake: this.lastWake };
+    return { holds: [...this.holds], slept: this.slept, card: this.card.classList.contains("show"), guard: this.guardArmed, gate: this.gateTapped, lastWake: this.lastWake, refits: { ...this.refits, pinned: this.boxPinned } };
   }
 }
 

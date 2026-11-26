@@ -7083,6 +7083,38 @@ async function s4fix(browser) {
 // ------------------------------------------------------------------ the fight cluster hugs the right edge (s4b)
 
 /**
+ * The fit, checked again (s4b; a home-screen launch once drew the game in a smaller box with a black strip along the
+ * bottom): a box left short of the screen and a canvas fitted to it are put right after pageshow, and after a resize
+ * with no further event; nothing is touched when the fit is right.
+ */
+async function refitCheck(ph) {
+  const fit = () =>
+    ph.ev(() => {
+      const c = document.querySelector("canvas").getBoundingClientRect();
+      const b = document.getElementById("game").getBoundingClientRect();
+      return { cw: Math.round(c.width), ch: Math.round(c.height), bh: Math.round(b.height), sh: innerHeight, sw: innerWidth, r: window.__krelMobile.shellState().refits };
+    });
+  const f0 = await fit();
+  await ph.ev(() => window.dispatchEvent(new PageTransitionEvent("pageshow")));
+  await sleep(2000);
+  const f1 = await fit();
+  check("refit: with the fit right, the checks after pageshow change nothing (no flicker)", f1.r.checks >= f0.r.checks + 4 && f1.r.fixes === f0.r.fixes && f1.ch === f0.ch && !f1.r.pinned, { f0, f1 });
+  // the bug: the box worked out short (100dvh too early) and the canvas fitted to it
+  await ph.ev(() => {
+    document.getElementById("game").style.height = `${innerHeight - 50}px`;
+    window.__krel.game.scale.getParentBounds();
+    window.__krel.game.scale.refresh();
+  });
+  await sleep(300);
+  const bad = await fit();
+  await ph.ev(() => window.dispatchEvent(new PageTransitionEvent("pageshow")));
+  await sleep(2000);
+  const good = await fit();
+  check("refit: a short box and the canvas fitted to it are put right after pageshow (the box follows the screen)", bad.ch < bad.sh - 20 && good.bh === good.sh && Math.abs(good.ch - Math.min(good.sh, (good.sw * 540) / 960)) <= 1.5 && good.r.pinned && good.r.fixes > bad.r.fixes, { bad, good });
+  await ph.shot("refit-after-pageshow");
+}
+
+/**
  * SPECIAL's feedback (s4b; the user tapped NUKE and "nothing happened"): the first time it shows, a toast says what it
  * does; used, it stays up with a ring filling while it recharges; tapped then, "Recharging… Ns" floats up; tapped
  * without the Krezz, "Not enough Krezz (needs 40)". The game's own rule is untouched (a press while it recharges does
@@ -7227,6 +7259,7 @@ async function cluster(browser) {
         window.__toastsSeen = [];
         window.__krel.G.on((ev, d) => ev === "toast" && d && window.__toastsSeen.push({ title: String(d.title), text: String(d.text) }));
       });
+      if (pr.tag === "iphone") await refitCheck(ph);
       const ok = await toFight(ph, "wildern", 1, 2, "MIKEY");
       check(`cluster ${where}: a top-down room as Mikey`, ok, await ph.mode());
       if (pr.tag === "iphone") await specialFeedback(ph);

@@ -2392,7 +2392,10 @@ async function dungeon(browser) {
     };
     // thumbs on the stick and FIRE when the page hides (no touchcancel): both let go (R9; FIRE sits where ATTACK was)
     const [sx, sy] = await ph.g2c(150, 400);
-    const [ax, ay] = await ph.g2c(860, 440);
+    // (on FIRE itself: with HOLD the default, nothing but a thumb on FIRE fires, so a press beside it would read as no
+    // attack; it used to pass on auto-fire alone)
+    const fireCtl = (await ph.snap()).controls.find((c) => c.id === "c-fire" && c.shown);
+    const [ax, ay] = fireCtl ? [fireCtl.face.x + fireCtl.face.w / 2, fireCtl.face.y + fireCtl.face.h / 2] : await ph.g2c(860, 440);
     await ph.touch("touchStart", [{ x: sx, y: sy, id: 1 }]);
     for (let i = 1; i <= 5; i++) {
       await ph.touch("touchMove", [{ x: sx + i * 10, y: sy, id: 1 }]);

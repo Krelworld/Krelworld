@@ -12,8 +12,9 @@ const DESK = { studio: 129, presser: 158 };
 const PRES = { studio: { feet: 0.63, scale: 2.5 }, presser: { feet: 0.76, scale: 2.8 } };
 const ROOM_SCALE = 1.8, ROOM_X = (W - 400 * ROOM_SCALE) / 2;
 const R = (x: number, y: number) => ({ x: ROOM_X + x * ROOM_SCALE, y: y * ROOM_SCALE });
-const LINES = ["n1", "n2", "s1", "s2", "s3", "n3", "g1", "g2", "k1", "k2", "k3", "g3", "w1", "g4", "w2", "g5", "w3", "k4", "k5", "w5", "k6", "k7", "k8", "g10", "g6", "g7", "w4", "g8", "g9"];
-const SFX = ["sting", "tvsmash", "snap", "wail", "door", "pubcheer", "crisps"];
+const LINES = ["n1", "n2", "s1", "s2", "s3", "n3", "g1", "g2", "k1", "k2", "k3", "g3", "w1", "g4", "w2", "g5", "w3", "k4", "k5", "w5", "k6", "k7", "k8", "g10", "g6", "g7", "w4", "g8", "g9", "g11", "g12", "w6",
+  ...["k1", "g1", "k2", "g2", "k3", "g3", "k4", "k5", "k6", "g4", "k7", "k8", "g5", "k9", "k10", "g6", "k11", "g7", "k12", "g8", "k13"].map((k) => `c_${k}`)];
+const SFX = ["sting", "tvsmash", "snap", "wail", "door", "pubcheer", "crisps", "fart_wet", "fart_long", "fart_squeak"];
 const CAST = ["fan", "shezleigh", "grozzyjr", "screnton"];
 const ANIMS = ["walk", "idle", "punch", "cheer", "rage", "snap", "throw", "shout", "cry", "tug"];
 // S, SE, E, NE, N, NW, W, SW
@@ -42,7 +43,9 @@ class Person {
   /** Walk to a point in room pixels. */
   walk(x: number, y: number, speed = 70): Promise<void> {
     const to = R(x, y), dx = to.x - this.sp.x, dy = to.y - this.sp.y;
-    const a = Math.atan2(dy, dx), idx = (Math.round(((a - Math.PI / 2) / (Math.PI / 4)) + 8) % 8);
+    // Sheets run S, SE, E, NE, N, NW, W, SW: anticlockwise on screen from straight down. (The old
+    // sum ran the other way round, so anyone walking sideways moonwalked.)
+    const a = Math.atan2(dy, dx), idx = ((Math.round((Math.PI / 2 - a) / (Math.PI / 4)) % 8) + 8) % 8;
     this.dir = idx; this.play("walk");
     const ms = (Math.hypot(dx, dy) / ROOM_SCALE / speed) * 1000;
     return new Promise((res) => this.sc.tweens.add({ targets: this.sp, x: to.x, y: to.y, duration: ms, onUpdate: () => this.sp.setDepth(100 + this.sp.y / ROOM_SCALE), onComplete: () => { this.face(this.dir); res(); } }));
@@ -65,7 +68,11 @@ class OpeningScene extends Phaser.Scene {
     for (const k of SFX) this.load.audio(`op_${k}`, `audio/op_${k}.mp3`);
     this.load.audio("kaching", "audio/kaching.mp3");
     for (const k of ["mus_news", "mus_home", "mus_title"]) this.load.audio(k, `audio/${k}.mp3`);
-    for (const k of ["glass_smash", "chair_smash", "wall_crash", "punch", "bodyfall"]) this.load.audio(k, `audio/${k}.mp3`);
+    for (const k of ["glass_smash", "chair_smash", "wall_crash", "punch", "bodyfall", "fart", "chant_eng", "bark", "gulp", "dog_bite"]) this.load.audio(k, `audio/${k}.mp3`);
+    // The coach: the inside of it, and the two of them sat in the front seat, drawn bigger and finer than the room.
+    for (const k of ["coach_bg", "grozz_seat", "kev_seat", "ipad", "crisps"]) this.load.image(k, `scenes/${k}.png`);
+    // Ronson, Grozz's dog.
+    for (const a of ["rot", "walk", "run", "lunge", "chew"]) this.load.spritesheet(`ronson-${a}`, `art/ronson-${a}.png`, { frameWidth: 88, frameHeight: 88 });
     this.load.image("pint", "icons/pint_glass.png");
     for (const b of CAST) {
       this.load.spritesheet(`${b}-rot`, `art/${b}-rot.png`, { frameWidth: 88, frameHeight: 88 });
@@ -120,6 +127,35 @@ class OpeningScene extends Phaser.Scene {
       const dx = (Math.random() - 0.5) * (big ? 300 : 200), land = at.y + 20 + Math.random() * 90;
       this.tweens.add({ targets: bit, x: at.x + dx, angle: bit.angle + (Math.random() - 0.5) * 900, duration: 520 + Math.random() * 300, ease: "Quad.out" });
       this.tweens.add({ targets: bit, y: { from: at.y, to: land }, duration: 520 + Math.random() * 300, ease: "Bounce.out" });
+    }
+  }
+  /** A bit of the painted room comes apart for real: that part of the picture is cut out into four
+   *  chunks that fly off and land as rubble, and the floor shows where it stood. */
+  private broke = 0;
+  breakOff(x0: number, y0: number, x1: number, y1: number, dir: { x: number; y: number }) {
+    const src = this.textures.get("room").getSourceImage() as HTMLImageElement, w = x1 - x0, h = y1 - y0;
+    // The floor colour just below it, and the hole painted in.
+    // The floor: the median of a band of carpet a little way below it (clear of its own shadow).
+    const probe = document.createElement("canvas"); probe.width = w; probe.height = 6;
+    const pc = probe.getContext("2d", { willReadFrequently: true })!; pc.drawImage(src, x0, Math.min(src.height - 6, y1 + 12), w, 6, 0, 0, w, 6);
+    const d = pc.getImageData(0, 0, w, 6).data, px: number[][] = [];
+    for (let i = 0; i < d.length; i += 4) px.push([d[i], d[i + 1], d[i + 2]]);
+    px.sort((p, q) => p[0] + p[1] + p[2] - (q[0] + q[1] + q[2]));
+    const md = px[Math.floor(px.length * 0.6)] ?? [110, 80, 50], col = (md[0] << 16) | (md[1] << 8) | md[2];
+    const c0 = R(x0, y0);
+    this.add.rectangle(c0.x, c0.y, w * ROOM_SCALE, h * ROOM_SCALE, col).setOrigin(0).setDepth(1);
+    const dirt = this.add.graphics().setDepth(2); dirt.fillStyle(0x000000, 0.25);
+    for (let i = 0; i < 14; i++) dirt.fillRect(c0.x + Math.random() * w * ROOM_SCALE, c0.y + Math.random() * h * ROOM_SCALE, 4 + Math.random() * 10, 3 + Math.random() * 5);
+    const id = this.broke++;
+    for (let i = 0; i < 2; i++) for (let j = 0; j < 2; j++) {
+      const key = `chunk${id}_${i}${j}`, cw = Math.ceil(w / 2), ch = Math.ceil(h / 2);
+      const tex = this.textures.createCanvas(key, cw, ch)!; tex.getContext().drawImage(src, x0 + i * cw, y0 + j * ch, cw, ch, 0, 0, cw, ch); tex.refresh();
+      const cx = c0.x + (i + 0.5) * cw * ROOM_SCALE, cy = c0.y + (j + 0.5) * ch * ROOM_SCALE;
+      const im = this.add.image(cx, cy, key).setScale(ROOM_SCALE).setDepth(100 + y1);
+      const fx = (i - 0.5) * 2 + dir.x * 1.5 + (Math.random() - 0.5), fy = (j - 0.5) * 2 + dir.y * 1.5 + (Math.random() - 0.5);
+      const lx = cx + fx * (60 + Math.random() * 70), ly = cy + fy * (40 + Math.random() * 50) + 20;
+      this.tweens.add({ targets: im, x: lx, angle: (Math.random() - 0.5) * 300, duration: 520 + Math.random() * 200, ease: "Quad.out" });
+      this.tweens.add({ targets: im, y: { from: cy - 30, to: ly }, duration: 520 + Math.random() * 200, ease: "Bounce.out", onComplete: () => { im.setTint(0xb0a090).setDepth(60 + ly / ROOM_SCALE); } });
     }
   }
   sfx(k: string, vol = 1) { if (this.cache.audio.exists(`op_${k}`) || this.cache.audio.exists(k)) this.sound.play(this.cache.audio.exists(`op_${k}`) ? `op_${k}` : k, { volume: vol }); }
@@ -212,8 +248,11 @@ class OpeningScene extends Phaser.Scene {
 
   // ---------- the film ----------
   async run() {
+    if (location.search.includes("opcoach")) { await this.coach(); this.finish(); return; }
     if (!location.search.includes("oproom")) await this.telly();
     await this.room();
+    await this.coach();
+    this.finish();
   }
 
   /** One piece of music at a time, faded in and out. */
@@ -341,9 +380,20 @@ class OpeningScene extends Phaser.Scene {
     const scr = new Person(this, "screnton", 158, 140, DIR.W);
     const shez = new Person(this, "shezleigh", 372, 118, DIR.W);
     shez.sp.setVisible(false);
+    // Ronson: eating the settee. Bits of stuffing everywhere.
+    const ron = this.textures.exists("ronson-rot") ? new Person(this, "ronson", 92, 226, DIR.W) : null;
+    let stuffing: Phaser.Time.TimerEvent | null = null;
+    if (ron) {
+      ron.play(ron.has("chew") ? "chew" : "walk", true, 11);
+      stuffing = this.time.addEvent({ delay: 380, loop: true, callback: () => {
+        const f = this.add.rectangle(ron.sp.x - 30, ron.sp.y - 30, 5, 4, Math.random() < 0.6 ? 0xeae4d2 : 0x6b4228).setDepth(400);
+        this.tweens.add({ targets: f, x: f.x + (Math.random() - 0.5) * 90, y: f.y + 20 + Math.random() * 40, angle: Math.random() * 360, duration: 600 });
+        if (Math.random() < 0.3) this.sfx("bark", 0.25);
+      } });
+    }
     this.mark("room-cast");
     // The iPad between the kids.
-    const pad = this.add.rectangle(R(142, 132).x, R(142, 132).y, 22, 16, 0x1a1a1a).setStrokeStyle(2, 0x9aa0a6).setDepth(300);
+    const pad = this.add.image(R(142, 132).x, R(142, 132).y, "ipad").setScale(1.2).setDepth(300);
     const fight = this.time.addEvent({ delay: 650, loop: true, callback: () => { (Math.random() < 0.5 ? jr : scr).play("punch", false, 14); this.tweens.add({ targets: pad, x: pad.x + (Math.random() - 0.5) * 14, duration: 120 }); } });
     this.mark("room-throw");
     grozz.play("throw", false, 12);
@@ -366,7 +416,11 @@ class OpeningScene extends Phaser.Scene {
     grozz.play(grozz.has("snap") ? "snap" : "punch", false, 12);
     await this.wait(350);
     this.sfx("snap");
-    const halfA = this.add.rectangle(pad.x - 6, pad.y, 11, 16, 0x1a1a1a).setStrokeStyle(2, 0x9aa0a6).setDepth(300), halfB = this.add.rectangle(pad.x + 6, pad.y, 11, 16, 0x1a1a1a).setStrokeStyle(2, 0x9aa0a6).setDepth(300);
+    // Snapped clean across: two halves of the actual iPad, and a spray of glass.
+    const halfA = this.add.image(pad.x - 13, pad.y, "ipad").setScale(1.2).setCrop(0, 0, 24, 36).setDepth(300);
+    const halfB = this.add.image(pad.x + 13, pad.y, "ipad").setScale(1.2).setCrop(24, 0, 24, 36).setDepth(300);
+    halfA.setX(pad.x); halfB.setX(pad.x);
+    for (let i = 0; i < 12; i++) { const gl = this.add.rectangle(pad.x, pad.y, 3, 3, Math.random() < 0.5 ? 0xcfe8ff : 0x7a9ab8).setDepth(301); this.tweens.add({ targets: gl, x: gl.x + (Math.random() - 0.5) * 120, y: gl.y + Math.random() * 80, alpha: 0.3, duration: 500 }); }
     pad.destroy();
     this.tweens.add({ targets: halfA, x: halfA.x - 120, y: halfA.y + 90, angle: -540, duration: 700, ease: "Quad.out" });
     this.tweens.add({ targets: halfB, x: halfB.x + 140, y: halfB.y + 60, angle: 600, duration: 700, ease: "Quad.out" });
@@ -420,7 +474,7 @@ class OpeningScene extends Phaser.Scene {
     await this.say("w5", "OW! You fucking ANIMAL! I'm calling the Old Bill on you, Grozz!", shez);
     // The kids, and one packet of crisps between them.
     jr.face(DIR.E); scr.face(DIR.W);
-    const crisps = this.add.rectangle(R(142, 132).x, R(142, 132).y, 16, 20, 0xc8102e).setStrokeStyle(2, 0xf2c94c).setDepth(300);
+    const crisps = this.add.image(R(142, 132).x, R(142, 132).y, "crisps").setScale(1.3).setDepth(300);
     jr.play("tug"); scr.play("tug");
     this.tweens.add({ targets: crisps, x: { from: crisps.x - 8, to: crisps.x + 8 }, duration: 160, yoyo: true, repeat: -1 });
     await this.say("k4", "I'm hungry!", jr, { gap: 40 });
@@ -429,8 +483,38 @@ class OpeningScene extends Phaser.Scene {
     await this.say("k6", "They're my fucking crisps, you cunt!", jr, { gap: 40 });
     await this.say("k7", "No they're MY fucking crisps, you fucking CUNT!", scr, { gap: 40 });
     this.tweens.killTweensOf(crisps);
-    for (let i = 0; i < 24; i++) { const c = this.add.rectangle(crisps.x, crisps.y, 5, 4, 0xf2d06a).setDepth(301); this.tweens.add({ targets: c, x: c.x + (Math.random() - 0.5) * 160, y: c.y + Math.random() * 90 - 20, angle: Math.random() * 360, duration: 500 + Math.random() * 300, ease: "Quad.out" }); }
+    // The bag bursts: the two torn halves go each way and crisps go everywhere, up and down.
+    const ripA = this.add.image(crisps.x, crisps.y, "crisps").setScale(1.3).setCrop(0, 0, 16, 40).setDepth(300), ripB = this.add.image(crisps.x, crisps.y, "crisps").setScale(1.3).setCrop(16, 0, 16, 40).setDepth(300);
+    this.tweens.add({ targets: ripA, x: ripA.x - 50, y: ripA.y + 30, angle: -200, duration: 500, ease: "Quad.out" });
+    this.tweens.add({ targets: ripB, x: ripB.x + 50, y: ripB.y + 30, angle: 220, duration: 500, ease: "Quad.out" });
+    for (let i = 0; i < 40; i++) {
+      const c = this.add.ellipse(crisps.x, crisps.y, 6 + Math.random() * 4, 4 + Math.random() * 3, Math.random() < 0.8 ? 0xf2d06a : 0xd9a63a).setDepth(301);
+      const tx = c.x + (Math.random() - 0.5) * 220, ty = c.y + Math.random() * 110 - 10;
+      this.tweens.add({ targets: c, x: tx, angle: Math.random() * 720, duration: 600 + Math.random() * 300, ease: "Quad.out" });
+      this.tweens.add({ targets: c, y: { from: c.y - 40 - Math.random() * 40, to: ty }, duration: 600 + Math.random() * 300, ease: "Bounce.out" });
+    }
     crisps.destroy();
+    // Ronson's after the crisps, and the kids. A growl, and he goes for them.
+    if (ron) {
+      stuffing?.remove();
+      this.sfx("bark", 0.6);
+      ron.face(DIR.NE);
+      await this.wait(300);
+      const growl = this.cache.audio.exists("bark") ? this.sound.add("bark", { rate: 0.55, volume: 0.9 }) : null; growl?.play();
+      await ron.walk(132, 166, 220);
+      ron.dir = DIR.N; ron.play(ron.has("lunge") ? "lunge" : "walk", true, 12);
+      this.sfx("dog_bite", 0.7);
+      this.tweens.add({ targets: ron.sp, y: ron.sp.y - 22, duration: 120, yoyo: true, repeat: 3 });
+      jr.face(DIR.S); jr.play("cry"); scr.face(DIR.S); scr.play("cry"); this.sfx("wail", 0.9);
+      this.tweens.add({ targets: [jr.sp, scr.sp], y: "-=10", duration: 90, yoyo: true, repeat: 3 });
+      grozz.play(grozz.has("rage") ? "rage" : "punch", false, 14);
+      await this.say("g12", "SHUT IT, RONSON!", grozz, { gap: 40 });
+      ron.face(DIR.S);
+      shez.play("shout");
+      await this.say("w6", "He's just telling them he loves them in dog language!", shez);
+      await ron.walk(92, 226, 120);
+      ron.face(DIR.W); ron.play(ron.has("chew") ? "chew" : "walk", true, 11);
+    }
     // And now they're at it: fists.
     const brawl = this.time.addEvent({ delay: 260, loop: true, callback: () => {
       const hitter = Math.random() < 0.5 ? jr : scr;
@@ -481,22 +565,26 @@ class OpeningScene extends Phaser.Scene {
     grozz.face(DIR.E); grozz.play("punch", false, 14);
     await this.wait(180);
     this.smash(R(318, 182), [0x2a3f8a, 0xb8c0cc, 0x8a1010, 0xd9d9d9], "glass_smash");
+    this.breakOff(300, 150, 336, 192, { x: 1, y: 0.3 });
     await this.wait(350);
     await grozz.walk(218, 168, 150);
     grozz.face(DIR.S); grozz.play("punch", false, 14);
     await this.wait(180);
     this.smash(R(215, 205), [0x4a2a1a, 0x6b3e26, 0x2a1a12, 0x9a9a9a], "chair_smash", true);
+    this.breakOff(158, 176, 268, 268, { x: 0, y: 1 });
     jr.face(DIR.S); jr.play("cry"); scr.face(DIR.S); scr.play("cry"); this.sfx("wail", 0.7);
     await this.wait(300);
     await grozz.walk(210, 138, 150);
     grozz.face(DIR.N); grozz.play("punch", false, 14);
     await this.wait(180);
     this.smash(R(210, 106), [0x3a2216, 0x5a3422, 0x111111, 0xc0c8d0], "wall_crash", true);
+    this.breakOff(163, 96, 258, 122, { x: 0, y: -0.6 });
     shez.face(DIR.W); shez.play("shout");
     const scream = this.say("w4", "Not the fucking telly cabinet! You fat fucking CUNT! I'm ringing me mum! I'm ringing me MUM!", shez);
     await this.wait(900);
     grozz.play("punch", false, 14);
     this.smash(R(240, 112), [0x3a2216, 0x111111, 0xc0c8d0], "glass_smash");
+    this.breakOff(106, 76, 152, 114, { x: -1, y: 0 });
     await scream;
     await grozz.walk(330, 112, 120);
     grozz.face(DIR.S);
@@ -505,8 +593,15 @@ class OpeningScene extends Phaser.Scene {
     rage();
     this.cameras.main.shake(300, 0.012);
     await this.say("g9", "They'll all fucking SEE!", grozz);
+    if (ron) {
+      grozz.face(DIR.W);
+      await this.say("g11", "Get 'ere, Ronson, you cunt!", grozz, { gap: 40 });
+      this.sfx("bark", 0.8);
+      await ron.walk(320, 120, 260);
+      void ron.walk(352, 100, 200).then(() => ron.sp.setVisible(false));
+    }
     await grozz.walk(352, 96, 110);
-    grozz.sp.setVisible(false);
+    grozz.sp.setVisible(false); ron?.sp.setVisible(false);
     this.sfx("door");
     this.cameras.main.shake(250, 0.01);
     await this.wait(500);
@@ -521,7 +616,94 @@ class OpeningScene extends Phaser.Scene {
     const sub = this.add.text(W / 2, H / 2 + 46, "Grozz is going to the match.", { fontFamily: '"Pixelify Sans", sans-serif', fontSize: "24px", color: "#f2c94c" }).setOrigin(0.5).setDepth(4001).setAlpha(0);
     this.tweens.add({ targets: [title, sub], alpha: 1, duration: 600 });
     await this.wait(2600);
-    this.finish();
+    this.tweens.add({ targets: [title, sub], alpha: 0, duration: 400 });
+    await this.wait(450);
+    title.destroy(); sub.destroy();
+  }
+
+  // ---------- the coach ----------
+  /** On the coach to the ground: Grozz in the front seat with Kev, a fat cockney he's never met,
+   *  both on the cans and farting, the rest of the coach singing. Kev, without meaning to, tells
+   *  him how the day could go: their number 10, their keeper, the ref; that you can do all sorts;
+   *  that forty quid won't get you a ticket; and that he'll tie Ronson up outside the Three Lions. */
+  async coach() {
+    this.mark("coach");
+    // Clear the house away: its flickering bulb, the fag smoke, the crying.
+    this.time.removeAllEvents(); this.tweens.killAll();
+    this.children.removeAll(true);
+    this.cameras.main.setBackgroundColor("#000000");
+    const S = W / 400, bg = this.add.image(W / 2, H / 2, "coach_bg").setScale(S).setDepth(0);
+    // Rolling along: the coach sways, street lights sweep across, the lads sing.
+    this.tweens.add({ targets: bg, y: { from: H / 2 - 2, to: H / 2 + 2 }, duration: 900, yoyo: true, repeat: -1, ease: "Sine.inOut" });
+    this.time.addEvent({ delay: 2300, loop: true, callback: () => {
+      const l = this.add.rectangle(-200, H / 2, 140, H, 0xfff0c0, 0.08).setDepth(5).setAngle(12);
+      this.tweens.add({ targets: l, x: W + 200, duration: 900, onComplete: () => l.destroy() });
+    } });
+    const chant = this.cache.audio.exists("chant_eng") ? this.sound.add("chant_eng", { loop: true, volume: 0.22 }) : null;
+    chant?.play();
+    if (this.tune) this.tweens.add({ targets: this.tune, volume: 0.18, duration: 800 });
+    const seat = (k: string, x: number) => this.add.image(x, H + 6, k).setOrigin(0.5, 1).setScale(S * 0.98).setDepth(100);
+    const gz = seat("grozz_seat", W * 0.38), kv = seat("kev_seat", W * 0.62);
+    for (const p of [gz, kv]) this.tweens.add({ targets: p, y: { from: H + 6, to: H + 9 }, duration: 900, yoyo: true, repeat: -1, ease: "Sine.inOut", delay: Math.random() * 400 });
+    const head = (p: Phaser.GameObjects.Image) => ({ head: { x: p.x, y: p.y - p.displayHeight * 0.82 } }) as unknown as Person;
+    const G = head(gz), K = head(kv);
+    // Ronson, in the aisle, eating the seat in front.
+    const dogOk = this.textures.exists("ronson-rot");
+    const ron = dogOk ? new Person(this, "ronson", 0, 0, DIR.E, 3.2) : null;
+    if (ron) { ron.sp.setPosition(W * 0.13, H - 30).setDepth(120); ron.play(ron.has("chew") ? "chew" : "walk", true, 10); }
+    const say = (k: string, who: Person, text: string) => this.say(`c_${k}`, text, who);
+    // A fart: a green cloud out of the seat, a wobble, a noise, the other one's face.
+    const fart = async (p: Phaser.GameObjects.Image, kind: "fart" | "fart_wet" | "fart_long" | "fart_squeak" = "fart") => {
+      this.sfx(kind, 1);
+      this.tweens.add({ targets: p, x: { from: p.x - 4, to: p.x + 4 }, duration: 60, yoyo: true, repeat: 5 });
+      for (let i = 0; i < 9; i++) {
+        const c = this.add.circle(p.x + (Math.random() - 0.5) * 120, H - 40, 16 + Math.random() * 22, 0x8fb33a, 0.32).setDepth(150);
+        this.tweens.add({ targets: c, y: c.y - 120 - Math.random() * 120, x: c.x + (Math.random() - 0.5) * 120, scale: 2.4, alpha: 0, duration: 1600 + Math.random() * 900, onComplete: () => c.destroy() });
+      }
+      await this.wait(500);
+    };
+    const swig = (p: Phaser.GameObjects.Image) => { this.sfx("gulp", 0.8); this.tweens.add({ targets: p, angle: { from: 0, to: -5 }, duration: 260, yoyo: true }); };
+    const fade = this.add.rectangle(W / 2, H / 2, W, H, 0x000000, 1).setDepth(4000);
+    this.tweens.add({ targets: fade, alpha: 0, duration: 700 });
+    await this.wait(900);
+    await say("k1", K, "Alright, big man? Kev. Budge up. Christ, what've you been eating?");
+    swig(gz);
+    await say("g1", G, "Grozz. Fuckin' FIFA, Kev. They're gonna rig it again. Well not today. I'll stop at nothing. NOTHING. England are winning this if I have to do it meself.");
+    await fart(kv, "fart");
+    await say("k2", K, "Ohhh. Smell that! That's a scotch egg, that is. Vintage.");
+    await fart(gz, "fart_long");
+    await say("g2", G, "Fuckin' smell THAT, you cunt! Proper English, that!");
+    if (ron) { this.sfx("bark", 0.7); this.tweens.add({ targets: ron.sp, y: ron.sp.y - 10, duration: 90, yoyo: true, repeat: 2 }); }
+    await say("k3", K, "Here. Is that a dog? Dogs are banned on the coach, mate.");
+    await say("g3", G, "He's me therapy dog. For me autism.");
+    await say("k4", K, "Course he is. He's eating the seat.");
+    swig(kv);
+    await say("k5", K, "Listen. You wanna win it? Then think about who could stop us. Their number ten, for one. Bloke's a wizard. Him not playing, that's half the job done.");
+    await say("k6", K, "Their keeper. Likes a flutter, so I hear. And the ref. Refs are always bent, mate. It's just who's doing the bending.");
+    await say("g4", G, "So I sort out all three of 'em.");
+    await say("k7", K, "I never said that. I'm just saying. Keep your ears open round the ground, people talk. How you do it's your business, innit.");
+    await say("k8", K, "You could do all sorts. Change your clobber and nobody knows you. Get up on a roof. Get on the blower. A brick, a bung, a bit of chaos. Get yourself in the ground, fair means or foul.");
+    swig(gz);
+    await say("g5", G, "I've only got forty quid.");
+    await say("k9", K, "Forty quid? That won't get you a ticket, son. Ticket office wants sixty. There's a fella called Del does 'em cheaper. Or get creative. Every daft thing you pull off today, the lads'll have a whip-round. Someone's always filming.");
+    await say("k10", K, "And there's a pawn shop by the ground. Whatever you happen to... find... he'll give you cash for. No questions.");
+    await fart(gz, "fart_wet");
+    await say("g6", G, "Ohhh. That's a wet one.");
+    await say("k11", K, "That seat's ruined. Here, your dog looks like he could do with a walk.");
+    await say("g7", G, "Can't be fucking bothered, Kev. I'm knackered. It's me fibromyalgia.");
+    await say("k12", K, "Go on, I'll walk him when we get off. I'll tie him up outside the Three Lions, the pub over the road from the ground. Get him when you want him.");
+    await say("g8", G, "Cheers, Kev. You're a top cunt.");
+    await fart(kv, "fart_long");
+    await say("k13", K, "Smell that. That one's for England.");
+    // The whole coach goes up.
+    chant?.setVolume(0.6);
+    swig(gz); swig(kv);
+    this.cameras.main.shake(400, 0.006);
+    await this.wait(1400);
+    this.tweens.add({ targets: fade, alpha: 1, duration: 800 });
+    if (chant) this.tweens.add({ targets: chant, volume: 0, duration: 800 });
+    if (this.tune) this.tweens.add({ targets: this.tune, volume: 0, duration: 800 });
+    await this.wait(850);
   }
 }
 

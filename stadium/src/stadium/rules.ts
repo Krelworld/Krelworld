@@ -607,7 +607,6 @@ function turnstileCheck(w: World, act: Action): void {
   // served, though he looks harder: matching the description going round gets you stopped.
   if (n.target === by.id && ["approach", "chase", "escort"].includes(n.mode)) return void say(w, t, "Don't you move.");
   if (n.mode !== "routine" && n.mode !== "watch" && n.target && n.target !== by.id) return void say(w, t, "Hang on, mate. We've got a situation. Wait there.");
-  if (wantedMatch(w, t, by) >= 0.5) { n.sus[by.id] = Math.max(n.sus[by.id] ?? 0, 0.7); return void say(w, t, "Hold on. You look like the one on the radio. Step aside."); }
   const g = turnstileNear(t) ?? turnstileNear(by);
   if (!g?.gate) return;
   if (it.def === "warrant_card") {
@@ -634,6 +633,8 @@ function turnstileCheck(w: World, act: Action): void {
     return void say(w, t, "Camera's flagged you, sunshine. You're on the list.", 4);
   }
   if (st.banned.includes(ap.faceId) && chance(r, 1 - ap.faceCover)) { n.sus[by.id] = 0.7; return void say(w, t, "Hang on. You're the one we threw out. Go on, hop it."); }
+  // On the lookout for someone matching the description going round (an outfit, a face up close).
+  if (st.wanted.some((wd) => wd.until > s.tick) && wantedMatch(w, t, by) >= 0.5) { n.sus[by.id] = Math.max(n.sus[by.id] ?? 0, 0.7); return void say(w, t, "Hold on. You look like the one on the radio. Step aside."); }
   if (by.hand && s.items[by.hand].def === "pint") { moveItem(s, by.hand, { k: "gone" }); say(w, t, "No drinks inside. I'll have that."); }
   if (ap.alarming) { crime(w, by, "carrying a weapon at the gate", 2); return; }
   // A pat-down misses some of what is in pockets; a metal detector misses nothing metal.

@@ -886,3 +886,43 @@ It plays when you go in, not when you leave, and once per building per 20 second
   - **The fruit machine:** £1 a go, roughly 80p back in the pound. Three lions pays £20.
   - **A pool cue:** left on the table; it snaps over someone's head.
 - **The toilet cubicle scene** has a new pixel-art backdrop: a graffitied green partition, a strip light, a puddle.
+
+## Round: Ronson, the coach, the swoop, codec calls
+
+**Ronson is Grozz's dog.** He's a PixelLab pit bull (brindle, studded collar, tongue out) with walk, run, lunge and chew animations. The same sprite is used in the films and in the game, replacing the old hand-drawn dog.
+- **In the house:**
+  - he's eating the settee from the start, with stuffing everywhere;
+  - when the crisps burst he goes for the kids, growling and lunging;
+  - "SHUT IT, RONSON!" / "He's just telling them he loves them in dog language!";
+  - on the way out: "Get 'ere, Ronson, you cunt!" and he follows Grozz through the door.
+- **At the ground:** Kev has tied him up outside the Three Lions. Untying him is no crime, because he's yours. A reminder appears when the match starts.
+
+**The coach.** After the title, Grozz sits in the front seat of the supporters' coach next to Kev, a fat cockney he's never met.
+- **The art:** a new detailed coach interior with the lads singing behind; Grozz and Kev drawn bigger and finer than the room sprites; Ronson on the seat across the aisle, chewing it.
+- **The farts:** both of them fart relentlessly (green clouds, "Smell that!"). They swig cans, the coach sways, street lights sweep past.
+- **What Kev tells him, without it sounding like a tutorial:**
+  - the three things that could stop England: their number 10, their keeper ("likes a flutter"), the ref;
+  - keep your ears open, people talk, and how you do it is up to you;
+  - you can do all sorts: change your clothes, get on a roof, use the phone, a brick, a bung;
+  - forty quid won't get a ticket (the office wants sixty, Del does them cheaper);
+  - the lads have a whip-round for every daft thing you pull off (the paid to-do list);
+  - the pawn shop pays cash, no questions.
+- **The dog banter:** dogs are banned ("He's me therapy dog. For me autism."); he could do with a walk ("Can't be fucking bothered… it's me fibromyalgia."); Kev offers to walk him and tie him outside the Three Lions.
+- **Kev's voice** is "Eastend Steve" (a library cockney voice) on the newer model. Grozz is on his own voice.
+- **The music** from leaving the house carries on quietly under the chanting.
+
+**The match opens with a swoop.**
+- **How it's made:** the whole ground is photographed from above in tiles from the live game and laid on a 3D plane in the browser (CSS perspective).
+- **The flight:** the camera starts high and tilted like a model with the venue and fixture over it, swings round the pitch, then comes down the approach onto Grozz.
+- **The hand-off:** it lands at the game camera's own zoom and position, so the cut doesn't show.
+- **Skipping:** tap anywhere.
+- **Why not Krelworld's flyover code:** it's built on Phaser 3 Meshes, which Phaser 4 dropped. The idea is the same: a photo of the map as the ground, flown through with a perspective camera.
+
+**Phone calls are codec style (Metal Gear's radio).**
+- **The screen:** Grozz's face on the left, theirs on the right (Shezleigh, the 999 operator, Spliff Ricky, Bare-Knuckle Brendan), a green frequency and signal bars between, scanlines, and the words underneath.
+- **Who's talking:** that face lights up and jitters while the other dims. When the call ends, both go dark.
+
+**Intro polish:**
+- **The moonwalk:** anyone walking sideways used to walk backwards, because east and west were swapped in the direction sum. Fixed.
+- **The iPad and crisps** are proper pixel art. The iPad snaps into two real halves with a spray of glass. The crisp packet tears in two and the crisps rain down and bounce.
+- **The rampage:** Grozz now breaks the room for real. The armchair, the telly cabinet, the cans and a crate are cut out of the painted room and fly apart in chunks that land as rubble, with bare floor where they stood.

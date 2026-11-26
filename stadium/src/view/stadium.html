@@ -175,6 +175,18 @@
   #fruit canvas { width: 64px; height: 64px; image-rendering: pixelated; border: 2px solid #333; }
   #fruit .msg { display: block; margin-top: 8px; min-height: 16px; font: 800 15px/1 var(--display); color: #fff; letter-spacing: .06em; }
   #fruit.won .msg { color: #f2c94c; animation: tkMsg .3s both; }
+  #swoop { position: fixed; inset: 0; z-index: 70; background: #000; overflow: hidden; }
+  #swoop .sky { position: absolute; inset: 0; background: linear-gradient(#1a2236 0%, #3a4a6a 38%, #8a96a8 52%, #2a2f38 100%); opacity: 0; transition: opacity .4s; }
+  #swoop.go .sky { opacity: 1; }
+  #swoop .stage { position: absolute; inset: 0; perspective: 620px; perspective-origin: 50% 28%; }
+  #swoop .map { position: absolute; left: 0; top: 0; transform-origin: 0 0; background-size: 100% 100%; image-rendering: pixelated; box-shadow: 0 0 120px 60px rgba(20,24,30,.9); }
+  #swoop .fog { position: absolute; left: 0; right: 0; top: 0; height: 45%; background: linear-gradient(rgba(58,74,106,1), rgba(58,74,106,0)); pointer-events: none; }
+  #swoop .cap { position: absolute; left: 0; right: 0; top: calc(max(16px, env(safe-area-inset-top, 0px)) + 30px); text-align: center; color: #fff; text-shadow: 3px 3px 0 #000; opacity: 0; }
+  #swoop .cap b { display: block; font: 800 clamp(22px, 7vw, 42px)/1 var(--display); letter-spacing: .06em; }
+  #swoop .cap span { display: block; margin-top: 8px; font: 700 clamp(12px, 3.4vw, 16px)/1 var(--display); letter-spacing: .12em; color: var(--bug); }
+  #swoop .skipsw { position: absolute; right: max(12px, env(safe-area-inset-right, 0px)); bottom: max(12px, env(safe-area-inset-bottom, 0px)); padding: 10px 12px; background: #14213d; color: #fff; border: 2px solid #000; font: 700 14px var(--display); }
+  #swoop.out { animation: swoopOut .45s forwards; }
+  @keyframes swoopOut { to { opacity: 0; } }
   #roomCard b { display: block; font: 800 20px/1 var(--display); letter-spacing: .06em; }
   #roomCard small { display: block; margin-top: 4px; font: 600 12px/1 var(--body); opacity: .85; letter-spacing: .04em; }
   #roomCard.in { animation: cardIn 2.3s ease both; }
@@ -243,6 +255,24 @@
   .call .st { margin-top: 4px; font: 700 12px/1 var(--display); letter-spacing: .12em; text-transform: uppercase; color: #7dffa8; }
   .call .st small { color: var(--dim); margin-left: 6px; }
   .call .ln { margin-top: 10px; min-height: 2.6em; font: 500 15px/1.3 system-ui, sans-serif; }
+  .call.codec { top: 16%; width: min(560px, calc(100vw - 20px)); padding: 10px; background: #050a06; box-shadow: 0 0 0 2px #1f5a2e, 0 0 30px rgba(60,255,120,.18), 0 8px 30px rgba(0,0,0,.7); }
+  .call.codec::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(0,0,0,.28) 0 1px, transparent 1px 3px); }
+  .call.codec .row { display: flex; align-items: stretch; gap: 8px; }
+  .call.codec .pane { flex: 0 0 auto; width: min(30vw, 150px); position: relative; border: 2px solid #3fae5c; background: #0b1a0e; filter: brightness(.45) saturate(.6); transition: filter .15s; }
+  .call.codec .pane img { display: block; width: 100%; image-rendering: pixelated; }
+  .call.codec .pane i { position: absolute; left: 0; right: 0; bottom: 0; font: 800 10px/1.6 var(--display); letter-spacing: .08em; color: #7dffa8; background: rgba(0,0,0,.7); font-style: normal; }
+  .call.codec .pane.talk { filter: none; animation: codecTalk .16s steps(2) infinite; }
+  @keyframes codecTalk { 50% { transform: translateY(-1px) scaleY(1.01); } }
+  .call.codec .mid { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 6px; min-width: 0; }
+  .call.codec .fq { font: 800 clamp(18px, 6vw, 30px)/1 var(--display); color: #7dffa8; text-shadow: 0 0 8px rgba(125,255,168,.6); letter-spacing: .04em; }
+  .call.codec .bars { display: flex; gap: 2px; height: 22px; align-items: flex-end; }
+  .call.codec .bars span { width: 5px; height: 4px; background: #3fae5c; }
+  .call.codec .bars.on span { animation: bar .3s ease-in-out infinite alternate; }
+  .call.codec .bars.on span:nth-child(2n) { animation-delay: .1s; } .call.codec .bars.on span:nth-child(3n) { animation-delay: .2s; }
+  @keyframes bar { to { height: 22px; } }
+  .call.codec .st { margin: 0; font-size: 10px; }
+  .call.codec .ln { text-align: left; color: #d8ffe2; border-top: 1px solid #1f5a2e; padding-top: 8px; }
+  .call.codec.off .pane { filter: brightness(.2); }
   .call .ln b { display: block; font: 800 11px/1 var(--display); letter-spacing: .12em; text-transform: uppercase; color: #f2c94c; margin-bottom: 3px; }
   @keyframes callIn { from { opacity: 0; transform: translate(-50%, 8px); } to { opacity: 1; transform: translate(-50%, 0); } }
   /* The rifle scope: a black ring round a clear circle, crosshairs, the buttons under your thumbs. */

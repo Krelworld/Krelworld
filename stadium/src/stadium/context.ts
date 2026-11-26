@@ -45,7 +45,7 @@ export function options(w: World, pc: Actor, picked?: string | null): Option[] {
   if (pc.heldBy) {
     const held: Option[] = [{ label: "Struggle", priority: 100, action: { verb: "struggle", ...base } }];
     const holder = s.actors[pc.heldBy];
-    if (s.stadium!.dog?.state === "led" && holder) held.push({ label: `Set the dog on ${personName(holder)}`, priority: 101, action: { verb: "sic", ...base, target: { k: "actor", id: holder.id } } });
+    if (s.stadium!.dog?.state === "led" && holder) held.push({ label: `Set Ronson on ${personName(holder)}`, priority: 101, action: { verb: "sic", ...base, target: { k: "actor", id: holder.id } } });
     return held;
   }
   const bus = s.stadium!.vehicles.bus;
@@ -58,7 +58,7 @@ export function options(w: World, pc: Actor, picked?: string | null): Option[] {
     if (gi && Math.hypot(pc.x - SPOTS.turnstiles[gi - 1].x, pc.y - SPOTS.turnstiles[gi - 1].y) < 3.5) {
       const det: Option[] = [{ label: "Insert your penis", priority: 40, action: { verb: "detector", ...base, arg: "own" } }];
       if (hasBar(w, pc)) det.push({ label: "Insert the censored bar", priority: 90, action: { verb: "detector", ...base, arg: "bar" } });
-      if (dogWithYou(w, pc)) det.push({ label: "Hold the dog up to the slot", priority: 95, action: { verb: "detector", ...base, arg: "dog" } });
+      if (dogWithYou(w, pc)) det.push({ label: "Hold Ronson up to the slot", priority: 95, action: { verb: "detector", ...base, arg: "dog" } });
       out.push(...det);
     }
   }
@@ -234,14 +234,14 @@ export function options(w: World, pc: Actor, picked?: string | null): Option[] {
   const dg = s.stadium!.dog, dogA = dg ? s.actors[dg.id] : undefined;
   if (dg && dogA) {
     const dd = Math.hypot(dogA.x - pc.x, dogA.y - pc.y);
-    if (dg.state === "tied" && dd < 1.8) push("Untie the dog", 50, { verb: "untie", ...base });
+    if (dg.state === "tied" && dd < 1.8) push("Untie Ronson", 50, { verb: "untie", ...base });
     if (dg.state === "led" || dg.state === "returning") {
       // Whoever's after you first; otherwise whoever you've picked or are facing.
       const chaser = Object.values(s.actors).find((a) => a.npc && !a.dead && a.npc.target === pc.id && (a.npc.mode === "chase" || a.npc.mode === "approach") && Math.hypot(a.x - pc.x, a.y - pc.y) < 20);
       const t = chaser ?? throwTarget(w, pc, picked ?? null);
-      if (t && t.id !== dg.id) push(`Set the dog on ${personName(t)}`, chaser ? 66 : 34, { verb: "sic", ...base, target: { k: "actor", id: t.id } });
+      if (t && t.id !== dg.id) push(`Set Ronson on ${personName(t)}`, chaser ? 66 : 34, { verb: "sic", ...base, target: { k: "actor", id: t.id } });
     }
-    if (dg.state === "led") push("Let the dog go", 33, { verb: "release", ...base });
+    if (dg.state === "led") push("Let Ronson off the lead", 33, { verb: "release", ...base });
     if ((dg.state === "loose" || dg.state === "sicced") && dd < 1.5) push("Grab the dog's lead", 60, { verb: "leash", ...base });
   }
 

@@ -93,7 +93,7 @@ function shortLabel(o: Option): string {
   if (o.sheet?.kind === "report") return "Tip off";
   if (o.sheet?.kind === "loot") return "Search";
   const map: Record<string, string> = { talk: "Talk", show: "Show ticket", drive: "Drive the bus", getout: "Get out", hide: "Hide inside", unhide: "Climb out", sit: "Sit down", stand: "Stand up",
-    untie: "Untie the dog", release: "Let the dog go", leash: "Grab the dog", sic: "Set the dog on him", servicedog: "\"Service dog\"", alarm: "Pull the fire alarm", vault: "Climb over",
+    untie: "Untie Ronson", release: "Let Ronson go", leash: "Grab Ronson", sic: "Set Ronson on him", servicedog: "\"Service dog\"", alarm: "Pull the fire alarm", vault: "Climb over",
     struggle: "Struggle", take: "Pick up", takeout: "Take it", horn: "Beep", arrest: "Arrest", pickpocket: "Pickpocket", tamper: "Tamper with it" };
   if (v && map[v]) return map[v];
   return L.split(" ").slice(0, 4).join(" ");
@@ -153,6 +153,8 @@ class StadiumScene extends Phaser.Scene {
     SpriteBank.preload(this); WorldArt.preload(this);
     for (const k of TILE_FILES) this.load.image(`tile-${k}`, `tiles/${k}.png`);
     for (const k of ICONS) this.load.image(`ico-${k}`, `icons/${k}.png`);
+    // Ronson, the same dog as in the films.
+    for (const k of ["rot", "walk", "run", "lunge"]) this.load.spritesheet(`ronson-${k}`, `art/ronson-${k}.png`, { frameWidth: 88, frameHeight: 88 });
   }
   world!: WorldArt;
   worldSprites = new Map<string, Phaser.GameObjects.Image>();
@@ -854,6 +856,69 @@ class StadiumScene extends Phaser.Scene {
     setTimeout(() => { this.roomSnap = true; this.roomShown = this.roomId; }, 120);
     setTimeout(() => { f.classList.remove("on"); setTimeout(() => f.classList.remove("door"), 250); }, 170);
   }
+  // ---------- The swoop: the match opens with a fly-in over the ground ----------
+  capture: { x: number; y: number; zoom: number } | null = null;
+  /** The whole ground, photographed in tiles from straight above, as one picture. */
+  async captureMap(): Promise<{ img: HTMLCanvasElement; wx0: number; wy0: number; k: number }> {
+    const P = this.P, cam = this.cameras.main, frames = (n: number) => new Promise<void>((r) => { let i = 0; const f = () => (++i >= n ? r() : requestAnimationFrame(f)); requestAnimationFrame(f); });
+    const wx0 = P.sx(BOUNDS.x, 0), wx1 = P.sx(BOUNDS.x + BOUNDS.w, 0), wy0 = P.sy(0, BOUNDS.y) - 8 * P.S, wy1 = P.sy(0, BOUNDS.y + BOUNDS.h);
+    const Wd = wx1 - wx0, Hd = wy1 - wy0, cols = 3, z = cam.width / (Wd / cols), rows = Math.ceil((Hd * z) / cam.height);
+    const tw = Math.round(cam.width), th = Math.round(cam.height), out = document.createElement("canvas");
+    out.width = tw * cols; out.height = th * rows;
+    const cx = out.getContext("2d")!;
+    for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) {
+      this.capture = { x: wx0 + (i + 0.5) * (Wd / cols), y: wy0 + (j + 0.5) * (th / z), zoom: z };
+      await frames(3);
+      const img = await new Promise<HTMLImageElement | null>((r) => { try { this.game.renderer.snapshot((im) => r(im instanceof HTMLImageElement ? im : null)); } catch { r(null); } });
+      if (img) { if (!img.complete) await new Promise((r) => (img.onload = r)); cx.drawImage(img, i * tw, j * th, tw, th); }
+    }
+    this.capture = null; this.roomSnap = true;
+    return { img: out, wx0, wy0, k: z };
+  }
+  /** Over the ground and down to him: the whole place laid out, tilted to the horizon like a model,
+   *  swung round, then down onto Grozz at the camera's own height, so the cut to the game doesn't show
+   *  (Krelworld's flyover, done with a CSS 3D plane over a photo of the map). Tap to skip. */
+  async swoop(): Promise<void> {
+    if (location.search.includes("noswoop")) return;
+    const host = document.createElement("div"); host.id = "swoop";
+    host.innerHTML = `<div class="sky"></div><div class="stage"><div class="map"></div></div><div class="fog"></div><div class="cap"><b>${esc(VENUE.ground.toUpperCase())}</b><span>ENGLAND v ${esc(this.s.match!.teams[1].name.toUpperCase())} · ${esc(["QUARTER-FINAL", "SEMI-FINAL", "THE FINAL"][Math.min(2, (this as any).campaign?.fixture ?? 0)] ?? "")}</span></div><button class="skipsw">Skip ▸</button>`;
+    document.body.appendChild(host);
+    let shot: Awaited<ReturnType<StadiumScene["captureMap"]>>;
+    try { shot = await this.captureMap(); } catch { host.remove(); return; }
+    const map = host.querySelector(".map") as HTMLDivElement, stage = host.querySelector(".stage") as HTMLDivElement;
+    map.style.width = `${shot.img.width}px`; map.style.height = `${shot.img.height}px`;
+    map.style.backgroundImage = `url(${shot.img.toDataURL("image/jpeg", 0.85)})`;
+    host.classList.add("go");
+    this.audio.play("whoosh" as Clip, 0.6);
+    const P = this.P, cam = this.cameras.main, rect = this.game.canvas.getBoundingClientRect(), css = rect.width / cam.width;
+    const pc = this.pc, endW = { x: P.sx(pc.x, pc.y), y: P.sy(pc.x, pc.y) - P.S }, mid = { x: P.sx(0, 0), y: P.sy(0, 0) };
+    const toMap = (p: { x: number; y: number }) => ({ x: (p.x - shot.wx0) * shot.k, y: (p.y - shot.wy0) * shot.k });
+    const A = toMap(mid), B = toMap({ x: P.sx(-30, 30), y: P.sy(-30, 30) }), C = toMap(endW);
+    const sEnd = (this.targetZoom() * css) / shot.k, sStart = Math.min(window.innerWidth / shot.img.width, window.innerHeight / shot.img.height) * 1.1;
+    const T = 7000, t0 = performance.now(), ease = (u: number) => 0.5 - 0.5 * Math.cos(Math.PI * Math.min(1, Math.max(0, u)));
+    let skip = false;
+    host.querySelector(".skipsw")!.addEventListener("click", () => { skip = true; });
+    host.addEventListener("pointerdown", (e) => { if ((e.target as HTMLElement).tagName !== "BUTTON") skip = true; });
+    await new Promise<void>((done) => {
+      const step = () => {
+        const t = skip ? 1 : (performance.now() - t0) / T;
+        // Two legs: high and wide over the pitch, swinging round; then down the approach onto him.
+        const u1 = ease(t / 0.55), u2 = ease((t - 0.45) / 0.55);
+        const p = t < 0.45 ? { x: A.x + (B.x - A.x) * u1 * 0.8, y: A.y + (B.y - A.y) * u1 * 0.8 } : { x: B.x * (1 - u2) + C.x * u2, y: B.y * (1 - u2) + C.y * u2 };
+        const tilt = 62 - 62 * u2, spin = -38 + 30 * u1 + 8 * u2, sc = sStart * Math.pow(sEnd / sStart, ease(t)) * (1 + 0.6 * Math.sin(Math.PI * Math.min(1, t)) * (1 - u2));
+        map.style.transform = `translate(${window.innerWidth / 2}px, ${window.innerHeight * (0.5 + 0.12 * (1 - u2))}px) rotateX(${tilt}deg) rotateZ(${spin * (1 - u2)}deg) scale(${sc}) translate(${-p.x}px, ${-p.y}px)`;
+        (host.querySelector(".fog") as HTMLElement).style.opacity = String(0.85 * (1 - u2));
+        (host.querySelector(".cap") as HTMLElement).style.opacity = String(t < 0.12 ? t / 0.12 : t > 0.7 ? Math.max(0, 1 - (t - 0.7) / 0.15) : 1);
+        if (t >= 1) { done(); return; }
+        requestAnimationFrame(step);
+      };
+      step();
+    });
+    host.classList.add("out");
+    setTimeout(() => host.remove(), 450);
+    void stage;
+  }
+
   doorway = new Doorway();
   gateFlash: Record<string, number> = {};
   /** Showing your ticket: it goes into the reader, a beep and a green light, and the flaps clunk
@@ -1891,7 +1956,23 @@ class StadiumScene extends Phaser.Scene {
       // In a room: only the people in it.
       if (this.roomShown && a !== pc) { const rr = this.blds.find((b) => b.id === this.roomShown)?.rect; if (rr && !(a.x > rr.x0 - 0.3 && a.x < rr.x1 + 0.3 && a.y > rr.y0 - 0.3 && a.y < rr.y1 + 0.3)) continue; }
       if (a.dead) things.push({ d: a.y - 0.4, draw: () => g.fillStyle(0x6a0a0a, 0.85).fillEllipse(P.sx(a.x, a.y), P.sy(a.x, a.y), P.S * 2.4, P.S * (P.standing ? 1.1 : 1.8)) });
-      if (a.npc?.job === "dog") { things.push({ d: a.y, draw: () => this.drawDog(a, g) }); continue; }
+      if (a.npc?.job === "dog") {
+        // His sprite (walking, running, going for someone) when it's loaded; the drawn dog if not.
+        if (this.textures.exists("ronson-walk")) {
+          things.push({ d: a.y, draw: () => { g.fillStyle(0x000000, 0.3).fillEllipse(P.sx(a.x, a.y), P.sy(a.x, a.y), P.S * 1.1, P.S * 0.35); }, spr: (dep) => {
+            const sp = Math.hypot(a.vx, a.vy), dg = this.s.stadium!.dog, di = dirIndex(a.facing);
+            const attack = !!dg && dg.state === "sicced" && sp > 4.5, key = attack ? "ronson-lunge" : sp > 2.6 ? "ronson-run" : sp > 0.2 ? "ronson-walk" : "ronson-rot";
+            const n = key === "ronson-rot" ? 1 : key === "ronson-lunge" ? 7 : 8, f = key === "ronson-rot" ? di : di * n + (Math.floor(performance.now() / (attack ? 60 : sp > 2.6 ? 70 : 110)) % n);
+            let im = this.worldSprites.get("dog-sprite");
+            if (!im) { im = this.add.image(0, 0, key, f); this.worldSprites.set("dog-sprite", im); }
+            this.worldSeen.add("dog-sprite");
+            im.setTexture(key, f).setOrigin(0.5, 66 / 88).setPosition(Math.round(P.sx(a.x, a.y)), Math.round(P.sy(a.x, a.y))).setDepth(dep).setVisible(true).setAlpha(1).setAngle(a.dead ? 90 : 0)
+              .setScale((P.standing && P.S === PPM ? 1 : P.S / PPM) * 1.15);
+          } });
+          continue;
+        }
+        things.push({ d: a.y, draw: () => this.drawDog(a, g) }); continue;
+      }
       const st2 = this.styleOf(a), moving = Math.hypot(a.vx, a.vy) > 0.4;
       const shiver = (a.effects.frozen ?? 0) > tick ? Math.sin(tick * 1.7 + hash(a.id)) * 0.06 : 0;
       if (!sprites) { things.push({ d: a.y, draw: () => drawFigure(g, P, a.x + shiver, a.y, a.facing, st2, tick + hash(a.id), moving) }); continue; }
@@ -2248,6 +2329,7 @@ class StadiumScene extends Phaser.Scene {
     this.camX += (tx - this.camX) * k; this.camY += (ty - this.camY) * k;
     const zt = this.targetZoom();
     if (Math.abs(cam.zoom - zt) > 0.001) cam.setZoom(cam.zoom + (zt - cam.zoom) * Math.min(1, k * 1.5));
+    if (this.capture) { cam.setZoom(this.capture.zoom); cam.centerOn(this.capture.x, this.capture.y); this.drawRoomMask(undefined); return; }
     cam.centerOn(this.camX, this.camY);
     this.drawRoomMask(room);
     if (this.trauma > 0 || this.kick.x || this.kick.y) {
@@ -2809,7 +2891,7 @@ class StadiumScene extends Phaser.Scene {
 
   /** A stocky brown dog, side-on, legs going when it runs. The lead, if somebody has it. */
   drawDog(a: Actor, g: Phaser.GameObjects.Graphics) {
-    // Tyson: a pit bull. Low, wide, all chest and jaw; brindle with a white bib and a studded collar.
+    // Ronson: a pit bull. Low, wide, all chest and jaw; brindle with a white bib and a studded collar.
     const P = this.P, S = P.S * 1.35, tick = this.s.tick, dg = this.s.stadium!.dog, pc = this.pc;
     const x0 = P.sx(a.x, a.y), y = P.sy(a.x, a.y), speed = Math.hypot(a.vx, a.vy), run = speed > 0.5;
     const dir = Math.cos(a.facing) >= 0 ? 1 : -1;
@@ -3772,47 +3854,62 @@ class StadiumScene extends Phaser.Scene {
     await this.callCard(name, lines, burner ? "Burner" : "Your phone");
   }
   callOn = false;
-  async callCard(name: string, lines: [string, string, string][], via: string) {
-    const el = document.createElement("div"); el.className = "call";
-    el.innerHTML = `<div class="nm">${esc(name)}</div><div class="st">Calling… <small>${esc(via)}</small></div><div class="ln"></div>`;
+  /** A phone call, codec style (Metal Gear's radio): his face on the left, theirs on the right, a
+   *  frequency between, scanlines, whoever's talking lit up and moving, the words underneath. */
+  codec(name: string, face: string, via = ""): HTMLDivElement {
+    const el = document.createElement("div"); el.className = "call codec";
+    const freq = (140 + (Math.abs(hash(name)) % 100) / 100).toFixed(2), img = (k: string) => `<img src="${assetURL(`scenes/codec_${k}.png`)}" alt="">`;
+    el.innerHTML = `<div class="row"><div class="pane l">${img("grozz")}<i>GROZZ</i></div><div class="mid"><b class="fq">${freq}</b><div class="bars">${"<span></span>".repeat(8)}</div><div class="st">CALLING… <small>${esc(via)}</small></div></div><div class="pane r">${img(face)}<i>${esc(name.toUpperCase())}</i></div></div><div class="ln"></div>`;
     $("app").appendChild(el); this.callOn = true;
+    return el;
+  }
+  /** Who's talking on the codec: that face lit and moving, the other dimmed (null: nobody). */
+  codecTalk(el: HTMLElement, who: "l" | "r" | null) {
+    for (const side of ["l", "r"] as const) el.querySelector(`.pane.${side}`)!.classList.toggle("talk", who === side);
+    el.querySelector(".bars")!.classList.toggle("on", !!who);
+  }
+  faceFor(name: string): string { return /ricky/i.test(name) ? "ricky" : /brendan/i.test(name) ? "brendan" : /shez/i.test(name) ? "shez" : "police"; }
+  async callCard(name: string, lines: [string, string, string][], via: string) {
+    const el = this.codec(name, this.faceFor(name), via);
     const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
     const ring = await this.audio.playCut("v_ph_ring", 0.5);
     await wait(1300); ring.stop();
-    el.querySelector(".st")!.textContent = "Connected";
+    el.querySelector(".st")!.textContent = "CONNECTED";
     for (const [who, text, clip] of lines) {
       const ln = el.querySelector(".ln")!; ln.innerHTML = `<b>${who === "g" ? "Grozz" : esc(name)}</b> ${esc(text)}`;
+      this.codecTalk(el, who === "g" ? "l" : "r");
       const p = clip ? await this.audio.playCut(clip as Clip, 1) : { dur: 0 };
       await wait(Math.max(1400, p.dur * 1000 + 250));
     }
-    if (this.pendingCallText) { el.querySelector(".ln")!.innerHTML = `<b>${esc(name)}</b> ${esc(this.pendingCallText.replace(/^"|"$/g, ""))}`; this.pendingCallText = ""; await wait(2200); }
+    if (this.pendingCallText) { this.codecTalk(el, "r"); el.querySelector(".ln")!.innerHTML = `<b>${esc(name)}</b> ${esc(this.pendingCallText.replace(/^"|"$/g, ""))}`; this.pendingCallText = ""; await wait(2200); }
+    this.codecTalk(el, null);
     this.audio.play("v_ph_hangup" as Clip, 0.5);
-    el.querySelector(".st")!.textContent = "Call ended";
+    el.querySelector(".st")!.textContent = "CALL ENDED";
+    el.classList.add("off");
     await wait(700); el.remove(); this.callOn = false;
   }
   pendingCallText = "";
   /** Shezleigh picks up. He says something unforgivable. She starts. He hangs up. */
   async wifeCall() {
-    const el = document.createElement("div"); el.className = "call";
-    el.innerHTML = `<div class="nm">Shezleigh</div><div class="st">Calling…</div><div class="ln"></div>`;
-    $("app").appendChild(el); this.callOn = true;
+    const el = this.codec("Shezleigh", "shez");
     const wait = (ms: number) => new Promise((r) => setTimeout(r, ms)), n = (this.s.stadium!.flags.wifeCalls ?? 1) - 1;
     const ln = el.querySelector(".ln")!, st = el.querySelector(".st")!;
     const ring = await this.audio.playCut("v_ph_ring", 0.5); await wait(1700); ring.stop();
-    st.textContent = "Connected";
+    st.textContent = "CONNECTED";
     const hello = n % 2 ? "v_ph_shez_hello2" : "v_ph_shez_hello1";
     ln.innerHTML = `<b>Shezleigh</b> ${n % 2 ? "Yeah, hello? Who's this?" : "Hello?"}`;
+    this.codecTalk(el, "r");
     const h = await this.audio.playCut(hello as Clip, 1); await wait(h.dur * 1000 + 200);
     const ins = [["Fucking slag.", "v_ph_g1"], ["You stupid fucking cow.", "v_ph_g2"], ["Dopey fucking bint.", "v_ph_g3"], ["Shut it, you old boiler.", "v_ph_g4"], ["Go and boil your head, you ugly cow.", "v_ph_g5"]][n % 5];
-    ln.innerHTML = `<b>Grozz</b> ${esc(ins[0])}`;
+    ln.innerHTML = `<b>Grozz</b> ${esc(ins[0])}`; this.codecTalk(el, "l");
     const g = await this.audio.playCut(ins[1] as Clip, 1); await wait(g.dur * 1000 + 150);
     const rep = [["Don't you dare talk to me like that, you fat piece of—", "v_ph_shez_cut1"], ["Where's my forty quid, you thieving little—", "v_ph_shez_cut2"], ["The kids are asking where their dad's gone, you useless—", "v_ph_shez_cut3"], ["Oh, it's YOU. Listen here, you fat waste of—", "v_ph_shez_cut4"]][n % 4];
-    ln.innerHTML = `<b>Shezleigh</b> ${esc(rep[0])}`;
+    ln.innerHTML = `<b>Shezleigh</b> ${esc(rep[0])}`; this.codecTalk(el, "r");
     const sh = await this.audio.playCut(rep[1] as Clip, 1);
     // Click. Mid-sentence.
     await wait(Math.min(1500, sh.dur * 1000 * 0.45 + 300)); sh.stop();
     this.audio.play("v_ph_hangup" as Clip, 0.5);
-    st.textContent = "You hung up"; ln.innerHTML = "";
+    st.textContent = "YOU HUNG UP"; ln.innerHTML = ""; this.codecTalk(el, null); el.classList.add("off");
     await wait(900); el.remove(); this.callOn = false;
   }
 
@@ -3955,7 +4052,7 @@ class StadiumScene extends Phaser.Scene {
 
   // ---------- Wiring ----------
   wireHud() {
-    $("start").addEventListener("click", () => { $("intro").hidden = true; this.started = true; void this.audio.unlock(); });
+    $("start").addEventListener("click", () => { $("intro").hidden = true; void this.audio.unlock(); void this.swoop().then(() => { this.started = true; if (this.s.stadium!.dog?.state === "tied" && !VENUE.features.fanZone) setTimeout(() => this.hint("Kev's tied Ronson up outside the Three Lions."), 2500); }); });
     $("prepGo").addEventListener("click", () => {
       if (!this.pendingCampaign) return;
       $("prep").hidden = true;

@@ -1,4 +1,5 @@
-// Tyson: a pit bull of no uncertain temper, tied up outside the pub while its owner has a drink.
+// Ronson: Grozz's own pit bull (his "therapy dog"), a nutcase. A bloke off the coach walks him and
+// leaves him tied up outside the Three Lions. Untie him and he's yours again.
 import { appearance } from "../core/identity";
 import { chance, pick, rndRange } from "../core/rng";
 import { DT, type Actor } from "../core/types";
@@ -15,15 +16,13 @@ export function createDog(w: World): void {
   const id = "dog";
   const p = SPOTS.dogPost;
   const dog: Actor = {
-    id, kind: "npc", name: "Tyson", faceId: id, x: p.x, y: p.y, vx: 0, vy: 0, facing: Math.PI / 2, radius: 0.4, speed: 2,
+    id, kind: "npc", name: "Ronson", faceId: id, x: p.x, y: p.y, vx: 0, vy: 0, facing: Math.PI / 2, radius: 0.4, speed: 2,
     moveX: 0, moveY: 0, hand: null, pockets: [], worn: {}, money: 0, downUntil: 0, effects: {},
     npc: newNpc("dog", "none", { lines: ["Grrrr.", "WOOF.", "*growls*"] }),
   };
   s.actors[id] = dog;
-  // The owner is the biggest of the locals.
-  const owner = Object.values(s.actors).find((a) => a.npc?.job === "local");
-  st.dog = { id, state: "tied", target: null, owner: owner?.id ?? "", bitten: 0, nextBite: 0 };
-  if (owner?.npc) owner.npc.lines = ["Don't go near Tyson. He's not right since the vet.", "Tyson's outside. He doesn't like referees. Or anyone.", "He's a Staffy cross. Mostly cross.", "He's soft as anything, Tyson. Just don't look at him."];
+  // He's Grozz's. Nobody minds you untying your own dog.
+  st.dog = { id, state: "tied", target: null, owner: st.pc, bitten: 0, nextBite: 0 };
 }
 
 const near = (a: { x: number; y: number }, b: { x: number; y: number }, r: number) => Math.hypot(a.x - b.x, a.y - b.y) <= r;
@@ -38,7 +37,7 @@ export function installDog(): void {
       const s = w.state, d = s.stadium!.dog!;
       d.state = "led";
       const owner = s.actors[d.owner];
-      if (owner && canSee(w, owner, actor, 14)) { say(w, owner, "Oi! That's my dog!"); crime(w, actor, "stealing a dog", 1, owner); }
+      if (owner && owner.id !== actor.id && canSee(w, owner, actor, 14)) { say(w, owner, "Oi! That's my dog!"); crime(w, actor, "stealing a dog", 1, owner); }
       w.bus.emit({ type: "dog_untied", t: s.tick, by: actor.id });
     },
   });
@@ -66,7 +65,7 @@ export function installDog(): void {
       const s = w.state, d = s.stadium!.dog!, dog = s.actors[d.id];
       const t = s.actors[(act.target as { id: string }).id];
       d.state = "sicced"; d.target = t.id; d.maul = 0;
-      say(w, actor, pick(s.rng.world, ["Get him, Tyson!", "TYSON. KILL.", "Go on, son!"]), 1.5);
+      say(w, actor, pick(s.rng.world, ["Get him, Ronson!", "RONSON. KILL.", "Go on, Ronson, you nutter!"]), 1.5);
       say(w, dog, "GRRRRRAAAH!", 1.5);
       w.bus.emit({ type: "dog_sicced", t: s.tick, by: actor.id, on: t.id, x: dog.x, y: dog.y });
       const big = isSecurity(t) || !!t.off;

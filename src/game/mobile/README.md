@@ -187,6 +187,8 @@ Stage 2 part 2 added **no hook in any game file** either. It wraps, once, from t
 | `CharSelectScene.prototype.create` (screens.ts's wrapper) | `screens.ts` | P16: a tap on a face picks it, PLAY AS starts (or a second tap on the same face) |
 | `TitleScene.prototype.askPassword` | `screens.ts` | the Chapter Select password box in the top quarter (above a landscape keyboard), the text box 44 px |
 | the Lair's and RoofCutscene's `create` event | `screens.ts` | "Esc: skip scene" becomes a SKIP SCENE ▸▸ button (the scene's own `finish(true)`, as Esc) |
+| `WhackScene.prototype.attract` (stage 3 fix round, P5) | `screens.ts` | the start card with the bigger text: the multiplier rule (same words, its two sentences run on) in the slot under the right-hand column, a row's points moved right where its name needs the room |
+| `Phaser.Loader.FileTypes.ImageFile.prototype.onProcess`, `game.scene.create` (stage 3 fix round, R2 / R4) | `art.ts` | a parked picture's download goes into the offline copy; the VS card and the finisher close-up wait for their parked pictures |
 
 The pause menu is laid out from whatever buttons it has (two or three columns), so a row another stage adds (the
 combat controls' CONTROLS page) needs nothing here.
@@ -296,26 +298,39 @@ Which thing (`pickTarget`): each thing can be tapped within its picture grown to
 a picture beats near one; among pictures the tap is inside, the smallest wins (the book lying on the bed); among near
 ones, the nearest. A follower at your side (Mikey) only counts when nothing else is there. The player figure is never a
 target (a thing behind the player is tapped through it). The controls win where they are drawn: with a prompt up, a tap
-on ACTION is ACTION even over the console in Home's corner.
+on ACTION's face is ACTION. ACTION's touch area reaches past its face; a still tap there that lands on the picture of a
+thing other than the prompt's (Home's games console in the corner) is that thing's (fix round P2; `passThrough` /
+`onPassTap` on a `TouchControl`), unless that picture is something big the whole button sits on (a wall, the door).
+
+Only a touch that **lands** while the room is walkable can walk or use (fix round P1). The game closes a line, the TV
+and its menus on the finger's down, so by the time that finger lifts the room is walkable again; that same touch used to
+count as a tap on the room (a stray walk, the gun rack or the book opening, the window's line opening again for ever).
+Canvas touches are only recorded when the layer's decision (last frame's) is walking, and every tap carries the time its
+finger landed: one that landed before the scene became walkable (`walkSince`, set when the layer enters "walk") does
+nothing. A still tap in the stick's half puts the faint MOVE ring back where it rests (P3).
 
 Pictures (`tapTargets.ts`): Home's spots by their words → the furniture's texture (`p_tv`, `p_bed`, `p_gunrack`...)
 or a box drawn from the backdrop (the window, the door out, the poster); the town's interactables → the person's
 sprite, or the spot's box joined to the collider it stands at (`standsOn`: a building, so tapping the building enters
-it, a vending machine, the Tap); Kreddle's machines → every image of their texture row; the Club's places → its zones
+it, a vending machine, the Tap); Kreddle's machines → every image of their texture row, and the ARCADE and CASINO
+frontages behind them (P4: tapping the building walks to its machines); the Club's places → its zones
 (the stage is the dancer, the bar, the wonk-off table, the exit, the booth); people → their sprites.
 
 The route (`findPath`): the town only (the other rooms have no colliders, just a floor to clamp to): a 16 px grid over
 the physics world, each collider grown by the player's feet body; A* in 8 directions with no corner cutting, then
 pulled straight where the walker can see ahead. A goal inside a collider (a door's spot under its building) moves to
 the nearest free cell; with no route at all, the walk goes as near as it can and stops (the prompt shows what's there).
-About 1-5 ms on the town; never more than once per tap, plus a re-route when a person walks 24 px or the walker is
-stuck (no nearer by 3 px in 650 ms; twice, then it stops).
+About 1-5 ms on the town (11-63 ms with the CPU 4x slower, the first route building the grid); never more than once per
+tap, plus a re-route when a person walks 24 px or the walker is stuck (no nearer by 3 px in 650 ms; the second and
+later times a 40 px step aside first, P7; after four, it stops). The grid is built once per visit (its colliders do not
+move) and the search reuses one set of buffers, marked by a generation stamp (no garbage per route: R10).
 
 Stops at once: the stick moving past 15% of its travel (the stick takes over), a second tap (re-targets), a
 conversation, a menu, a cutscene or a panel (the mode leaves "walk"), the page hiding, the thing going away, 15 s.
 
 `window.__krelMobile.tapUse`: `state()` (walking, target, tag, path, last: what happened, stats), `debugTargets()`
-(every tappable thing now, world coordinates), `tap(x, y)` (page CSS px). Smoke: `--only tapuse`.
+(every tappable thing now, world coordinates), `tap(x, y, t0?)` (page CSS px; `t0`: when the finger landed),
+`claims(x, y, face?)`. Smoke: `--only tapuse,tapfix`.
 
 ## Fights: the top-down rooms and bosses (`combat.ts`, stage 2 part 1)
 
@@ -853,20 +868,39 @@ size, so a pixel read is blank, never an error) and the GPU holds a 1 x 1 blank.
 Sprite rendering it), asks for it (`textures.get` / `getFrame`, after the boot) or starts an animation on it fetches it
 back (from the browser's cache, decoded off the main thread: 100-800 ms in emulation; it pops in). A 5 s sweep parks
 what nothing has used for 30 s and no game object holds. A lost WebGL context fetches the live ones again. No game file
-changed for it. Measured on the iPhone profile: boot 917 → 309 MB; peak over home, town, a TV show, the Hoard and the
+changed for it.
+
+Fix round 1 (R1-R4): a **TileSprite** copies its picture into its own canvas when it is made, so one made on a parked
+picture (the kart track in the Mario Kart TV clip) is copied again the moment the picture is back (`refreshTiles`; a
+TileSprite's picture is its `displayTexture`, which `held()` now counts). A boss's sheets are one **family**
+(`artLogic.family`): while `bossanim_X` is drawn or held, `bossdie_X`, `bossdown_X`, `bossmove_X` and `kcv_X` are wanted
+and held too, so the kneel at the kill and a stagger never show a blank frame; they park with the room. The **VS card
+and the finisher close-up** (`HOLD_SCENES`) wait, paused and drawn as they are, until their parked pictures are in
+(1.2 s at most; measured 140-300 ms) instead of playing blank. The **offline copy**: the phone keeps the parked
+pictures in CacheStorage (`krel-art-<hash of the art manifest>`, older copies deleted): the loader's own download of
+each goes in as it arrives (a few held at a time, no second download), the rest are read from the browser's cache
+(`force-cache`) a file at a time after the boot (the 5 s sweep tops it up; about 65 MB on disk for 661 files). A parked
+picture in the copy comes back from it, so it works with no signal and never waits on a revalidation; with no signal
+the filling pauses for a minute. A **failed fetch** is retried after 2, 4, 8, 16, then every 30 s (`retryDelay`), never
+on every draw. No CacheStorage (an in-app browser, a private window): no copy, as before. Measured on the iPhone profile: boot 917 → 309 MB; peak over home, town, a TV show, the Hoard and the
 concept boss 953 → 352 MB (`mobile-smoke --only platform` fails above 500). Decoded sound stays about 120 MB.
 
 **Sound (`audio.ts`).** iOS ignores an `<audio>` element's volume and lets an element play only if its first `play()`
 came from a tap; the game makes a new element for every song and every slowed / sped-up voice line. On a phone
-`window.Audio` hands out one of five pooled elements (three songs, two voices) that the first `touchend` / `click`
-started silently; each is routed through its own gain node, and the element's `volume` property sets that gain (the
+`window.Audio` hands out one of six pooled elements (four songs, two voices) that the first `touchend` / `click`
+started silently (fix round R5: four, so a few songs asked for inside one 350 ms fade-out each get an unlocked element;
+a spare made when all are busy is kept for reuse once it has played (then it is unlocked too), the rest are let go with
+their Web Audio nodes disconnected); each is routed through its own gain node, and the element's `volume` property sets that gain (the
 Music / Voice sliders, fades and the dialogue duck all work). The game's listeners on a pooled element are removed when it
 is handed out again. A self-test listens to the first song: five seconds of digital silence through the route switches
 later songs to plain elements (the slider is then on / off through `muted`). The audio session is "playback" (sound with
 the ringer switch off) unless "Play over my music" is on ("ambient"). After the page is shown again the context is
 checked (it must run and its clock must move; otherwise suspend + resume once more; the next tap tries again). A song
 playing that is neither the current one nor fading out is stopped (no double music); a song the pause menu holds stays
-held. `?mobilediag` shows the route, the session, what is playing and the last resume and its reason.
+held. An element that was the current song in the last 1.2 s, or was handed out in the last 1.2 s, is never a stray
+(R8: Synth's fade-out can outlive its `fading` set when a fade-in on the same element ends first). A voice line that
+cannot load or whose `play()` is refused frees its element (R6). Once the route proved silent, voices skip it too (R7).
+`?mobilediag` shows the route, the session, what is playing and the last resume and its reason.
 
 **Frame rate (`perf.ts`).** Top-level Images and Sprites that scroll with the world and sit wholly outside the camera's
 view (plus 96 px) are skipped for that camera (nothing else about them changes). At most 40 blood pools show in a fight
@@ -895,7 +929,8 @@ Hook added in stage 3 (guarded; the laptop fingerprint is unchanged):
 |---|---|---|
 | `src/game/scenes/finale/KrelfordFinale.ts` | `setZoom(isMobile() ? 1 : 0.8)` and `zoomTo(isMobile() ? 1 : 0.8, 10)` (and the flag import) | The audit: zoomed out below 1, everything on a phone's screen is too small |
 
-On a phone `window.__krelMobile` also has `art` (`report()`, `resident()`, `isParked(key)`, `sweep(ms)`), `audio`
+On a phone `window.__krelMobile` also has `art` (`report()` with `offline`, `fromCopy`, `holds`; `resident()`,
+`isParked(key)`, `inCopy(key)`, `sweep(ms)`), `audio`
 (`diag()`, `musicGain()`), `perf` (`lastCulled`, `lastDrawn`, `poolsHidden`, `enabled`) and `storage` (`state`, `held()`).
 
 ## Testing
@@ -905,7 +940,7 @@ npx vitest run tests/mobile tests/desktopNotPhone.test.ts   # flag, modes, layou
 
 npx vite --port 5202 --strictPort &                       # normal build
 VITE_KREL_ALT=1 npx vite --port 5212 --strictPort &       # ALT build
-node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,together,review1,polish,platform,android,tapuse,mix3,desktop]
+node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,together,review1,polish,platform,android,tapuse,tapfix,platfix,mix3,desktop]
 node scripts/mobile-smoke.cjs --url http://localhost:5212/
 # (tapuse: at Home the telly, the book and the gun rack from the far side of the room, the stick stopping a walk, a
 #  second tap re-targeting, the floor, in reach = at once; a person and the Krezz Arms in the town; a Kreddle local;
@@ -920,8 +955,12 @@ node scripts/mobile-smoke.cjs --url http://localhost:5212/
 # (together: the two stage 2 tracks at once: bigger text in a fight, a conversation in a fight (pills, no fight
 #  buttons), PHONE SETTINGS live in a fight, pause -> CONTROLS on FIGHTS, the Krezz Arms brawl by tap)
 # (mix3: stage 3 wave 1's two tracks at once: the TV faces parked and fetched back around a tapped walk to the telly,
-#  every tappable thing keeping its real size, the page hidden mid-walk (the walk lets go, the sound resumes once),
-#  the II mid-walk, the stick stopping a routed walk in town with the off-screen skip on)
+#  a tiled picture made while parked showing once it is back, the page hidden mid-walk (the walk lets go, the sound
+#  resumes once), the II mid-walk, the stick stopping a routed walk in town, nothing on screen skipped by the culling)
+# (tapfix: a tap that closes the window's line is never a tap on the room; the console beside ACTION; the MOVE ring
+#  after a still tap; Kreddle's frontages; town routes with the CPU 4x slower; Whack-a-Drongus's card; the archive list)
+# (platfix: a boss's death sheet in with its fighting sheet; the VS card waits for its faces; the offline copy with the
+#  network off (in the copy: back; not: two retries in 3 s); songs in a rush; voice lines that cannot play)
 
 # the laptop must not change (both must end with DESKTOP FINGERPRINT: OK)
 A="--url http://localhost:5202/ --alt-url http://localhost:5212/ --check"

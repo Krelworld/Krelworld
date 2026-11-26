@@ -590,6 +590,8 @@ export class TVScene extends Phaser.Scene {
         else synth.play(b.id);
         break;
       case "music":
+        // a directed bulletin brings its own opening ident and the bed under the desk (TVNews), in place of the old jingle
+        if (this.news && b.id === "news") break;
         if (b.mode === "start") synth.musicRaw(b.id, true);
         else synth.stopMusic();
         break;

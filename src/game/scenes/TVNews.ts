@@ -902,6 +902,7 @@ export class NewsDirector {
       sting.ui.setMask(this.layer.mask!);
       sting.ident(true);
       // the bed goes, and the closing sting rings out over the end card
+      this.closed = true;
       if (synth.currentMusic() === "news_bed") synth.stopMusic();
       synth.play("news_outro", 1, 1);
     }, false);
@@ -909,7 +910,9 @@ export class NewsDirector {
   }
 
   /** The news bed under the bulletin (quiet, so the presenter sits on top). Never over a show's own music. */
+  private closed = false;
   private bed() {
+    if (this.closed) return;
     const now = synth.currentMusic();
     if (!now || now === "news_bed") synth.music("news_bed");
   }

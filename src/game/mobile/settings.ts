@@ -21,8 +21,8 @@ export type AimAssist = "off" | "normal" | "strong";
 export type TextSize = "normal" | "large";
 /**
  * How fights fire on a phone. "hold" (the default since the user played it: "both auto firing and auto aiming. It was
- * so easy") never shoots by itself: hold FIRE and the game aims at an enemy in front of you (within aim.ts CONE_DEG of
- * the way you face, on screen, not behind a wall); slide FIRE to aim by hand. "auto" is EASY in Settings: the old
+ * so easy") never shoots by itself: hold FIRE and the game aims at the nearest enemy you can see, all
+ * round you (on screen, not behind a wall; the 35° cone was dropped: "really tough without some auto aim"); slide FIRE to aim by hand. "auto" is EASY in Settings: the old
  * stage 2 way, shooting by itself at any enemy in range and aiming all round you. "light" (auto at a slower pace) and
  * "still" (auto only while you stand still) came from the auto-fire audit (ga-02); the Settings row no longer offers
  * them (they only made fights harder and felt broken) but they still work if set. FIRE held works the same in all.

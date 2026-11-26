@@ -2927,14 +2927,14 @@ async function combat(browser) {
       const ahead = await aimFor(150, -20, 0);
       const behind = await aimFor(-150, 20, 0);
       const turned = await aimFor(-150, 20, Math.PI);
-      check("HOLD: the aim locks onto the enemy in front, not one behind you (aims ahead instead); turning toward it locks on", ahead.target === ahead.want && behind.target !== behind.want && (behind.target !== null || Math.abs(behind.aim) < 0.05) && turned.target === turned.want, { ahead, behind, turned });
+      check("HOLD: the aim locks onto an enemy you can see all round you, in front or behind", ahead.target === ahead.want && behind.target === behind.want && turned.target === turned.want, { ahead, behind, turned });
       const view = await ph.ev(() => {
         const d = window.__krel.game.scene.getScene("Dungeon");
         const v = d.cameras.main.worldView;
         return { right: v.x + v.width - d.player.x, w: v.width };
       });
       const offs = await aimFor(view.right + 30, 0, 0);
-      check("HOLD: never locks onto an enemy off screen, even right in front", offs.target === null, { offs, view });
+      check("HOLD: never locks onto an enemy off screen, even right in front (a barrel it can see may still be picked)", offs.target !== offs.want, { offs, view });
       // a pillar between you and it
       await ph.ev(() => {
         const d = window.__krel.game.scene.getScene("Dungeon");
@@ -2951,7 +2951,7 @@ async function combat(browser) {
         if (window.__pillar) d.obstacles.remove(window.__pillar, true, true);
         window.__pillar = null;
       });
-      check("HOLD: never locks onto an enemy behind a wall or pillar", walled.target === null, walled);
+      check("HOLD: never locks onto an enemy behind a wall or pillar", walled.target !== walled.want, walled);
       check("EASY (the old auto-fire): still aims all round you and through pillars", easyBehind.target === easyBehind.want && easyWalled.target === easyWalled.want, { easyBehind, easyWalled });
     }
     await ph.ev(() => {

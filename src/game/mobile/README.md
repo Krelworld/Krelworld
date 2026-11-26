@@ -384,7 +384,9 @@ With no enemy about, holding FIRE aims at the nearest barrel or crate.
 A red ring sits at the target's feet (orange for an object). Strong aim leads moving targets. Aim assist off: FIRE
 shoots straight ahead (the last stick direction) and slides don't snap; auto-fire still aims at what it shoots.
 
-**HOLD's aim: only what is in front of you** (the default since the user played the auto-fire build: "both auto firing
+**HOLD's aim** (update: the user found the 35° cone "really tough without some auto aim", so HOLD now passes no facing to
+`pickTarget` and aims all round you at what you can see, on screen and not behind a wall; it still shoots only while FIRE
+is held. What follows describes the cone, which `pickTarget` still supports.) (The default since the user played the auto-fire build: "both auto firing
 and auto aiming. It was so easy"; their choice: "1 and 4", report `ga-08-aim-fix.md`). On every firing style but EASY
 the target must also be (1) within `CONE_DEG` (35°) either side of the way you face, which is the way you last pushed
 the stick (side rooms: the way you last ran); the target already aimed at stays until `CONE_KEEP_DEG` (45°), so one on

@@ -20,7 +20,7 @@ export const COMBAT_WORDING: WordingRule[] = [
     re: /^ATTACK button \(hold; aims at the nearest enemy\)$/,
     // (Settings > Firing: HOLD, the default, or EASY, the old auto-fire)
     get to() {
-      return easyFiring() ? "FIRE (bottom right) shoots by itself at enemies in range. Hold it to fire anyway, slide it to aim" : "FIRE (bottom right): hold it to shoot. It aims at enemies in front of you; slide it to aim by hand";
+      return easyFiring() ? "FIRE (bottom right) shoots by itself at enemies in range. Hold it to fire anyway, slide it to aim" : "FIRE (bottom right): hold it to shoot. It aims at the nearest enemy you can see; slide it to aim by hand";
     },
   },
   { id: "tut-dodge", re: /^DODGE button$/, to: "DODGE button. Dodge right as you get hit for a PERFECT DODGE (slow-mo)" },
@@ -42,7 +42,7 @@ export const COMBAT_WORDING: WordingRule[] = [
     get to() {
       return easyFiring()
         ? "CONTROLS: drag on the left to move · FIRE shoots by itself (hold it to fire, slide it to aim) · DODGE, SPECIAL and SWAP on the right · WONK!, HEAL and the rest pop up when they're ready · II pause"
-        : "CONTROLS: drag on the left to move · hold FIRE to shoot (it aims at enemies in front of you; slide it to aim) · DODGE, SPECIAL and SWAP on the right · WONK!, HEAL and the rest pop up when they're ready · II pause";
+        : "CONTROLS: drag on the left to move · hold FIRE to shoot (it aims at the nearest enemy you can see; slide it to aim) · DODGE, SPECIAL and SWAP on the right · WONK!, HEAL and the rest pop up when they're ready · II pause";
     },
   },
 ];
@@ -130,7 +130,7 @@ export const COMBAT_NARRATOR_TIPS: WordingRule[] = [
 
 /** FIRE's line in the Controls picture, as Settings > Firing has it (P10; the auto-fire audit). */
 export const FIRE_AUTO = "Shoots by itself at enemies in range. Hold to fire anyway, slide your thumb to aim";
-export const FIRE_MANUAL = "Hold to shoot: it aims at enemies in front of you. Slide your thumb to aim by hand";
+export const FIRE_MANUAL = "Hold to shoot: it aims at the nearest enemy you can see. Slide your thumb to aim by hand";
 /** Settings > Firing: LIGHT and STILL (the auto-fire audit). */
 export const FIRE_LIGHT = "Shoots by itself, slowly. Hold to fire at full speed, slide your thumb to aim";
 export const FIRE_STILL = "Shoots by itself while you stand still. Hold to fire on the move, slide your thumb to aim";
@@ -143,5 +143,5 @@ export function fireLine(style: FireStyle): string {
 /** The one-time tip in the first fight on HOLD firing (a system toast; UI text, phones only). */
 export const FIRE_TIP = Object.freeze({
   title: "HOLD FIRE TO SHOOT",
-  text: "It aims at enemies in front of you: turn with the stick. Settings > Firing > EASY shoots for you.",
+  text: "It aims for you at the nearest enemy you can see. Settings > Firing > EASY shoots for you too.",
 });

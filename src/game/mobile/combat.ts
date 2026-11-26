@@ -4,7 +4,7 @@
 // (the town's zone, gutter included) and a right-hand cluster laid out as research "layout v2":
 //
 //   FIRE (prime corner)  hold = fire, slide = aim by hand (snaps onto an enemy). By default (HOLD) the game aims only at
-//                        an enemy in front of you (aim.ts CONE_DEG), on screen and not behind a wall: you aim by turning
+//                        the nearest enemy you can see, all round you (on screen, not behind a wall); it shoots only while you hold
 //                        with the stick. EASY (Settings > Firing) is the old auto-fire: it shoots by itself at any enemy
 //                        in range with a clear line, aiming all round you.
 //   DODGE (up-left)      SWAP (left: tap = next gun, hold = the weapon picker)      SPECIAL (up: the lad's special,
@@ -648,8 +648,8 @@ export class CombatControls {
       range = f.range;
       speed = f.speed;
     }
-    // HOLD (the default): only what is in front of you (the way you last moved), that you can see: its body on screen
-    // and no wall or pillar in between. EASY: the old aim, all round you.
+    // HOLD (the default): the nearest enemy you can see, all round you (the user: "really tough without some auto aim"):
+    // its body on screen and no wall or pillar in between; it only shoots while FIRE is held. EASY: the old auto-fire.
     const ahead = style !== "auto";
     let visible: ((t: AimTarget) => boolean) | undefined;
     if (ahead) {
@@ -661,7 +661,7 @@ export class CombatControls {
     const prev = this.target?.id ?? null;
     // (HOLD: FIRE held keeps its target locked while you strafe; you pick a new one by facing it)
     const locked = this.fireHeld || realNow() < this.graceUntil;
-    this.target = pickTarget({ me, stick: { x: sx, y: sy }, enemies, objects, prev, tune: this.tune, view: vr, reach: ACQUIRE, fireRange: range, facing: ahead ? this.lastMove : null, coneDeg: CONE_DEG, keepDeg: CONE_KEEP_DEG, visible, lockPrev: locked });
+    this.target = pickTarget({ me, stick: { x: sx, y: sy }, enemies, objects, prev, tune: this.tune, view: vr, reach: ACQUIRE, fireRange: range, facing: null, coneDeg: CONE_DEG, keepDeg: CONE_KEEP_DEG, visible, lockPrev: locked });
     // aim: a slide by hand (snapped), else the target, else straight ahead
     const d = this.layer.decision;
     const fighting = (d.mode === "combat" || d.mode === "side") && !d.mash && !d.picker;

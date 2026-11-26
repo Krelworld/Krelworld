@@ -1,5 +1,5 @@
 import { build } from "esbuild";
-import { copyFileSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { copyFileSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 
 writeFileSync("assets/world/eight.json", JSON.stringify(readdirSync("assets/world").filter((f) => f.endsWith("-8.png")).map((f) => f.replace("-8.png", ""))));
 // Which extra animation sheets exist for each character base (fan-punch.png and so on).
@@ -25,6 +25,7 @@ writeFileSync(
 );
 console.log("built dist/viewer");
 
+rmSync("dist/stadium", { recursive: true, force: true });
 mkdirSync("dist/stadium", { recursive: true });
 await build({
   entryPoints: ["src/view/stadium.ts"], bundle: true, minify: true, format: "iife",
@@ -49,6 +50,29 @@ writeFileSync("assets/world/eight.json", JSON.stringify(readdirSync("assets/worl
 for (const d of ["kit", "tiles", "scenes"]) {
   mkdirSync(`dist/stadium/${d}`, { recursive: true });
   for (const f of readdirSync(`assets/${d}`)) if (f.endsWith(".png")) copyFileSync(`assets/${d}/${f}`, `dist/stadium/${d}/${f}`);
+}
+// Pack the assets into three bundles (art, audio, the rest) plus an index, so the published page
+// is a handful of files rather than five hundred. The loose files stay for local development.
+{
+  const groups = { art: ["art"], audio: ["audio"], misc: ["icons", "kit", "tiles", "scenes", "world"] };
+  const MIME = { ".png": "image/png", ".mp3": "audio/mpeg" };
+  const index = { packs: {}, files: {} };
+  mkdirSync("dist/stadium/packs", { recursive: true });
+  for (const [name, dirs] of Object.entries(groups)) {
+    const parts = [];
+    let off = 0;
+    for (const d of dirs) for (const f of readdirSync(`dist/stadium/${d}`).sort()) {
+      const ext = f.slice(f.lastIndexOf("."));
+      if (!MIME[ext]) continue;
+      const b = readFileSync(`dist/stadium/${d}/${f}`);
+      index.files[`${d}/${f}`] = [name, off, b.length, MIME[ext]];
+      parts.push(b); off += b.length;
+    }
+    writeFileSync(`dist/stadium/packs/${name}.bin`, Buffer.concat(parts));
+    index.packs[name] = off;
+  }
+  writeFileSync("dist/stadium/packs/index.json", JSON.stringify(index));
+  console.log("packed", Object.keys(index.files).length, "files:", Object.entries(index.packs).map(([k, v]) => `${k} ${(v / 1e6).toFixed(1)}MB`).join(", "));
 }
 console.log("built dist/stadium");
 

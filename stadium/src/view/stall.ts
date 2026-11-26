@@ -1,4 +1,5 @@
 // The pub toilet cubicle, up close: the partition wall, the hole, the graffiti; what comes
+import { assetURL } from "./packs";
 // through it (behind a black censor bar); and what a knife does to it. Drawn on its own small
 // canvas at 400 x 240 and scaled up pixel-sharp, over the game.
 import { pixelText } from "./build";
@@ -35,7 +36,7 @@ export class Stall {
     this.stain.width = 400; this.stain.height = 240;
     const img = new Image();
     img.onload = () => { this.bg = img; };
-    img.src = "scenes/stall.png";
+    img.src = assetURL("scenes/stall.png");
     cv.addEventListener("pointerdown", (e) => {
       const r = cv.getBoundingClientRect(), x = ((e.clientX - r.left) / r.width) * 400, y = ((e.clientY - r.top) / r.height) * 240;
       if (Math.hypot(x - HX, y - HY) < 26) this.hooks.act(this.state === 2 && this.knife ? "chop" : this.state === 1 ? "yes" : "knock");

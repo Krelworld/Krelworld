@@ -38,6 +38,7 @@ import { holeState, inCubicle, knifeOn } from "../stadium/gloryhole";
 import { incapacitated, knockedOut, lootable } from "../stadium/combat";
 import { LEADS } from "../stadium/entries";
 import { playOpening } from "./opening";
+import { assetURL, loadPacks } from "./packs";
 import { CAP, ensureFloor, ensureMaterials, facade, floodlight, matOf, adBoard, banner, pixelText as pixelTextOn, PPM, roof, TILE_FILES, type BuildingSpec } from "./build";
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -64,7 +65,7 @@ interface TickerLine { text: string; src: string; big: boolean }
 /** A PixelLab picture of an item, if there is one. */
 const ICONS = new Set(["pint", "pie", "knife", "whistle", "ticket", "wallet", "laxative", "powder", "shirt_eng", "shirt_por", "shirt_bra", "shirt_arg", "police_uniform", "kit_eng", "kit_opp",
   "staff_pass", "hivis", "ref_kit", "police_hat", "mask", "flat_cap", "sunglasses", "moustache", "tracksuit", "chef_whites", "overalls", "balaclava", "hammer", "flare", "betslip", "face", "hands", "censored_bar", "wrench", "kit_card", "parachute", "mascot_suit", "press_pass", "bottle", "pint_glass", "chair", "corner_flag", "wig", "long_wig", "dress"]);
-const icon = (def: string) => (ICONS.has(def) ? `<img class="ico" src="icons/${def}.png" alt="" onerror="this.remove()">` : `<span class="ico none"></span>`);
+const icon = (def: string) => (ICONS.has(def) ? `<img class="ico" src="${assetURL(`icons/${def}.png`)}" alt="" onerror="this.remove()">` : `<span class="ico none"></span>`);
 
 /** The main button's words: short enough for a thumb. The full sentence is still in More. */
 function shortLabel(o: Option): string {
@@ -2559,6 +2560,21 @@ class StadiumScene extends Phaser.Scene {
 
 // The canvas is the screen's real pixel size, shown at its CSS size: Phaser's NONE mode with zoom 1/DPR.
 const host = $("game");
+// The assets come in packs: fetch them (with a progress bar), then start the game.
+{
+  const bar = document.createElement("div");
+  bar.id = "packload";
+  Object.assign(bar.style, { position: "fixed", inset: "0", zIndex: "60", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "14px", background: "#000", color: "#f2c94c", font: "700 18px 'Silkscreen', monospace" });
+  bar.innerHTML = `<div>KNOCKOUT DAY</div><div style="width:min(70vw,360px);height:14px;border:3px solid #f2c94c"><div id="packfill" style="height:100%;width:0;background:#c8102e"></div></div><div id="packtxt" style="font:600 15px 'Pixelify Sans',sans-serif;color:#ddd">Loading…</div>`;
+  document.body.appendChild(bar);
+  void loadPacks((d, t) => {
+    const f = document.getElementById("packfill"), tx = document.getElementById("packtxt");
+    if (f) f.style.width = `${Math.round((d / t) * 100)}%`;
+    if (tx) tx.textContent = `Loading… ${(d / 1e6).toFixed(1)} of ${(t / 1e6).toFixed(1)} MB`;
+  }).catch(() => {}).finally(() => { bar.remove(); startGame(); });
+}
+
+function startGame(): void {
 new Phaser.Game({
   type: Phaser.AUTO,
   parent: "game",
@@ -2568,6 +2584,7 @@ new Phaser.Game({
   scale: { mode: Phaser.Scale.NONE, width: Math.max(1, host.clientWidth * DPR), height: Math.max(1, host.clientHeight * DPR), zoom: 1 / DPR },
   scene: StadiumScene,
 });
+}
 
 // Keep the type checker honest about things only referenced in strings.
 void appearance; void SPOTS; void ([0, 1] as TeamIdx[]);

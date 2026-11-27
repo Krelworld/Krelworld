@@ -179,7 +179,7 @@
   #swoop .sky { position: absolute; inset: 0; background: linear-gradient(#1a2236 0%, #3a4a6a 38%, #8a96a8 52%, #2a2f38 100%); opacity: 0; transition: opacity .4s; }
   #swoop.go .sky { opacity: 1; }
   #swoop .stage { position: absolute; inset: 0; perspective: 620px; perspective-origin: 50% 28%; }
-  #swoop .map { position: absolute; left: 0; top: 0; transform-origin: 0 0; background-size: 100% 100%; image-rendering: pixelated; box-shadow: 0 0 120px 60px rgba(20,24,30,.9); }
+  #swoop .map { position: absolute; left: 0; top: 0; transform-origin: 0 0; animation: mapIn .5s ease-out; background-size: 100% 100%; image-rendering: pixelated; box-shadow: 0 0 120px 60px rgba(20,24,30,.9); }
   #swoop .fog { position: absolute; left: 0; right: 0; top: 0; height: 45%; background: linear-gradient(rgba(58,74,106,1), rgba(58,74,106,0)); pointer-events: none; }
   #swoop .cap { position: absolute; left: 0; right: 0; top: calc(max(16px, env(safe-area-inset-top, 0px)) + 30px); text-align: center; color: #fff; text-shadow: 3px 3px 0 #000; opacity: 0; }
   #swoop .cap b { display: block; font: 800 clamp(22px, 7vw, 42px)/1 var(--display); letter-spacing: .06em; }
@@ -187,6 +187,7 @@
   #swoop .skipsw { position: absolute; right: max(12px, env(safe-area-inset-right, 0px)); bottom: max(12px, env(safe-area-inset-bottom, 0px)); padding: 10px 12px; background: #14213d; color: #fff; border: 2px solid #000; font: 700 14px var(--display); }
   #swoop.out { animation: swoopOut .45s forwards; }
   @keyframes swoopOut { to { opacity: 0; } }
+  @keyframes mapIn { from { opacity: 0; } }
   #track { max-width: min(330px, calc(100vw - 150px)); padding: 5px 10px; background: rgba(10,14,20,.88); border-left: 4px solid #f2c94c; font: 600 12px/1.25 var(--body); color: #f4efe0; }
   #track b { font: 800 12px/1.2 var(--display); color: #f2c94c; letter-spacing: .03em; }
   #track i { font-style: normal; color: #9fb0c0; margin-left: 6px; font: 700 11px var(--display); }

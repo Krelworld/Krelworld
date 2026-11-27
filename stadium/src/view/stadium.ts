@@ -865,21 +865,32 @@ class StadiumScene extends Phaser.Scene {
   // ---------- The swoop: the match opens with a fly-in over the ground ----------
   capture: { x: number; y: number; zoom: number } | null = null;
   /** The whole ground, photographed in tiles from straight above, as one picture. */
-  async captureMap(): Promise<{ img: HTMLCanvasElement; wx0: number; wy0: number; k: number }> {
-    const P = this.P, cam = this.cameras.main, frames = (n: number) => new Promise<void>((r) => { let i = 0; const f = () => (++i >= n ? r() : requestAnimationFrame(f)); requestAnimationFrame(f); });
+  async captureMap(): Promise<{ img: HTMLCanvasElement; wx0: number; wy0: number; k: number } | null> {
+    // Each tile is copied straight off the game's canvas just after it's drawn (no PNG encoding, which
+    // stalls a phone for seconds a time), into one picture kept under 2048 px a side (iOS Safari
+    // quietly draws nothing on a canvas bigger than its limit).
+    const P = this.P, cam = this.cameras.main;
     const wx0 = P.sx(BOUNDS.x, 0), wx1 = P.sx(BOUNDS.x + BOUNDS.w, 0), wy0 = P.sy(0, BOUNDS.y) - 8 * P.S, wy1 = P.sy(0, BOUNDS.y + BOUNDS.h);
-    const Wd = wx1 - wx0, Hd = wy1 - wy0, cols = 3, z = cam.width / (Wd / cols), rows = Math.ceil((Hd * z) / cam.height);
-    const tw = Math.round(cam.width), th = Math.round(cam.height), out = document.createElement("canvas");
-    out.width = tw * cols; out.height = th * rows;
-    const cx = out.getContext("2d")!;
+    const Wd = wx1 - wx0, Hd = wy1 - wy0, cols = 2, z = cam.width / (Wd / cols), rows = Math.ceil((Hd * z) / cam.height);
+    const fullW = cam.width * cols, fullH = cam.height * rows, sc = Math.min(1, 2048 / fullW, 2048 / fullH);
+    const tw = cam.width * sc, th = cam.height * sc, out = document.createElement("canvas");
+    out.width = Math.round(fullW * sc); out.height = Math.round(fullH * sc);
+    const cx = out.getContext("2d");
+    if (!cx) return null;
+    const t0 = performance.now();
     for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) {
-      this.capture = { x: wx0 + (i + 0.5) * (Wd / cols), y: wy0 + (j + 0.5) * (th / z), zoom: z };
-      await frames(3);
-      const img = await new Promise<HTMLImageElement | null>((r) => { try { this.game.renderer.snapshot((im) => r(im instanceof HTMLImageElement ? im : null)); } catch { r(null); } });
-      if (img) { if (!img.complete) await new Promise((r) => (img.onload = r)); cx.drawImage(img, i * tw, j * th, tw, th); }
+      this.capture = { x: wx0 + (i + 0.5) * (Wd / cols), y: wy0 + (j + 0.5) * (cam.height / z), zoom: z };
+      // The next frame lays the world out for the camera at the new spot and draws it: grab it then.
+      await new Promise<void>((r) => this.game.events.once("postrender", () => { try { cx.drawImage(this.game.canvas, Math.round(i * tw), Math.round(j * th), Math.ceil(tw), Math.ceil(th)); } catch { /* */ } r(); }));
+      if (performance.now() - t0 > 7000) { this.capture = null; this.roomSnap = true; return null; }
     }
     this.capture = null; this.roomSnap = true;
-    return { img: out, wx0, wy0, k: z };
+    // Came out blank (some phones won't let you read the canvas back): no swoop, just play.
+    try {
+      const d = cx.getImageData(Math.floor(out.width / 2), Math.floor(out.height / 2), 4, 4).data;
+      if (![...d].some((v, k) => k % 4 !== 3 && v > 8)) return null;
+    } catch { return null; }
+    return { img: out, wx0, wy0, k: z * sc };
   }
   /** Over the ground and down to him: the whole place laid out, tilted to the horizon like a model,
    *  swung round, then down onto Grozz at the camera's own height, so the cut to the game doesn't show
@@ -889,11 +900,19 @@ class StadiumScene extends Phaser.Scene {
     const host = document.createElement("div"); host.id = "swoop";
     host.innerHTML = `<div class="sky"></div><div class="stage"><div class="map"></div></div><div class="fog"></div><div class="cap"><b>${esc(VENUE.ground.toUpperCase())}</b><span>ENGLAND v ${esc(this.s.match!.teams[1].name.toUpperCase())} · ${esc(["QUARTER-FINAL", "SEMI-FINAL", "THE FINAL"][Math.min(2, (this as any).campaign?.fixture ?? 0)] ?? "")}</span></div><button class="skipsw">Skip ▸</button>`;
     document.body.appendChild(host);
-    let shot: Awaited<ReturnType<StadiumScene["captureMap"]>>;
-    try { shot = await this.captureMap(); } catch { host.remove(); return; }
-    const map = host.querySelector(".map") as HTMLDivElement, stage = host.querySelector(".stage") as HTMLDivElement;
+    // The sky and the name up straight away, so the moment it takes to photograph the ground
+    // doesn't look like a hang.
+    host.classList.add("go");
+    (host.querySelector(".cap") as HTMLElement).style.opacity = "1";
+    let got: Awaited<ReturnType<StadiumScene["captureMap"]>> = null;
+    try { got = await this.captureMap(); } catch { got = null; }
+    if (!got) { host.remove(); return; }
+    const shot = got;
+    // The picture itself is the plane (a canvas, not an encoded image: nothing to decode).
+    const stage = host.querySelector(".stage") as HTMLDivElement, old = host.querySelector(".map") as HTMLDivElement;
+    const map = shot.img as unknown as HTMLDivElement; map.className = "map";
     map.style.width = `${shot.img.width}px`; map.style.height = `${shot.img.height}px`;
-    map.style.backgroundImage = `url(${shot.img.toDataURL("image/jpeg", 0.85)})`;
+    old.replaceWith(map);
     host.classList.add("go");
     this.audio.play("whoosh" as Clip, 0.6);
     const P = this.P, cam = this.cameras.main, rect = this.game.canvas.getBoundingClientRect(), css = rect.width / cam.width;

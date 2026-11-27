@@ -27,6 +27,7 @@ import { hearLead } from "./entries";
 import { bribeSnitch, snitchOf } from "./witness";
 import { banter, fresh, talkTo } from "./chatter";
 import { startDetector } from "./detector";
+import { schemeState } from "./schemes";
 
 export const SHOPS: Record<string, { name: string; stock: Record<string, number> }> = {
   ticket: { name: "Ticket office", stock: { ticket: 60 } },
@@ -485,6 +486,9 @@ export function turnstileNear(a: Actor) {
 }
 
 // ---------- Bribery ----------
+/** An authored scheme may settle an offer before the dice do (scheme_bribe.ts): he takes it, he doesn't, or the
+ *  scheme has dealt with it itself. Nothing set, or nothing returned: the dice, as ever. */
+export const bribeFix: { judge?: (w: World, by: Actor, t: Actor, amount: number) => "take" | "refuse" | "done" | undefined } = {};
 function bribe(w: World, by: Actor, t: Actor, amount: number): void {
   const s = w.state, r = s.rng.world, st = s.stadium!, m = s.match!;
   const refuse = (line: string, severity: number) => {
@@ -494,19 +498,21 @@ function bribe(w: World, by: Actor, t: Actor, amount: number): void {
   };
   const accept = (line: string) => { by.money -= amount; t.money += amount; say(w, t, line, 4); w.bus.emit({ type: "bribed", t: s.tick, by: by.id, who: t.id, amount }); };
   if (t.npc?.refused.includes(by.id)) return refuse("I've told you once.", 0);
+  const fix = bribeFix.judge?.(w, by, t, amount);
+  if (fix === "done") return;
 
   if (t.fb) {
     const theirs = t.fb.team === 1;
     if (!theirs) return refuse("Are you mad? I play for England.", 0);
     if (amount < 100) return refuse("Is that a joke?", 1);
     const p = (t.fb.role === "GK" ? 0.5 : 0.35) + (amount >= 300 ? 0.2 : 0);
-    if (chance(r, p)) { accept(t.fb.role === "GK" ? "...I didn't see you. Go." : "Fine. Now go."); bribePlayer(w, t.id); return; }
+    if (fix ? fix === "take" : chance(r, p)) { accept(t.fb.role === "GK" ? "...I didn't see you. Go." : "Fine. Now go."); bribePlayer(w, t.id); return; }
     return refuse("I'm reporting this.", 2);
   }
   if (t.off) {
     if (t.off.job !== "referee") return refuse("Not my department.", 1);
     if (amount < 150) return refuse("You must be joking.", 2);
-    if (chance(r, amount >= 400 ? 0.55 : 0.35)) { accept("We never spoke."); biasReferee(w, 0, 0.75); return; }
+    if (fix ? fix === "take" : chance(r, amount >= 400 ? 0.55 : 0.35)) { accept("We never spoke."); biasReferee(w, 0, 0.75); return; }
     return refuse("This will be reported to the governing body.", 3);
   }
   const n = t.npc;
@@ -842,6 +848,11 @@ function impostorRuling(w: World, by: Actor, kind: string, target?: Actor): void
   if (whistle) p = Math.min(0.95, p + 0.2);
   if (kind === "fulltime") p *= 0.6;
   w.bus.emit({ type: "impostor_whistle", t: tick, by: by.id, kind });
+  // An authored scheme (scheme_referee.ts) may have the say on who's believed just now: while two referees
+  // argue a ruling is only a claim (held); where he's been backed his word stands (1), unquestioned (2).
+  const sv = schemeState(w, "referee")?.vars;
+  if (sv?.held) { w.bus.emit({ type: "impostor_claim", t: tick, by: by.id, kind, target: target?.id }); return; }
+  if (sv?.stands) p = 1;
   if (!chance(r, p)) {
     // The real referee objects; there are now two referees, and neither accepts the other.
     st.flags.twoRefs = (st.flags.twoRefs ?? 0) + 1;
@@ -858,7 +869,7 @@ function impostorRuling(w: World, by: Actor, kind: string, target?: Actor): void
   // Every decision draws more looks. By the third, someone works it out.
   for (const id in s.actors) {
     const g = s.actors[id];
-    if (g.npc?.job !== "pitchsteward") continue;
+    if (g.npc?.job !== "pitchsteward" || sv?.stands === 2) continue;
     if (st.flags.impostorRulings >= 3) alert(w, g, by, 2, 2);
     else g.npc.sus[by.id] = Math.min(2, (g.npc.sus[by.id] ?? 0) + 0.35);
   }

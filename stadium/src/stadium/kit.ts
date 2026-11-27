@@ -8,6 +8,7 @@ import { haltPlay } from "../football/api";
 import type { Footballer, TeamIdx } from "../football/types";
 import { areaAt } from "./layout";
 import { alert } from "./security";
+import { schemeState } from "./schemes";
 
 function impostorFb(team: TeamIdx): Footballer {
   return {
@@ -51,6 +52,8 @@ export function stepKit(w: World): void {
     return;
   }
   if (!joined) return;
+  // An authored scheme (scheme_twelfth.ts) has taken over who counts heads, and when.
+  if (schemeState(w, "twelfth")?.vars.hold) return;
   // The referee counts. Closer to the play, and the longer it goes on, the likelier he notices.
   const ref = s.actors[m.officials.referee];
   if (st.flags.twelfthNoticed || ref.downUntil > s.tick || ref.off!.incapacitated || ref.off!.distractedUntil > s.tick) return;

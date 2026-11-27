@@ -139,7 +139,7 @@ export function stepTipoffs(w: World): void {
     if (cop.npc!.mode !== "routine") continue; // busy with something else
     if (t.fb && t.fb.status !== "playing" && t.fb.status !== "bench") { tip.stage = "done"; continue; }
     // A footballer on the pitch is dealt with at the tunnel at the next stoppage; anyone else, where they stand.
-    const onPitch = !!t.fb && areaAt(t.x, t.y).pitch;
+    const onPitch = !!(t.fb || t.off) && areaAt(t.x, t.y).pitch; // (the same goes for a match official)
     const dest = onPitch ? SPOTS.tunnelTop : t;
     const n = cop.npc!;
     if (tip.stage === "going") {
@@ -150,6 +150,8 @@ export function stepTipoffs(w: World): void {
       continue;
     }
     if (onPitch && (m.phase === "live" || m.phase === "goal_pause")) { n.plan = [{ k: "wait", s: 1 }]; continue; } // wait for a stoppage
+    // An authored scheme is staging this one (scheme_drugs.ts): the search waits till its scene lets go.
+    if ((t.fb || t.off) && (st.flags.searchHold ?? 0) > tick) continue;
     if (tick - tip.at > 60 * 240) { tip.stage = "done"; continue; }
     // The search.
     tip.stage = "done";
@@ -172,6 +174,8 @@ export function stepTipoffs(w: World): void {
       moveItem(s, found.id, { k: "gone" });
       w.bus.emit({ type: "tipoff_arrest", t: tick, who: t.id, item: found.def, planted: !!found.plantedBy });
       if (t.fb) removePlayer(w, t.id, "arrested");
+      // A match official: in the back of the van, and the match carries on the way it does without one.
+      else if (t.off) { t.off.incapacitated = true; t.x = SPOTS.policeVan.x; t.y = SPOTS.policeVan.y; t.vx = t.vy = 0; t.hiddenIn = Object.values(s.items).find((i) => i.def === "police_box")?.id; }
       else if (t.id === st.pc) { st.ending = { kind: "arrested", title: "Arrested", text: `The police found ${defOf(found).name.toLowerCase()} on you.` }; }
       else if (t.npc) { t.npc.plan = [{ k: "go", x: SPOTS.ejectPoint.x, y: SPOTS.ejectPoint.y + 6 }, { k: "despawn" }]; t.npc.post = undefined; t.npc.job = "local"; t.npc.mode = "routine"; }
     } else {

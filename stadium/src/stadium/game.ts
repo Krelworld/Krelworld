@@ -29,8 +29,11 @@ import { installLech } from "./lech";
 import { stepChat } from "./chatter";
 import { clampToRoof, installRoofs } from "./roofs";
 import { installMissiles, spawnBricks, stepStench } from "./missiles";
-import { installChainHooks, installKegs, spawnKegs, stepKegs, stepPawnSeek } from "./kegs";
+import { installChainHooks, installKegs, spawnKegs, stepKegs, stepPawnBack, stepPawnSeek } from "./kegs";
 import { installRigs, stepRigs } from "./rigs";
+import { installMachine, installMachineVerbs, stepMachine } from "./machine";
+import { installBelief, stepBelief } from "./belief";
+import { installBeer, installBeerWatch, stepBeer } from "./beer";
 import { installBallOut, installBallWatch, stepBallOut } from "./ballout";
 import { spawnBootBag, stepBootBag } from "./bootbag";
 import { installCoke, stepCoke } from "./coke";
@@ -65,7 +68,7 @@ export const HALF_SECONDS = 450;
 export const HALFTIME_SECONDS = 150;
 
 export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: Campaign = newCampaign()): Game {
-  if (!rulesInstalled) { installRules(); installBetting(); installPolice(); installBus(); installDog(); installKickoff(); installKnife(); installGloryHole(); installCombat(); installHorse(); installRoutes(); installEntries(); installDetector(); installCoverup(); installBike(); installLech(); installCars(); installWitness(); installPhone(); installNaked(); installRoofs(); installKegs(); installRigs(); installBallOut(); installCoke(); rulesInstalled = true; }
+  if (!rulesInstalled) { installRules(); installBetting(); installPolice(); installBus(); installDog(); installKickoff(); installKnife(); installGloryHole(); installCombat(); installHorse(); installRoutes(); installEntries(); installDetector(); installCoverup(); installBike(); installLech(); installCars(); installWitness(); installPhone(); installNaked(); installRoofs(); installKegs(); installRigs(); installMachineVerbs(); installBelief(); installBeer(); installBallOut(); installCoke(); rulesInstalled = true; }
   setVenue(venueId);
   const oppKey = VENUE.opp;
   const opp = TEAMS[oppKey];
@@ -233,6 +236,8 @@ export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: 
   installChainHooks(w);
   installBallWatch(w);
   installLulls(w);
+  installMachine(w);
+  installBeerWatch(w);
   installMissiles(w);
   installFixes(w);
   // A change of clothes out of sight shakes off whoever was after you.
@@ -398,7 +403,11 @@ export function stepGame(g: Game): void {
   stepCreeps(w);
   stepKegs(w);
   stepRigs(w);
+  stepMachine(w);
+  stepBelief(w);
+  stepBeer(w);
   stepPawnSeek(w);
+  stepPawnBack(w);
   stepBallOut(w);
   stepBootBag(w);
   stepCoke(w);

@@ -82,6 +82,8 @@ export interface Item {
   uses?: number;
   /** Who it was nicked from (pickpocketed or taken off them while they were out). */
   stolenFrom?: Id;
+  /** The cause (stadium/cause.ts) that last moved it, when, and who moved it. */
+  cause?: number; causeAt?: number; movedBy?: Id;
   /** Where it belongs (the drayman's kegs): somebody goes and fetches it back. */
   home?: { x: number; y: number };
   /** Which way it points (a bike), and whether it's lying on its side. */

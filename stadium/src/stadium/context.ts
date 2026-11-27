@@ -24,6 +24,7 @@ import type { World } from "../core/world";
 import { areaAt, SPOTS, VENUE } from "./layout";
 import { climbPointNear, fruitNear, turnstileNear, SHOPS } from "./rules";
 import { RIGS, rigNear } from "./rigs";
+import { hasBeerLine, hoseAt } from "./beer";
 
 export interface Option {
   label: string;
@@ -31,7 +32,7 @@ export interface Option {
   priority: number;
   action?: Action;
   /** Opens a sheet instead of acting straight away. */
-  sheet?: { kind: "shop" | "bribe" | "bet" | "report" | "loot" | "phone" | "scope"; who: string };
+  sheet?: { kind: "shop" | "bribe" | "bet" | "report" | "loot" | "phone" | "scope" | "rumour"; who: string };
 }
 
 const lc = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
@@ -110,6 +111,11 @@ export function options(w: World, pc: Actor, picked?: string | null): Option[] {
   // The forecourt contraptions: one tap, and off it goes.
   { const rg = !pc.seated && !pc.roof ? rigNear(w, pc) : undefined; if (rg) push(RIGS[rg].label, 78, { verb: "rig", ...base, arg: rg }); }
 
+  // The drayman's filling hose, and the drain beside it.
+  if (hasBeerLine() && !pc.seated && (s.stadium!.beer?.hose ?? "lorry") === "lorry" && Math.hypot(hoseAt().x - pc.x, hoseAt().y - pc.y) < 2.2) push("Hose into the drain", 77, { verb: "hose", ...base });
+  // Stand like you're queuing (machine.ts): never the main thing, always there outdoors.
+  push("Queue here, for nothing", -1, { verb: "queue", ...base });
+
   // Things on the ground and fixtures.
   for (const id in s.items) {
     const it = s.items[id], l = it.loc;
@@ -184,6 +190,8 @@ export function options(w: World, pc: Actor, picked?: string | null): Option[] {
     const why = bribeWhy(w, pc, a);
     if (pc.money > 0 && d < 2.2 && why) out.push({ label: why === "snitch" ? `Pay ${name} to keep quiet` : why === "ticket" ? `Buy ${name}'s ticket` : `Offer ${name} money`, priority: why === "snitch" ? 60 : 5, sheet: { kind: "bribe", who: a.id } });
     if (snitchOf(w, a.id)) push(`Lean on ${name}: "You saw nothing"`, 58 - d, { verb: "threaten", ...base, target: { k: "actor", id: a.id } });
+    // Tell him something (belief.ts): it'll get round.
+    if (n && d < 3 && (n.job === "fan" || n.job === "local" || n.job === "press" || isSecurity(a)) && n.mode === "routine" && !n.shop) out.push({ label: `Tell ${name} something`, priority: 9, sheet: { kind: "rumour", who: a.id } });
     if (n && n.job !== "player" && n.job !== "official" && !n.shop) push(`Pickpocket ${name}`, 6, { verb: "pickpocket", ...base, target: { k: "actor", id: a.id } });
     if (hand && can(hand, "give") && d < 1.7) push(`Give ${lc(itemName(hand))} to ${name}`, 3, { verb: "give", ...base, item: hand.id, target: { k: "actor", id: a.id } });
     for (const sid of [pc.hand, ...pc.pockets]) {

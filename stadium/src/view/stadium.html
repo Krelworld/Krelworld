@@ -235,6 +235,13 @@
     #chainStrap b { padding: 4px 8px; font-size: 11px; }
     #chainStrap span { font-size: 10px; }
   }
+  /* The running chain: how long, and the latest link only, tucked under the score (the whole thing is in the paper). */
+  #chainStrap:not(.wide) { left: max(8px, env(safe-area-inset-left, 0px)); transform: none; flex-direction: row; width: auto; max-width: min(80vw, 440px); top: calc(max(8px, env(safe-area-inset-top, 0px)) + 52px); border-width: 2px; box-shadow: 2px 2px 0 rgba(0,0,0,.5); }
+  #chainStrap:not(.wide) b { padding: 4px 7px; font-size: 12px; }
+  #chainStrap:not(.wide) span { padding: 4px 8px; font: 700 12px/1.25 system-ui, -apple-system, "Segoe UI", sans-serif; letter-spacing: .01em; }
+  #chainStrap.in:not(.wide) { animation: chainIn 3s ease both; }
+  @media (max-aspect-ratio: 4/5) { #chainStrap:not(.wide) { top: calc(max(8px, env(safe-area-inset-top, 0px)) + 136px); } }
+  @keyframes chainIn { 0% { opacity: 0; transform: translateX(-8px); } 6% { opacity: 1; transform: none; } 86% { opacity: 1; } 100% { opacity: 0; } }
   @keyframes strapIn { 0% { opacity: 0; transform: translate(-50%, -10px) scaleX(.6); } 5% { opacity: 1; transform: translate(-50%, 0) scaleX(1.04); } 9%, 90% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; } }
   @media (max-height: 520px) {
     #itemCard { bottom: auto; top: calc(max(8px, env(safe-area-inset-top, 0px)) + 52px); width: min(400px, 46vw); padding: 6px 9px; gap: 8px; }
@@ -553,7 +560,8 @@
   #sheet { background: #10151e !important; image-rendering: pixelated; }
   #sheet h2 { background: #f5c400; color: #141414; text-shadow: none; padding: 8px 12px; }
   .ware .nm { font-family: var(--body) !important; }
-  #cineCap { font-family: var(--display) !important; font-size: 26px; text-shadow: 3px 3px 0 #000; }
+  #cineCap { font-family: var(--display) !important; font-size: 26px; text-shadow: 3px 3px 0 #000; width: max-content; max-width: 92vw; text-align: center; }
+  @media (max-width: 520px) { #cineCap { font-size: 15px; line-height: 1.3; } }
   #stallCap { font-family: var(--body) !important; border-left-width: 6px; }
   /* Running text in the readable pixel face; labels and buttons in the blocky one. */
   #ticker .txt, #where, #hint, #toast, #sheet p, .ware .nm, #intro p, #intro li, #ending p { font-family: var(--body) !important; font-weight: 600 !important; letter-spacing: 0 !important; text-transform: none !important; }

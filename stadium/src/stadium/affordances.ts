@@ -27,6 +27,7 @@ const T: Record<string, ItemVerb[]> = {
   pool_cue: ["strike"],
   corner_flag: ["strike", "throw"],
   fart_can: ["throw"],
+  flask: ["throw"],
   flare: ["throw", "plant"],
   boot_bag: ["throw"],
   match_ball: ["throw"],

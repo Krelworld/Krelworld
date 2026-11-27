@@ -128,14 +128,22 @@ export function installRules(): void {
       if (!seller || seller.npc?.shop !== "pawn") return "nobody buying";
       if (!near(actor, seller, 3.6)) return "too far";
       if (!it || ![actor.hand, ...actor.pockets, ...Object.values(actor.worn)].includes(it.id)) return "not carrying it";
-      return pawnOffer(it.def) > 0 ? null : "he won't take that";
+      if (pawnOffer(it.def) <= 0) return "he won't take that";
+      // Twice now something he's bought off you has walked out with its owner.
+      if (it.stolenFrom && (w.state.stadium?.flags.lionelBurned ?? 0) >= 2) return "\"Not from you. The last two walked out the door.\"";
+      if (seller.money < pawnOffer(it.def)) return "\"Till's empty. Come back when I've sold something.\"";
+      return null;
     },
     perform: (w, act, actor) => {
       const seller = targetActor(w, act)!, it = w.state.items[act.item!], price = pawnOffer(it.def);
-      moveItem(w.state, it.id, { k: "gone" });
-      actor.money += price;
+      // It doesn't vanish: it's Lionel's now, on the shelf by the counter, and the money's out of his till.
+      const st = w.state.stadium!, n = (st.flags.pawned = (st.flags.pawned ?? 0) + 1);
+      const shelf = { x: seller.x + (seller.x > 0 ? 1.9 : -1.9) + ((n % 3) - 1) * 0.5, y: seller.y + 0.5 + (Math.floor(n / 3) % 2) * 0.5 };
+      moveItem(w.state, it.id, { k: "ground", ...shelf });
+      it.owner = seller.id; it.home = shelf; it.movedBy = undefined;
+      actor.money += price; seller.money -= price;
       // Something nicked, in the pawn shop window: whoever it was nicked from will hear, and come for it.
-      if (it.stolenFrom && w.state.actors[it.stolenFrom]?.npc) (w.state.stadium!.pawnSeek ??= []).push({ who: it.stolenFrom, def: it.def, at: w.state.tick + 60 * 8 });
+      if (it.stolenFrom && w.state.actors[it.stolenFrom]?.npc) (st.pawnSeek ??= []).push({ who: it.stolenFrom, def: it.def, item: it.id, at: w.state.tick + 60 * 8 });
       say(w, seller, pick(w.state.rng.world, ["Pleasure doing business.", "I'll not ask where it's from.", "Lovely. Next.", "Cash. Don't spend it all at once."]));
       w.bus.emit({ type: "pawned", t: w.state.tick, by: actor.id, def: it.def, price });
     },
@@ -166,6 +174,7 @@ export function installRules(): void {
         return;
       }
       const it = give(w, actor, act.arg!);
+      seller.money += price; // takings stay in the world: they're in his till
       if (act.arg === "ticket") it.owner = actor.id;
       say(w, seller, act.arg === "ticket" ? "There you go. Enjoy the game." : "Cheers.");
     },

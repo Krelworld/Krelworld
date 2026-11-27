@@ -69,6 +69,7 @@ export const ITEM_DEFS: Record<string, ItemDef> = Object.fromEntries(
     { id: "parachute", name: "Parachute", props: [], size: "large", colour: 0x5a6a3a },
     { id: "kitbag", name: "Para Steve's kit bag", props: ["container"], size: "huge", colour: 0x4a5a32 },
     { id: "keg", name: "Beer keg", props: [], size: "huge", colour: 0x9aa3ab },
+    { id: "flask", name: "Flask of tea", props: ["throwable"], size: "small", colour: 0xb8bcc2, range: 15 },
     { id: "laundry", name: "Laundry hamper", props: ["container"], size: "huge", colour: 0x8a6a40 },
     { id: "mascot_suit", name: "Lion mascot costume", props: ["wearable"], size: "large", slot: "outer", role: "mascot", authority: 1, faceCover: 1, colour: 0xd8a640, colour2: 0xf4f4f4 },
     { id: "press_pass", name: "TV press pass", props: [], size: "small", colour: 0xc8102e },

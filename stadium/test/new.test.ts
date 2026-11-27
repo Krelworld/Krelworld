@@ -220,7 +220,9 @@ test("the pawnbroker buys what you've lifted, and won't touch a face", () => {
   const before = pc.money;
   assert.equal(dispatch(g.w, { verb: "pawn", actor: pc.id, target: { k: "actor", id: ron.id }, item: wallet.id }).ok, true);
   assert.ok(pc.money > before);
-  assert.equal(s.items[wallet.id].loc.k, "gone");
+  // It doesn't vanish: it's his now, on the shelf, and the money came out of his till.
+  assert.equal(s.items[wallet.id].loc.k, "ground");
+  assert.equal(s.items[wallet.id].owner, ron.id);
   assert.equal(dispatch(g.w, { verb: "pawn", actor: pc.id, target: { k: "actor", id: ron.id }, item: face.id }).ok, false);
   // And he sells: a walkie.
   pc.money = 100;
@@ -527,4 +529,91 @@ test("forecourt contraptions: boot the pigeons and the barriers go over and a tu
   assert.ok(Object.values(a.st.gates).some((v) => v.for === a.st.pc && v.until > a.g.w.state.tick), "a turnstile's open for you while he's out");
   const b = run("burger");
   assert.ok(b.links.includes("WHOOMPH") && b.links.includes("STAFF DOOR LEFT PROPPED OPEN"), b.links.join(" > "));
+});
+
+test("the machine: an owned thing moved is fetched back by its owner, whoever he is, and what he was minding is left", async () => {
+  const { setPace, KICKOFF_AT } = await import("../src/stadium/layout");
+  const before = KICKOFF_AT;
+  setPace({ kickoffAt: 540, calm: true });
+  try {
+    const g = createGame("custody"), s = g.w.state, st = s.stadium!, pc = s.actors[st.pc];
+    for (let i = 0; i < 60 * 20; i++) stepGame(g);
+    const flask = Object.values(s.items).find((i) => i.def === "flask")!, owner = s.actors[flask.owner!], home = { ...flask.home! };
+    assert.equal(owner.npc!.job, "turnstile", "a turnstile steward's flask, by his gate");
+    // Grozz lifts it and leaves it down the forecourt.
+    pc.x = home.x + 0.4; pc.y = home.y + 0.6;
+    assert.equal(dispatch(g.w, { verb: "take", actor: pc.id, item: flask.id }).ok, true);
+    flask.loc = { k: "ground", x: home.x + 2, y: home.y + 9 }; pc.hand = null; pc.x += 14;
+    for (let i = 0; i < 60 * 6; i++) stepGame(g);
+    assert.ok(!!st.chain?.links.some((l: string) => /GOES AFTER IT|LOOKS FOR HIS FLASK/.test(l)), (st.chain?.links ?? []).join(" > "));
+    assert.ok(st.chain?.rules?.includes("custody"), "it's the custody rule that did it");
+    assert.ok(st.chain?.links.includes("HIS TURNSTILE LEFT ON FREE-WHEEL"), "and his turnstile's the price");
+    for (let i = 0; i < 60 * 40; i++) stepGame(g);
+    assert.ok(flask.loc.k === "ground" && Math.hypot(flask.loc.x - home.x, flask.loc.y - home.y) < 1.5, "it's back where it lives");
+    assert.ok(Math.hypot(owner.x - owner.npc!.post!.x, owner.y - owner.npc!.post!.y) < 1.5, "and so is he");
+  } finally { setPace({ kickoffAt: before, calm: false }); }
+});
+
+test("the machine: a queue for nothing grows by itself and the reporter comes; a rumour spreads, is found out, and both know who started them", async () => {
+  const { setPace, KICKOFF_AT } = await import("../src/stadium/layout");
+  const before = KICKOFF_AT;
+  setPace({ kickoffAt: 540, calm: true });
+  try {
+    const a = createGame("queue"), s = a.w.state, st = s.stadium!, pc = s.actors[st.pc];
+    for (let i = 0; i < 60 * 30; i++) stepGame(a);
+    pc.x = 6; pc.y = 57.5; pc.facing = -Math.PI / 2;
+    assert.equal(dispatch(a.w, { verb: "queue", actor: pc.id }).ok, true);
+    for (let i = 0; i < 60 * 30; i++) stepGame(a);
+    const q = st.chain!.links;
+    assert.ok(q[0] === "GROZZ QUEUES FOR NOTHING" && q.includes("THE QUEUE HAS A LIFE OF ITS OWN"), q.join(" > "));
+    assert.ok(q.includes("THE REPORTER SMELLS A STORY"), "a queue that long is news");
+    const rep = Object.values(s.actors).find((x) => x.name === "Reporter")!;
+    assert.ok(Math.hypot(rep.x - rep.npc!.post!.x, rep.y - rep.npc!.post!.y) > 3, "so he's left his pitch (and his spare pass)");
+
+    const b = createGame("rumour"), s2 = b.w.state, st2 = s2.stadium!, pc2 = s2.actors[st2.pc];
+    for (let i = 0; i < 60 * 30; i++) stepGame(b);
+    const fan = Object.values(s2.actors).filter((x) => x.npc?.job === "fan" && x.npc.mode === "routine" && !x.hiddenIn && x.y > 46 && x.y < 84)
+      .sort((p, q) => Object.values(s2.actors).filter((o) => o.npc?.job === "fan" && Math.hypot(o.x - q.x, o.y - q.y) < 4).length - Object.values(s2.actors).filter((o) => o.npc?.job === "fan" && Math.hypot(o.x - p.x, o.y - p.y) < 4).length)[0];
+    pc2.x = fan.x + 1; pc2.y = fan.y;
+    assert.equal(dispatch(b.w, { verb: "rumour", actor: pc2.id, arg: "freebie", target: { k: "actor", id: fan.id } }).ok, true);
+    pc2.x = 80; pc2.y = 90;
+    for (let i = 0; i < 60 * 60; i++) stepGame(b);
+    const r = st2.rumours![0], links = st2.chain!.links;
+    assert.ok(Object.keys(r.holders).length >= 4 && r.acted.length >= 2, "it got round, and people went");
+    assert.ok(links.includes("FANS HEAD FOR THE FREE PINTS") && links.includes("THERE ARE NO FREE PINTS"), links.join(" > "));
+    assert.ok(st2.chain?.rules?.includes("belief"));
+  } finally { setPace({ kickoffAt: before, calm: false }); }
+});
+
+test("the beer line: not while he's watching; down the drain, the kegs fill, they reach the ground, and the sick pull stewards about", async () => {
+  const { setPace, KICKOFF_AT } = await import("../src/stadium/layout");
+  const { hoseAt } = await import("../src/stadium/beer");
+  const before = KICKOFF_AT;
+  setPace({ kickoffAt: 540, calm: true });
+  try {
+    const g = createGame("beer"), s = g.w.state, st = s.stadium!, pc = s.actors[st.pc], h = hoseAt();
+    for (let i = 0; i < 60 * 8; i++) stepGame(g);
+    const dray = Object.values(s.actors).find((x) => x.npc?.job === "worker")!;
+    // Stood there looking at it, he stops you.
+    dray.x = h.x - 2; dray.y = h.y + 1; dray.facing = Math.atan2(h.y - dray.y, h.x - dray.x); dray.npc!.plan = [{ k: "wait", s: 3 }];
+    pc.x = h.x; pc.y = h.y + 1;
+    dispatch(g.w, { verb: "hose", actor: pc.id });
+    assert.equal(st.beer?.hose ?? "lorry", "lorry", "not while he's watching");
+    // Send him after a keg, and it's yours.
+    const keg = Object.values(s.items).find((i) => i.def === "keg" && i.home && Math.abs(Math.abs(i.home.x) - 30.1) < 0.1)!;
+    keg.loc = { k: "ground", x: keg.home!.x + 9, y: keg.home!.y + 6 };
+    for (let i = 0; i < 60 * 6; i++) stepGame(g);
+    pc.x = h.x; pc.y = h.y + 1;
+    dispatch(g.w, { verb: "hose", actor: pc.id });
+    assert.equal(st.beer!.hose, "sewer");
+    for (let i = 0; i < 60 * 12; i++) stepGame(g);
+    assert.ok(st.beer!.load, "the kegs are full of it");
+    assert.equal(st.beer!.sick, 0, "and nothing's happened yet: that's later, somewhere else");
+    for (let i = 0; i < 60 * 420; i++) stepGame(g);
+    const links = st.chainBest!.links;
+    assert.ok(st.beer!.sick >= 5, `sick: ${st.beer!.sick}`);
+    assert.ok(links.includes("DELIVERED TO THE GROUND") && links.includes("FIRST PINT SERVED") && links.includes("THE LAGER'S OFF"), links.join(" > "));
+    assert.ok(links.some((l: string) => /SENT TO MOP IT UP/.test(l)), "each mess is somebody's to see to");
+    assert.ok(links[0] === "GROZZ PUTS THE BEER LINE DOWN THE SEWER", "and it all still knows where it started");
+  } finally { setPace({ kickoffAt: before, calm: false }); }
 });

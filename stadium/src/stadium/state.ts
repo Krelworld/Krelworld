@@ -38,6 +38,12 @@ export interface Npc {
   retaliateOn?: Id;
   /** A mounted officer (drawn on the horse). */
   mounted?: boolean;
+  /** The cause (cause.ts) he's acting under, and until when: what he sets off meanwhile is its child. */
+  cause?: number; causeUntil?: number;
+  /** The problem he's seeing to (machine.ts), and what's pulled him over (a stim), and when he can be pulled again. */
+  duty?: number; drawn?: number; drawnUntil?: number;
+  /** Rumours he's heard (belief.ts). */
+  heardR?: number[];
   /** Stays at his post rather than walking a round (the copper on the van). */
   stay?: boolean;
   /** Standing about with others: the middle of the group, and what they're doing (chat, drink, smoke, cheer, idle). */
@@ -160,6 +166,11 @@ export interface StadiumState {
   rolling?: import("./kegs").Roll[];
   kegCarry?: Record<Id, Id>;
   chain?: import("./kegs").Chain;
+  /** The cause graph (cause.ts), and the machine's open stimuli and problems (machine.ts). */
+  causes?: import("./cause").Cause[]; causeSeq?: number;
+  rumours?: import("./belief").Rumour[];
+  beer?: import("./beer").Beer;
+  stims?: import("./machine").Stim[]; problems?: import("./machine").Problem[]; machineSeq?: number;
   /** Held by security (the game's detention): time passes, then he's let out. */
   custody?: { until: number; taken: string[] };
   /** A fan's pint left on the wall while he's away (lulls.ts). */
@@ -174,7 +185,9 @@ export interface StadiumState {
   /** Where the ball was last tick while in play (where it went out). */
   lastBall?: { x: number; y: number };
   /** People coming to the pawn shop for something of theirs that's turned up in the window. */
-  pawnSeek?: { who: Id; def: string; at: number }[];
+  pawnSeek?: { who: Id; def: string; at: number; item?: Id }[];
+  /** Owners on their way to the pawn shop for their things (who, which item). */
+  pawnBack?: { who: Id; item: Id }[];
   /** The longest chain of the day (for the front page). */
   chainBest?: import("./kegs").Chain;
   incidents: Incident[];

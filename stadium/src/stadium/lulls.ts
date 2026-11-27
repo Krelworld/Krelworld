@@ -15,6 +15,7 @@ import { PACE } from "./layout";
 import { isSecurity } from "./security";
 import { say } from "./npc";
 import { chainLink, knockOn } from "./kegs";
+import { problem, stim } from "./machine";
 
 /** How long Grozz can go without anything paying off before the world offers something. */
 export const LULL_SECONDS = 45;
@@ -100,16 +101,18 @@ function stepPint(w: World): void {
   breakItUp(w, fan, blame);
 }
 
+/** A steward's radio packs up and he puts it down by him to fiddle with later: a thing of his, unattended.
+ *  (The director sets something up; it never opens a way for you. What you do with a radio is yours.) */
 function fagBeat(w: World, pc: Actor): boolean {
   const s = w.state;
-  const g = locals(w, pc, (a) => !!a.npc!.post && ["turnstile", "doorguard", "gateguard", "pitchsteward", "corridor"].includes(a.npc!.job) && near(a, a.npc!.post!) < 2)[0];
+  const g = locals(w, pc, (a) => !!a.npc!.post && ["doorguard", "gateguard", "pitchsteward", "corridor", "patrol"].includes(a.npc!.job) && near(a, a.npc!.post!) < 2 && a.pockets.some((id) => s.items[id]?.def === "radio"))[0];
   if (!g) return false;
-  const post = g.npc!.post!, off = { x: post.x + (post.x > pc.x ? 5 : -5), y: post.y + 3 };
-  say(w, g, pick(s.rng.world, ["Two minutes. I'm gasping.", "Cover for me, I need a fag.", "Back in a bit. Don't let anyone in."]), 4);
-  g.npc!.plan = [{ k: "go", ...off }, { k: "wait", s: 20 }, { k: "go", ...post }];
-  g.npc!.act = "smoke";
-  g.npc!.why = "search"; g.npc!.whyUntil = s.tick + 60 * 22;
-  w.bus.emit({ type: "beat", t: s.tick, kind: "fag", x: post.x, y: post.y, who: g.id });
+  const rid = g.pockets.find((id) => s.items[id]?.def === "radio")!, it = s.items[rid];
+  const at = { x: g.x + Math.cos(g.facing + 1.2) * 1.1, y: g.y + Math.sin(g.facing + 1.2) * 1.1 };
+  moveItem(s, rid, { k: "ground", ...at });
+  it.owner = g.id; it.home = at; it.label = `${g.name.split(" ").pop()}'s radio`;
+  say(w, g, pick(s.rng.world, ["Battery's flat again. Useless thing.", "Nothing but static. I'll sort it at half-time.", "Radio's packed up. Again."]), 4);
+  w.bus.emit({ type: "beat", t: s.tick, kind: "radio", x: at.x, y: at.y, who: g.id, item: rid });
   return true;
 }
 
@@ -123,7 +126,8 @@ function rowBeat(w: World, pc: Actor): boolean {
   a.npc!.plan = [{ k: "go", x: mid.x - 0.5, y: mid.y }, { k: "say", text: pick(s.rng.world, ["You spilled my pint, you muppet!", "Say that again. Go on.", "Your lot are a disgrace."]) }, { k: "wait", s: 10 }];
   b.npc!.plan = [{ k: "go", x: mid.x + 0.5, y: mid.y }, { k: "wait", s: 1.5 }, { k: "say", text: pick(s.rng.world, ["Come on then!", "Who are you calling a muppet?!", "Outside. Now."]) }, { k: "wait", s: 9 }];
   w.bus.emit({ type: "beat", t: s.tick, kind: "row", x: mid.x, y: mid.y, who: a.id });
-  breakItUp(w, a, b);
+  stim(w, "spectacle", mid, { r: 12, secs: 10, cap: 1 });
+  problem(w, "row", mid, { fixSecs: 8, line: "Oi! Pack it in, you two." });
   return true;
 }
 

@@ -104,6 +104,9 @@ export class Announcer {
       case "accident":
         this.out({ t: e.t, text: "Would a cleaner please attend the area immediately. Immediately.", src: "tannoy", big: false, key: "cleaner" });
         break;
+      case "lager_off":
+        this.out({ t: e.t, text: "Supporters are advised not to drink the lager. I repeat: do not drink the lager. The pies are, as far as we know, fine.", src: "tannoy", big: false, key: "lager" });
+        break;
       case "fell_out":
         this.out({ t: e.t, text: "A man has fallen out of the back of a beer lorry.", src: "tannoy", big: false });
         break;

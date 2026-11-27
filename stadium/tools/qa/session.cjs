@@ -130,7 +130,11 @@ function serve(dir) {
     } else if (st.do === "tap") { const c = await toClient(st.x, st.y); await p.mouse.click(c.cx, c.cy); await run(400); }
     else if (st.do === "click") { if (await p.isVisible(st.sel)) await p.click(st.sel); else fs.appendFileSync(path.join(OUT, "steps.log"), `click ${st.sel}: NOT VISIBLE\n`); await run(500); }
     else if (st.do === "close") { await p.evaluate(() => window.__scene.closeSheet()); await run(300); }
-    else if (st.do === "act") { if (await p.isVisible("#act")) await p.click("#act"); await run(500); }
+    else if (st.do === "act") {
+      // Press the main button if it's there and nothing is covering it (a first-timer would be stopped by a sheet too).
+      try { if (await p.isVisible("#act")) await p.click("#act", { timeout: 1500 }); } catch { fs.appendFileSync(path.join(OUT, "steps.log"), "act: button covered or gone\n"); await p.evaluate(() => window.__scene.closeSheet && window.__scene.closeSheet()); }
+      await run(500);
+    }
     else if (st.do === "option") {
       const lab = await p.evaluate((m) => { const sc = window.__scene, o = sc.opts.find((q) => q.label.toLowerCase().includes(m.toLowerCase())); if (o) { sc.run(o); return o.label; } return null; }, st.match);
       fs.appendFileSync(path.join(OUT, "steps.log"), `option ${st.match}: ${lab ?? "NOT OFFERED"}\n`);

@@ -46,6 +46,7 @@ import { can } from "../stadium/affordances";
 import { RIG_IDS, RIGS, rigReady, type RigId } from "../stadium/rigs";
 import { RUMOURS, type RumourKind } from "../stadium/belief";
 import { hasBeerLine, hoseAt, hoseWatched } from "../stadium/beer";
+import { openFor, statusOf, whatItDoes, type Status } from "../stadium/outcomes";
 import { EXTRAS, setExtras } from "../stadium/context";
 import { matchJob, type Job } from "../stadium/director";
 import { inDrag as inDragSim } from "../stadium/drag";
@@ -1625,23 +1626,50 @@ class StadiumScene extends Phaser.Scene {
       t.setText(p.text).setOrigin(left ? 0 : 1, 0.5).setScale(px).setPosition(x + (left ? 15 : -15) * px, y).setVisible(true);
     });
   }
-  /** Stowed in the lorry: one strip that says what the lorry's doing and when, with a button to let time run.
-   *  (Why you're in here, and whether to stay: it's going into the ground.) */
-  lorryOn = false;
-  lorryStrip(v: { state: string; until: number } | undefined): void {
+  /** In or doing something that isn't obvious (stowed in the lorry, the coach hold, the hamper, a bin, a
+   *  queue): one strip that says what's happening, where it's going and when, with a button to let time run. */
+  stripOn = "";
+  statusStrip(sv: Status | null): void {
     const el = $("custody"), st = this.s.stadium!;
-    if (!v) { if (this.lorryOn) { this.lorryOn = false; el.hidden = true; if (this.speed > 1 && !st.custody && !st.recover) this.setSpeed(1); } return; }
-    if (st.custody || st.recover) return;
-    if (!this.lorryOn) {
-      this.lorryOn = true; el.className = "strip"; el.innerHTML = `<b>IN THE LORRY</b><span class="cd wide"></span><button data-wait="1">Wait</button>`; el.hidden = false;
+    if (st.custody || st.recover) { this.stripOn = ""; return; }
+    if (!sv) { if (this.stripOn) { this.stripOn = ""; el.hidden = true; if (this.speed > 1 && !this.pc.seated) this.setSpeed(1); } return; }
+    if (this.stripOn !== sv.title) {
+      this.stripOn = sv.title; el.className = "strip"; el.innerHTML = `<b>${esc(sv.title)}</b><span class="cd wide"></span><button data-wait="1">Wait</button>`; el.hidden = false;
       el.querySelector("button")!.addEventListener("click", () => { this.setSpeed(this.speed > 1 ? 1 : 6); this.audio.play("tap", 0.5); });
     }
-    const sec = Math.max(0, Math.ceil((v.until - this.s.tick) / 60)), mm = `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`;
-    const inGround = VENUE.inside(this.pc.x, this.pc.y) || v.state === "unloading";
-    const txt = v.state === "loading" ? `Leaves for the ground in ${mm}` : v.state === "gate" ? "Service gate. Keep still." : inGround ? "In the ground. Out you get." : v.state === "returning" ? "Heading back to the pub" : "On its way round to the ground";
-    const cd = el.querySelector(".cd")!; if (cd.textContent !== txt) cd.textContent = txt;
-    const bt = el.querySelector("button")!; const lab = this.speed > 1 ? "Stop" : "Wait"; if (bt.textContent !== lab) bt.textContent = lab; (bt as HTMLElement).hidden = inGround;
-    if (inGround && this.speed > 1) this.setSpeed(1);
+    const cd = el.querySelector(".cd")!; if (cd.textContent !== sv.text) cd.textContent = sv.text;
+    const bt = el.querySelector("button")!; const lab = this.speed > 1 ? "Stop" : "Wait"; if (bt.textContent !== lab) bt.textContent = lab; (bt as HTMLElement).hidden = !sv.wait;
+    if (!sv.wait && this.speed > 1) this.setSpeed(1);
+  }
+  /** Where the lorry and the coach are going and when, on the vehicle itself, like a destination blind:
+   *  shown as you come up to one (the button's own line takes over once you're at the back of it). And how
+   *  long a gate you've got open stays open, on the gate. */
+  boards: Phaser.GameObjects.Text[] = [];
+  drawBoards(): void {
+    const s = this.s, st = s.stadium!, pc = this.pc, P = this.P, tick = s.tick, px = DPR / this.cameras.main.zoom;
+    const out: { x: number; y: number; z: number; text: string; col: string }[] = [];
+    const mm = (t: number) => { const sec = Math.max(0, Math.ceil(t / 60)); return `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`; };
+    if (pc && !pc.hiddenIn && !st.custody && !this.cine && this.mainOpt?.action?.verb !== "hide") for (const v of Object.values(st.vehicles)) {
+      if (v.drivenBy || Math.hypot(v.x - pc.x, v.y - pc.y) > 13) continue;
+      const left = v.until - tick;
+      const text = v.kind === "lorry" ? (v.state === "loading" ? `TO THE GROUND ${mm(left)}` : v.state === "unloading" && left < 60 * 600 ? `BACK TO THE PUB ${mm(left)}` : "")
+        : v.state === "parked" && left < 60 * 3600 ? `TO THE GROUND ${mm(left)}` : v.state === "loading" ? "TO THE GROUND NOW" : "";
+      if (text) out.push({ x: v.x, y: v.y, z: 3.3, text, col: "#f2c94c" });
+    }
+    if (pc && !this.cine) for (const g of openFor(this.w)) {
+      const wl = SOLID.find((q) => q.gate === g.gate);
+      if (!wl) continue;
+      const x = wl.x + wl.w / 2, y = wl.y + wl.h / 2;
+      if (Math.hypot(x - pc.x, y - pc.y) > 12) continue;
+      out.push({ x, y, z: 2.5, text: `OPEN ${mm(g.secs * 60)}`, col: "#b8f28a" });
+    }
+    out.slice(0, 4).forEach((o, i) => {
+      let t = this.boards[i];
+      if (!t) { t = this.add.text(0, 0, "", { fontFamily: "system-ui, sans-serif", fontStyle: "bold", fontSize: "11px", color: "#f2c94c", backgroundColor: "#0b0c10e0", padding: { x: 5, y: 3 } }).setOrigin(0.5, 1).setDepth(9.4e6).setResolution(2); this.boards[i] = t; }
+      if (t.text !== o.text) t.setText(o.text);
+      t.setColor(o.col).setScale(px * 1.05).setPosition(Math.round(P.sx(o.x, o.y)), Math.round(P.sy(o.x, o.y, o.z))).setVisible(true);
+    });
+    for (let i = Math.min(4, out.length); i < this.boards.length; i++) this.boards[i].setVisible(false);
   }
   /** A chain Grozz set off, named like a TV graphic as it grows ("KEG → DRAYMAN GOES AFTER IT → …"). */
   chainTimer = 0;
@@ -2439,6 +2467,7 @@ class StadiumScene extends Phaser.Scene {
       const here = pc ? areaAt(pc.x, pc.y) : null;
       this.drawRigs();
       this.drawBeer();
+      this.drawBoards();
       this.drawEdgePips();
       { const rc = this.s.stadium!.recover, cd = rc ? document.querySelector("#custody .cd") : null; if (rc && cd) { const sec = Math.max(0, Math.ceil((rc.until - this.s.tick) / 60)); cd.textContent = `0:${String(sec).padStart(2, "0")}`; } }
       { const c = this.s.stadium!.custody, cd = c ? document.querySelector("#custody .cd") : null; if (c && cd) { const sec = Math.max(0, Math.ceil((c.until - this.s.tick) / 60)); cd.textContent = `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`; } }
@@ -3987,8 +4016,8 @@ class StadiumScene extends Phaser.Scene {
       : bad ? `${area.name} · you shouldn't be here` : "";
     void fresh;
     const wEl = $("where");
-    const lorryV = pc.hiddenIn ? Object.values(st.vehicles).find((v) => v.cargo === pc.hiddenIn && v.kind === "lorry") : undefined;
-    this.lorryStrip(lorryV);
+    const lorryV = statusOf(this.w, pc);
+    this.statusStrip(lorryV);
     if (lorryV) { if (wEl.textContent) wEl.textContent = ""; } else
     if (wEl.textContent !== where) wEl.textContent = where;
     // Like Hitman's and MGS's area names: up when it changes, then out of the way (a warning stays).
@@ -4056,6 +4085,8 @@ class StadiumScene extends Phaser.Scene {
       $("fightRow").style.visibility = this.ring ? "hidden" : "";
       $("moreBtn").style.visibility = this.ring ? "hidden" : "";
       act.textContent = p ? shortLabel(p) : "";
+      // What it'll do, in a line, right over it. (Nothing when the button's own words say it all.)
+      { const hEl = $("actHint"), ht = p && !this.ring && !fighting && !st.custody ? whatItDoes(this.w, pc, p) : ""; if (hEl.textContent !== ht) hEl.textContent = ht; hEl.hidden = !ht; }
       this.primaryAt = p ? this.optionSpot(p) : null;
       const thr = $("throw");
       const ta = (this as any).throwAt as Actor | null;
@@ -4791,7 +4822,7 @@ class StadiumScene extends Phaser.Scene {
 
   openMore() {
     const opts = this.opts.filter((o) => o.action || o.sheet);
-    const html = `<h2>What do you want to do?</h2><div class="list">${opts.length ? opts.map((o, i) => `<button data-opt="${i}">${esc(o.label)}</button>`).join("") : "<p>Nothing nearby. Walk up to people and things.</p>"}</div>`;
+    const html = `<h2>What do you want to do?</h2><div class="list">${opts.length ? opts.map((o, i) => { const h = whatItDoes(this.w, this.pc, o).replace(/(\d+):(\d\d)/, (_m, a, b) => { const t = Math.ceil((+a * 60 + +b) / 10) * 10; return `about ${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}`; }); return `<button data-opt="${i}">${esc(o.label)}${h ? `<small>${esc(h)}</small>` : ""}</button>`; }).join("") : "<p>Nothing nearby. Walk up to people and things.</p>"}</div>`;
     const prev = $("sheet").innerHTML;
     if (this.sheetKind === "more" && prev.startsWith(html.slice(0, 200)) && prev.includes(html.slice(-60))) return;
     (this as any).moreOpts = opts;

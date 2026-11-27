@@ -1782,3 +1782,27 @@ Two screenshots from the creator's phone: a notepad open over the yard, a green 
 - **Rings on the ground:** only the thing the big button is about gets one, not every keg within reach.
 - **The pacing director** got a fourth beat that works in a quiet yard: somebody caught short uses the drayman's corner and he turns to shout at them.
 - **My new "needs the gents" rule** was noisy when nobody had caused it. Now only people you've given a drink to announce it, drinkers go by themselves far less often, and nobody gives up until they've reached the door and found it shut or full.
+
+## Round: say what it does (27 Nov, evening)
+
+The creator, sat in the lorry: "shouldn't there be some indication of what stuff does rather than just sitting
+in the lorry with no idea what it does, where it goes or how long until it departs, and apply that principle
+elsewhere." A fair hit: the machine is only fun to interfere with if you can read it first.
+
+One rule, in one file (`src/stadium/outcomes.ts`), read-only over the sim:
+
+- **Before you press:** `whatItDoes(option)` gives one line (72 characters at most) on what the action sets
+  off, where it leads and how long it takes. It sits right over the main button and under each entry in the
+  "..." list. Empty when the button's own words say it all (Talk, Pick up). Covers the lorry and the coach
+  (destination and a live countdown, and "not while the drayman's looking"), the hamper, kegs, the hose, the
+  five forecourt rigs, queueing, the loo sign, pints and pies, orders, handing in, the drain, the scaffold,
+  ladders, windows, the alarm, the dog, the radio, the detector, tampering, owned things you pick up.
+- **While you're in it:** `statusOf(pc)` drives one strip (the lorry strip, generalised): IN THE LORRY, IN THE
+  COACH HOLD, IN THE HAMPER, HIDDEN, QUEUING, GOT YOU (which says where you're being taken). Each says what
+  is happening and when, with Wait where waiting is the point.
+- **On the thing itself:** the lorry and the coach carry a destination blind ("TO THE GROUND 0:42") as you
+  come up to them, which hands over to the button's line once you're at the back; a gate you've opened shows
+  "OPEN 0:04" on the gate.
+
+Kept quiet on purpose (the noise complaint stands): one line per button, one strip, at most four boards, all
+of them only when near; the carried-item reminder was cut because the pick-up line already says it.

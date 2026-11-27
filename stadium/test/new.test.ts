@@ -718,3 +718,42 @@ test("the gents holds so many: hang up the sign and they queue, and a queue that
     assert.ok(st.causes!.some((c) => c.rule === "capacity"));
   } finally { setPace({ kickoffAt: before, calm: false }); }
 });
+
+test("you're told what a thing does before you do it, and what's happening while you're in it: the lorry says where and when", async () => {
+  const { setPace, KICKOFF_AT } = await import("../src/stadium/layout");
+  const { options } = await import("../src/stadium/context");
+  const { whatItDoes, statusOf, openFor } = await import("../src/stadium/outcomes");
+  const before = KICKOFF_AT;
+  setPace({ kickoffAt: 540, calm: true });
+  try {
+    const g = createGame("told"), s = g.w.state, st = s.stadium!, pc = s.actors[st.pc];
+    run(g, 4);
+    const cargo = Object.values(s.items).find((i) => i.def === "lorry_cargo")!, loc = cargo.loc as { x: number; y: number };
+    const dray = Object.values(s.actors).find((x) => x.npc?.job === "worker")!;
+    pc.x = loc.x + 0.8; pc.y = loc.y - 1.2;
+    const hideOpt = () => options(g.w, pc, null).find((o) => o.action?.verb === "hide")!;
+    // While he's looking, it says so.
+    dray.x = pc.x + 2; dray.y = pc.y; dray.facing = Math.PI; dray.npc!.plan = [{ k: "wait", s: 30 }];
+    assert.match(whatItDoes(g.w, pc, hideOpt()), /ground in \d:\d\d.*drayman/);
+    // Head turned: where it goes and when.
+    dray.npc!.gawk = { x: dray.x + 20, y: dray.y, until: s.tick + 60 * 40, filming: false }; dray.facing = 0;
+    assert.match(whatItDoes(g.w, pc, hideOpt()), /into the ground\. Leaves in \d:\d\d/);
+    // Every line is short enough for a phone, and the keg and the hose have one.
+    for (const o of options(g.w, pc, null)) assert.ok(whatItDoes(g.w, pc, o).length <= 72, `${o.label}: ${whatItDoes(g.w, pc, o)}`);
+    const keg = Object.values(s.items).find((i) => i.def === "keg" && i.loc.k === "ground")!;
+    assert.ok(whatItDoes(g.w, pc, { label: "Roll the keg", priority: 1, action: { verb: "shove", actor: pc.id, item: keg.id } }).includes("drayman"));
+    assert.equal(statusOf(g.w, pc), null);
+    // In it: the strip says when it leaves, then that it's on its way, then that you're there.
+    assert.equal(dispatch(g.w, { verb: "hide", actor: pc.id, target: { k: "item", id: cargo.id } }).ok, true);
+    assert.equal(pc.hiddenIn, cargo.id);
+    let sv = statusOf(g.w, pc)!;
+    assert.equal(sv.title, "IN THE LORRY"); assert.match(sv.text, /Leaves for the ground in \d:\d\d/); assert.equal(sv.wait, true);
+    const seen = new Set<string>();
+    for (let i = 0; i < 60 * 150 && pc.hiddenIn; i++) { stepGame(g); sv = statusOf(g.w, pc) ?? sv; seen.add(sv.text.replace(/\d:\d\d/, "")); if (/Out you get/.test(sv.text)) break; }
+    assert.ok([...seen].some((t) => /On its way/.test(t)), [...seen].join(" | "));
+    assert.ok(/Out you get/.test(sv.text) && !sv.wait, [...seen].join(" | "));
+    // A gate you've got open says for how long.
+    st.gates.turnstile1 = { until: s.tick + 60 * 4, for: pc.id };
+    assert.deepEqual(openFor(g.w).find((q) => q.gate === "turnstile1"), { gate: "turnstile1", secs: 4 });
+  } finally { setPace({ kickoffAt: before, calm: false }); }
+});

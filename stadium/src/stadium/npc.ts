@@ -309,6 +309,31 @@ function routine(w: World, a: Actor): void {
 }
 
 /** Footballers and officials before kick-off and at half-time: in and out of the dressing rooms. */
+/** Where a man with time to kill stands in a room (the hotel lobby, a dressing room): not on a grid by
+ *  shirt number, which looked like a kit inspection, but in knots of two and three facing each other, with
+ *  one pacing up and down and the odd one drifting from knot to knot. Decided by his number and the clock,
+ *  so it costs nothing and is the same every run. */
+const KNOTS = [{ x: -2.6, y: -1.1 }, { x: 0.5, y: -1.5 }, { x: 2.8, y: -0.5 }, { x: -1.5, y: 1.4 }, { x: 1.6, y: 1.5 }];
+const MUTTER = [
+  ["Who's had my shin pads?", "Is it too late for a pie?", "4-4-2. Again.", "My nan could mark their nine.", "Has anyone seen the gaffer?"],
+  ["Onde estão as minhas botas?", "Chuva. Sempre chuva.", "This hotel smells of cabbage.", "They eat beans. For breakfast.", "Calma. Calma."],
+];
+function loiter(room: { x: number; y: number }, k: number, tick: number): { x: number; y: number; cx: number; cy: number } {
+  const secs = tick / 60;
+  // One in seven paces the length of the room, on the phone to somebody.
+  if (k % 7 === 4) { const side = Math.floor((secs + k) / 9) % 2 ? 1 : -1; return { x: room.x + side * 3.1, y: room.y + 0.15, cx: room.x - side * 9, cy: room.y + 0.15 }; }
+  // One in three drifts on to the next knot every half-minute or so; the rest stay with their mates.
+  const drift = k % 3 === 0 ? Math.floor((secs + k * 7) / 34) : 0;
+  const c = KNOTS[(k + drift) % KNOTS.length], an = k * 2.399;
+  return { x: room.x + c.x + Math.cos(an) * 1.0, y: room.y + c.y + Math.sin(an) * 0.8, cx: room.x + c.x, cy: room.y + c.y };
+}
+/** Stood in his knot: he looks at the others, and now and then says something to them. */
+function idleIn(w: World, a: Actor, p: { cx: number; cy: number }, k: number): void {
+  a.facing = Math.atan2(p.cy - a.y, p.cx - a.x);
+  const tick = w.state.tick, n = a.npc!;
+  if ((tick + k * 97) % 660 === 0 && !n.bubble) { const set = MUTTER[a.fb?.team === 1 ? 1 : 0]; n.bubble = { text: set[(k + Math.floor(tick / 660)) % set.length], until: tick + 170 }; }
+}
+
 function teamWalk(w: World, a: Actor): void {
   const s = w.state, m = s.match!, n = a.npc!, st = s.stadium!;
   if (m.cfg.venue !== true || (m.phase !== "pre" && m.phase !== "break")) { n.goal = null; n.path = []; return; }
@@ -328,8 +353,10 @@ function teamWalk(w: World, a: Actor): void {
       if (!n.goal || Math.hypot(n.goal.x - door.x, n.goal.y - door.y) > 1) goTo(a, door.x, door.y);
     } else {
       const k = a.fb.number;
-      const tx = SPOTS.hotelLobby.x + ((k % 5) - 2) * 1.6, ty = SPOTS.hotelLobby.y + (Math.floor(k / 5) - 1) * 1.6;
+      const lo = PACE.calm ? loiter(SPOTS.hotelLobby, k, s.tick) : null;
+      const tx = lo ? lo.x : SPOTS.hotelLobby.x + ((k % 5) - 2) * 1.6, ty = lo ? lo.y : SPOTS.hotelLobby.y + (Math.floor(k / 5) - 1) * 1.6;
       if (Math.hypot(a.x - tx, a.y - ty) > 0.5 && (!n.goal || Math.hypot(n.goal.x - tx, n.goal.y - ty) > 0.5)) goTo(a, tx, ty);
+      else if (lo && Math.hypot(a.x - tx, a.y - ty) <= 0.5) idleIn(w, a, lo, k);
     }
     const done = follow(w, a);
     a.fb.tx = done ? a.x : n.path[n.pathI] ?? a.x; a.fb.ty = done ? a.y : n.path[n.pathI + 1] ?? a.y; a.fb.sprint = false;
@@ -339,7 +366,7 @@ function teamWalk(w: World, a: Actor): void {
   if (a.hiddenIn && a.fb) return;
   const left = (m.phaseUntil - s.tick) / 60;
   const out = left < (m.phase === "pre" ? 55 : 30) || (m.phase === "break" && m.period !== 1);
-  let tx: number, ty: number;
+  let tx: number, ty: number, lo: ReturnType<typeof loiter> | null = null, lk = 0;
   if (out) {
     // Line up on the halfway line, spread across.
     const idx = a.fb ? a.fb.slot + (a.fb.team === 0 ? 0 : 11) : a.off!.job === "referee" ? 22 : a.off!.line > 0 ? 23 : 24;
@@ -350,8 +377,10 @@ function teamWalk(w: World, a: Actor): void {
     const room = a.fb ? (a.fb.team === 0 ? SPOTS.homeRoom : SPOTS.awayRoom) : SPOTS.refRoom;
     const k = a.fb ? a.fb.number : a.off!.line + 2;
     tx = room.x + ((k % 5) - 2) * 1.6; ty = room.y + (Math.floor(k / 5) - 1) * 1.6;
+    if (PACE.calm && a.fb) { lo = loiter(room, k, s.tick); lk = k; tx = lo.x; ty = lo.y; }
   }
   const there = Math.hypot(a.x - tx, a.y - ty) < 0.4;
+  if (there && lo) idleIn(w, a, lo, lk);
   if (!there && (!n.goal || Math.abs(n.goal.x - tx) > 0.1 || Math.abs(n.goal.y - ty) > 0.1)) goTo(a, tx, ty);
   if (n.goal) n.goal.run = false;
   // Follow the path, but let the match move footballers (it steers them to fb.tx/ty).

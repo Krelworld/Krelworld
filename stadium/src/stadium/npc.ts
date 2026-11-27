@@ -207,7 +207,8 @@ function routine(w: World, a: Actor): void {
       }
       if (n.stage === 2 || n.stage === 4) {
         n.stage = 3;
-        later({ k: "go", x: n.seat!.x, y: n.seat!.y }, { k: "sit" });
+        // (A fan with no seat of his own, like Mad Mick, stands about on the concourse instead.)
+        if (n.seat) later({ k: "go", x: n.seat.x, y: n.seat.y }, { k: "sit" }); else later({ k: "wait", s: 30 });
         return;
       }
       if (n.stage === 3 && m.phase === "break" && m.period === 1) {

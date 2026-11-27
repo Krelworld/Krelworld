@@ -40,6 +40,8 @@ import { stepDeadpan } from "./knife";
 import { DEADPAN } from "../core/identity";
 import { installReferee } from "./scheme_referee";
 import { installTwelfth } from "./scheme_twelfth";
+import { installDrugs } from "./scheme_drugs";
+import { installBribe } from "./scheme_bribe";
 import { installSocial, installSocialWatch, stepSocial } from "./social";
 import { installBallOut, installBallWatch, stepBallOut } from "./ballout";
 import { spawnBootBag, stepBootBag } from "./bootbag";
@@ -75,7 +77,7 @@ export const HALF_SECONDS = 450;
 export const HALFTIME_SECONDS = 150;
 
 export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: Campaign = newCampaign()): Game {
-  if (!rulesInstalled) { installSchemes(); installVisitors(); installReferee(); installTwelfth(); installRules(); installBetting(); installPolice(); installBus(); installDog(); installKickoff(); installKnife(); installGloryHole(); installCombat(); installHorse(); installRoutes(); installEntries(); installDetector(); installCoverup(); installBike(); installLech(); installCars(); installWitness(); installPhone(); installNaked(); installRoofs(); installKegs(); installRigs(); installMachineVerbs(); installBelief(); installBeer(); installSocial(); installCustody(); installBallOut(); installCoke(); rulesInstalled = true; }
+  if (!rulesInstalled) { installSchemes(); installVisitors(); installReferee(); installTwelfth(); installDrugs(); installBribe(); installRules(); installBetting(); installPolice(); installBus(); installDog(); installKickoff(); installKnife(); installGloryHole(); installCombat(); installHorse(); installRoutes(); installEntries(); installDetector(); installCoverup(); installBike(); installLech(); installCars(); installWitness(); installPhone(); installNaked(); installRoofs(); installKegs(); installRigs(); installMachineVerbs(); installBelief(); installBeer(); installSocial(); installCustody(); installBallOut(); installCoke(); rulesInstalled = true; }
   setVenue(venueId);
   const oppKey = VENUE.opp;
   const opp = TEAMS[oppKey];

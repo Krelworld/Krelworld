@@ -1,5 +1,7 @@
 // Ronson: Grozz's own pit bull (his "therapy dog"), a nutcase. A bloke off the coach walks him and
 // leaves him tied up outside the Three Lions. Untie him and he's yours again.
+import { chainLink, knockOn } from "./kegs";
+import { ITEM_DEFS, hasProp, moveItem } from "../core/items";
 import { appearance } from "../core/identity";
 import { chance, pick, rndRange } from "../core/rng";
 import { DT, type Actor } from "../core/types";
@@ -171,6 +173,17 @@ export function stepDog(w: World): void {
     if (l > 0.01) { dog.x += (dog.moveX / l) * speed * DT; dog.y += (dog.moveY / l) * speed * DT; dog.facing = Math.atan2(dog.moveY, dog.moveX); dog.vx = (dog.moveX / l) * speed; dog.vy = (dog.moveY / l) * speed; }
     dog.moveX = dog.moveY = 0;
   };
+  // Food on the floor: a dog goes for it (the second rule of the day). On the lead he yanks it out of
+  // your hand; loose, he drops whatever he was doing. Everyone between him and it is in the way.
+  if ((d.state === "led" || d.state === "loose") && tick % 15 === 0 && !d.food && (d.eatUntil ?? 0) < tick) {
+    const grub = Object.values(s.items).find((i) => hasProp(i, "food") && i.loc.k === "ground" && !i.onRoof && Math.hypot(i.loc.x - dog.x, i.loc.y - dog.y) < 14);
+    if (grub) {
+      if (d.state === "led" && pc) say(w, pc, pick(r, ["RONSON! Get back 'ere!", "Ronson, NO! ...Oh, go on then."]), 2.5);
+      d.state = "loose"; d.target = null; d.food = grub.id;
+      w.bus.emit({ type: "dog_lured", t: tick, item: grub.id });
+      knockOn(w, undefined, "search", 0, `${ITEM_DEFS[grub.def]?.name.split(" ").pop()?.toUpperCase() ?? "FOOD"} ON THE FLOOR`, "RONSON GOES FOR IT");
+    }
+  }
   switch (d.state) {
     case "tied": {
       // Straining at the end of its rope at anyone who comes close: lunge, choke, back, lunge.
@@ -231,7 +244,20 @@ export function stepDog(w: World): void {
       // On the pitch it plays with the ball; anywhere else it goes for people.
       const onPitch = areaAt(dog.x, dog.y).pitch === true;
       const b = m.ball;
-      if (onPitch && !b.held && chance(r, 0.4) && Math.hypot(b.x - dog.x, b.y - dog.y) < 12) {
+      const grub = d.food ? s.items[d.food] : undefined;
+      if (d.food && (!grub || grub.loc.k !== "ground")) d.food = undefined;
+      if (grub && grub.loc.k === "ground") {
+        // Straight for it, through whoever's in the way; then it's gone in two bites.
+        chase(grub.loc.x, grub.loc.y, 8.4, 0.5);
+        if (near(dog, grub.loc, 0.9)) {
+          moveItem(s, grub.id, { k: "gone" });
+          d.food = undefined; d.eatUntil = tick + 60 * 3;
+          noise(w, dog, "gnash", 1);
+          chainLink(w, "RONSON SCOFFS IT");
+        }
+      } else if ((d.eatUntil ?? 0) > tick) {
+        dog.vx = dog.vy = 0;
+      } else if (onPitch && !b.held && chance(r, 0.4) && Math.hypot(b.x - dog.x, b.y - dog.y) < 12) {
         move(b.x, b.y, 7.5, 0.6);
         if (Math.hypot(b.x - dog.x, b.y - dog.y) < 1.3 && tick % 20 === 0) intruderKick(w, dog.id, Math.cos(rndRange(r, 0, 6.28)), Math.sin(rndRange(r, 0, 6.28)), rndRange(r, 4, 9), 0.5);
       } else {
@@ -251,7 +277,7 @@ export function stepDog(w: World): void {
         if (chance(r, 0.2)) say(w, a, pick(r, ["Aaargh!", "Get it off me!", "Whose dog is that?!"]), 1.5);
       }
       // The referee stops play for a dog near the action.
-      if (onPitch && m.phase === "live" && Math.hypot(b.x - dog.x, b.y - dog.y) < 30) haltPlay(w, "dog");
+      if (onPitch && m.phase === "live" && Math.hypot(b.x - dog.x, b.y - dog.y) < 30) { haltPlay(w, "dog"); chainLink(w, "PLAY STOPPED"); }
       stewardsGrab(w, dog);
       break;
     }
@@ -270,9 +296,17 @@ function stewardsGrab(w: World, dog: Actor): void {
   if (tick % 30 !== 0) return;
   for (const id in s.actors) {
     const g = s.actors[id];
-    if (!isSecurity(g) || g.downUntil > tick || g.npc!.mode !== "routine" || !near(g, dog, 25) || !VENUE.inside(dog.x, dog.y) && g.npc!.job !== "police") continue;
+    if (!isSecurity(g) || g.downUntil > tick || g.npc!.mode !== "routine" || !near(g, dog, 25) || !VENUE.inside(dog.x, dog.y) && g.npc!.job !== "police" && !near(g, dog, 10)) continue;
+    // Off his post after it (outside the ground, only the ones it's come close to): that's the gap.
+    if (g.npc!.why !== "search") {
+      g.npc!.why = "search"; g.npc!.whyUntil = tick + 60 * 20;
+      w.bus.emit({ type: "post_left", t: tick, by: g.id, why: "dog", x: g.x, y: g.y });
+      chainLink(w, g.npc!.job === "turnstile" ? "TURNSTILE LEFT UNMANNED" : g.npc!.job === "pitchsteward" ? "STEWARDS OFF THE TOUCHLINE" : "A STEWARD GOES AFTER HIM");
+    }
+    g.npc!.whyUntil = Math.max(g.npc!.whyUntil ?? 0, tick + 60 * 4);
     g.npc!.plan = [{ k: "go", x: dog.x, y: dog.y, run: true }];
-    if (near(g, dog, 1.4) && (dog.vx === 0 || chance(r, 0.35))) {
+    // Not while he's charging for food or wolfing it down: you don't get between a dog and a pie.
+    if (near(g, dog, 1.4) && !d.food && (d.eatUntil ?? 0) < tick && (dog.vx === 0 || chance(r, 0.35))) {
       d.state = "caught"; d.target = null; say(w, g, "Got him! Good boy. GOOD boy.");
       w.bus.emit({ type: "dog_caught", t: tick, by: g.id });
       return;

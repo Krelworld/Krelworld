@@ -310,3 +310,21 @@ test("the drayman's keg: roll it and he goes after it, the lorry waits with its 
     assert.equal(dray.npc!.fetch, undefined);
   }
 });
+
+test("Ronson goes for food: a pie by the turnstile steward and he's off the lead, and the steward's off his post", () => {
+  const g = createGame("pie1"), s = g.w.state, pc = pcOf(g), ev = events(g);
+  run(g, 1);
+  const dog = s.actors[s.stadium!.dog!.id];
+  const stw = find(g, (a) => a.npc?.job === "turnstile" && !a.dead);
+  // On the lead, a few metres from the steward, outside the ground.
+  pc.x = stw.x + 6; pc.y = stw.y + 6; dog.x = pc.x - 1; dog.y = pc.y; s.stadium!.dog!.state = "led";
+  const pie = spawnItem(s, "pie", { k: "ground", x: stw.x + 1.2, y: stw.y + 3.2 });
+  run(g, 1);
+  assert.equal(s.stadium!.dog!.state, "loose", "he's yanked the lead out of your hand");
+  assert.ok(ev.some((e) => e.type === "dog_lured"));
+  run(g, 5);
+  assert.equal(s.items[pie.id].loc.k, "gone", "scoffed");
+  assert.ok(ev.some((e) => e.type === "post_left" && e.by === stw.id), "the steward left his post for the dog");
+  const chain = ev.filter((e) => e.type === "chain").pop();
+  assert.ok(chain && chain.links.includes("RONSON GOES FOR IT"), JSON.stringify(chain));
+});

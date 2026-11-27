@@ -12,7 +12,7 @@ import { itemAt } from "./guide";
 const WEAR = "Wear it (Bag). They won't know your face.";
 export const ITEM_TIPS: Record<string, string> = {
   pint: "Drink it, chuck it, or slip something in it first.",
-  pie: "Eat it. Or lace it and hand it to someone you don't like.",
+  pie: "Eat it. Lace it. Or drop it by a steward and let Ronson go and get it.",
   knife: "Serious. Their bus tyres, or worse. Everyone remembers a knife.",
   whistle: "Blow it on the pitch and see who listens.",
   ticket: "Show it at the turnstiles. The honest way in.",
@@ -64,6 +64,8 @@ export function itemTargets(w: World, pc: Actor, it: Item): ItemTarget[] {
   if ((def === "knife" || def === "hammer") && st.vehicles.bus) add(st.vehicles.bus, "Their bus");
   if (def === "rifle") for (const r of roofs()) for (const l of r.ladders) add({ x: l.bx, y: l.by }, "Up high");
   if (def === "fart_can" || def === "flare") { add(SPOTS.pubBar, "A packed pub"); for (const p of SPOTS.turnstiles.slice(0, 1)) add(p, "The queue"); }
+  // Food and a dog: by a steward at his post, Ronson does the rest.
+  if (hasProp(it, "food") && st.dog && st.dog.state !== "caught") for (const a of Object.values(s.actors)) if (a.npc?.post && (a.npc.job === "turnstile" || a.npc.job === "doorguard" || a.npc.job === "pitchsteward") && !a.dead) add(a, "A steward, for Ronson");
   if (def === "parachute") for (const r of roofs()) if (r.id === "stand") for (const l of r.ladders) add({ x: l.bx, y: l.by }, "The stand roof");
   void VENUE;
   return out.map((t) => ({ t, d: Math.hypot(t.x - pc.x, t.y - pc.y) })).filter((o) => o.d < 70).sort((a, b) => a.d - b.d).slice(0, 4).map((o) => o.t);

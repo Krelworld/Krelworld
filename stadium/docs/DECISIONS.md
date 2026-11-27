@@ -1136,3 +1136,30 @@ The gate the report set has passed: first-time players could explain the keg cha
 | 3 | Incident | Orange |
 | 4 | Major incident | Red |
 | 5 | Armed police | Red |
+
+## Round: the second contraption (Ronson and a pie), watching the match, one notebook, goals that do or don't stand
+
+From the creator's original brief: "finding a vicious dog outside the stadium and releasing it, resulting in panic and chaos", "the pitch must not be an inaccessible backdrop", watching the football as an activity, and the difference between an event happening and it being officially recognised.
+
+**The second rule: Ronson goes for food.**
+- **The pull:** any food on the floor within 14 m pulls him. On the lead he yanks it out of your hand ("RONSON! Get back 'ere!"); loose, he drops whatever he was doing.
+- **The charge:** he goes straight for it, through whoever's in the way, and wolfs it down in a few seconds. Nobody can grab him while he's charging or eating.
+- **Stewards:** they go after him off their posts, including the turnstile stewards outside the ground if he comes close. That opens the gap: "PIE ON THE FLOOR → RONSON GOES FOR IT → TURNSTILE LEFT UNMANNED → RONSON SCOFFS IT".
+- **On the pitch:** play stops, and the stewards leave the touchline ("PLAY STOPPED", "STEWARDS OFF THE TOUCHLINE"), which is the opening for Grozz.
+- **The rule card:** "Ronson goes for food. Drop a pie by someone and he'll go through them to get it."
+- **The pie's own card** now suggests it, and while you hold food the stewards at their posts are its targets ("A steward, for Ronson").
+- **Covered by a test:** on the lead by the turnstiles, a pie dropped outside: he's off, the pie's gone, the steward left his post, the chain is named.
+
+**Watching the match** (brief, point 6).
+- **Sat with a pint:** "Sup your pint" appears while you're seated with a drink in hand.
+- **Fast-forward snaps back** to normal for anything worth seeing: a shot, a save, the woodwork, a substitution, a player taken off, the referee going down (it already did for goals, arrests and penalties).
+- **If they score while you're sat there:** a buzz and a prod: "2-1 down. You can't just sit there, Grozz. Up you get."
+
+**Goals that do or don't stand** (brief, point 9). The engine always separated the ball crossing the line from the officials ruling on it. A goal put in by someone who isn't a player is spotted 97% of the time by an attentive referee, 40% by a distracted one, and otherwise it counts. Now that shows:
+- **Ruled out:** a TV strap "OFFICIAL DECISION: BALL IN THE NET → NO GOAL", with the crowd jeering.
+- **It counts:** "… → THE REF NEVER SAW: IT STANDS".
+- **When Grozz put it in:** it's his chain, "GROZZ PUTS IT IN → THE REF SAW HIM: NO GOAL" or "… → THE REF NEVER SAW: IT STANDS".
+
+**One notebook.** The menu's first section is "Your notes": the rules you've learned and the ideas you've had.
+
+**Side jobs are found by playing.** The list shows what you've done and the three nearest you haven't, then "…and N more daft things nobody's told you about."

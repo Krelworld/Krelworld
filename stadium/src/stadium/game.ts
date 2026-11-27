@@ -27,7 +27,7 @@ import { installLech } from "./lech";
 import { stepChat } from "./chatter";
 import { clampToRoof, installRoofs } from "./roofs";
 import { installMissiles, spawnBricks, stepStench } from "./missiles";
-import { installKegs, spawnKegs, stepKegs } from "./kegs";
+import { installChainHooks, installKegs, spawnKegs, stepKegs } from "./kegs";
 import { installFixes, stepFixes } from "./fixes";
 import { installWitness, stepSnitches } from "./witness";
 import { installPhone, stepPhone } from "./phone";
@@ -218,6 +218,7 @@ export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: 
 
   createDog(w);
   installReactions(w);
+  installChainHooks(w);
   installMissiles(w);
   installFixes(w);
   // A change of clothes out of sight shakes off whoever was after you.

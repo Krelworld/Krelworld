@@ -42,6 +42,15 @@ export function chainLink(w: World, link: string): void {
   w.bus.emit({ type: "chain", t: w.state.tick, links: c.links.slice(), by: c.by });
 }
 
+/** The football's own knock-ons: Grozz puts it in, and whether it stands is up to the officials. */
+export function installChainHooks(w: World): void {
+  w.bus.on((e: any) => {
+    const st = w.state.stadium;
+    if (!st || (e.type !== "fb_goal" && e.type !== "fb_no_goal") || e.by !== st.pc) return;
+    knockOn(w, undefined, "search", 0, "GROZZ PUTS IT IN", e.type === "fb_no_goal" ? "THE REF SAW HIM: NO GOAL" : "THE REF NEVER SAW: IT STANDS");
+  });
+}
+
 /** A knock-on somewhere else (Steve's chute, Lenny, Wally's card, the press pass): name it as a chain
  *  (joining one already running), badge whoever's broken off, and count it as someone leaving their post. */
 export function knockOn(w: World, who: Actor | undefined, why: "search" | "report", secs: number, first: string, ...links: string[]): void {

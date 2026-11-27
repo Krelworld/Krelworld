@@ -260,6 +260,15 @@ class StadiumScene extends Phaser.Scene {
       if (e.type === "say" && this.detain?.open && this.s.actors[e.by]?.npc?.job === "chief") this.detain.line(e.text);
       if (e.type === "action" && e.action.actor === this.s.stadium!.pc && (e.action.verb === "talk" || e.action.verb === "threaten" || e.action.verb === "bribe") && e.action.target?.k === "actor") this.talkedTo = { id: e.action.target.id, at: performance.now() };
       if (e.type === "fb_goal" || e.type === "caught" || e.type === "fb_foul" && e.penalty) this.setSpeed(1);
+      // Watching sped up: anything worth seeing brings it back to normal (a shot, the woodwork, a card,
+      // a change, the ref going down), so you never miss the moment.
+      if (this.speed > 1 && ["fb_shot", "fb_woodwork", "fb_sub", "fb_ref_down", "fb_removed", "fb_save"].includes(e.type)) this.setSpeed(1);
+      // Sat watching when they score: that's your cue.
+      if (e.type === "fb_goal" && e.team === 1 && this.pc?.seated && e.legit !== false) {
+        const [eng, opp] = e.score as number[];
+        setTimeout(() => this.hint(opp > eng ? `${opp}-${eng} down. You can't just sit there, Grozz. Up you get.` : opp === eng ? "They've equalised. Time to get off your arse?" : "They've pulled one back. Keep an eye on it."), 1800);
+        this.buzz([80, 60, 80]);
+      }
       if (e.type === "fb_goal") { this.crowdJump = 120 * (e.team === 0 ? 1 : -1); this.crowdUpUntil = performance.now() + 6000; this.crowdUpSide = e.team === 0 ? "home" : "away"; }
       if (e.type === "fb_miss" || e.type === "fb_woodwork") { this.crowdUpUntil = performance.now() + 1400; this.crowdUpSide = "all"; }
       this.newsEvents(e);
@@ -1471,10 +1480,10 @@ class StadiumScene extends Phaser.Scene {
   whyIcons = new Map<string, Phaser.GameObjects.Image>();
   /** A chain Grozz set off, named like a TV graphic as it grows ("KEG → DRAYMAN GOES AFTER IT → …"). */
   chainTimer = 0;
-  chainStrap(links: string[]) {
+  chainStrap(links: string[], label?: string) {
     if (links.length < 2) return;
     const el = $("chainStrap");
-    el.innerHTML = `<b>${links.length >= 3 ? "CHAIN REACTION" : "KNOCK-ON"}</b><span>${links.map((l) => `<i>${esc(l)}</i>`).join("<em>→</em>")}</span>`;
+    el.innerHTML = `<b>${label ?? (links.length >= 3 ? "CHAIN REACTION" : "KNOCK-ON")}</b><span>${links.map((l) => `<i>${esc(l)}</i>`).join("<em>→</em>")}</span>`;
     el.hidden = false; el.classList.remove("in"); void el.offsetWidth; el.classList.add("in");
     this.audio.play("chime", 0.5, { rate: 0.7 + links.length * 0.08 });
     if (links.length >= 3) this.audio.play("crowd_ooh" as Clip, 0.55);
@@ -4329,6 +4338,10 @@ class StadiumScene extends Phaser.Scene {
       case "scammed": this.hint(e.amount ? `−£${e.amount}. He's not coming back.` : "He's not coming back."); break;
       case "contact": this.toastTick(`☎ Number saved: ${e.id === "dealer" ? "Spliff Ricky" : "Bare-Knuckle Brendan"}`); this.audio.play("chime", 0.5); break;
       case "chain": this.chainStrap(e.links); break;
+      // A goal that isn't a player's: the physical thing happened; what counts is what the officials decide.
+      case "fb_goal": if (e.legit === false && e.by !== this.s.stadium!.pc) this.chainStrap(["BALL IN THE NET", "THE REF NEVER SAW: IT STANDS"], "OFFICIAL DECISION"); break;
+      case "fb_no_goal": if (!this.s.stadium!.chain || e.by !== this.s.stadium!.pc) this.chainStrap(["BALL IN THE NET", "NO GOAL"], "OFFICIAL DECISION"); this.audio.play("crowd_jeer" as Clip, 0.7); break;
+      case "dog_lured": setTimeout(() => this.ruleCard("food", "Ronson goes for food.", "Drop a pie by someone and he'll go through them to get it. Stewards leave their post to catch him; on the pitch, play stops."), 1500); break;
       case "post_left": if (this.s.stadium!.chain?.by === this.s.stadium!.pc) setTimeout(() => this.ruleCard("post", "People leave their post to fix a problem.", "Stewards, staff, Steve, Lenny, Wally: give them a problem and they go. Instinct now shows who's stood at a post."), 1800); break;
       case "secret": this.toastTick(`★ Found: ${e.title}`); this.audio.play("chime", 0.7, { rate: 0.9 }); this.tick("secret"); break;
       case "stripped": if (e.by === pcId) this.hint("Starkers. Every steward who sees you will have you for indecent exposure. The pitch is right there."); break;
@@ -4407,14 +4420,17 @@ class StadiumScene extends Phaser.Scene {
     const side = StadiumScene.MAYHEM.filter((m) => m.id !== "in"), doneN = side.filter((m) => this.mayhemDone.has(m.id)).length;
     const rows = side.map((m, i) => { const sp = todoSpot(this.w, m.id); return { m, d: sp ? Math.hypot(sp.x - pc.x, sp.y - pc.y) : 999 + i }; })
       .sort((a, b) => Number(this.mayhemDone.has(a.m.id)) - Number(this.mayhemDone.has(b.m.id)) || a.d - b.d);
-    this.sheet("jobs", `<h2>Side jobs (${doneN}/${side.length})</h2><p>None of this is needed. All of it pays: the lads have a whip-round for every daft thing you pull off. Nearest first.</p>
-      <div class="log">${rows.map(({ m }) => { const done = this.mayhemDone.has(m.id), un = StadiumScene.UNLOCKS[m.id];
-        return `<p>${done ? "<b>✓</b> <s>" + esc(m.text) + "</s>" : "☐ " + esc(m.text)} <span class="pay">£${REWARDS[m.id] ?? 0}</span>${un && !done ? `<br><small class="dim">Unlocks: ${esc(ITEM_DEFS[un]?.name ?? un)}</small>` : ""}</p>`; }).join("")}</div>`);
+    // Found by playing, not handed over as a list: what you've done, and the three nearest you haven't.
+    const undone = rows.filter((r) => !this.mayhemDone.has(r.m.id)), shown = [...undone.slice(0, 3), ...rows.filter((r) => this.mayhemDone.has(r.m.id))], hidden = undone.length - Math.min(3, undone.length);
+    this.sheet("jobs", `<h2>Side jobs (${doneN}/${side.length})</h2><p>None of this is needed. All of it pays: the lads have a whip-round for every daft thing you pull off. The nearest three:</p>
+      <div class="log">${hidden > 0 ? "" : ""}${shown.map(({ m }) => { const done = this.mayhemDone.has(m.id), un = StadiumScene.UNLOCKS[m.id];
+        return `<p>${done ? "<b>✓</b> <s>" + esc(m.text) + "</s>" : "☐ " + esc(m.text)} <span class="pay">£${REWARDS[m.id] ?? 0}</span>${un && !done ? `<br><small class="dim">Unlocks: ${esc(ITEM_DEFS[un]?.name ?? un)}</small>` : ""}</p>`; }).join("")}${hidden > 0 ? `<p class="dim">…and ${hidden} more daft things nobody's told you about. Go and find them.</p>` : ""}</div>`);
   }
   openMenu() {
     const cps = this.game2.checkpoints;
     this.sheet("menu", `<h2>Paused</h2><p>Go back to a checkpoint. Everything since then is undone, and the match will not play out the same way.</p>
       <div class="list">${cps.map((c) => `<button data-cp="${c.id}">${esc(c.label)}</button>`).join("")}<button data-new="1">Start a new match day</button><button data-mute="1">${this.audio.muted ? "Sound: off" : "Sound: on"}</button><button data-mini="1">Mini-games: ${this.miniOn ? "on" : "off"}</button><button data-buzz="1">Vibration: ${this.buzzOn ? "on" : "off"}</button><button data-lefty="1">Buttons: ${document.body.classList.contains("lefty") ? "left hand" : "right hand"}</button><button data-zoom="1">Zoom: ${esc(this.zoomLabel())}</button><button data-fp="1">${this.fp.on ? "Back to the overhead view" : "First-person view"}</button></div>
+      <h2>Your notes</h2><div class="log">${[...this.rules].map((r) => `<p><b>Rule</b> ${esc(r === "post" ? "People leave their post to fix a problem." : r === "food" ? "Ronson goes for food." : r)}</p>`).join("")}${CURIOS.filter((c) => this.curios.has(c.id)).map((c) => `<p><b>Idea</b> ${esc(c.text)}</p>`).join("") || (this.rules.size ? "" : "<p>Nothing yet. Have a look round.</p>")}</div>
       <h2>Fixes (${fixesDone(this.w)}/${FIXES.length})</h2><div class="log">${this.fixesHtml()}</div>
       <h2>Side jobs (${this.mayhemDone.size}/${StadiumScene.MAYHEM.length})</h2><div class="list"><button data-jobs="1" class="primary">Side jobs: what pays ▸</button></div>
       <h2>Ways in you've heard about</h2><div class="log">${LEADS.filter((l) => this.s.stadium!.flags[`lead_${l.id}`]).map((l) => `<p><b>${esc(l.title)}</b> ${esc(l.how)} ${this.s.stadium!.admitted ? "" : `<button class="trk${this.tracked?.kind === "lead" && this.tracked.id === l.id ? " on" : ""}" data-track="lead:${l.id}">${this.tracked?.kind === "lead" && this.tracked.id === l.id ? "Tracking" : "Track"}</button>`}</p>`).join("") || "<p>Nothing yet. Talk to people: locals, staff, the man at the shed.</p>"}</div>

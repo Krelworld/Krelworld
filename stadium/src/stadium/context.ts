@@ -82,6 +82,8 @@ export function options(w: World, pc: Actor, picked?: string | null): Option[] {
   if (!pc.seated && fruitNear(pc)) push("Play the fruit machine (£1)", 60, { verb: "fruit", ...base });
   if (!pc.seated && ladderNear(pc)) push(`Climb the ladder: ${ladderNear(pc)!.roof.name.replace(/^The /, "the ")}`, 70, { verb: "ladder", ...base });
   if (pc.seated) out.push({ label: "Stand up", priority: 90, action: { verb: "stand", ...base } });
+  // Sat watching with a pint: a sup of it, right there on the main button's second row.
+  if (pc.seated && hand0 && hasProp(hand0, "liquid")) push(`Sup your ${lc(itemName(hand0)).replace(/^pint of /, "")}`, 50, { verb: "consume", ...base, item: hand0.id });
 
   const hand = pc.hand ? s.items[pc.hand] : undefined;
 

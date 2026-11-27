@@ -201,6 +201,9 @@ export interface StadiumState {
     id: Id; state: "tied" | "led" | "loose" | "caught" | "sicced" | "returning"; target: Id | null; owner: Id; bitten: number; nextBite: number;
     /** Bites into the current mauling. */
     maul?: number;
+    /** Food he's after (any food on the floor nearby: the second rule), and when he's done eating. */
+    food?: Id;
+    eatUntil?: number;
   } | null;
   /** Tip-offs the police are following up. */
   tipoffs: { target: Id; by: Id; officer: Id; at: number; stage: "going" | "waiting" | "done" }[];

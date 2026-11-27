@@ -208,6 +208,7 @@ class StadiumScene extends Phaser.Scene {
         this.P.set3D(PITCH3, YAW3); setDirYaw(YAW3);
         Object.assign(this.game.canvas.style, { position: "relative", zIndex: "1" });
         (window as any).__stage = this.stage;
+        this.stage.renderer.domElement.addEventListener("webglcontextlost", () => { this.gfxNote = "3D stopped: the phone took the graphics back"; setTimeout(() => this.drop3D(), 0); });
       } catch (e) { console.warn("3D world unavailable; drawing in 2D", e); this.stage = null; $("game").style.background = "#101412"; }
     }
     ensureMaterials(this);
@@ -3143,12 +3144,21 @@ class StadiumScene extends Phaser.Scene {
       if (Math.abs(this.kick.x) + Math.abs(this.kick.y) < 0.3) this.kick = { x: 0, y: 0 };
       cam.scrollX = Math.round(cam.scrollX); cam.scrollY = Math.round(cam.scrollY);
     }
-    if (this.stage) this.sync3D();
+    // A fault in the 3D world (a phone's graphics driver, a lost context) must never leave a broken screen:
+    // drop to the 2D drawing and carry on. Not remembered, so it's tried again next time.
+    if (this.stage) { try { this.sync3D(); } catch (e) { console.warn("3D world failed while drawing; carrying on in 2D", e); this.gfxNote = `3D stopped: ${String((e as Error)?.message ?? e).slice(0, 80)}`; this.drop3D(); } }
   }
 
   // ---------- The 3D miniature (the default; ?3d=0 for the flat picture) ----------
   /** Timing the 3D world on this device: 0 not begun, 1 warming up, 2 measuring, 3 settled. */
   probe = 0; probeAt = 0;
+  /** Why the 3D world isn't on, if it isn't (shown in the menu, so a player can tell me). */
+  gfxNote = "";
+  /** The menu's line about how the world is being drawn, and how fast. */
+  gfxLabel(): string {
+    if (this.stage) { const m = this.stage.measured(); return `Graphics: 3D${m.frames >= 12 ? ` (${Math.round(m.fps)} fps)` : ""}`; }
+    return `Graphics: classic 2D${this.gfxNote ? ` (${this.gfxNote})` : want3D() ? "" : " (3D next start)"}`;
+  }
   /** The first seconds decide whether this device can afford the miniature. Too slow (under about twenty frames a second,
    *  typically) and the game goes back to the flat picture there and then, and remembers, so it never flip-flops. */
   probe3D(): void {
@@ -3162,7 +3172,7 @@ class StadiumScene extends Phaser.Scene {
     const m = st.measured();
     if (m.ms < 4000 || m.frames < 12) { if (now - this.probeAt > 20000) this.probe = 0; return; }
     this.probe = 3;
-    if (m.fps < 20) { remember3D(false); console.warn(`3D world: about ${m.fps.toFixed(0)} frames a second here; drawing in 2D from now on (?3d=1 to try again)`); this.drop3D(); }
+    if (m.fps < 20) { remember3D(false); this.gfxNote = `3D was ${Math.round(m.fps)} fps here`; console.warn(`3D world: about ${m.fps.toFixed(0)} frames a second here; drawing in 2D from now on (?3d=1 to try again)`); this.drop3D(); }
     else { remember3D(true); this.bank.holdGL(false); }
   }
   /** Give up the 3D world mid-game and carry on in the flat picture, as if it had never been asked for. */
@@ -5837,7 +5847,7 @@ class StadiumScene extends Phaser.Scene {
   openMenu() {
     const cps = this.game2.checkpoints;
     this.sheet("menu", `${notebook(this.w).map((n) => `<h2>${esc(n.title)}</h2><div class="log scheme">${n.lines.map((l) => `<p class="${l.ok ? "ok" : "q"}"><b>${l.ok ? "✓" : "?"}</b> ${esc(l.text)}</p>`).join("")}</div>`).join("")}<h2>Paused</h2><p>Go back to a checkpoint. Everything since then is undone, and the match will not play out the same way.</p>
-      <div class="list">${cps.map((c) => `<button data-cp="${c.id}">${esc(c.label)}</button>`).join("")}${this.s.match!.phase === "break" && this.s.match!.period === 1 && !cps.some((c) => c.id === "halftime") ? `<button data-keepht="1" class="primary">Keep a save here (half-time)</button>` : ""}${this.pt ? `<button data-pt="1" class="primary">Playtest report</button>` : ""}<button data-new="1">Start a new match day</button><button data-mute="1">${this.audio.muted ? "Sound: off" : "Sound: on"}</button><button data-mini="1">Mini-games: ${this.miniOn ? "on" : "off"}</button><button data-buzz="1">Vibration: ${this.buzzOn ? "on" : "off"}</button><button data-lefty="1">Buttons: ${document.body.classList.contains("lefty") ? "left hand" : "right hand"}</button><button data-zoom="1">Zoom: ${esc(this.zoomLabel())}</button>${EXTRAS ? `<button data-fp="1">${this.fp.on ? "Back to the overhead view" : "First-person view"}</button>` : ""}<button data-extras="1">Extras (driving, first-person): ${EXTRAS ? "on" : "off"}</button></div>
+      <div class="list">${cps.map((c) => `<button data-cp="${c.id}">${esc(c.label)}</button>`).join("")}${this.s.match!.phase === "break" && this.s.match!.period === 1 && !cps.some((c) => c.id === "halftime") ? `<button data-keepht="1" class="primary">Keep a save here (half-time)</button>` : ""}${this.pt ? `<button data-pt="1" class="primary">Playtest report</button>` : ""}<button data-new="1">Start a new match day</button><button data-mute="1">${this.audio.muted ? "Sound: off" : "Sound: on"}</button><button data-mini="1">Mini-games: ${this.miniOn ? "on" : "off"}</button><button data-buzz="1">Vibration: ${this.buzzOn ? "on" : "off"}</button><button data-lefty="1">Buttons: ${document.body.classList.contains("lefty") ? "left hand" : "right hand"}</button><button data-zoom="1">Zoom: ${esc(this.zoomLabel())}</button><button data-gfx="1">${esc(this.gfxLabel())}</button>${EXTRAS ? `<button data-fp="1">${this.fp.on ? "Back to the overhead view" : "First-person view"}</button>` : ""}<button data-extras="1">Extras (driving, first-person): ${EXTRAS ? "on" : "off"}</button></div>
       <h2>Your notes</h2><div class="log">${[...this.rules].map((r) => `<p><b>Rule</b> ${esc(r === "post" ? "People leave their post to fix a problem." : r === "food" ? "Ronson goes for food." : r)}</p>`).join("")}${CURIOS.filter((c) => this.curios.has(c.id)).map((c) => `<p><b>Idea</b> ${esc(c.text)}</p>`).join("") || (this.rules.size ? "" : "<p>Nothing yet. Have a look round.</p>")}</div>
       <h2>Fixes (${fixesDone(this.w)}/${FIXES.length})</h2><div class="log">${this.fixesHtml()}</div>
       <h2>Side jobs (${this.mayhemDone.size}/${StadiumScene.MAYHEM.length})</h2><div class="list"><button data-jobs="1" class="primary">Side jobs: what pays ▸</button></div>
@@ -6149,6 +6159,8 @@ class StadiumScene extends Phaser.Scene {
         return;
       }
       if (d.zoom) { this.cycleZoom(); this.openMenu(); return; }
+      // Graphics: 3D to classic takes effect at once; classic to 3D on the next start (the world is built at load).
+      if (d.gfx) { if (this.stage) { remember3D(false); this.gfxNote = ""; this.drop3D(); } else { remember3D(true); this.gfxNote = "3D next start"; } this.openMenu(); return; }
       if (d.fp) { this.toggleFirstPerson(); this.closeSheet(); this.setSpeed(1); return; }
     };
     $("sheet").addEventListener("click", onSheetClick);

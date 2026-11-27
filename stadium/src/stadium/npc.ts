@@ -464,7 +464,7 @@ export function mayPass(w: World, a: Actor, gate: string): boolean {
     if ([a.hand, ...a.pockets].some((id) => id && s.items[id]?.def === "staff_pass") || ["steward", "police"].includes(appearance(s, a).role)) return true;
     if (!inside) return false;
     const chief = Object.values(s.actors).find((o) => o.npc?.job === "chief");
-    const guarded = !!st.detainedUntil && !!chief && !chief.dead && chief.downUntil <= s.tick && !chief.hiddenIn && Math.hypot(chief.x - a.x, chief.y - a.y) < 9;
+    const guarded = (!!st.detainedUntil || !!st.custody) && !!chief && !chief.dead && chief.downUntil <= s.tick && !chief.hiddenIn && Math.hypot(chief.x - a.x, chief.y - a.y) < 9;
     return !guarded;
   }
   if (gate === "playersdoor") return [a.hand, ...a.pockets].some((id) => id && w.state.items[id]?.def === "kit_card");

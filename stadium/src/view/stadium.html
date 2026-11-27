@@ -142,6 +142,10 @@
   #instRow #instBtn { width: 44px; height: 44px; min-height: 44px; opacity: .9; }
   #actRow { grid-column: 1 / 3; display: flex; gap: 8px; align-items: flex-end; justify-content: flex-end; }
   #actRow .slot { width: 58px; height: 58px; min-height: 58px; padding: 0 !important; display: grid; place-items: center; background: #f3ecd6 !important; border: 3px solid #000; box-shadow: 3px 3px 0 rgba(0,0,0,.5); }
+  /* What's in your hand lives lower-left, above where the thumb steers (the reports' layout); mirrored for left-handers. */
+  #actRow .slot { position: fixed; left: max(12px, env(safe-area-inset-left, 0px)); bottom: calc(max(14px, env(safe-area-inset-bottom, 0px)) + 148px); width: 52px; height: 52px; min-height: 52px; z-index: 5; }
+  body.lefty #actRow .slot { left: auto; right: max(12px, env(safe-area-inset-right, 0px)); }
+  @media (max-height: 520px) { #actRow .slot { bottom: calc(max(10px, env(safe-area-inset-bottom, 0px)) + 112px); } }
   #actRow .slot img { width: 40px; height: 40px; image-rendering: pixelated; }
   #actRow .slot span { display: none; }
   #actRow #bagBtn::before { content: ""; width: 30px; height: 26px; background: #6b4a2a; border: 3px solid #2a1a0c; border-radius: 4px 4px 7px 7px; box-shadow: inset 0 6px 0 #8a6038; }
@@ -177,6 +181,10 @@
   #useBtn[hidden] { display: none; }
   #useBtn img, #useBtn .ico { width: 28px; height: 28px; image-rendering: pixelated; }
   #custody { position: fixed; inset: 0; z-index: 60; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; background: rgba(8,9,12,.94); color: #f3ecd6; text-align: center; padding: 24px; }
+  #custody.strip { inset: auto; top: calc(max(8px, env(safe-area-inset-top, 0px)) + 96px); left: 50%; transform: translateX(-50%); flex-direction: row; gap: 10px; padding: 6px 8px 6px 10px; background: rgba(8,9,12,.9); border: 2px solid #000; box-shadow: 3px 3px 0 rgba(0,0,0,.5); z-index: 20; width: max-content; max-width: calc(100% - 24px); }
+  #custody.strip b { font-size: 13px; letter-spacing: .1em; }
+  #custody.strip .cd { font: 700 15px/1 system-ui, sans-serif; min-height: 0; min-width: 2.4em; color: #f2c94c; }
+  #custody.strip button { min-height: 40px; padding: 0 12px; font: 800 12px/1 var(--display); background: #f3ecd6; color: #111; border: 2px solid #000; }
   #custody b { font: 800 34px/1 var(--display); letter-spacing: .12em; color: #d7263d; }
   #custody span { font: 600 17px/1.35 var(--body); max-width: 26em; min-height: 2.8em; }
   #custody i { display: block; width: min(70vw, 320px); height: 6px; background: #333; position: relative; overflow: hidden; }

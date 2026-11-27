@@ -309,21 +309,24 @@ class StadiumScene extends Phaser.Scene {
         setTimeout(() => { $("fade").classList.remove("on"); this.cutDone = false; }, 420);
       }
       if (e.type === "broke_free" && e.who === this.s.stadium!.pc) this.hint("You broke free. Run!");
-      // Detained (the report's ladder: time passes, the world changes): a card, the clock running fast,
-      // then out by the office door. No room, no march.
+      // Detained: a place, not a screen. You're put in the holding room behind a fade (no march), the
+      // score stays up, you can move, and a strip says how long is left with a button to sit it out.
       if (e.type === "custody" && e.who === this.s.stadium!.pc) {
         const el = $("custody");
-        const lines = ["The chief reads you your rights. Then his own opinions.", "A form. Another form. A biro that doesn't work.", "\"Name?\" \"Grozz.\" \"Full name?\" \"…Grozz.\"", "Somebody's microwaving fish.", "The match goes on without you."];
-        el.innerHTML = `<b>DETAINED</b><span>${esc(lines[0])}</span><i></i>${e.taken?.length ? `<small>They've taken your ${esc(e.taken.join(", "))}.</small>` : ""}`;
-        el.hidden = false; this.closeRing(); this.closeSheet();
-        let k = 0; this.custodyTimer = window.setInterval(() => { k = (k + 1) % lines.length; const sp = el.querySelector("span"); if (sp) sp.textContent = lines[k]; }, 1600);
-        this.setSpeed(6);
+        el.className = "strip";
+        el.innerHTML = `<b>DETAINED</b><span class="cd"></span><button data-wait="1">Sit it out</button>`;
+        el.hidden = false; this.closeRing(); this.closeSheet(); $("roomCard").hidden = true;
+        el.querySelector("button")!.addEventListener("click", () => { this.setSpeed(6); this.audio.play("tap", 0.5); });
+        const f = $("fade"); f.classList.add("on"); setTimeout(() => f.classList.remove("on"), 500);
+        this.roomSnap = true; this.walkTo = null;
+        this.setSpeed(1);
+        if (e.taken?.length) setTimeout(() => this.hint(`In the locker: your ${e.taken.join(", ")}.`), 900);
       }
+      if (e.type === "custody_beat" && e.who === this.s.stadium!.pc) { if (this.speed > 1) this.setSpeed(1); setTimeout(() => { this.pcLine = { text: "He's gone. And the locker's right there…", until: performance.now() + 3000 }; }, 2200); }
       if (e.type === "custody_end" && e.who === this.s.stadium!.pc) {
-        clearInterval(this.custodyTimer); $("custody").hidden = true; this.setSpeed(1);
-        const pc = this.pc; this.camX = this.P.sx(pc.x, pc.y); this.camY = this.P.sy(pc.x, pc.y) - this.P.S;
-        $("fade").classList.remove("on");
-        this.hint("Let out. The world's moved on while you were in there.");
+        $("custody").hidden = true; this.setSpeed(1);
+        if (!e.escaped) { const f = $("fade"); f.classList.add("on"); setTimeout(() => f.classList.remove("on"), 450); this.roomSnap = true; }
+        this.hint(e.escaped ? "Out. He'll notice you've gone." : "Let out. The world's moved on while you were in there.");
       }
       if (e.type === "action" && e.action.actor === this.s.stadium!.pc && e.action.verb === "take" && e.action.item) {
         const it = this.s.items[e.action.item];
@@ -2397,6 +2400,7 @@ class StadiumScene extends Phaser.Scene {
       this.drawRigs();
       this.drawBeer();
       this.drawEdgePips();
+      { const c = this.s.stadium!.custody, cd = c ? document.querySelector("#custody .cd") : null; if (c && cd) { const sec = Math.max(0, Math.ceil((c.until - this.s.tick) / 60)); cd.textContent = `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`; } }
       this.fx.update(dms, VENUE.id, people, van ? { x: van.x, y: van.y } : null, cam.worldView, puddles, heads, !!here?.outside);
     }
     // Drizzle: a British November match day. Not indoors.
@@ -2631,19 +2635,48 @@ class StadiumScene extends Phaser.Scene {
         for (let k2 = 0; k2 <= 12; k2++) { const an = a.facing - 0.95 + (1.9 * k2) / 12; ui.lineTo(ax + Math.cos(an) * R2, ay + Math.sin(an) * R2 * (P.standing ? P.K : 1)); }
         ui.closePath(); ui.fillPath();
       }
-      const marks = instinctMarks(this.w);
-      // Once you know people leave their post to fix a problem: who's stood at one (the nearest two named).
+      // A local inspector, not a blueprint: what's round you, and only the relationships you've seen at work.
+      const marks = instinctMarks(this.w).filter((mk) => Math.hypot(mk.x - pc.x, mk.y - pc.y) < 20);
+      // Once you know people leave their post to fix a problem: the nearest two stood at one.
       if (this.rules.has("post")) {
-        const posted = Object.values(s.actors).filter((a) => a.npc?.post && a.npc.mode === "routine" && !a.dead && !a.hiddenIn && Math.hypot(a.x - pc.x, a.y - pc.y) < 40)
-          .sort((p1, p2) => Math.hypot(p1.x - pc.x, p1.y - pc.y) - Math.hypot(p2.x - pc.x, p2.y - pc.y));
-        posted.forEach((a, i) => marks.push({ x: a.x, y: a.y, col: 0xf2994a, label: i < 2 ? "At a post" : "", z: 1.9 }));
+        const posted = Object.values(s.actors).filter((a) => a.npc?.post && a.npc.mode === "routine" && !a.dead && !a.hiddenIn && Math.hypot(a.x - pc.x, a.y - pc.y) < 18 && Math.hypot(a.x - a.npc.post.x, a.y - a.npc.post.y) < 2)
+          .sort((p1, p2) => Math.hypot(p1.x - pc.x, p1.y - pc.y) - Math.hypot(p2.x - pc.x, p2.y - pc.y)).slice(0, 2);
+        posted.forEach((a) => marks.push({ x: a.x, y: a.y, col: 0xf2994a, label: "At a post", z: 1.9 }));
+      }
+      // Whose is what: a thin line from a thing to its owner once you know owners go after their things;
+      // before that, only a stub with nowhere to go (there's something to find out here).
+      {
+        const owned = Object.values(s.items).filter((i) => i.owner && i.home && i.loc.k === "ground" && s.actors[i.owner] && !s.actors[i.owner].dead && Math.hypot(i.loc.x - pc.x, i.loc.y - pc.y) < 13)
+          .sort((p1, p2) => Math.hypot((p1.loc as { x: number }).x - pc.x, (p1.loc as { y: number }).y - pc.y) - Math.hypot((p2.loc as { x: number }).x - pc.x, (p2.loc as { y: number }).y - pc.y));
+        const seenOwner = new Set<string>();
+        let n = 0;
+        for (const it of owned) {
+          if (n >= 3 || seenOwner.has(it.owner!) || it.loc.k !== "ground") continue;
+          seenOwner.add(it.owner!); n++;
+          const o = s.actors[it.owner!], x0 = P.sx(it.loc.x, it.loc.y), y0 = P.sy(it.loc.x, it.loc.y) - 0.25 * P.S;
+          if (this.rules.has("custody") || (it.def === "keg" && this.rules.has("post"))) {
+            const x1 = P.sx(o.x, o.y), y1 = P.sy(o.x, o.y) - 0.9 * P.S;
+            ui.lineStyle(1.6 * u3, 0x7fd6ff, 0.9).lineBetween(x0, y0, x1, y1);
+            ui.fillStyle(0x7fd6ff, 1).fillCircle(x0, y0, 3 * u3).fillCircle(x1, y1, 3 * u3);
+            marks.push({ x: (it.loc.x + o.x) / 2, y: (it.loc.y + o.y) / 2, col: 0x7fd6ff, label: "his", z: 0.5 });
+          } else {
+            const an = Math.atan2(o.y - it.loc.y, o.x - it.loc.x);
+            for (let k2 = 0; k2 < 4; k2++) ui.fillStyle(0x7fd6ff, 0.8 - k2 * 0.2).fillCircle(x0 + Math.cos(an) * (6 + k2 * 6) * u3, y0 + Math.sin(an) * (6 + k2 * 6) * u3 * P.K, (2.4 - k2 * 0.4) * u3);
+          }
+        }
+        // Who's heard what you started (once you know it spreads).
+        if (this.rules.has("belief")) for (const r of s.stadium!.rumours ?? []) for (const id in r.holders) {
+          const a = s.actors[id];
+          if (!a || a.dead || a.hiddenIn || Math.hypot(a.x - pc.x, a.y - pc.y) > 16 || tick - r.born > 60 * 120) continue;
+          const x = P.sx(a.x, a.y), y = headTop(P, a.x, a.y) - 6 * u3;
+          ui.fillStyle(0x000000, 0.8).fillCircle(x, y, 5 * u3); ui.fillStyle(r.bust ? 0xff6b6b : 0xb8f28a, 1).fillCircle(x, y, 3.4 * u3);
+        }
       }
       for (const mk of marks) {
         const x = P.sx(mk.x, mk.y), y = P.sy(mk.x, mk.y) - (mk.z ?? 0.4) * P.S;
         if (x < v.x || x > v.right || y < v.y || y > v.bottom) continue;
         const pulse = 0.6 + 0.4 * Math.sin(tick * 0.15);
-        ui.lineStyle(2.5 * u3, mk.col, pulse).strokeCircle(x, y, P.S * 0.55);
-        ui.fillStyle(mk.col, 0.25 * pulse).fillCircle(x, y, P.S * 0.55);
+        if (mk.label !== "his") { ui.lineStyle(2.5 * u3, mk.col, pulse).strokeCircle(x, y, P.S * 0.55); ui.fillStyle(mk.col, 0.25 * pulse).fillCircle(x, y, P.S * 0.55); }
         if (mk.label) {
           let t = this.instLabels[instI];
           if (!t) { t = this.add.text(0, 0, "", { fontFamily: '"Silkscreen", monospace', fontSize: "11px", color: "#ffffff", stroke: "#000000", strokeThickness: 4 }).setOrigin(0.5, 1).setDepth(9.5e6); this.instLabels.push(t); }

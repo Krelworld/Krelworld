@@ -172,7 +172,7 @@ export interface StadiumState {
   beer?: import("./beer").Beer;
   stims?: import("./machine").Stim[]; problems?: import("./machine").Problem[]; machineSeq?: number;
   /** Held by security (the game's detention): time passes, then he's let out. */
-  custody?: { until: number; taken: string[] };
+  custody?: { until: number; taken: string[]; away?: number };
   /** A fan's pint left on the wall while he's away (lulls.ts). */
   pintBeat?: import("./lulls").PintBeat;
   /** The forecourt contraptions: where each one's got to, and when it's ready again. */

@@ -436,6 +436,17 @@ function escort(w: World, g: Actor): void {
 
 function resolveNow(w: World, g: Actor, t: Actor): void {
   const s = w.state, st = s.stadium!, n = g.npc!, intent = n.intent;
+  // Already being held, and caught at something in the room: he's sat back down and it's ten minutes more.
+  if (st.custody && t.id === st.pc && areaAt(t.x, t.y).id === "security") {
+    t.heldBy = undefined;
+    say(w, g, "Sit DOWN. That's another ten minutes on your stay.", 3.5);
+    st.custody.until += 60 * 10;
+    t.x = SPOTS.holding.x; t.y = SPOTS.holding.y;
+    calmDown(w, t, 20);
+    setMode(w, g, "routine");
+    if (n.post) n.plan.push({ k: "go", ...n.post });
+    return;
+  }
   w.bus.emit({ type: "escort_fade", t: s.tick, who: t.id, intent });
   t.heldBy = undefined;
   if (intent === "warn") {
@@ -457,9 +468,13 @@ function resolveNow(w: World, g: Actor, t: Actor): void {
       const it = s.items[id];
       if (hasProp(it, "weapon") || hasProp(it, "illicit") || hasProp(it, "substance")) { moveItem(s, id, { k: "in", c: st.locker }); taken.push(defOf(it).name.toLowerCase()); }
     }
-    t.hiddenIn = st.locker; t.seated = false; t.moveX = t.moveY = 0;
+    // Held in the security office: a room, not a screen. He can sit it out, or not.
+    t.x = SPOTS.holding.x; t.y = SPOTS.holding.y; t.facing = 0; t.seated = false; t.moveX = t.moveY = 0;
     st.custody = { until: s.tick + 60 * 45, taken };
+    st.detainedUntil = 0; st.policeCalled = false;
     calmDown(w, t, 70);
+    const chief = Object.values(s.actors).find((a) => a.npc?.job === "chief" && !a.dead);
+    if (chief?.npc && chief.npc.mode === "routine") { chief.npc.plan = [{ k: "go", ...SPOTS.chiefDesk }]; say(w, chief, "Sit there. Don't touch anything. Especially that locker.", 4); }
     w.bus.emit({ type: "custody", t: s.tick, who: t.id, until: st.custody.until, taken });
   }
   setMode(w, g, "routine");
@@ -549,10 +564,32 @@ export function struggle(w: World, t: Actor): boolean {
 export function stepDetention(w: World): void {
   const s = w.state, st = s.stadium!, pc = s.actors[st.pc];
   // Held (the game's detention): let out when the time's up, by the security office door.
-  if (st.custody && pc && s.tick >= st.custody.until) {
-    pc.hiddenIn = undefined; pc.x = 34; pc.y = -46.6; pc.facing = Math.PI / 2;
-    const taken = st.custody.taken; st.custody = undefined;
-    w.bus.emit({ type: "custody_end", t: s.tick, who: pc.id, taken });
+  if (st.custody && pc) {
+    const c = st.custody, tick = s.tick, inOffice = areaAt(pc.x, pc.y).id === "security";
+    const chief = Object.values(s.actors).find((a) => a.npc?.job === "chief" && !a.dead);
+    if (!inOffice && !pc.hiddenIn) {
+      // He's walked out. If the chief saw him go, that's a matter of its own.
+      st.custody = undefined; st.detainedUntil = 0;
+      w.bus.emit({ type: "custody_end", t: tick, who: pc.id, taken: c.taken, escaped: true });
+      if (chief && chief.downUntil <= tick && canSee(w, chief, pc, 16)) crime(w, pc, "walking out of custody", 2);
+      return;
+    }
+    // A quarter of a minute in, the radio goes and the chief has to step out: half a minute with the
+    // room (and the locker) to yourself. What you do with it is up to you.
+    if (!c.away && tick >= c.until - 60 * 30 && chief?.npc && chief.npc.mode === "routine" && chief.downUntil <= tick) {
+      c.away = tick;
+      say(w, chief, "Chief to the tunnel? Now? ...Right. YOU. Don't move.", 4);
+      chief.npc.plan = [{ k: "wait", s: 1.5 }, { k: "go", ...SPOTS.corridorPost }, { k: "wait", s: 14 }, { k: "go", ...SPOTS.chiefDesk }];
+      w.bus.emit({ type: "custody_beat", t: tick, who: pc.id });
+    } else if (chief?.npc && chief.npc.mode === "routine" && !chief.npc.bubble && !c.away && tick % (60 * 9) === 0 && Math.hypot(chief.x - pc.x, chief.y - pc.y) < 9)
+      say(w, chief, pick(s.rng.world, ["Name? ...Full name? ...That IS your full name?", "This biro doesn't work. None of them work.", "I've got a form for this. Somewhere.", "You're missing a good game, apparently.", "Who's microwaving fish?"]), 3.5);
+    if (tick >= c.until) {
+      pc.x = 34; pc.y = -46.6; pc.facing = Math.PI / 2;
+      st.custody = undefined; st.detainedUntil = 0;
+      if (chief?.npc && Math.hypot(chief.x - SPOTS.chiefDesk.x, chief.y - SPOTS.chiefDesk.y) < 6) say(w, chief, "Go on. Hop it. And behave.", 3);
+      w.bus.emit({ type: "custody_end", t: tick, who: pc.id, taken: c.taken });
+    }
+    return;
   }
   if (!st.detainedUntil || !pc || st.ending) return;
   const inOffice = areaAt(pc.x, pc.y).id === "security";

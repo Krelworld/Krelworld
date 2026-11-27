@@ -503,10 +503,26 @@ test("caught in the game build: no march; detained means time passes, then you'r
     assert.ok(held, "held");
     assert.ok(ev.some((e) => e.type === "custody"));
     assert.ok(!ev.some((e) => e.type === "escort_cut" && e.intent === "detain"), "no march");
-    run(g, 50);
+    // It's a room, and he's in it: not hidden, free to move, with the chief there.
+    const { areaAt } = await import("../src/stadium/layout");
+    assert.equal(areaAt(pc.x, pc.y).id, "security");
+    assert.ok(!pc.hiddenIn && !pc.heldBy, "in the room, not in a cupboard");
+    run(g, 22);
+    assert.ok(st.custody, "still held: sitting there doesn't get him re-arrested or thrown out");
+    assert.ok(ev.some((e) => e.type === "custody_beat"), "the chief's called away partway through");
+    run(g, 30);
     assert.ok(!st.custody && !pc.hiddenIn, "let out");
-    assert.ok(ev.some((e) => e.type === "custody_end"));
+    assert.ok(ev.some((e) => e.type === "custody_end" && !e.escaped));
     assert.ok(Math.hypot(pc.x - 34, pc.y + 46.6) < 3, `by the office door, at ${pc.x.toFixed(1)},${pc.y.toFixed(1)}`);
+    // And walking out while the chief's away is a way out too.
+    const g2 = createGame("custody2"), s2 = g2.w.state, st2 = s2.stadium!, pc2 = pcOf(g2), ev2 = events(g2);
+    st2.admitted = true;
+    const stw2 = find(g2, (a) => a.npc?.job === "pitchsteward" && !a.dead);
+    pc2.x = stw2.x + Math.cos(stw2.facing) * 2; pc2.y = stw2.y + Math.sin(stw2.facing) * 2;
+    run(g2, 1); crime(g2.w, pc2, "brawling", 2, undefined);
+    run(g2, 40, () => { if (st2.custody?.away && s2.tick - st2.custody.away > 60 * 6) { pc2.x = 34; pc2.y = -46; } });
+    assert.ok(!st2.custody && ev2.some((e) => e.type === "custody_end" && e.escaped), "out of the door while he's gone");
+    void s;
   } finally { setPace({ kickoffAt: before, calm: false }); }
 });
 

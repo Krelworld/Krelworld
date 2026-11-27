@@ -63,7 +63,6 @@ export function options(w: World, pc: Actor, picked?: string | null): Option[] {
     { label: "Hoof it into row Z", priority: 99, action: { verb: "ballhoof", ...base } },
     { label: "Keep it", priority: 98, action: { verb: "ballkeep", ...base } },
   ];
-  if (s.stadium!.custody) return [];
   if (pc.hiddenIn) return [{ label: "Climb out", priority: 100, action: { verb: "unhide", ...base } }];
   if (pc.chute) return [];
   // At the penis detector.

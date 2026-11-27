@@ -74,7 +74,18 @@ interface Shelf { y: number; w: number; h: number; cols: number; slots: Slot[] }
 class Page { tex: THREE.FramebufferTexture; shelves: Shelf[] = []; nextY = 1; handle: WebGLTexture | null = null;
   constructor(public size: number) { const t = new THREE.FramebufferTexture(size, size); t.colorSpace = THREE.SRGBColorSpace; t.magFilter = THREE.NearestFilter; t.minFilter = THREE.NearestFilter; t.generateMipmaps = false; t.flipY = false; this.tex = t; }
 }
-export const PAGE = 2048, MAX_PAGES = 3, CELL_MAX = 136;
+export const PAGE = 2048, MAX_PAGES = 2, CELL_MAX = 136;
+
+/** Copy a small canvas into part of a texture already on the card (only those pixels are sent). */
+export function subImage(r: THREE.WebGLRenderer, handle: WebGLTexture, x: number, y: number, src: HTMLCanvasElement): void {
+  const gl = r.getContext() as WebGL2RenderingContext, st = r.state as unknown as { bindTexture(t: number, h: WebGLTexture | null): void; pixelStorei(n: number, v: number | boolean): void };
+  st.bindTexture(gl.TEXTURE_2D, handle);
+  st.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false); st.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false); st.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.NONE); st.pixelStorei(gl.UNPACK_ALIGNMENT, 4);
+  gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, src.width, src.height, gl.RGBA, gl.UNSIGNED_BYTE, src);
+  st.bindTexture(gl.TEXTURE_2D, null);
+}
+/** The card's own handle for a texture (made now if it has not been yet). */
+export function handleOf(r: THREE.WebGLRenderer, t: THREE.Texture): WebGLTexture | null { r.initTexture(t); return (r.properties.get(t) as { __webglTexture?: WebGLTexture }).__webglTexture ?? null; }
 
 const lin = (c: number) => (c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
 
@@ -133,6 +144,9 @@ export class SpriteBridge {
     for (const q of place) this.sub.set(q.im, { t, x: q.x, y: q.y, W: width, H });
     return place.length;
   }
+  /** A big regular sheet that is nearly all in use at once (the seated crowd): it keeps a card of its own, whole, rather
+   *  than being copied frame by frame on to the shared sheets (which it would fill). */
+  whole(image: unknown): void { if (!this.tex.has(image) && !this.sub.has(image)) this.texture(image); }
   /** A picture the game has repainted (a sign, a recoloured sheet): send it to the card again. */
   refresh(image: unknown) {
     const t = this.tex.get(image); if (t) t.needsUpdate = true;
@@ -154,7 +168,7 @@ export class SpriteBridge {
     for (const pg of this.pages) {
       for (const sh of pg.shelves) {
         if (sh.w !== W || sh.h !== Hh) continue;
-        for (const q of sh.slots) { if (!q.key) { free = q; break; } if (q.used < this.frame - 90 && (!old || q.used < old.used)) old = q; }
+        for (const q of sh.slots) { if (!q.key) { free = q; break; } if (q.used < this.frame - 60 && (!old || q.used < old.used)) old = q; }
         if (!free && sh.slots.length < sh.cols) { free = { page: pg, x: 1 + sh.slots.length * (W + 2), y: sh.y, w: W, h: Hh, used: 0, key: null, img: null }; sh.slots.push(free); }
         if (free) break;
       }
@@ -163,7 +177,7 @@ export class SpriteBridge {
     if (!free) for (let i = 0; i <= this.pages.length && !free; i++) {
       // A new shelf on a sheet with room; a new sheet if none has.
       let pg = this.pages[i];
-      if (!pg) { if (old || this.pages.length >= MAX_PAGES) break; pg = new Page(PAGE); r.initTexture(pg.tex); pg.handle = (r.properties.get(pg.tex) as { __webglTexture?: WebGLTexture }).__webglTexture ?? null; if (!pg.handle) return null; this.pages.push(pg); }
+      if (!pg) { if (old || this.pages.length >= MAX_PAGES) break; pg = new Page(PAGE); pg.handle = handleOf(r, pg.tex); if (!pg.handle) return null; this.pages.push(pg); }
       if (pg.nextY + Hh + 1 > pg.size) continue;
       const sh: Shelf = { y: pg.nextY, w: W, h: Hh, cols: Math.floor((pg.size - 2) / (W + 2)), slots: [] };
       pg.nextY += Hh + 2; pg.shelves.push(sh);
@@ -176,11 +190,7 @@ export class SpriteBridge {
     const sc = this.scratch, sx = this.sctx!;
     if (sc.width !== W || sc.height !== Hh) { sc.width = W; sc.height = Hh; } else sx.clearRect(0, 0, W, Hh);
     try { sx.drawImage(image as CanvasImageSource, cx, cy, cw, ch, 0, 0, cw, ch); } catch { return null; }
-    const gl = r.getContext() as WebGL2RenderingContext, st = r.state as unknown as { bindTexture(t: number, h: WebGLTexture | null): void; pixelStorei(n: number, v: number | boolean): void };
-    st.bindTexture(gl.TEXTURE_2D, free.page.handle);
-    st.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false); st.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false); st.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.NONE); st.pixelStorei(gl.UNPACK_ALIGNMENT, 4);
-    gl.texSubImage2D(gl.TEXTURE_2D, 0, free.x, free.y, W, Hh, gl.RGBA, gl.UNSIGNED_BYTE, sc);
-    st.bindTexture(gl.TEXTURE_2D, null);
+    subImage(r, free.page.handle!, free.x, free.y, sc);
     free.key = key; free.img = image; free.used = this.frame; this.cells.set(key, free); this.uploads++; this.cellCount = this.cells.size;
     return free;
   }

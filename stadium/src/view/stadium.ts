@@ -3211,10 +3211,13 @@ class StadiumScene extends Phaser.Scene {
     if (this.crowdBlit) {
       hide(this.crowdBlit);
       const mx = cam.scrollX + cam.width / 2, my = cam.scrollY + cam.height / 2, hw = cam.width / cam.zoom / 2 + 60, hh = cam.height / cam.zoom / 2 + 90, oy = this.crowdBlit.y;
+      let sheet: unknown = null;
       for (const c of this.crowdImgs) {
         const im = c.im as any;
         if (Math.abs(im.x - mx) > hw || Math.abs(im.y - my) > hh) continue;
-        if (oy) { im.y += oy; st.sprite(im, { hintY: c.wy, slide: true, lift: 0 }); im.y -= oy; } else st.sprite(im, { hintY: c.wy, slide: true, lift: 0 });
+        // (The stand's sheet goes to the card whole: nearly all of it is on screen at once.)
+        if (im.frame.source.image !== sheet) { sheet = im.frame.source.image; st.bridge.whole(sheet); }
+        if (oy) { im.y += oy; st.sprite(im, { hintY: c.wy, slide: true, lift: 0, noShadow: true }); im.y -= oy; } else st.sprite(im, { hintY: c.wy, slide: true, lift: 0, noShadow: true });
       }
     }
     const dog = this.worldSprites.get("dog-sprite"), dg = stad.dog ? s.actors[stad.dog.id] : null;
@@ -5081,6 +5084,46 @@ class StadiumScene extends Phaser.Scene {
     }
     return false;
   }
+  /** (3D) What a tap on the picture is on. Everyone and everything tappable there is measured the same way, as the
+   *  picture shows it (a body standing up from its feet, a keg sitting on its base), and the nearest wins; between two
+   *  about as near, the one in front. So a tap on a keg is the keg, even with a man stood just this side of it. */
+  pickAt(wx: number, wy: number): { who: Actor | null; act: (() => void) | null } {
+    const P = this.P, S = P.S, tx = wx / S, ty = wy / S, pc = this.pc, s = this.s;
+    let best = 1, depth = -Infinity, who: Actor | null = null, act: (() => void) | null = null;
+    const offer = (x: number, y: number, h0: number, h1: number, R: number, w: Actor | null, a: (() => void) | null) => {
+      const sx = P.sx(x, y) / S, sy = P.sy(x, y) / S, cy = Math.max(sy - h1, Math.min(sy - h0, ty)), sc = Math.hypot(tx - sx, ty - cy) / R, d = P.depth(x, y);
+      if (sc >= 1) return;
+      if (sc < best - 0.15 || (sc < best + 0.15 && d > depth)) { best = Math.min(best, sc); depth = d; who = w; act = a; }
+    };
+    for (const id in s.actors) {
+      const a = s.actors[id];
+      if (a.id === pc.id || a.hiddenIn || a.npc?.job === "dog") continue;
+      if (Math.abs(a.x - pc.x) > 40 || Math.abs(a.y - pc.y) > 60) continue;
+      const lift = this.liftOf(a), down = a.dead || a.downUntil > s.tick;
+      if (down) offer(a.x, a.y, lift, lift + 0.45, 0.8, a, null); else offer(a.x, a.y, lift + 0.3, lift + (a.seated ? 1.1 : 1.5), 0.6, a, null);
+    }
+    if (!pc.heldBy && !pc.hiddenIn && !pc.seated && !this.inCab()) {
+      for (const id of RIG_IDS) {
+        const at = RIGS[id].at();
+        if (!rigReady(this.w, id)) continue;
+        offer(at.x, at.y, 0.2, 2.2, 1.5, null, () => { this.setWalk(at.x, at.y + 0.6); this.walkTo!.then = { x: at.x, y: at.y, r: RIGS[id].r - 0.3, go: () => { dispatch(this.w, { verb: "rig", actor: pc.id, arg: id }); this.audio.play("tap", 0.5); } }; });
+      }
+      if (hasBeerLine() && (s.stadium!.beer?.hose ?? "lorry") === "lorry") {
+        const h = hoseAt();
+        offer(h.x, h.y, 0, 1.0, 1.1, null, () => { this.setWalk(h.x, h.y + 0.5); this.walkTo!.then = { x: h.x, y: h.y, r: 2, go: () => { dispatch(this.w, { verb: "hose", actor: pc.id }); } }; });
+      }
+      for (const id in s.items) {
+        const keg = s.items[id], l = keg.loc;
+        if (keg.def !== "keg" || l.k !== "ground" || Math.abs(l.x - pc.x) > 30 || Math.abs(l.y - pc.y) > 40) continue;
+        offer(l.x, l.y, 0.1, 0.75, 0.62, null, () => {
+          const dd = Math.hypot(pc.x - l.x, pc.y - l.y) || 1;
+          this.setWalk(l.x + ((pc.x - l.x) / dd) * 1.1, l.y + ((pc.y - l.y) / dd) * 1.1);
+          this.walkTo!.then = { x: l.x, y: l.y, r: 1.7, go: () => { pc.facing = Math.atan2(l.y - pc.y, l.x - pc.x); dispatch(this.w, { verb: "shove", actor: pc.id, item: keg.id }); } };
+        });
+      }
+    }
+    return { who, act };
+  }
   setWalk(gx: number, gy: number) {
     if (!this.pc || this.inCab() || this.pc.heldBy) return;
     this.pursue = null; this.nextPursue = null;
@@ -6100,11 +6143,12 @@ class StadiumScene extends Phaser.Scene {
         const cam = this.cameras.main, P = this.P;
         const wx = cam.worldView.x + (x * DPR) / cam.zoom, wy = cam.worldView.y + (y * DPR) / cam.zoom;
         const gp = P.unproject(wx, wy + 0.9 * P.KZ * P.S);
-        const best = this.personAt(gp.x, gp.y);
+        const hit = this.stage && this.pc ? this.pickAt(wx, wy) : null;
+        const best = hit ? hit.who : this.personAt(gp.x, gp.y);
         if (this.useMode) { const g = this.groundAt(e.clientX, e.clientY); this.useAt(g.x, g.y, best); return; }
         this.picked = best ? best.id : null;
         if (best) this.openPerson(best.id);
-        else { if (hadRing) this.closeRing(); const g = this.groundAt(e.clientX, e.clientY); if (!this.tapThing(g.x, g.y)) this.setWalk(g.x, g.y); }
+        else { if (hadRing) this.closeRing(); const g = this.groundAt(e.clientX, e.clientY); if (hit ? !hit.act : !this.tapThing(g.x, g.y)) this.setWalk(g.x, g.y); else hit?.act?.(); }
       }
     });
     function move(this: void, e: PointerEvent): void { scene.joyMove(e, knob); }
@@ -6120,10 +6164,11 @@ class StadiumScene extends Phaser.Scene {
         const rect = canvas.getBoundingClientRect(), cam = this.cameras.main, P = this.P;
         const wx = cam.worldView.x + ((t.x - rect.left) * DPR) / cam.zoom, wy = cam.worldView.y + ((t.y - rect.top) * DPR) / cam.zoom;
         const gp = P.unproject(wx, wy + 0.9 * P.KZ * P.S);
-        const who = this.personAt(gp.x, gp.y);
+        const hit = this.stage && this.pc ? this.pickAt(wx, wy) : null;
+        const who = hit ? hit.who : this.personAt(gp.x, gp.y);
         if (this.useMode) { const g = this.groundAt(t.x, t.y); this.useAt(g.x, g.y, who); }
         else if (who) { this.picked = who.id; this.openPerson(who.id); }
-        else { if (t.hadRing) this.closeRing(); const g = this.groundAt(t.x, t.y); if (!this.tapThing(g.x, g.y)) this.setWalk(g.x, g.y); }
+        else { if (t.hadRing) this.closeRing(); const g = this.groundAt(t.x, t.y); if (hit ? !hit.act : !this.tapThing(g.x, g.y)) this.setWalk(g.x, g.y); else hit?.act?.(); }
       }
     };
     canvas.addEventListener("pointermove", move);

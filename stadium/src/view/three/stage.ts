@@ -2,12 +2,12 @@
 // Three draws the ground, the buildings and, through the sprite bridge, everyone and everything that
 // stands in the world; Phaser keeps what floats above it (speech, rings, boards, markers).
 import * as THREE from "three";
-import { SpriteBridge, type Pic, type PicOpts } from "./bridge";
+import { SpriteBridge, handleOf, subImage, type Pic, type PicOpts } from "./bridge";
 import { CY, FWD, LIGHT, PITCH, PX_PER_M, RIGHT, SP, STRETCH, SY, UP, VIEW, YAW } from "./cam";
 import { Paint3D, type PaintOpts } from "./gfx";
 import { makeCanvas } from "./paint";
 import { Vehicles } from "./vehicles";
-import { CHUNK_PX } from "./ground";
+import { CHUNK_M, CHUNK_PX, paintChunk, type GroundSpec } from "./ground";
 import { World3D, type WorldHost } from "./world3d";
 
 const HAZE = 0x9aa5ab, S = PX_PER_M;
@@ -27,6 +27,10 @@ export class Stage3D {
   /** Frames a second, smoothed; and how many frames have been timed (the first few seconds decide whether this device can afford 3D). */
   fps = 60; frames = 0; private lastT = 0; private slowMs = 0; private timedMs = 0;
   private hud: HTMLDivElement | null = null; private hudAt = 0;
+  /** The ground from a long way up (sat watching the match, or the whole-pitch view): its tiles at a half or a quarter of
+   *  the size on one sheet, one draw call, instead of forty to a hundred full-size tiles. */
+  private far: { tex: THREE.FramebufferTexture; handle: WebGLTexture; mesh: THREE.Mesh; mat: THREE.MeshLambertMaterial; slot: Map<string, { i: number; t: number }>; scratch: HTMLCanvasElement; sctx: CanvasRenderingContext2D; used: number; cell: number; tick: number } | null = null;
+  private farOn = false;
   /** Off while something else has the whole screen (first person, the cab, the drain): nothing is drawn. */
   active = true;
   private sun: THREE.DirectionalLight; private rain: THREE.Mesh; private rainMat: THREE.ShaderMaterial;
@@ -101,7 +105,7 @@ export class Stage3D {
     bb.fillStyle = "#22252a"; bb.fillRect(5, 5, 3, 3); bb.fillRect(2, 3, 2, 2); bb.fillRect(9, 4, 1, 2); bb.fillRect(4, 9, 2, 1); bb.fillStyle = "#ffffff"; bb.fillRect(4, 2, 2, 1);
     this.ballTex = ballCv;
     r.domElement.addEventListener("webglcontextlost", (e) => e.preventDefault());
-    r.domElement.addEventListener("webglcontextrestored", () => { this.bridge.reset(); this.first = true; });
+    r.domElement.addEventListener("webglcontextrestored", () => { this.bridge.reset(); this.farDrop(); this.first = true; });
   }
 
   /** A layer of flat-colour marks in the world. `auto`: wiped at the start of every frame (else its owner clears it). */
@@ -113,7 +117,7 @@ export class Stage3D {
 
   /** (Re)build the district: at the start, and whenever the venue changes. */
   build(host: Omit<WorldHost, "maxAniso">) {
-    this.world?.dispose();
+    this.world?.dispose(); this.farDrop();
     this.world = new World3D({ ...host, maxAniso: this.renderer.capabilities.getMaxAnisotropy() });
     this.scene.add(this.world.root);
   }
@@ -187,7 +191,12 @@ export class Stage3D {
       // What the camera sees of the ground: the screen's corners dropped on to it (and a margin).
       let x0 = Infinity, z0 = Infinity, x1 = -Infinity, z1 = -Infinity;
       for (const sx of [-1, 1]) for (const sy of [-1, 1]) { const uu = u + (sx * this.viewW) / 2, ww = w + (sy * this.viewH) / 2 / SP, x = CY * uu + SY * ww, z = -SY * uu + CY * ww; x0 = Math.min(x0, x); x1 = Math.max(x1, x); z0 = Math.min(z0, z); z1 = Math.max(z1, z); }
-      this.world.ground(x0 - 4, z0 - 4, x1 + 4, z1 + 4, this.first ? 99 : 2);
+      // Far enough out that a tile's pixels are smaller than the screen's: the small copies will do.
+      // (Sat watching the match, a tile is drawn at about two thirds of its size: half-size copies. The whole-pitch view: quarter-size.)
+      const pxm = (this.canvas.width || 1) / this.viewW, lod = pxm < 15.5 ? 128 : pxm < 26 ? 256 : 0;
+      this.farOn = lod > 0 && this.farGround(x0 - 3, z0 - 3, x1 + 3, z1 + 3, this.first ? 99 : 3, lod);
+      if (this.farOn) this.world.ground(this.focus.x, this.focus.z, this.focus.x, this.focus.z, 0); // (nothing new; lets the big tiles nobody is looking at go)
+      else { this.world.ground(x0 - 4, z0 - 4, x1 + 4, z1 + 4, this.first ? 99 : 2); this.farShow(false); }
       this.first = false;
     }
     this.rain.visible = f.outdoors; this.rainMat.uniforms.time.value = f.time;
@@ -199,12 +208,79 @@ export class Stage3D {
     }
   }
   private first = true;
+
+  private static FAR_SIZE = 2048;
+  /** Make sure the small ground covers the rectangle, each tile `C` pixels across; says whether it can be used at all. */
+  private farGround(x0: number, z0: number, x1: number, z1: number, budget: number, C: number): boolean {
+    const w = this.world!, spec = (w as unknown as { spec?: GroundSpec }).spec, SZ = Stage3D.FAR_SIZE, per = Math.floor(SZ / (C + 2));
+    if (!spec || !spec.areas) return false;
+    let f = this.far;
+    if (f && f.cell !== C) { this.farDrop(); f = null; }
+    if (!f) {
+      const tex = new THREE.FramebufferTexture(SZ, SZ); tex.colorSpace = THREE.SRGBColorSpace; tex.magFilter = THREE.LinearFilter; tex.minFilter = THREE.LinearFilter; tex.generateMipmaps = false; tex.flipY = false;
+      const handle = handleOf(this.renderer, tex); if (!handle) return false;
+      const mat = new THREE.MeshLambertMaterial({ map: tex }), mesh = new THREE.Mesh(new THREE.BufferGeometry(), mat);
+      mesh.receiveShadow = true; mesh.matrixAutoUpdate = false; mesh.frustumCulled = false; mesh.name = "ground-far"; this.scene.add(mesh);
+      const scratch = document.createElement("canvas"); scratch.width = scratch.height = C + 2;
+      const sctx = scratch.getContext("2d")!; sctx.imageSmoothingEnabled = true; sctx.imageSmoothingQuality = "high";
+      f = this.far = { tex, handle, mesh, mat, slot: new Map(), scratch, sctx, used: 0, cell: C, tick: 0 };
+    }
+    f.used = performance.now(); f.tick++;
+    const c0x = Math.floor(x0 / CHUNK_M), c1x = Math.floor(x1 / CHUNK_M), c0z = Math.floor(z0 / CHUNK_M), c1z = Math.floor(z1 / CHUNK_M);
+    let changed = false;
+    for (let cz = c0z; cz <= c1z; cz++) for (let cx = c0x; cx <= c1x; cx++) {
+      const key = `${cx},${cz}`, had = f.slot.get(key);
+      if (had) { had.t = f.tick; continue; }
+      if (budget <= 0) continue;
+      let i = f.slot.size;
+      if (i >= per * per) {
+        // The sheet is full: the tile looked at longest ago gives up its place.
+        let old: string | null = null, ot = f.tick - 30;
+        for (const [k, q] of f.slot) if (q.t < ot) { ot = q.t; old = k; }
+        if (!old) continue;
+        i = f.slot.get(old)!.i; f.slot.delete(old);
+      }
+      budget--;
+      const sx = (i % per) * (C + 2), sy = Math.floor(i / per) * (C + 2), cv = paintChunk(spec, cx, cz), g = f.sctx;
+      // Scaled down, with its edge smeared a pixel outward so neighbours on the sheet don't bleed in.
+      g.drawImage(cv, 0, 0, CHUNK_PX, CHUNK_PX, 0, 0, C + 2, C + 2); g.drawImage(cv, 0, 0, CHUNK_PX, CHUNK_PX, 1, 1, C, C);
+      subImage(this.renderer, f.handle, sx, sy, f.scratch);
+      cv.width = cv.height = 0;
+      f.slot.set(key, { i, t: f.tick }); changed = true;
+    }
+    if (changed) {
+      const pos: number[] = [], nor: number[] = [], uv: number[] = [], idx: number[] = [];
+      for (const [key, q] of f.slot) {
+        const [cx, cz] = key.split(",").map(Number), X0 = cx * CHUNK_M, Z0 = cz * CHUNK_M, X1 = X0 + CHUNK_M, Z1 = Z0 + CHUNK_M, i = q.i;
+        const u0 = ((i % per) * (C + 2) + 1) / SZ, v0 = (Math.floor(i / per) * (C + 2) + 1) / SZ, u1 = u0 + C / SZ, v1 = v0 + C / SZ, k = pos.length / 3;
+        pos.push(X0, 0, Z1, X1, 0, Z1, X1, 0, Z0, X0, 0, Z0); nor.push(0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0); uv.push(u0, v1, u1, v1, u1, v0, u0, v0); idx.push(k, k + 1, k + 2, k, k + 2, k + 3);
+      }
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); geo.setAttribute("normal", new THREE.Float32BufferAttribute(nor, 3)); geo.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2)); geo.setIndex(idx);
+      f.mesh.geometry.dispose(); f.mesh.geometry = geo;
+    }
+    this.farShow(true);
+    return true;
+  }
+  /** Swap between the small ground and the full-size tiles (a full-size tile stays up until its small copy exists). */
+  private farShow(on: boolean): void {
+    const f = this.far, w = this.world;
+    if (f) f.mesh.visible = on;
+    if (w) for (const m of w.root.children) {
+      if (m.name !== "ground") continue;
+      const p = (m as THREE.Mesh).geometry?.getAttribute("position");
+      m.visible = !on || !f || !p || !f.slot.has(`${Math.round(p.getX(0) / CHUNK_M)},${Math.round(p.getZ(3) / CHUNK_M)}`);
+    }
+    // Not looked at for a while: give the sheet back.
+    if (f && !on && performance.now() - f.used > 30000) this.farDrop();
+  }
+  private farDrop(): void { const f = this.far; if (!f) return; this.scene.remove(f.mesh); f.mesh.geometry.dispose(); f.mat.dispose(); f.tex.dispose(); this.far = null; }
   /** Average frames a second over everything timed so far, and the share of that time spent in frames slower than 20 a second. */
   measured(): { fps: number; slow: number; ms: number } { return { fps: this.timedMs ? (this.frames * 1000) / this.timedMs : 60, slow: this.timedMs ? this.slowMs / this.timedMs : 0, ms: this.timedMs }; }
   /** Megabytes of texture on the card: the sprite sheets, the painted ground, the town's and the vehicles' sheets, the shadow map. */
-  texMB(): number { const MIP = 4 / 3, ch = this.world?.stats.chunks ?? 0; return (this.bridge.memory() + ch * CHUNK_PX * CHUNK_PX * 4 * MIP + 2048 * 2048 * 4 * MIP + 1024 * 1024 * 4 * MIP + 1024 * 1024 * 4 + 256 * 256 * 4) / 1048576; }
+  texMB(): number { const MIP = 4 / 3, ch = this.world?.stats.chunks ?? 0; return (this.bridge.memory() + (this.far ? Stage3D.FAR_SIZE * Stage3D.FAR_SIZE * 4 : 0) + ch * CHUNK_PX * CHUNK_PX * 4 * MIP + 2048 * 2048 * 4 * MIP + 1024 * 1024 * 4 * MIP + 1024 * 1024 * 4 + 256 * 256 * 4) / 1048576; }
 
   info() { const i = this.renderer.info; return { calls: i.render.calls, triangles: i.render.triangles, textures: i.memory.textures, geometries: i.memory.geometries, sprites: this.bridge.quads, spriteBatches: this.bridge.draws, staticTris: this.world?.stats.tris ?? 0, cells: this.bridge.cellCount, texMB: this.texMB(), paintTris: this.paints.reduce((n, q) => n + q.p.tris, 0), fps: this.fps, chunks: this.world?.stats.chunks ?? 0, chunkMs: this.world?.stats.paintMs ?? 0, dpr: this.dpr, viewW: this.viewW, viewH: this.viewH }; }
 
-  dispose() { this.world?.dispose(); this.vehicles.dispose(); for (const q of this.paints) q.p.dispose(); this.bridge.reset(); this.renderer.dispose(); this.canvas.remove(); this.vig.remove(); this.haze.remove(); this.hud?.remove(); }
+  dispose() { this.farDrop(); this.world?.dispose(); this.vehicles.dispose(); for (const q of this.paints) q.p.dispose(); this.bridge.reset(); this.renderer.dispose(); this.canvas.remove(); this.vig.remove(); this.haze.remove(); this.hud?.remove(); }
 }

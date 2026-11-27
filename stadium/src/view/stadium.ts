@@ -1592,6 +1592,11 @@ class StadiumScene extends Phaser.Scene {
     if (rule === "custody") setTimeout(() => this.ruleCard("custody", "People go after their own things.", "Kegs, flasks, passes, boots: move what's somebody's and he'll leave what he's doing to get it back. Take it where he can't see and he'll search, then report it."), 1400);
     else if (rule === "attraction") setTimeout(() => this.ruleCard("attraction", "A scene pulls a crowd. And a camera.", "Anything worth a look brings the reporter running, and leaves what he was stood by. Smells and queues pull people too."), 1400);
     else if (rule === "belief") setTimeout(() => this.ruleCard("belief", "Say it, and it gets round.", "Tell one person and it spreads, losing detail as it goes. Whoever it concerns acts on it. It can come back to you."), 1400);
+    else if (rule === "grievance") setTimeout(() => this.ruleCard("grievance", "People remember who wronged them.", "They won't talk or trade with him, and when the two meet they have it out. That includes you."), 1400);
+    else if (rule === "need") setTimeout(() => this.ruleCard("need", "A pint in means a trip out.", "Whoever drinks has to go, soon. If it was off, now."), 1400);
+    else if (rule === "capacity") setTimeout(() => this.ruleCard("capacity", "A place only holds so many.", "Shut it, or fill it, and the rest queue. A queue that long ends up the wall."), 1400);
+    else if (rule === "authority") setTimeout(() => this.ruleCard("authority", "People do what they're told. By the right hat.", "Look like you outrank them and they go. They work it out later, and remember."), 1400);
+    else if (rule === "recognition") setTimeout(() => this.ruleCard("recognition", "It's what's on the record that counts.", "Hand something in and, officially, you found it. The owner still has to go and get it."), 1400);
     else if (rule === "process" && e.links.length >= 6) setTimeout(() => this.ruleCard("process", "What goes in comes out. Later.", "Change what a line carries and everyone downstream gets it, for as long as it runs."), 1400);
   }
   drawEdgePips(): void {
@@ -2405,6 +2410,7 @@ class StadiumScene extends Phaser.Scene {
       this.drawRigs();
       this.drawBeer();
       this.drawEdgePips();
+      { const rc = this.s.stadium!.recover, cd = rc ? document.querySelector("#custody .cd") : null; if (rc && cd) { const sec = Math.max(0, Math.ceil((rc.until - this.s.tick) / 60)); cd.textContent = `0:${String(sec).padStart(2, "0")}`; } }
       { const c = this.s.stadium!.custody, cd = c ? document.querySelector("#custody .cd") : null; if (c && cd) { const sec = Math.max(0, Math.ceil((c.until - this.s.tick) / 60)); cd.textContent = `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`; } }
       this.fx.update(dms, VENUE.id, people, van ? { x: van.x, y: van.y } : null, cam.worldView, puddles, heads, !!here?.outside);
     }
@@ -3582,13 +3588,22 @@ class StadiumScene extends Phaser.Scene {
       case "spew": {
         this.spews.push({ x: e.x, y: e.y, t0: now }); if (this.spews.length > 40) this.spews.shift();
         const d = pc ? Math.hypot(pc.x - e.x, pc.y - e.y) : 99;
-        if (d < 30) a.play("spew", Math.max(0.25, 1 - d / 34));
+        if (d < 30 && !e.wee) a.play("spew", Math.max(0.25, 1 - d / 34));
         const who = s.actors[e.who];
         if (who && !this.react.has(who.id)) this.react.set(who.id, { sheet: "notice", at: now, dur: 900 });
         // The first one is the payoff for something done ages ago: if it's out of sight, a look at it.
         if (e.first && d > 12) this.playScene([{ ms: 2600, focus: { x: e.x, y: e.y }, caption: "MEANWHILE, INSIDE THE GROUND", zoomAdd: 0, go: () => a.play("spew", 1) }]);
         break;
       }
+      case "stretchered": if (e.who === s.stadium!.pc && e.until) {
+        // Out cold: the clock runs on without you, then you come round in the medical room.
+        const el = $("custody"); el.className = "strip"; el.innerHTML = `<b>OUT COLD</b><span class="cd"></span>`; el.hidden = false;
+        this.closeRing(); this.closeSheet(); this.setSpeed(6);
+      } break;
+      case "recovered": if (e.who === s.stadium!.pc) { $("custody").hidden = true; this.setSpeed(1); this.roomSnap = true; this.pcLine = { text: pick2(["...Where am I? What's the score?", "Me head. Who hit me?"]), until: now + 3000 }; this.hint("The medical room. You've been out a while, and nobody's looking for you now."); } break;
+      case "loo_sign": this.audio.play("tap", 0.6); this.pcLine = { text: e.shut ? "Out of order. Heh." : "Back in business.", until: now + 2000 }; break;
+      case "custody_dispute": setTimeout(() => { this.pcLine = { text: "Oi. That's MINE.", until: performance.now() + 2600 }; }, 1200); break;
+      case "ordered": this.pcLine = { text: pick2(["That's right. Off you go.", "Works every time."]), until: now + 2200 }; break;
       case "queued": this.pcLine = { text: pick2(["Just stand here. Look like you mean it.", "Queue for owt, this lot."]), until: now + 2600 }; break;
       case "took_back": if (e.from === s.stadium!.pc) a.play("nope", 0.6); break;
     }
@@ -3603,6 +3618,13 @@ class StadiumScene extends Phaser.Scene {
       g.fillStyle(0x4a3a12, 0.55 * f).fillEllipse(x, y, P.S * 0.95 * k, P.S * 0.42 * k);
       g.fillStyle(0x8a7a2a, 0.8 * f).fillEllipse(x - P.S * 0.08, y, P.S * 0.6 * k, P.S * 0.26 * k);
       g.fillStyle(0xb8a84a, 0.8 * f).fillCircle(x + P.S * 0.22 * k, y - P.S * 0.05, P.S * 0.07).fillCircle(x - P.S * 0.3 * k, y + P.S * 0.06, P.S * 0.05);
+    }
+    for (const l of this.s.stadium!.loos ?? []) {
+      if (!l.shut) continue;
+      const x = P.sx(l.qx, l.qy), y = P.sy(l.qx, l.qy, 1.1), u = P.S / 32;
+      g.fillStyle(0x15171a, 1).fillRect(x - 15 * u, y - 9 * u, 30 * u, 18 * u); g.fillStyle(0xf2c94c, 1).fillRect(x - 13 * u, y - 7 * u, 26 * u, 14 * u);
+      g.fillStyle(0x15171a, 1).fillRect(x - 10 * u, y - 4 * u, 20 * u, 2.5 * u).fillRect(x - 10 * u, y + 1 * u, 14 * u, 2.5 * u);
+      g.fillRect(x - u, y + 9 * u, 2 * u, P.sy(l.qx, l.qy) - y - 9 * u);
     }
     if (!hasBeerLine()) return;
     const b = this.s.stadium!.beer, h = hoseAt(), m = VENUE.id === "sf" ? -1 : 1, sewer = b?.hose === "sewer";
@@ -4821,7 +4843,7 @@ class StadiumScene extends Phaser.Scene {
   openRumour(who: string) {
     const t = this.s.actors[who];
     if (!t) return;
-    const fits = (k: RumourKind) => RUMOURS[k].who(t) || (k !== "injury" && (t.npc?.job === "fan" || t.npc?.job === "local"));
+    const fits = (k: RumourKind) => k === "slander" || RUMOURS[k].who(t) || (k !== "injury" && (t.npc?.job === "fan" || t.npc?.job === "local"));
     const rows = (Object.keys(RUMOURS) as RumourKind[]).filter(fits).map((k) => `<button data-rumour="${k}" data-who="${who}">"${esc(RUMOURS[k].tell)}"</button>`).join("");
     this.sheet("report", `<h2>Tell ${esc(personName(t))}...</h2><p>It needn't be true. It'll get round, and whoever it concerns will act on it.</p><div class="list">${rows}</div>`);
   }

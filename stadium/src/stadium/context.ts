@@ -25,6 +25,7 @@ import { areaAt, SPOTS, VENUE } from "./layout";
 import { climbPointNear, fruitNear, turnstileNear, SHOPS } from "./rules";
 import { RIGS, rigNear } from "./rigs";
 import { hasBeerLine, hoseAt } from "./beer";
+import { grudge, looNear } from "./social";
 
 export interface Option {
   label: string;
@@ -112,6 +113,10 @@ export function options(w: World, pc: Actor, picked?: string | null): Option[] {
 
   // The drayman's filling hose, and the drain beside it.
   if (hasBeerLine() && !pc.seated && (s.stadium!.beer?.hose ?? "lorry") === "lorry" && Math.hypot(hoseAt().x - pc.x, hoseAt().y - pc.y) < 2.2) push("Hose into the drain", 77, { verb: "hose", ...base });
+  // The chief's form, while you're being held.
+  if (s.stadium!.custody && !s.stadium!.custody.signed) push("Sign the chief's form", 44, { verb: "form", ...base });
+  // The door of the gents: a sign's a sign.
+  { const loo = !pc.seated ? looNear(w, pc, 2.2) : undefined; if (loo) push(loo.shut ? "Take the OUT OF ORDER sign down" : "Hang up OUT OF ORDER", 38, { verb: "loosign", ...base }); }
   // Stand like you're queuing (machine.ts): never the main thing, always there outdoors.
   push("Queue here, for nothing", -1, { verb: "queue", ...base });
 
@@ -189,6 +194,12 @@ export function options(w: World, pc: Actor, picked?: string | null): Option[] {
     const why = bribeWhy(w, pc, a);
     if (pc.money > 0 && d < 2.2 && why) out.push({ label: why === "snitch" ? `Pay ${name} to keep quiet` : why === "ticket" ? `Buy ${name}'s ticket` : `Offer ${name} money`, priority: why === "snitch" ? 60 : 5, sheet: { kind: "bribe", who: a.id } });
     if (snitchOf(w, a.id)) push(`Lean on ${name}: "You saw nothing"`, 58 - d, { verb: "threaten", ...base, target: { k: "actor", id: a.id } });
+    // Give an order, if you look like someone who can (social.ts); hand in what's somebody else's.
+    if (n && d < 3 && !n.shop && n.mode === "routine" && n.job !== "player" && n.job !== "official" && n.job !== "dog") {
+      const auth = appearance(s, pc).authority, rk = n.job === "police" || n.job === "chief" || n.job === "armed" ? 2 : isSecurity(a) ? 1 : 0;
+      if (auth > rk) push(rk ? `Tell ${name}: "Chief wants you. Now."` : `Tell ${name}: "Move along"`, rk ? 16 : 7, { verb: "order", ...base, target: { k: "actor", id: a.id } });
+      if (hand?.owner && s.actors[hand.owner]?.npc && hand.owner !== a.id && isSecurity(a)) push(`Hand in the ${lc(itemName(hand))}: "Found this"`, 18, { verb: "handin", ...base, target: { k: "actor", id: a.id } });
+    }
     // Tell him something (belief.ts): it'll get round.
     if (n && d < 3 && (n.job === "fan" || n.job === "local" || n.job === "press" || isSecurity(a)) && n.mode === "routine" && !n.shop) out.push({ label: `Tell ${name} something`, priority: 9, sheet: { kind: "rumour", who: a.id } });
     if (n && n.job !== "player" && n.job !== "official" && !n.shop) push(`Pickpocket ${name}`, 6, { verb: "pickpocket", ...base, target: { k: "actor", id: a.id } });

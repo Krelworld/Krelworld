@@ -6,7 +6,7 @@
 import type { Actor } from "../core/types";
 import { registerVerb } from "../core/verbs";
 import type { World } from "../core/world";
-import { SPOTS, VENUE } from "./layout";
+import { SPOTS, VENUE, PACE } from "./layout";
 import { crime } from "./security";
 
 const near = (a: Actor, p: { x: number; y: number } | undefined, r: number) => !!p && Math.hypot(a.x - p.x, a.y - p.y) < r;
@@ -54,6 +54,9 @@ export function stretcher(w: World, a: Actor): boolean {
   const bed = (SPOTS as any).medBed;
   if (!bed || !VENUE.inside(a.x, a.y)) return false;
   a.x = bed.x; a.y = bed.y + 1;
-  w.bus.emit({ type: "stretchered", t: w.state.tick, who: a.id });
+  // In the game he's out for half a minute of the match, not eight seconds: he comes round with the
+  // heat off him and the day moved on (failure moves time and people about; it doesn't just cost you control).
+  if (PACE.calm && a.id === w.state.stadium!.pc) { const until = w.state.tick + 60 * 30; w.state.stadium!.recover = { until }; a.downUntil = until; a.effects.ko = until; }
+  w.bus.emit({ type: "stretchered", t: w.state.tick, who: a.id, until: w.state.stadium!.recover?.until });
   return true;
 }

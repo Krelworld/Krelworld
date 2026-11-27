@@ -280,6 +280,8 @@ export function talkTo(w: World, pc: Actor, t: Actor): void {
   const s = w.state, st = s.stadium!, r = s.rng.world, n = t.npc!;
   n.talked = (n.talked ?? 0) + 1;
   t.facing = Math.atan2(pc.y - t.y, pc.x - t.x);
+  // He's got something against you: you get nothing out of him.
+  if ((n.grudge?.[pc.id] ?? 0) >= 1) { say(w, t, pick(r, ["I've nowt to say to you.", "Not after last time.", "Jog on."]), 3); return; }
   const play = (ex: Exchange) => {
     let at = s.tick;
     for (const [who, text0] of ex.lines) {

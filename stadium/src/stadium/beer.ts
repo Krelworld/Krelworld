@@ -13,6 +13,7 @@ import { PACE, SPOTS, VENUE } from "./layout";
 import { say } from "./npc";
 import { linkCause, rootCause } from "./cause";
 import { free, problem, stim } from "./machine";
+import { urge } from "./social";
 
 export interface Beer {
   hose: "lorry" | "sewer"; at: number; cause: number;
@@ -102,7 +103,8 @@ export function stepBeer(w: World): void {
   say(w, v, pick(r, SICK), 3);
   const at = { x: v.x, y: v.y };
   v.npc!.group = undefined;
-  v.npc!.plan = [{ k: "wait", s: 1.4 }, { k: "go", x: GENTS().x + rndRange(r, -3.5, 3.5), y: GENTS().y + rndRange(r, -1.5, 1.5), run: true }, { k: "wait", s: 24 }];
+  v.npc!.plan = [{ k: "wait", s: 1.4 }];
+  urge(w, v, 1.5, b.cause); // and then it's the gents, with everybody else
   w.bus.emit({ type: "spew", t: tick, who: v.id, ...at, first: b.sick === 1 });
   let c = b.cause;
   if (b.sick === 1) c = linkCause(w, c, "FIRST PINT SERVED", at, "process") || c;

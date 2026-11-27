@@ -14,12 +14,15 @@ import { isSecurity } from "./security";
 import { say } from "./npc";
 import { carry, linkCause, rootCause } from "./cause";
 import { free, leavePost, stim } from "./machine";
+import { grieve, grudge } from "./social";
 
-export type RumourKind = "freebie" | "paycut" | "injury";
+export type RumourKind = "freebie" | "paycut" | "injury" | "slander";
 export interface Rumour {
   id: number; kind: RumourKind; x: number; y: number; cause: number; born: number;
   /** Who's heard it, and at how many removes; who's done something about it; who Grozz told. */
   holders: Record<Id, number>; acted: Id[]; source?: Id;
+  /** Who each heard it from. */
+  from?: Record<Id, Id>;
   /** How many each has told (nobody tells everyone). */
   told?: Record<Id, number>;
   /** Found out to be rubbish (by whom), and whether Grozz has been pointed out for it. */
@@ -34,6 +37,7 @@ const SUR = (a: Actor) => (a.name.split(" ").pop() ?? "").toUpperCase();
 export const RUMOURS: Record<RumourKind, { tell: string; says: string[]; at: () => { x: number; y: number }; who: (a: Actor) => boolean }> = {
   freebie: { tell: "Free pints at the Three Lions", says: ["Free pints at the Three Lions! Landlord's had a win!", "Free pints at the pub, apparently.", "Summat's free at the pub.", "Summat's free somewhere."], at: () => ({ x: SPOTS.pubBar.x, y: SPOTS.pubBar.y + 1.6 }), who: (a) => a.npc!.job === "fan" || a.npc!.job === "local" },
   paycut: { tell: "The stewards are getting a pay cut", says: ["They're cutting the stewards' pay. Today.", "Stewards are getting their pay cut.", "Summat about the stewards' pay.", "Summat about pay."], at: () => ({ x: mx(-9.5), y: 59.2 }), who: (a) => isSecurity(a) && a.npc!.job !== "police" && a.npc!.job !== "chief" && a.npc!.job !== "armed" },
+  slander: { tell: "That one's been calling you all sorts", says: ["He said WHAT about me?"], at: () => ({ x: 0, y: 0 }), who: () => false },
   injury: { tell: "Their No.10's done his hamstring at the hotel", says: ["Their No.10's done his hamstring. At the hotel.", "Their No.10's crocked, they reckon.", "One of theirs is injured.", "Someone's injured."], at: () => ({ x: SPOTS.busPark.x - 4, y: SPOTS.busPark.y + 5 }), who: (a) => a.npc!.job === "press" },
 };
 
@@ -94,11 +98,22 @@ export function installBelief(): void {
       if (!t?.npc || !RUMOURS[act.arg as RumourKind]) return "nobody to tell";
       if (dist(t, actor) > 3) return "too far";
       if (!free(w, t)) return "he's not listening";
-      if (list(w).some((r) => r.kind === act.arg && w.state.tick - r.born < 60 * 120)) return "you've said that already";
+      if (grudge(t, actor.id) >= 1) return "he's not listening to you";
+      if (act.arg !== "slander" && list(w).some((r) => r.kind === act.arg && w.state.tick - r.born < 60 * 120)) return "you've said that already";
       return null;
     },
     perform: (w, act, actor) => {
       const s = w.state, t = s.actors[(act.target as { id: Id }).id], kind = act.arg as RumourKind;
+      if (kind === "slander") {
+        // Not a rumour: a grudge, planted. He turns on whoever's stood nearest that it could have been.
+        const v = Object.values(s.actors).filter((a) => a.npc && a !== t && !a.npc.shop && !a.fb && !a.off && a.npc.job !== "dog" && free(w, a) && dist(a, t) < 10).sort((p, q) => dist(p, t) - dist(q, t))[0];
+        if (!v) { say(w, t, "Who has? There's nobody here.", 2.5); return; }
+        const c = rootCause(w, `GROZZ STIRS IT: ${SUR(t)} AND ${SUR(v)}`, t, "belief");
+        say(w, t, pick(s.rng.world, ["He said WHAT?", "Did he now. DID he.", "Right. Hold my coat."]), 2.5);
+        grieve(w, t, v, 1.5, c);
+        w.bus.emit({ type: "rumour", t: s.tick, by: actor.id, kind, to: t.id });
+        return;
+      }
       const c = rootCause(w, kind === "freebie" ? "GROZZ INVENTS FREE PINTS" : kind === "paycut" ? "GROZZ INVENTS A PAY CUT" : "GROZZ INVENTS AN INJURY", actor, "belief");
       say(w, t, pick(s.rng.world, ["Never! ...Really?", "You what? Who told you?", "Get away. Seriously?"]), 2.5);
       startRumour(w, kind, t, c, t);
@@ -123,6 +138,7 @@ export function stepBelief(w: World): void {
       if (!to) continue;
       if (!a.npc.bubble) say(w, a, RUMOURS[r.kind].says[Math.min(3, hops + 1)], 2.6);
       r.told![id] = (r.told![id] ?? 0) + 1;
+      (r.from ??= {})[to.id] = id;
       hear(w, r, to, hops + 1);
     }
     // The written-up kind is read by whoever it concerns nearby.
@@ -138,7 +154,13 @@ export function stepBelief(w: World): void {
         r.bust = tick;
         say(w, there, pick(rng, ["There's no free pints!", "Six quid a pint, same as ever!", "Who said free? WHO SAID FREE?"]), 3);
         r.cause = linkCause(w, r.cause, "THERE ARE NO FREE PINTS", there, "belief") || r.cause;
-        for (const id of r.acted) { const a = s.actors[id]; if (a?.npc && free(w, a)) { a.npc.why = "angry"; a.npc.whyUntil = tick + 60 * 20; } }
+        // Everyone who went holds it against whoever told him (and the first of them, against Grozz).
+        for (const id of r.acted) {
+          const a = s.actors[id]; if (!a?.npc) continue;
+          if (free(w, a)) { a.npc.why = "angry"; a.npc.whyUntil = tick + 60 * 20; }
+          const teller = s.actors[r.from?.[id] ?? (id === r.source ? st.pc : "")];
+          if (teller) grieve(w, a, teller, id === r.source ? 1.5 : 1, r.cause);
+        }
       }
     }
     // It comes home: the one Grozz told points him out, if Grozz is daft enough to be stood there.

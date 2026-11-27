@@ -1685,3 +1685,63 @@ Walking distance from where he's dropped (the old phone view shows roughly the f
 - **The service road and the west alley are long and empty on foot** (the hotel is half a minute's walk past nothing). The honest fix is things happening on them (a late delivery, a steward's fag corner, Lenny's walk), not moving the hotel. That's content, and the reports say to freeze content until rule reuse is proven.
 - **A 35 m strip of trees west of the alley and a dark void east of the hotel** are map edge. They're harmless, and a later art pass could close them in.
 - **From outside, the pitch shows through the stand roof** at very wide zoom. It's not visible at playable zooms.
+
+## Round: more rules than "somebody walks somewhere"
+
+Notes on the last brief said the four rules were a start but that "too many interactions could still ultimately amount to moving an NPC somewhere else". They listed eight more and said to look for what already existed before adding systems.
+
+**What was already there** (the audit).
+
+| Rule | State before this round |
+|---|---|
+| Identity | General: one function reads what you wear into a role, a team and an authority level. |
+| Routine | General: plans that resume. |
+| Belief | Rumours, built last round. |
+| Recognition | Goals only. |
+| Authority | A level on clothes that opened doors, plus three one-off verbs. |
+| Need | The referee's and players' doses only. |
+| Capacity | "One problem each", and nothing else. |
+| Grievance | Five unrelated one-offs: a steward who won't take a second bribe, someone about to hit back, a barred face, Lionel's count, the keg victims. |
+
+**So four were made general** (`social.ts`); none is a new system.
+- **Grievance:** anybody can hold something against anybody, with a weight.
+  - He won't talk to them, and at two a shopkeeper won't serve them.
+  - When the two meet they have it out where people can see. That's a row, so it's somebody's to break up.
+  - Having it out takes some of it off.
+  - Sources so far:
+    - having your thing taken back off you;
+    - being sent on a false errand;
+    - being bowled over when you saw who did it;
+    - Lionel's losses;
+    - going for free pints: each person who went holds it against whoever told them, so a busted rumour leaves a trail of rows back to its source.
+  - Grozz can plant one directly: "That one's been calling you all sorts".
+  - A pint settles one.
+- **Need:** whoever drinks a pint has to go, in about half a minute, or in a few seconds if it was off.
+  - Give a steward a pint and he drinks it ("Don't tell the chief"), then leaves his post for the gents.
+  - A copper pours it away.
+  - Drinkers in the pub go now and then by themselves, so it's ordinary before it's useful.
+  - The sewage sick use the same rule.
+- **Capacity:** the gents and the pub's toilets hold three and two.
+  - The rest queue at the door, and nobody can queue for ever. After half a minute it goes up the nearest wall, which is a mess for somebody to mop.
+  - The door takes a sign. "Hang up OUT OF ORDER" sets the capacity to nothing.
+- **Authority:** "Tell him…" works on anyone you outrank by what you're wearing.
+  - The public move along, taking whoever's stood with them.
+  - Staff are sent to see the chief, who never sent for them.
+  - They work it out afterwards, hold it against you, and watch you.
+  - Someone with a grudge or a suspicion asks who you are instead.
+- **Recognition:** "Found this" hands something that's somebody's to any steward.
+  - On the record you're honest: suspicion and grudges nearby are wiped.
+  - The thing goes to lost property at the cabin, and its owner is told, so he has a long walk to get it.
+  - It moves him without any suspicion on you, because of what the institution decided happened.
+
+**Detention is a small place of its own.**
+- **Another detainee:** a supporter is brought in with you.
+- **Paperwork:** he and the chief get on with a conversation about pies and forms that doesn't need you.
+- **The match:** the chief tells you when anybody scores.
+- **The form:** there's one to sign, and it knocks twelve seconds off.
+- **A property dispute:** while the chief's out, the other one helps himself to something of yours from the locker.
+- **Leads:** talk to him and he tells you about the locker, the door and the form.
+
+**The medical room** (game build). Knocked out inside the ground, you're out for half a minute of the match, not eight seconds. Time runs fast, the heat comes off, and you come round with the day moved on.
+
+**Rule cards:** each of the five new families says its rule once, in seven words or so, the first time you see it work.

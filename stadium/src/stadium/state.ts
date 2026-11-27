@@ -42,6 +42,10 @@ export interface Npc {
   cause?: number; causeUntil?: number;
   /** The problem he's seeing to (machine.ts), and what's pulled him over (a stim), and when he can be pulled again. */
   duty?: number; drawn?: number; drawnUntil?: number;
+  /** What he holds against whom (social.ts), when he last had it out, what his body's telling him, and who sent him on an errand. */
+  grudge?: Record<Id, number>; rowAt?: number;
+  need?: { at: number; stage: number; since: number; loo?: string };
+  ordered?: { by: Id; at: number };
   /** Rumours he's heard (belief.ts). */
   heardR?: number[];
   /** Stays at his post rather than walking a round (the copper on the van). */
@@ -170,9 +174,12 @@ export interface StadiumState {
   causes?: import("./cause").Cause[]; causeSeq?: number;
   rumours?: import("./belief").Rumour[];
   beer?: import("./beer").Beer;
+  loos?: import("./social").Loo[];
   stims?: import("./machine").Stim[]; problems?: import("./machine").Problem[]; machineSeq?: number;
   /** Held by security (the game's detention): time passes, then he's let out. */
-  custody?: { until: number; taken: string[]; away?: number };
+  custody?: { until: number; taken: string[]; away?: number; mate?: Id; said?: number; goals?: number; eng?: number; nicked?: boolean; signed?: boolean };
+  /** Out cold in the medical room until this tick. */
+  recover?: { until: number; calmed?: boolean };
   /** A fan's pint left on the wall while he's away (lulls.ts). */
   pintBeat?: import("./lulls").PintBeat;
   /** The forecourt contraptions: where each one's got to, and when it's ready again. */

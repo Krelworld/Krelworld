@@ -34,6 +34,7 @@ import { installRigs, stepRigs } from "./rigs";
 import { installMachine, installMachineVerbs, stepMachine } from "./machine";
 import { installBelief, stepBelief } from "./belief";
 import { installBeer, installBeerWatch, stepBeer } from "./beer";
+import { installSocial, installSocialWatch, stepSocial } from "./social";
 import { installBallOut, installBallWatch, stepBallOut } from "./ballout";
 import { spawnBootBag, stepBootBag } from "./bootbag";
 import { installCoke, stepCoke } from "./coke";
@@ -46,7 +47,7 @@ import { noteKnockout, spawnScenarios, stepScenarios } from "./scenarios";
 import { driveCar, installCars } from "./cars";
 import { BIKE_SPEED, BIKE_SPRINT, installBike, stepBikes } from "./bike";
 import { installReactions, installRules, SHOPS, stepRules } from "./rules";
-import { changedClothes, isSecurity, stepDetention, stepHeat, stepRadio, stepSecurity } from "./security";
+import { changedClothes, isSecurity, stepDetention, stepHeat, stepRadio, stepSecurity, installCustody } from "./security";
 import type { StadiumState } from "./state";
 import { LORRY_LEN, LORRY_WID, lorryHits, stepVehicle } from "./vehicles";
 import { stepCreeps } from "./drag";
@@ -68,7 +69,7 @@ export const HALF_SECONDS = 450;
 export const HALFTIME_SECONDS = 150;
 
 export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: Campaign = newCampaign()): Game {
-  if (!rulesInstalled) { installRules(); installBetting(); installPolice(); installBus(); installDog(); installKickoff(); installKnife(); installGloryHole(); installCombat(); installHorse(); installRoutes(); installEntries(); installDetector(); installCoverup(); installBike(); installLech(); installCars(); installWitness(); installPhone(); installNaked(); installRoofs(); installKegs(); installRigs(); installMachineVerbs(); installBelief(); installBeer(); installBallOut(); installCoke(); rulesInstalled = true; }
+  if (!rulesInstalled) { installRules(); installBetting(); installPolice(); installBus(); installDog(); installKickoff(); installKnife(); installGloryHole(); installCombat(); installHorse(); installRoutes(); installEntries(); installDetector(); installCoverup(); installBike(); installLech(); installCars(); installWitness(); installPhone(); installNaked(); installRoofs(); installKegs(); installRigs(); installMachineVerbs(); installBelief(); installBeer(); installSocial(); installCustody(); installBallOut(); installCoke(); rulesInstalled = true; }
   setVenue(venueId);
   const oppKey = VENUE.opp;
   const opp = TEAMS[oppKey];
@@ -238,6 +239,7 @@ export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: 
   installLulls(w);
   installMachine(w);
   installBeerWatch(w);
+  installSocialWatch(w);
   installMissiles(w);
   installFixes(w);
   // A change of clothes out of sight shakes off whoever was after you.
@@ -406,6 +408,7 @@ export function stepGame(g: Game): void {
   stepMachine(w);
   stepBelief(w);
   stepBeer(w);
+  stepSocial(w);
   stepPawnSeek(w);
   stepPawnBack(w);
   stepBallOut(w);

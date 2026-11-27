@@ -154,6 +154,7 @@ export function installRules(): void {
       const seller = targetActor(w, act), shop = seller?.npc?.shop;
       if (!seller || !shop) return "nobody selling";
       if (!near(actor, seller, 3.6)) return "too far";
+      if ((seller.npc?.grudge?.[actor.id] ?? 0) >= 2) return "\"Not you. Out.\"";
       const price = SHOPS[shop].stock[act.arg ?? ""];
       if (price === undefined) return "not sold here";
       if (actor.money < price) return "not enough money";

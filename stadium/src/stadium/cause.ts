@@ -10,7 +10,7 @@ import type { World } from "../core/world";
 import type { Actor, Id } from "../core/types";
 
 /** Which family of rule made the link (for telling an authored set piece from a combination). */
-export type RuleFamily = "act" | "custody" | "obligation" | "attraction" | "attention" | "belief" | "process" | "access" | "physics" | "authored";
+export type RuleFamily = "act" | "custody" | "obligation" | "attraction" | "attention" | "belief" | "process" | "access" | "physics" | "authored" | "grievance" | "need" | "capacity" | "authority" | "recognition";
 
 export interface Cause {
   id: number; parent: number; root: number;

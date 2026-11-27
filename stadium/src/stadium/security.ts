@@ -4,6 +4,7 @@ import { maybeSnitch } from "./witness";
 import { climb, ladderNear, roofOf, roofs } from "./roofs";
 import { appearance, looksPermitted } from "../core/identity";
 import { defOf, hasProp, moveItem } from "../core/items";
+import { registerVerb } from "../core/verbs";
 import { chance, pick } from "../core/rng";
 import { DT, type Actor, type Id } from "../core/types";
 import type { World } from "../core/world";
@@ -475,6 +476,15 @@ function resolveNow(w: World, g: Actor, t: Actor): void {
     calmDown(w, t, 70);
     const chief = Object.values(s.actors).find((a) => a.npc?.job === "chief" && !a.dead);
     if (chief?.npc && chief.npc.mode === "routine") { chief.npc.plan = [{ k: "go", ...SPOTS.chiefDesk }]; say(w, chief, "Sit there. Don't touch anything. Especially that locker.", 4); }
+    // You're not the only one in today: a supporter who's been in here a while, with opinions.
+    const mate = Object.values(s.actors).filter((a) => a.npc?.job === "fan" && a.npc.mode === "routine" && !a.dead && !a.hiddenIn && !a.seated && a.downUntil <= s.tick && !a.npc.duty && !a.npc.need)
+      .sort((p, q) => Math.hypot(p.x - t.x, p.y - t.y) - Math.hypot(q.x - t.x, q.y - t.y))[0];
+    if (mate?.npc) {
+      mate.x = SPOTS.holding.x - 1.8; mate.y = SPOTS.holding.y + 1.3; mate.npc.group = undefined;
+      mate.npc.plan = [{ k: "wait", s: 70 }];
+      mate.npc.lines = ["They leave that locker wide open when the chief's on his radio. Just saying.", "My mate walked out of here once. Just walked. Nobody looked up.", "Sign his form and he knocks a bit off. Sign it 'M. Mouse' and he doesn't even read it."];
+      st.custody.mate = mate.id;
+    }
     w.bus.emit({ type: "custody", t: s.tick, who: t.id, until: st.custody.until, taken });
   }
   setMode(w, g, "routine");
@@ -560,15 +570,40 @@ export function struggle(w: World, t: Actor): boolean {
   return true;
 }
 
+/** The chief's form. Sign it and he knocks a bit off (he doesn't read what you put). */
+export function installCustody(): void {
+  registerVerb("form", {
+    check: (w, _act, actor) => {
+      const st = w.state.stadium!, c = st.custody;
+      if (!c || actor.id !== st.pc || c.signed) return "nothing to sign";
+      const chief = Object.values(w.state.actors).find((a) => a.npc?.job === "chief" && !a.dead);
+      if (!chief || chief.downUntil > w.state.tick || Math.hypot(chief.x - actor.x, chief.y - actor.y) > 3.4) return "nobody to give it to";
+      return null;
+    },
+    perform: (w) => {
+      const s = w.state, c = s.stadium!.custody!, chief = Object.values(s.actors).find((a) => a.npc?.job === "chief")!;
+      c.signed = true; c.until -= 60 * 12;
+      say(w, chief, pick(s.rng.world, ["'M. Mouse.' Thank you, Mr Mouse. That's the paperwork done.", "Right. That's you processed. Twelve seconds off for good behaviour.", "'Occupation: legend.' ...Fine."]), 4);
+      w.bus.emit({ type: "form_signed", t: s.tick });
+    },
+  });
+}
+
 /** Detention: the police turn up, unless he has slipped away first. */
 export function stepDetention(w: World): void {
   const s = w.state, st = s.stadium!, pc = s.actors[st.pc];
+  // Out cold in the medical room (the game): time passes, the heat's off, and he comes round to a day that's moved on.
+  if (st.recover && pc) {
+    if (!st.recover.calmed) { st.recover.calmed = true; calmDown(w, pc, 45); }
+    if (s.tick >= st.recover.until) { st.recover = undefined; pc.downUntil = Math.min(pc.downUntil, s.tick); w.bus.emit({ type: "recovered", t: s.tick, who: pc.id }); }
+  }
   // Held (the game's detention): let out when the time's up, by the security office door.
   if (st.custody && pc) {
     const c = st.custody, tick = s.tick, inOffice = areaAt(pc.x, pc.y).id === "security";
     const chief = Object.values(s.actors).find((a) => a.npc?.job === "chief" && !a.dead);
     if (!inOffice && !pc.hiddenIn) {
       // He's walked out. If the chief saw him go, that's a matter of its own.
+      const m0 = c.mate ? s.actors[c.mate] : undefined; if (m0?.npc) m0.npc.plan = [{ k: "wait", s: 20 }, { k: "go", x: 34, y: -46.6 }, { k: "go", x: 0, y: -43 }];
       st.custody = undefined; st.detainedUntil = 0;
       w.bus.emit({ type: "custody_end", t: tick, who: pc.id, taken: c.taken, escaped: true });
       if (chief && chief.downUntil <= tick && canSee(w, chief, pc, 16)) crime(w, pc, "walking out of custody", 2);
@@ -581,12 +616,39 @@ export function stepDetention(w: World): void {
       say(w, chief, "Chief to the tunnel? Now? ...Right. YOU. Don't move.", 4);
       chief.npc.plan = [{ k: "wait", s: 1.5 }, { k: "go", ...SPOTS.corridorPost }, { k: "wait", s: 14 }, { k: "go", ...SPOTS.chiefDesk }];
       w.bus.emit({ type: "custody_beat", t: tick, who: pc.id });
-    } else if (chief?.npc && chief.npc.mode === "routine" && !chief.npc.bubble && !c.away && tick % (60 * 9) === 0 && Math.hypot(chief.x - pc.x, chief.y - pc.y) < 9)
-      say(w, chief, pick(s.rng.world, ["Name? ...Full name? ...That IS your full name?", "This biro doesn't work. None of them work.", "I've got a form for this. Somewhere.", "You're missing a good game, apparently.", "Who's microwaving fish?"]), 3.5);
+    }
+    const mate = c.mate ? s.actors[c.mate] : undefined;
+    // The match goes on without you, and you hear about it second-hand.
+    const m = s.match, goals = m ? m.score[0] + m.score[1] : 0;
+    if (c.goals === undefined) c.goals = goals;
+    if (goals !== c.goals && chief?.npc && chief.downUntil <= tick) { const eng = m!.score[0] > (c.eng ?? 0); c.goals = goals; c.eng = m!.score[0]; say(w, chief, eng ? "GET IN! ...I mean. Sit down. One of yours has scored." : "Oh, you are joking. They've scored. I blame you, personally.", 4); }
+    // Him and the chief, and the forms. It doesn't need you.
+    else if (tick % (60 * 6) === 0 && chief?.npc && chief.npc.mode === "routine" && Math.hypot(chief.x - pc.x, chief.y - pc.y) < 10) {
+      const TALK: ["c" | "m", string][] = [["m", "I only asked the linesman if he wanted a pie."], ["c", "At his head."], ["m", "It was a gesture."], ["c", "It was a steak and kidney."],
+        ["c", "Sign here. And here. And initial that."], ["m", "I've signed that one."], ["c", "That was the form to request this form."],
+        ["m", "Can we have the match on?"], ["c", "Telly's broke. I'll tell you if anything happens."], ["c", "...Nothing's happened."],
+        ["m", "What's the big lad in for?"], ["c", "Where do I start."]];
+      for (let k = 0; k < TALK.length; k++) {
+        const [who, line] = TALK[((c.said ?? 0) + k) % TALK.length], sp = who === "c" ? chief : mate;
+        if (!sp?.npc || sp.npc.bubble || sp.downUntil > tick || (who === "c" && c.away && tick - c.away < 60 * 18)) continue;
+        say(w, sp, line, 3.6); c.said = (c.said ?? 0) + k + 1; break;
+      }
+    }
+    // A property dispute: with the chief out of the room, the other one helps himself to something of yours.
+    if (c.away && !c.nicked && tick - c.away > 60 * 4 && mate?.npc && mate.downUntil <= tick) {
+      c.nicked = true;
+      const mine = Object.values(s.items).find((i) => i.loc.k === "in" && i.loc.c === st.locker);
+      if (mine) {
+        moveItem(s, mine.id, { k: "pocket", a: mate.id }); mine.stolenFrom = pc.id;
+        say(w, mate, `That ${defOf(mine).name.toLowerCase()}'s mine, as it happens. Finders keepers.`, 4);
+        w.bus.emit({ type: "custody_dispute", t: tick, who: mate.id, item: mine.id });
+      } else say(w, mate, "Nothing in that locker worth having. I've looked.", 3.5);
+    }
     if (tick >= c.until) {
       pc.x = 34; pc.y = -46.6; pc.facing = Math.PI / 2;
       st.custody = undefined; st.detainedUntil = 0;
       if (chief?.npc && Math.hypot(chief.x - SPOTS.chiefDesk.x, chief.y - SPOTS.chiefDesk.y) < 6) say(w, chief, "Go on. Hop it. And behave.", 3);
+      if (mate?.npc) mate.npc.plan = [{ k: "wait", s: 6 }, { k: "go", x: 34, y: -46.6 }, { k: "go", x: 0, y: -43 }];
       w.bus.emit({ type: "custody_end", t: tick, who: pc.id, taken: c.taken });
     }
     return;

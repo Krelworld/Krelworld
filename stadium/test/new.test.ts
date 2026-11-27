@@ -633,3 +633,88 @@ test("the beer line: not while he's watching; down the drain, the kegs fill, the
     assert.ok(links[0] === "GROZZ PUTS THE BEER LINE DOWN THE SEWER", "and it all still knows where it started");
   } finally { setPace({ kickoffAt: before, calm: false }); }
 });
+
+test("more than moving people: a pint means the gents; an order from the right hat is obeyed and resented; a hand-in is on the record; a grudge is had out", async () => {
+  const { setPace, KICKOFF_AT, SPOTS } = await import("../src/stadium/layout");
+  const { grudge, grieve } = await import("../src/stadium/social");
+  const before = KICKOFF_AT;
+  setPace({ kickoffAt: 540, calm: true });
+  try {
+    // Need: give the door steward a pint and he drinks it, then has to go, off his door.
+    const g = createGame("need"), s = g.w.state, st = s.stadium!, pc = pcOf(g), ev = events(g);
+    run(g, 15);
+    const clive = find(g, (a) => a.npc?.job === "doorguard");
+    pc.x = clive.x + 0.9; pc.y = clive.y + 0.4;
+    const pint = spawnItem(s, "pint", { k: "hand", a: pc.id });
+    assert.equal(dispatch(g.w, { verb: "give", actor: pc.id, item: pint.id, target: { k: "actor", id: clive.id } }).ok, true);
+    assert.equal(s.items[pint.id].loc.k, "gone", "he's drunk it");
+    assert.ok(clive.npc!.need, "and it's on its way through");
+    run(g, 50);
+    assert.ok(st.chain?.links.some((l: string) => /HAS TO GO/.test(l)) && st.chain?.rules?.includes("need"), (st.chain?.links ?? []).join(" > "));
+    assert.ok(Math.hypot(clive.x - clive.npc!.post!.x, clive.y - clive.npc!.post!.y) > 3 || st.chain!.links.includes("STAFF DOOR LEFT PROPPED OPEN"), "he's left his door for it");
+
+    // Authority: in a police uniform a steward goes where he's sent; in a football shirt he doesn't. He works it out.
+    const g2 = createGame("order"), s2 = g2.w.state, pc2 = pcOf(g2);
+    run(g2, 15);
+    const ts = find(g2, (a) => a.npc?.job === "turnstile");
+    pc2.x = ts.x + 0.6; pc2.y = ts.y + 2.4;
+    assert.equal(dispatch(g2.w, { verb: "order", actor: pc2.id, target: { k: "actor", id: ts.id } }).ok, false, "not from a fan");
+    spawnItem(s2, "police_uniform", { k: "worn", a: pc2.id, slot: "outer" });
+    assert.equal(dispatch(g2.w, { verb: "order", actor: pc2.id, target: { k: "actor", id: ts.id } }).ok, true);
+    run(g2, 6);
+    assert.ok(Math.hypot(ts.x - ts.npc!.post!.x, ts.y - ts.npc!.post!.y) > 2, "off he goes");
+    assert.ok(s2.stadium!.chain?.rules?.includes("authority"));
+    run(g2, 50);
+    assert.ok(grudge(ts, pc2.id) >= 1, "and he's worked out he was had");
+
+    // Recognition: hand a steward's flask in to another steward. On the record you found it, and its owner has to fetch it.
+    const g3 = createGame("handin"), s3 = g3.w.state, st3 = s3.stadium!, pc3 = pcOf(g3);
+    run(g3, 15);
+    const flask = Object.values(s3.items).find((i) => i.def === "flask")!, owner = s3.actors[flask.owner!];
+    const other = find(g3, (a) => a.npc?.job === "turnstile" && a.id !== owner.id);
+    flask.loc = { k: "hand", a: pc3.id }; pc3.hand = flask.id;
+    pc3.x = other.x + 0.5; pc3.y = other.y + 2.4;
+    other.npc!.sus[pc3.id] = 0.8;
+    assert.equal(dispatch(g3.w, { verb: "handin", actor: pc3.id, target: { k: "actor", id: other.id } }).ok, true);
+    assert.equal(other.npc!.sus[pc3.id], 0, "he thinks better of you");
+    assert.ok(Math.hypot((flask.loc as unknown as { x: number }).x - SPOTS.cabinHook.x, (flask.loc as unknown as { y: number }).y - SPOTS.cabinHook.y) < 3, "it's in lost property");
+    run(g3, 5);
+    assert.ok(st3.chain?.rules?.includes("recognition") && st3.chain?.links.some((l: string) => /GOES AFTER IT/.test(l)), (st3.chain?.links ?? []).join(" > "));
+
+    // Grievance: two people with something between them have it out when they meet, and a steward comes.
+    const g4 = createGame("grudge"), s4 = g4.w.state, st4 = s4.stadium!, ev4 = events(g4);
+    run(g4, 20);
+    const fans = Object.values(s4.actors).filter((a) => a.npc?.job === "fan" && a.npc.mode === "routine" && !a.hiddenIn && a.y > 46);
+    const a = fans[0], b = fans.find((x) => x !== a)!;
+    b.x = a.x + 2; b.y = a.y;
+    grieve(g4.w, a, b, 1.5);
+    run(g4, 4);
+    assert.ok(ev4.some((e) => e.type === "say" && e.by === a.id), "words are had");
+    assert.ok((st4.problems ?? []).some((p) => p.kind === "row") || ev4.some((e) => e.type === "fixed" && e.kind === "row"), "and it's somebody's to break up");
+    assert.ok(grudge(a, b.id) < 1.5, "he's got some of it off his chest");
+    void ev;
+  } finally { setPace({ kickoffAt: before, calm: false }); }
+});
+
+test("the gents holds so many: hang up the sign and they queue, and a queue that long ends up the wall", async () => {
+  const { setPace, KICKOFF_AT } = await import("../src/stadium/layout");
+  const { urge } = await import("../src/stadium/social");
+  const before = KICKOFF_AT;
+  setPace({ kickoffAt: 540, calm: true });
+  try {
+    const g = createGame("loo"), s = g.w.state, st = s.stadium!, pc = pcOf(g), ev = events(g);
+    run(g, 20);
+    // Outside the ground it's the pub's. Put the sign up, then give four drinkers the urge.
+    const drinkers = Object.values(s.actors).filter((a) => a.npc?.job === "fan" && a.npc.mode === "routine" && !a.hiddenIn && a.y > 46).slice(0, 4);
+    for (const a of drinkers) urge(g.w, a, 1);
+    run(g, 3);
+    const loo = st.loos!.find((l) => l.id === "pub")!;
+    pc.x = loo.qx + 0.6; pc.y = loo.qy + 0.6;
+    assert.equal(dispatch(g.w, { verb: "loosign", actor: pc.id }).ok, true);
+    assert.equal(loo.shut, true);
+    run(g, 45);
+    assert.equal(loo.users.length, 0, "nobody gets in");
+    assert.ok(ev.some((e) => e.type === "spew" && e.wee), "somebody couldn't wait");
+    assert.ok(st.causes!.some((c) => c.rule === "capacity"));
+  } finally { setPace({ kickoffAt: before, calm: false }); }
+});

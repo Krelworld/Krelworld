@@ -96,7 +96,7 @@
     text-shadow: 0 1px 0 #000, 1px 0 0 #000, -1px 0 0 #000, 0 -1px 0 #000; white-space: nowrap; pointer-events: none; }
   #ring .rb.main { width: 62px; height: 62px; margin: -31px 0 0 -31px; background: var(--red); }
   #ring .rb.main img { width: 36px; height: 36px; }
-  #ring .rb.main::after { content: "hold for more"; position: absolute; bottom: -24px; font: 600 9px/1 var(--display); color: #ffd6dc; text-shadow: 0 1px 0 #000; white-space: nowrap; }
+  #ring .rb.main.atk::after { content: "hold for more"; position: absolute; bottom: -24px; font: 600 9px/1 var(--display); color: #ffd6dc; text-shadow: 0 1px 0 #000; white-space: nowrap; }
   #ring .rb.charging { box-shadow: 0 0 0 4px var(--bug), 0 3px 0 rgba(0,0,0,.45); }
   #ring .who { position: absolute; transform: translate(-50%, -100%); padding: 3px 8px; font: 800 12px/1 var(--display); letter-spacing: .06em; text-transform: uppercase;
     background: var(--bug); color: var(--bugink); border: 2px solid #000; white-space: nowrap; pointer-events: none; }
@@ -116,7 +116,8 @@
   #heatLbl.evasion { background: var(--bug); color: var(--bugink); }
   #heatLbl.caution { background: #d9822b; color: #111; }
   #stars { font: 700 15px/1 var(--display); letter-spacing: 1px; color: #3a4252; text-shadow: 0 1px 0 #000; }
-  #stars b { color: #f2c94c; font-weight: 700; }
+  #stars b { display: inline-block; padding: 2px 6px; font: 800 11px/1.1 var(--display); letter-spacing: .06em; text-transform: uppercase; color: #111; background: #f2c94c; border: 2px solid #000; }
+  #stars b.lv3 { background: #f08a24; } #stars b.lv4 { background: #d7263d; color: #fff; }
   #right { display: flex; gap: 6px; align-items: center; }
   #money { display: flex; align-items: center; height: 38px; padding: 0 12px; font: 800 18px/1 var(--display); font-variant-numeric: tabular-nums; color: var(--bug); }
 

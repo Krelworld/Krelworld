@@ -939,7 +939,7 @@ class StadiumScene extends Phaser.Scene {
     // Pointing you at the side jobs once you're into it (and a dot on the menu till you've looked).
     if (!this.flags.jobsHint && this.s.tick > 60 * 25 && !pc.heldBy) { this.flags.jobsHint = 1; this.hint("There's money in mayhem. Tap Side jobs on your notes (or the menu) to see what pays."); $("menuBtn").classList.add("dot"); }
     if (nEl.innerHTML !== html) nEl.innerHTML = html;
-    nEl.hidden = !this.started || !!this.fp?.on || this.inCab() || this.callOn || (!$("itemCard").hidden && window.innerHeight < 520);
+    nEl.hidden = !this.started || !!this.fp?.on || this.inCab() || this.callOn || !!this.ring || (!$("itemCard").hidden && window.innerHeight < 520);
   }
   /** One-off view hints. */
   flags: Record<string, number> = {};
@@ -2362,13 +2362,21 @@ class StadiumScene extends Phaser.Scene {
       if (!n?.why || (n.whyUntil ?? 0) <= tick || a.hiddenIn || a.dead || !onScreen(a.x, a.y)) continue;
       const u5 = DPR / cam.zoom, bx = P.sx(a.x, a.y), by = headTop(P, a.x, a.y) - 14 * u5 - Math.abs(Math.sin(tick * 0.12)) * 3 * u5, r5 = 9 * u5;
       ui.fillStyle(0x000000, 1).fillCircle(bx, by, r5 + 2 * u5).fillTriangle(bx - 4 * u5, by + r5 - u5, bx + 4 * u5, by + r5 - u5, bx, by + r5 + 6 * u5);
-      ui.fillStyle(n.why === "angry" ? 0xd7263d : 0xfffdf3, 1).fillCircle(bx, by, r5);
+      ui.fillStyle(n.why === "angry" ? 0xd7263d : n.why === "search" ? 0xf2c94c : n.why === "report" ? 0x3d7fd9 : 0xfffdf3, 1).fillCircle(bx, by, r5);
       if (n.why === "fetch") {
         // The keg's own picture in the badge.
         let ic = this.whyIcons.get(id);
         if (!ic) { ic = this.add.image(0, 0, "ico-keg").setDepth(1e7 + 1); this.whyIcons.set(id, ic); }
         ic.setPosition(Math.round(bx), Math.round(by)).setScale((r5 * 1.7) / 48).setVisible(true);
         whySeen.add(id);
+      } else if (n.why === "search") {
+        // A question mark: looking for something.
+        ui.lineStyle(2.4 * u5, 0x111111, 1).beginPath().arc(bx, by - 2.2 * u5, 3 * u5, Math.PI * 1.05, Math.PI * 2.45).strokePath();
+        ui.fillStyle(0x111111, 1).fillRect(bx - 1.1 * u5, by + 0.4 * u5, 2.2 * u5, 2.4 * u5).fillRect(bx - 1.1 * u5, by + 3.8 * u5, 2.2 * u5, 2.2 * u5);
+      } else if (n.why === "report") {
+        // A radio: off to tell someone.
+        ui.fillStyle(0xffffff, 1).fillRect(bx - 3 * u5, by - 3 * u5, 6 * u5, 8.5 * u5).fillRect(bx + 1.2 * u5, by - 7 * u5, 1.6 * u5, 4.5 * u5);
+        ui.fillStyle(0x3d7fd9, 1).fillRect(bx - 1.8 * u5, by - 1.6 * u5, 3.6 * u5, 2.4 * u5);
       } else {
         ui.fillStyle(0xffffff, 1).fillRect(bx - 1.2 * u5, by - 5.5 * u5, 2.4 * u5, 7 * u5).fillRect(bx - 1.2 * u5, by + 3 * u5, 2.4 * u5, 2.4 * u5);
       }
@@ -3586,7 +3594,8 @@ class StadiumScene extends Phaser.Scene {
     if (lbl.textContent !== text) lbl.textContent = text;
     const cls = mode === 4 ? "alert" : mode === 3 ? "evasion" : mode === 2 ? "caution" : "";
     if (lbl.className !== cls) lbl.className = cls;
-    const stars = heat ? `<b>${"★".repeat(heat)}</b>${"★".repeat(5 - heat)}` : "";
+    // How much trouble, in words, not five stars: what they saw you do sets it (the stars' rule).
+    const stars = heat ? `<b class="lv${Math.min(4, heat)}">${heat >= 5 ? "Armed police" : heat === 4 ? "Major incident" : heat === 3 ? "Incident" : heat === 2 ? "Trouble" : "Mischief"}</b>` : "";
     if (this.starsHtml !== stars) { this.starsHtml = stars; $("stars").innerHTML = stars; }
     // Like GTA's: no stars on screen until you're wanted.
     const hb = $("heat"); if (hb.hidden !== (!heat && !text)) hb.hidden = !heat && !text;
@@ -3613,7 +3622,7 @@ class StadiumScene extends Phaser.Scene {
    *  hand; a choke if he's turned away; else a punch); hold it for the variations: punch, haymaker,
    *  takedown, any weapon in your pockets. Down people get pockets, drag, stamp, radio, knife work. */
   ring: { id: string; items: RingItem[]; sub: boolean } | null = null;
-  openPerson(id: string, sub = false) {
+  openPerson(id: string, sub = false, all = false) {
     const s = this.s, pc = this.pc, a = s.actors[id];
     if (!a || !pc || !this.started) return;
     const down = incapacitated(this.w, a), out: RingItem[] = [];
@@ -3647,6 +3656,23 @@ class StadiumScene extends Phaser.Scene {
       out.push(o);
     }
     if (n?.shop && !down && !out.some((x) => x.main)) out[0].main = true;
+    // The best few, not everything (touch the world first, choose verbs second): the most relevant
+    // thing is the big one (Buy at a shop, a ticket at the gate, otherwise Talk; Attack only when
+    // there's a fight on), three more round it, and "…" for the rest.
+    if (!sub && !down && !all && out.length > 4) {
+      const fight = this.fightOn();
+      const score = (x: RingItem) => x.kind === "opt" ? (n?.shop && (x.label === "Buy" || x.label === "Bet") ? 95 : 48 + (x.opt?.priority ?? 0) / 10)
+        : x.kind === "attack" ? (fight ? 100 : 30) : x.kind === "talk" ? 60 : x.kind === "bribe" ? 46 : x.kind === "pickpocket" ? 26 : x.kind === "throw" ? (fight ? 40 : 18) : 20;
+      const ranked = out.map((x) => ({ x, sc: score(x) })).sort((p1, p2) => p2.sc - p1.sc).map((r) => r.x);
+      for (const x of ranked) x.main = false;
+      ranked[0].main = true;
+      out.length = 0;
+      out.push(...ranked.slice(0, 4), { label: "More", icon: "", glyph: "…", kind: "more" });
+    } else if (!sub && !down && !all && !this.fightOn()) {
+      // Few enough to show them all; still, Talk leads unless it's a fight.
+      const t = out.find((x) => x.kind === "talk"), att = out.find((x) => x.kind === "attack");
+      if (t && att?.main) { att.main = false; t.main = true; }
+    }
     this.closeRing();
     this.ring = { id, items: out, sub };
     const el = document.createElement("div"); el.id = "ring";
@@ -3656,7 +3682,7 @@ class StadiumScene extends Phaser.Scene {
     el.appendChild(who);
     out.forEach((it, i) => {
       const b = document.createElement("button");
-      b.className = `rb${it.main ? " main" : ""}`;
+      b.className = `rb${it.main ? " main" : ""}${it.kind === "attack" ? " atk" : ""}`;
       b.innerHTML = `${it.icon ? `<img src="${it.icon}" alt="">` : `<b style="font:800 26px/1 var(--display);color:#fff">${it.glyph ?? "?"}</b>`}<span>${esc(it.label)}</span>`;
       b.style.animationDelay = `${i * 18}ms`;
       // A tap does it; holding the main Attack fans out the variations.
@@ -3673,6 +3699,7 @@ class StadiumScene extends Phaser.Scene {
         held = 0;
         this.audio.play("tap", 0.6);
         if (it.kind === "back") { this.openPerson(id); return; }
+        if (it.kind === "more") { this.openPerson(id, false, true); return; }
         this.closeRing();
         if (it.kind === "opt") { this.setPursue({ id, kind: "opt", opt: it.opt, until: performance.now() + 15000, path: [], pathAt: 0 }); this.picked = id; return; }
         this.choosePerson({ id, kind: it.kind === "attack" ? this.smartAttack(a).kind : it.kind, item: it.kind === "attack" ? this.smartAttack(a).item : it.item, arg: it.arg });

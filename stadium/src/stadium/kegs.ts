@@ -42,6 +42,15 @@ export function chainLink(w: World, link: string): void {
   w.bus.emit({ type: "chain", t: w.state.tick, links: c.links.slice(), by: c.by });
 }
 
+/** A knock-on somewhere else (Steve's chute, Lenny, Wally's card, the press pass): name it as a chain
+ *  (joining one already running), badge whoever's broken off, and count it as someone leaving their post. */
+export function knockOn(w: World, who: Actor | undefined, why: "search" | "report", secs: number, first: string, ...links: string[]): void {
+  const s = w.state, st = s.stadium!, tick = s.tick, c = st.chain;
+  if (!c || tick - c.t0 > 60 * 14) chainStart(w, st.pc, first); else chainLink(w, first);
+  for (const l of links) chainLink(w, l);
+  if (who?.npc) { who.npc.why = why; who.npc.whyUntil = tick + 60 * secs; w.bus.emit({ type: "post_left", t: tick, by: who.id, why, x: who.x, y: who.y }); }
+}
+
 const wallAt = (x: number, y: number) => SOLID.some((q) => q.h3 >= 0.5 && x > q.x && x < q.x + q.w && y > q.y && y < q.y + q.h);
 const kegNear = (w: World, a: Actor, r = 1.8): Item | undefined =>
   Object.values(w.state.items).find((i) => i.def === "keg" && i.loc.k === "ground" && Math.hypot(i.loc.x - a.x, i.loc.y - a.y) < r && !w.state.stadium!.kegCarry?.[i.id]);

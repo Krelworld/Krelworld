@@ -1109,3 +1109,30 @@ Following the research report and the audit (`docs/option-b-audit.md`): make one
 **The kick-off swoop is gone** (the creator's call). The match starts the moment you tap Play.
 
 **Art: a quieter-surfaces test, not a restyle.** The report recommends keeping the pixel art and simplifying the hierarchy before regenerating anything: quiet background surfaces, strong silhouettes, contrast saved for what matters. It suggests proving that on one slice first. `?quiet` lays a soft flat veil over the ground layer only (depth 0.9, under every building, prop and person), so pavement and yard texture recede and people, kegs, the dog and shopfronts stand out. Side-by-side shots outside the Three Lions suggest it reads better. Whether it becomes the default, and whether any art gets regenerated, waits on the creator looking at it on a phone, then on first-time players.
+
+## Round: after the first playtest (testers could say why the drayman walked off)
+
+The gate the report set has passed: first-time players could explain the keg chain. So the same grammar now spreads to what's already there.
+
+**Tapping a person: the best few, not everything.**
+- The ring now shows four actions and a "…" for the rest.
+- The big one is the most relevant thing: Buy at a shop, the ticket at a gate, otherwise Talk.
+- Attack is only the big one when there's a fight on (you've hit or been hit recently, someone on duty's coming for you, or a creep's on you).
+- Holding Attack still fans out the variations.
+
+**Every existing knock-on now reads like the keg.**
+- **Para Steve's chute:** "STEVE'S CHUTE GONE → HALF-TIME JUMP OFF → STEVE LEAVES HIS VAN", with a yellow "?" over him while he searches.
+- **Lenny:** "LENNY MISSING → CORRIDOR STEWARD LEAVES HIS POST", with the "?" over the steward.
+- **Wally's card:** "WALLY'S CARD GONE → PLAYERS' DOOR PROPPED OPEN", with a blue radio badge while he goes to report it.
+- **The press pass:** "PRESS PASS GONE → COPPER LEAVES HIS POST", with the radio badge over the copper taking the statement.
+- **The rule:** each one counts as someone leaving their post, so any of them can be the one that teaches "People leave their post to fix a problem."
+
+**Trouble in words, not stars.** The heat readout says how much trouble you're in, from what they saw you do (the same rule the stars used):
+
+| Level | Label | Colour |
+|---|---|---|
+| 1 | Mischief | Yellow |
+| 2 | Trouble | Yellow |
+| 3 | Incident | Orange |
+| 4 | Major incident | Red |
+| 5 | Armed police | Red |

@@ -15,6 +15,7 @@ import { registerVerb } from "../core/verbs";
 import type { World } from "../core/world";
 import { spawnBikes } from "./bike";
 import { KICKOFF_AT, SPOTS } from "./layout";
+import { knockOn } from "./kegs";
 import { say, secs } from "./npc";
 import { incapacitated } from "./combat";
 import { crime } from "./security";
@@ -143,6 +144,7 @@ function knockOns(w: World): void {
       f.chuteGone = tick;
       say(w, steve, "Where's my chute? WHERE'S MY BLOODY CHUTE?", 4);
       w.bus.emit({ type: "display_cancelled", t: tick });
+      knockOn(w, steve, "search", 70, "STEVE'S CHUTE GONE", "HALF-TIME JUMP OFF", "STEVE LEAVES HIS VAN");
       steve.npc!.post = undefined;
       steve.npc!.plan = [{ k: "go", x: 40, y: 56 }, { k: "wait", s: 6 }, { k: "go", x: 10, y: 54 }, { k: "wait", s: 6 }, { k: "go", x: -20, y: 56 }, { k: "wait", s: 8 }, { k: "go", ...sp().para }, { k: "wait", s: 3600 }];
       if (VENUE_SIGN() < 0) for (const k of steve.npc!.plan) if ("x" in k) (k as { x: number }).x = -(k as { x: number }).x;
@@ -159,6 +161,7 @@ function knockOns(w: World): void {
     const brian = Object.values(s.actors).find((a) => a.npc?.job === "corridor" && !a.dead);
     if (brian && !incapacitated(w, brian)) {
       say(w, brian, "Bloody mascot. I'll go and find him.", 3);
+      knockOn(w, brian, "search", 50, "LENNY MISSING", "CORRIDOR STEWARD LEAVES HIS POST");
       brian.npc!.plan = [{ k: "go", ...sp().kitRoom }, { k: "go", ...sp().playersDoor }, { k: "go", ...sp().mascotSmoke }, { k: "wait", s: 25 }, { k: "go", ...sp().playersDoor }, { k: "go", ...sp().corridorPost }];
     }
   }
@@ -171,6 +174,7 @@ function knockOns(w: World): void {
     say(w, wally, "Me card! Some bastard's had me card! ...I'll prop it. Back in a sec.", 4);
     st.gates.playersdoor = { until: tick + 60 * 90, for: null };
     w.bus.emit({ type: "card_stolen", t: tick });
+    knockOn(w, wally, "report", 60, "WALLY'S CARD GONE", "PLAYERS' DOOR PROPPED OPEN");
     wally.npc!.plan = [{ k: "go", ...sp().kitRoom }, { k: "go", ...sp().chiefDesk }, { k: "wait", s: 40 }];
   }
   // The reporter's press pass: he notices, and PC Okafor comes over to take a statement.
@@ -181,6 +185,7 @@ function knockOns(w: World): void {
     w.bus.emit({ type: "pass_stolen", t: tick });
     const cop = Object.values(s.actors).find((a) => a.npc?.job === "police" && !a.npc.mounted && !a.dead && !incapacitated(w, a));
     if (cop) cop.npc!.plan = [{ k: "go", x: rep.x + 1, y: rep.y + 0.5 }, { k: "say", text: "Right, sir. Start from the beginning." }, { k: "wait", s: 45 }];
+    knockOn(w, cop, "report", 55, "PRESS PASS GONE", "COPPER LEAVES HIS POST");
   }
 }
 const VENUE_SIGN = () => Math.sign((SPOTS as any).para.x) || 1;

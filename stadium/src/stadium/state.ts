@@ -42,7 +42,7 @@ export interface Npc {
   group?: { x: number; y: number };
   act?: "chat" | "drink" | "smoke" | "cheer" | "idle";
   /** Why they've broken off what they were doing (shown over their head while it lasts). */
-  why?: "fetch" | "angry";
+  why?: "fetch" | "angry" | "search" | "report";
   whyUntil?: number;
   /** The item they're off to fetch back. */
   fetch?: Id;

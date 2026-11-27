@@ -252,12 +252,39 @@ class OpeningScene extends Phaser.Scene {
   }
 
   // ---------- the film ----------
+  /** The film in scenes (the news, the house, the coach). Skip ends the one that's playing and
+   *  starts the next; skipping the last one goes to the match. */
+  sceneName = "";
+  private abortScene: (() => void) | null = null;
   async run() {
-    if (location.search.includes("opcoach")) { await this.coach(); this.finish(); return; }
-    if (!location.search.includes("oproom")) await this.telly();
-    await this.room();
-    await this.coach();
+    const q = location.search;
+    const scenes: [string, () => Promise<void>][] = [];
+    if (!q.includes("oproom") && !q.includes("opcoach")) scenes.push(["telly", () => this.telly()]);
+    if (!q.includes("opcoach")) scenes.push(["room", () => this.room()]);
+    scenes.push(["coach", () => this.coach()]);
+    for (const [name, play] of scenes) {
+      if (this.finished) return;
+      this.sceneName = name;
+      const skipped = await Promise.race([play().then(() => false), new Promise<boolean>((r) => { this.abortScene = () => r(true); })]);
+      this.abortScene = null;
+      if (skipped) this.clearScene();
+    }
     this.finish();
+  }
+  /** Skip: on to the next scene. True if there wasn't one (the caller then goes to the match). */
+  skipScene(): boolean {
+    if (!this.abortScene || this.sceneName === "coach") return true;
+    this.abortScene();
+    return false;
+  }
+  /** Clear a scene cut short: its sounds, its moving parts, everything on screen. Its unfinished
+   *  steps are waiting on timers and tweens that are now gone, so they never carry on into the next. */
+  private clearScene() {
+    this.sound.stopAll(); this.tune = null;
+    this.tweens.killAll(); this.time.removeAllEvents();
+    this.children.removeAll(true);
+    this.nextLine = null; this.skipWait = null;
+    const cam = this.cameras.main; cam.resetFX(); cam.setScroll(0, 0); cam.setZoom(1);
   }
 
   /** One piece of music at a time, faded in and out. */
@@ -644,6 +671,7 @@ class OpeningScene extends Phaser.Scene {
       const l = this.add.rectangle(-200, H / 2, 140, H, 0xfff0c0, 0.08).setDepth(5).setAngle(12);
       this.tweens.add({ targets: l, x: W + 200, duration: 900, onComplete: () => l.destroy() });
     } });
+    if (!this.tune) this.music("mus_title", 0.18, false);
     const chant = this.cache.audio.exists("chant_eng") ? this.sound.add("chant_eng", { loop: true, volume: 0.22 }) : null;
     chant?.play();
     if (this.tune) this.tweens.add({ targets: this.tune, volume: 0.18, duration: 800 });
@@ -741,7 +769,8 @@ export function playOpening(done: () => void): void {
     host.remove();
     done();
   };
-  skip.addEventListener("click", end);
+  // Skip: the next scene; from the last one, the match.
+  skip.addEventListener("click", () => { const sc = scene(); if (!sc || sc.skipScene()) end(); else if (paused) pause.click(); });
   // Krelworld's film controls along the bottom: pause, next line, skip the lot (a tap on the film is next line too).
   const bar = document.createElement("div");
   Object.assign(bar.style, { position: "absolute", left: "0", right: "0", bottom: "max(12px, env(safe-area-inset-bottom, 0px))", display: "flex", justifyContent: "center", gap: "10px", zIndex: "2", pointerEvents: "none" });
@@ -758,7 +787,7 @@ export function playOpening(done: () => void): void {
   nxt.addEventListener("click", () => { if (!paused) scene()?.next(); });
   skip.remove(); Object.assign(skip.style, { position: "static", pointerEvents: "auto" }); bar.appendChild(skip);
   host.appendChild(bar);
-  skip.textContent = "Skip ▸▸";
+  skip.textContent = "Skip scene ▸▸";
   // A title card with a Play button first: phones only allow sound after a tap.
   const card = document.createElement("div");
   Object.assign(card.style, { position: "absolute", inset: "0", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "18px", background: "radial-gradient(circle at 50% 40%, #2a0d10, #000 70%)", zIndex: "1" });

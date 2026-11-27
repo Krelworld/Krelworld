@@ -41,6 +41,11 @@ export interface Npc {
   /** Standing about with others: the middle of the group, and what they're doing (chat, drink, smoke, cheer, idle). */
   group?: { x: number; y: number };
   act?: "chat" | "drink" | "smoke" | "cheer" | "idle";
+  /** Why they've broken off what they were doing (shown over their head while it lasts). */
+  why?: "fetch" | "angry";
+  whyUntil?: number;
+  /** The item they're off to fetch back. */
+  fetch?: Id;
   /** Rubbernecking a fight until this tick; `filming` if they've got their phone out. */
   gawk?: { until: number; x: number; y: number; filming: boolean };
   // Security.
@@ -149,6 +154,10 @@ export interface StadiumState {
   wanted: Wanted[];
   /** A bloke who has taken a fancy to Grozz in his frock (drag.ts). */
   creep?: import("./drag").Creep;
+  /** Kegs rolling, kegs being carried back (keg → who), and the chain Grozz has going. */
+  rolling?: import("./kegs").Roll[];
+  kegCarry?: Record<Id, Id>;
+  chain?: import("./kegs").Chain;
   incidents: Incident[];
   /** Ever been inside the ground (for the admission checkpoint). */
   admitted: boolean;

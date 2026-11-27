@@ -84,7 +84,7 @@ const esc = (t: string) => t.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&l
 interface TickerLine { text: string; src: string; big: boolean }
 
 /** A PixelLab picture of an item, if there is one. */
-const ICONS = new Set(["brick", "fart_can", "rifle", "burner", "warrant_card", "pint", "pie", "knife", "whistle", "ticket", "wallet", "laxative", "powder", "shirt_eng", "shirt_por", "shirt_bra", "shirt_arg", "police_uniform", "kit_eng", "kit_opp",
+const ICONS = new Set(["keg", "brick", "fart_can", "rifle", "burner", "warrant_card", "pint", "pie", "knife", "whistle", "ticket", "wallet", "laxative", "powder", "shirt_eng", "shirt_por", "shirt_bra", "shirt_arg", "police_uniform", "kit_eng", "kit_opp",
   "staff_pass", "radio", "hivis", "ref_kit", "police_hat", "mask", "flat_cap", "sunglasses", "moustache", "tracksuit", "chef_whites", "overalls", "balaclava", "hammer", "flare", "betslip", "face", "hands", "censored_bar", "wrench", "kit_card", "parachute", "mascot_suit", "press_pass", "bottle", "pint_glass", "chair", "corner_flag", "wig", "long_wig", "dress", "pool_cue", "bicycle"]);
 interface RingItem { label: string; icon: string; kind: string; item?: string; arg?: string; main?: boolean; glyph?: string; opt?: Option }
 const icon = (def: string) => (ICONS.has(def) ? `<img class="ico" src="${assetURL(`icons/${def}.png`)}" alt="" onerror="this.remove()">` : `<span class="ico none"></span>`);
@@ -262,7 +262,7 @@ class StadiumScene extends Phaser.Scene {
       this.newsEvents(e);
       this.callTriggers(e);
       if (e.type === "stole") this.hint(e.what === "ticket" ? "You lifted a ticket." : `You lifted £${e.amount}.`);
-      if (e.type === "ejected" && e.who === this.s.stadium!.pc) this.hint(e.taken.length ? `Thrown out. They took your ${e.taken.join(", ")}.` : "Thrown out. They'll know your face now.");
+      if (e.type === "ejected" && e.who === this.s.stadium!.pc) this.hint(e.soft ? "Walked back to the coach. Nothing taken, nobody's remembered you. Try something else." : e.taken.length ? `Thrown out. They took your ${e.taken.join(", ")}.` : "Thrown out. They'll know your face now.");
       // Frogmarched: fade to black first; the move happens in the dark; the camera's already there when it lifts.
       if (e.type === "escort_fade" && e.who === this.s.stadium!.pc) $("fade").classList.add("on");
       if ((e.type === "escort_cut" || e.type === "ejected") && e.who === this.s.stadium!.pc && !this.cutDone) {
@@ -1545,6 +1545,32 @@ class StadiumScene extends Phaser.Scene {
     g.lineStyle(2, 0xfff1c4, 0.35 * k).strokePoints(V([{ x: TL.x, y: top }, { x: TR.x, y: top }, { x: BR.x, y: bot }, { x: BL.x, y: bot }]), true);
   }
   roofDimK = 0;
+  whyIcons = new Map<string, Phaser.GameObjects.Image>();
+  /** A chain Grozz set off, named like a TV graphic as it grows ("KEG → DRAYMAN GOES AFTER IT → …"). */
+  chainTimer = 0;
+  chainStrap(links: string[]) {
+    if (links.length < 2) return;
+    const el = $("chainStrap");
+    el.innerHTML = `<b>${links.length >= 3 ? "CHAIN REACTION" : "KNOCK-ON"}</b><span>${links.map((l) => `<i>${esc(l)}</i>`).join("<em>→</em>")}</span>`;
+    el.hidden = false; el.classList.remove("in"); void el.offsetWidth; el.classList.add("in");
+    this.audio.play("chime", 0.5, { rate: 0.7 + links.length * 0.08 });
+    if (links.length >= 3) this.audio.play("crowd_ooh" as Clip, 0.55);
+    clearTimeout(this.chainTimer); this.chainTimer = window.setTimeout(() => { el.hidden = true; }, 5200);
+  }
+  /** A rule of the world, said once when you first make it happen (then it's in the notes). */
+  rules: Set<string> = (() => { try { return new Set<string>(JSON.parse(localStorage.getItem("kd-rules") ?? "[]")); } catch { return new Set<string>(); } })();
+  ruleCard(id: string, rule: string, more: string) {
+    if (this.rules.has(id)) { this.flags[`rule_${id}`] = 1; return; }
+    this.rules.add(id); this.flags[`rule_${id}`] = 1;
+    try { localStorage.setItem("kd-rules", JSON.stringify([...this.rules])); } catch { /* ignore */ }
+    this.say(`${rule} ${more}`, "Rule", false, false);
+    const el = $("itemCard");
+    el.innerHTML = `<i class="bulb rule">✓</i><div><b>A rule of the day</b><span>${esc(rule)}</span><small>${esc(more)}</small></div>`;
+    el.hidden = false; el.classList.remove("in"); void el.offsetWidth; el.classList.add("in");
+    this.itemCardAt = performance.now();
+    this.audio.play("chime", 0.6, { rate: 1.1 });
+    clearTimeout(this.itemCardTimer); this.itemCardTimer = window.setTimeout(() => { el.hidden = true; }, 6500);
+  }
   seenItems: Set<string> = (() => { try { return new Set<string>(JSON.parse(localStorage.getItem("kd-items") ?? "[]")); } catch { return new Set<string>(); } })();
   itemCardTimer = 0;
   itemCardAt = 0;
@@ -1943,14 +1969,15 @@ class StadiumScene extends Phaser.Scene {
         continue;
       }
       const near = pc && Math.hypot(pc.x - x, pc.y - y) < 2.6;
-      if (sprites && def.size !== "huge" && ICONS.has(it.def) && this.textures.exists(`ico-${it.def}`)) {
+      if (sprites && (def.size !== "huge" || it.def === "keg") && ICONS.has(it.def) && this.textures.exists(`ico-${it.def}`)) {
         // Its picture, half size (a 48 px icon is 0.75 m across), lying where it fell or flying.
         this.shadowG.fillStyle(0x000000, 0.3).fillEllipse(Math.round(P.sx(x, y)), Math.round(P.sy(x, y)), P.S * 0.6, P.S * 0.22);
         things.push({ d: onR ? 1e5 + y : y, draw: () => {}, spr: (dep) => {
           let im = this.worldSprites.get(`item-${id}`);
           if (!im) { im = this.add.image(0, 0, `ico-${it.def}`); this.worldSprites.set(`item-${id}`, im); }
           this.worldSeen.add(`item-${id}`);
-          im.setTexture(`ico-${it.def}`).setOrigin(0.5, 0.9).setScale(0.5).setPosition(Math.round(P.sx(x, y)), Math.round(P.sy(x, y, z))).setDepth(dep).setVisible(true).setAlpha(1).setAngle(l.k === "air" ? (tick * 12) % 360 : 0);
+          const rolling = it.def === "keg" && s.stadium!.rolling?.some((r) => r.id === id);
+          im.setTexture(`ico-${it.def}`).setOrigin(0.5, 0.9).setScale(it.def === "keg" ? 0.75 : 0.5).setPosition(Math.round(P.sx(x, y)), Math.round(P.sy(x, y, z))).setDepth(dep).setVisible(true).setAlpha(1).setAngle(l.k === "air" ? (tick * 12) % 360 : rolling ? Math.sin(tick * 0.9) * 14 : 0);
         } });
         if (near && l.k === "ground") things.push({ d: y + 1e-4, draw: () => g.lineStyle(3, 0xf2c94c, 0.5 + 0.4 * Math.sin(tick * 0.15)).strokeCircle(P.sx(x, y), P.sy(x, y) - P.S * 0.2, P.S * 0.55) });
         continue;
@@ -2402,6 +2429,26 @@ class StadiumScene extends Phaser.Scene {
         if (!on) { const ang = Math.atan2(ay - ey, ax - ex); ui.fillStyle(0xf2c94c, 0.9).fillTriangle(ex + Math.cos(ang) * r * 2.1, ey + Math.sin(ang) * r * 2.1, ex + Math.cos(ang + 0.5) * r * 1.4, ey + Math.sin(ang + 0.5) * r * 1.4, ex + Math.cos(ang - 0.5) * r * 1.4, ey + Math.sin(ang - 0.5) * r * 1.4); }
       }
     }
+    // Why someone's broken off what they were doing, because of you: a badge over their head while it
+    // lasts (the Goose's readable reactions). A keg: off to fetch one back. A red burst: angry.
+    const whySeen = new Set<string>();
+    if (pc) for (const id in s.actors) {
+      const a = s.actors[id], n = a.npc;
+      if (!n?.why || (n.whyUntil ?? 0) <= tick || a.hiddenIn || a.dead || !onScreen(a.x, a.y)) continue;
+      const u5 = DPR / cam.zoom, bx = P.sx(a.x, a.y), by = headTop(P, a.x, a.y) - 14 * u5 - Math.abs(Math.sin(tick * 0.12)) * 3 * u5, r5 = 9 * u5;
+      ui.fillStyle(0x000000, 1).fillCircle(bx, by, r5 + 2 * u5).fillTriangle(bx - 4 * u5, by + r5 - u5, bx + 4 * u5, by + r5 - u5, bx, by + r5 + 6 * u5);
+      ui.fillStyle(n.why === "angry" ? 0xd7263d : 0xfffdf3, 1).fillCircle(bx, by, r5);
+      if (n.why === "fetch") {
+        // The keg's own picture in the badge.
+        let ic = this.whyIcons.get(id);
+        if (!ic) { ic = this.add.image(0, 0, "ico-keg").setDepth(1e7 + 1); this.whyIcons.set(id, ic); }
+        ic.setPosition(Math.round(bx), Math.round(by)).setScale((r5 * 1.7) / 48).setVisible(true);
+        whySeen.add(id);
+      } else {
+        ui.fillStyle(0xffffff, 1).fillRect(bx - 1.2 * u5, by - 5.5 * u5, 2.4 * u5, 7 * u5).fillRect(bx - 1.2 * u5, by + 3 * u5, 2.4 * u5, 2.4 * u5);
+      }
+    }
+    for (const [id, ic] of this.whyIcons) if (!whySeen.has(id)) ic.setVisible(false);
     // What's in your hand is for: those places pulse (the nearest with its name), or an arrow at the
     // edge points the way to the nearest. Worked out a few times a second.
     if (pc && !pc.roof) {
@@ -2443,7 +2490,14 @@ class StadiumScene extends Phaser.Scene {
         for (let k2 = 0; k2 <= 12; k2++) { const an = a.facing - 0.95 + (1.9 * k2) / 12; ui.lineTo(ax + Math.cos(an) * R2, ay + Math.sin(an) * R2 * (P.standing ? P.K : 1)); }
         ui.closePath(); ui.fillPath();
       }
-      for (const mk of instinctMarks(this.w)) {
+      const marks = instinctMarks(this.w);
+      // Once you know people leave their post to fix a problem: who's stood at one (the nearest two named).
+      if (this.rules.has("post")) {
+        const posted = Object.values(s.actors).filter((a) => a.npc?.post && a.npc.mode === "routine" && !a.dead && !a.hiddenIn && Math.hypot(a.x - pc.x, a.y - pc.y) < 40)
+          .sort((p1, p2) => Math.hypot(p1.x - pc.x, p1.y - pc.y) - Math.hypot(p2.x - pc.x, p2.y - pc.y));
+        posted.forEach((a, i) => marks.push({ x: a.x, y: a.y, col: 0xf2994a, label: i < 2 ? "At a post" : "", z: 1.9 }));
+      }
+      for (const mk of marks) {
         const x = P.sx(mk.x, mk.y), y = P.sy(mk.x, mk.y) - (mk.z ?? 0.4) * P.S;
         if (x < v.x || x > v.right || y < v.y || y > v.bottom) continue;
         const pulse = 0.6 + 0.4 * Math.sin(tick * 0.15);
@@ -2469,7 +2523,7 @@ class StadiumScene extends Phaser.Scene {
     // one line at a time; everyone else chatting gets a chat dot.
     const speaking = Object.values(s.actors).filter((a) => a.npc?.bubble && !a.hiddenIn && onScreen(a.x, a.y)).sort((p, q) => near0(p) - near0(q));
     const talkingTo = this.talkedTo && performance.now() - this.talkedTo.at < 12000 ? this.talkedTo.id : null;
-    const matters = (a: Actor) => a.id === talkingTo || (a.npc!.mode !== "routine" && a.npc!.mode !== "flee") || isHint(a.npc!.bubble!.text) || !!st.snitches?.some((x) => x.by === a.id);
+    const matters = (a: Actor) => a.id === talkingTo || (a.npc!.mode !== "routine" && a.npc!.mode !== "flee") || isHint(a.npc!.bubble!.text) || !!st.snitches?.some((x) => x.by === a.id) || ((a.npc!.whyUntil ?? 0) > s.tick && !!a.npc!.why);
     const key = speaking.filter(matters), chatter = speaking.filter((a) => !matters(a));
     const shownChat = chatter.filter((a) => near0(a) < 9).slice(0, 1);
     const talkers = [...(pcTalk ? [pc!] : []), ...key.slice(0, 2), ...shownChat].slice(0, this.bubbles.length);
@@ -4323,6 +4377,8 @@ class StadiumScene extends Phaser.Scene {
       case "gift": if (e.def) this.toast(e.def, ITEM_DEFS[e.def]?.name ?? e.def, "Given"); else if (e.money) this.hint(`+£${e.money}.`); this.audio.play("pickup", 0.8); break;
       case "scammed": this.hint(e.amount ? `−£${e.amount}. He's not coming back.` : "He's not coming back."); break;
       case "contact": this.toastTick(`☎ Number saved: ${e.id === "dealer" ? "Spliff Ricky" : "Bare-Knuckle Brendan"}`); this.audio.play("chime", 0.5); break;
+      case "chain": this.chainStrap(e.links); break;
+      case "post_left": if (this.s.stadium!.chain?.by === this.s.stadium!.pc) setTimeout(() => this.ruleCard("post", "People leave their post to fix a problem.", "Stewards, staff, Steve, Lenny, Wally: give them a problem and they go. Instinct now shows who's stood at a post."), 1800); break;
       case "secret": this.toastTick(`★ Found: ${e.title}`); this.audio.play("chime", 0.7, { rate: 0.9 }); this.tick("secret"); break;
       case "stripped": if (e.by === pcId) this.hint("Starkers. Every steward who sees you will have you for indecent exposure. The pitch is right there."); break;
       case "streak": this.tick("streak"); this.hint("A streaker! They've stopped the match."); this.audio.play("goal_roar", 0.7, { minGap: 3 }); this.crowdUpUntil = performance.now() + 5000; this.crowdUpSide = "all"; break;

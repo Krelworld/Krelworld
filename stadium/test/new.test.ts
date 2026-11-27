@@ -281,3 +281,32 @@ test("Kev's call counts as overheard; Ricky's call leaves his number; flattening
   g.w.bus.emit({ type: "knockout", t: s.tick, who: stw.id, by: pc.id });
   assert.ok(st.flags.evadeUntil < before, "search shortened");
 });
+
+test("the drayman's keg: roll it and he goes after it, the lorry waits with its back open, and the chain is named", () => {
+  const g = createGame("keg1"), s = g.w.state, pc = pcOf(g), ev = events(g);
+  run(g, 1);
+  const kegs = Object.values(s.items).filter((i) => i.def === "keg");
+  assert.equal(kegs.length, 4);
+  const keg = kegs.find((k) => k.home && Math.hypot(k.home.x + 30.1, k.home.y - 69.5) < 0.1) ?? kegs[3];
+  const l = keg.loc as { x: number; y: number };
+  // Stand behind it, facing up the yard, and roll it.
+  pc.x = l.x - 0.9; pc.y = l.y + 0.3; pc.facing = 0;
+  const r = dispatch(g.w, { verb: "shove", actor: pc.id, item: keg.id });
+  assert.equal(r.ok, true, String(r.reason));
+  run(g, 3);
+  const k2 = keg.loc as { x: number; y: number };
+  assert.ok(Math.hypot(k2.x - keg.home!.x, k2.y - keg.home!.y) > 3, "it rolled a good few metres");
+  const dray = find(g, (a) => a.npc?.job === "worker");
+  run(g, 2);
+  if (!dray.hiddenIn) {
+    assert.equal(dray.npc!.fetch, keg.id, "he's gone after it");
+    assert.ok(ev.some((e) => e.type === "post_left" && e.by === dray.id));
+    const chain = ev.filter((e) => e.type === "chain").pop();
+    assert.ok(chain && chain.links[0] === "KEG" && chain.links.includes("DRAYMAN GOES AFTER IT"), JSON.stringify(chain));
+    // He brings it back where it belongs.
+    run(g, 40);
+    const k3 = keg.loc as { x: number; y: number };
+    assert.ok(Math.hypot(k3.x - keg.home!.x, k3.y - keg.home!.y) < 0.5, "back on the stack");
+    assert.equal(dray.npc!.fetch, undefined);
+  }
+});

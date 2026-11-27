@@ -1081,3 +1081,27 @@ The game felt confusing and overwhelming: about ten HUD panels and buttons on a 
 - the team hotel.
 
 Exploring is rewarded with a plan, not a waypoint.
+
+## Round: the opening playground (Option B's first slice: the keg)
+
+Following the research report and the audit (`docs/option-b-audit.md`): make one chain that Grozz causes readable, funny and reusable before building anything else.
+
+**Where Grozz starts.** In the game, the coach drops him at the top of the pub yard, with the drayman, his lorry and his kegs in view. The tests keep the old spot on the approach (`arrivalSpot`).
+
+**The keg** (`src/stadium/kegs.ts`).
+- **The stack:** four kegs by the pub's back door where the lorry loads, one loose at the edge.
+- **Rolling it:** "Roll the keg" shoves it six or seven metres. It wobbles as it rolls, stops against walls, and knocks over anyone in its path.
+- **Bowled over:** whoever it hits is down for a moment, then goes and has words with the drayman ("Oi! Watch your bloody kegs!" / "Some fat bloke did it!").
+- **The drayman notices** a keg that isn't on the stack and goes after it ("Oi! Where's that going?"), carries it back and puts it down where it belongs ("Every bloody week.").
+- **The lorry waits:** while he's away it doesn't leave without him, so its back stays open and nobody's watching it. That's the way in (hide in the lorry), and it's why rolling the keg is worth doing.
+- **Covered by a test:** roll, he goes after it, the chain is named, and it's back on the stack.
+
+**Making it readable.**
+- **Intent badges:** a badge over anyone who's broken off what they were doing because of you, for as long as it lasts: the keg's own picture while the drayman's fetching it, a red "!" while someone's angry. Their shouted line gets a full speech bubble, not the background-chatter dot.
+- **The chain strap:** what Grozz sets off is named on screen like a TV graphic as it grows: "KNOCK-ON: KEG → DRAYMAN GOES AFTER IT", then "CHAIN REACTION: … → LORRY LEFT OPEN → A ROW WITH THE DRAYMAN". It comes with a chime that rises with each link, and a crowd "ooh" from three links on. Links have to come within a few seconds of each other.
+- **A rule of the day:** the first time someone leaves their post because of you, a card: "People leave their post to fix a problem. Stewards, staff, Steve, Lenny, Wally: give them a problem and they go." It goes in the notes. From then on, Instinct marks everyone stood at a post (the nearest two labelled). The same rule already drives Para Steve and his chute, Lenny, Wally's card and the press pass.
+- **The idea for the kegs** points the way without saying what happens: "One's right on the edge. Give it a roll and see what he does."
+
+**Failing outside is cheaper.** Before you've ever been inside, a minor ejection walks you back to the coach drop-off with your ticket, your gear and your face intact ("Off you go, big man. Sober up."). Getting thrown out of the ground itself, or for anything serious, is as before.
+
+**Orientation:** both are supported, with landscape tuned first. In portrait the chain strap stacks its label above the links.

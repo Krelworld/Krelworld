@@ -97,6 +97,7 @@ export function options(w: World, pc: Actor, picked?: string | null): Option[] {
     if (d > 2.6) continue;
     const def = defOf(it);
     if (def.size !== "huge") push(`Pick up ${lc(def.name)}`, 70 - d, { verb: "take", ...base, item: it.id });
+    if (it.def === "keg" && d < 1.9) push("Roll the keg", 74 - d, { verb: "shove", ...base, item: it.id });
     if (hasProp(it, "container") && it.def !== "locker" && it.def !== "police_box" && it.def !== "bus_cab" && it.def !== "kitbag") {
       const v = Object.values(s.stadium!.vehicles).find((vv) => vv.cargo === it.id);
       const label = it.def === "bus_hold" ? "Hide in the bus's luggage hold" : it.def === "laundry" || it.def === "kit_hamper" ? "Climb into the laundry hamper" : `Hide in the back of the ${VENUE.delivery.name}`;

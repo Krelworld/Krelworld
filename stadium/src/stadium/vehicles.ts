@@ -27,11 +27,13 @@ export function stepVehicle(w: World, v: Vehicle): void {
     case "loading":
     case "unloading": {
       // The back is open; the mate carries crates between the lorry and the door.
-      if (worker && worker.npc && !worker.npc.plan.length && worker.npc.mode === "routine") {
+      if (worker && worker.npc && !worker.npc.plan.length && worker.npc.mode === "routine" && !worker.npc.fetch) {
         const rear = rearOf(v);
         const door = v.state === "loading" ? D.loadDoor : D.unloadDoor;
         worker.npc.plan.push({ k: "go", x: rear.x, y: rear.y }, { k: "wait", s: 2 }, { k: "go", ...door }, { k: "wait", s: 3 });
       }
+      // Not without the drayman: while he's off after a keg, the back stays open.
+      if (worker?.npc?.fetch && v.until - tick < 60 * 2) v.until = tick + 60 * 2;
       if (tick >= v.until) {
         v.state = "driving";
         if (atPub) v.route = R.slice(); else v.route = reverse(R);

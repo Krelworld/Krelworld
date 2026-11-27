@@ -6,7 +6,7 @@ import { defOf, hasProp, moveItem } from "../core/items";
 import { chance, pick } from "../core/rng";
 import { DT, type Actor, type Id } from "../core/types";
 import type { World } from "../core/world";
-import { areaAt, BOUNDS, SPOTS, type Area } from "./layout";
+import { areaAt, arrivalSpot, BOUNDS, PACE, SPOTS, VENUE, type Area } from "./layout";
 import { findPath, GH, GW, lineOfSight, navGrid } from "./nav";
 import { follow, goTo, say } from "./npc";
 import type { Npc } from "./state";
@@ -428,6 +428,17 @@ function escort(w: World, g: Actor): void {
 /** Thrown out: tickets cancelled, anything nasty confiscated, face remembered. */
 export function eject(w: World, g: Actor | null, t: Actor): void {
   const s = w.state, st = s.stadium!;
+  // Before he's ever been inside, for something minor: walked back to where the coach dropped him,
+  // ticket and face intact, and told to behave. Failing outside should change the situation, not end
+  // it (the game itself; the tests keep the old, harsher rule).
+  if (PACE.calm && !st.admitted && (g?.npc?.crime ?? 0) < 2 && !VENUE.inside(t.x, t.y)) {
+    t.x = arrivalSpot().x; t.y = arrivalSpot().y; t.heldBy = undefined; t.seated = false;
+    st.detainedUntil = 0; st.warnings = 0;
+    if (g) say(w, g, pick(s.rng.world, ["Go on. Back where you came from, and behave.", "Off you go, big man. Sober up.", "Don't let me see you round here again."]));
+    calmDown(w, t, 20);
+    w.bus.emit({ type: "ejected", t: s.tick, who: t.id, taken: [], soft: true });
+    return;
+  }
   const taken: string[] = [];
   for (const id of [t.hand, ...t.pockets]) {
     if (!id) continue;

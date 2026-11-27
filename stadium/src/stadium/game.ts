@@ -4,7 +4,7 @@ import { pick, rndRange, seedRng } from "../core/rng";
 import type { Actor, WorldState } from "../core/types";
 import { createWorld, spawnActor, stepWorld, type World } from "../core/world";
 import { createMatch, TEAMS } from "../football/setup";
-import { BOUNDS, KICKOFF_AT, PACE, rushAt, setBreaches, setVenue, SOLID, SPOTS, VENUE, type Venue } from "./layout";
+import { arrivalSpot, BOUNDS, KICKOFF_AT, PACE, rushAt, setBreaches, setVenue, SOLID, SPOTS, VENUE, type Venue } from "./layout";
 import { newCampaign, type Campaign } from "./campaign";
 import { mayPass, newNpc, resetPathBudget, secs, spawnFan, spawnStaff, stepNpc } from "./npc";
 import { installBetting, installSettlement } from "./betting";
@@ -27,6 +27,7 @@ import { installLech } from "./lech";
 import { stepChat } from "./chatter";
 import { clampToRoof, installRoofs } from "./roofs";
 import { installMissiles, spawnBricks, stepStench } from "./missiles";
+import { installKegs, spawnKegs, stepKegs } from "./kegs";
 import { installFixes, stepFixes } from "./fixes";
 import { installWitness, stepSnitches } from "./witness";
 import { installPhone, stepPhone } from "./phone";
@@ -57,7 +58,7 @@ export const HALF_SECONDS = 450;
 export const HALFTIME_SECONDS = 150;
 
 export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: Campaign = newCampaign()): Game {
-  if (!rulesInstalled) { installRules(); installBetting(); installPolice(); installBus(); installDog(); installKickoff(); installKnife(); installGloryHole(); installCombat(); installHorse(); installRoutes(); installEntries(); installDetector(); installCoverup(); installBike(); installLech(); installCars(); installWitness(); installPhone(); installNaked(); installRoofs(); rulesInstalled = true; }
+  if (!rulesInstalled) { installRules(); installBetting(); installPolice(); installBus(); installDog(); installKickoff(); installKnife(); installGloryHole(); installCombat(); installHorse(); installRoutes(); installEntries(); installDetector(); installCoverup(); installBike(); installLech(); installCars(); installWitness(); installPhone(); installNaked(); installRoofs(); installKegs(); rulesInstalled = true; }
   setVenue(venueId);
   const oppKey = VENUE.opp;
   const opp = TEAMS[oppKey];
@@ -90,7 +91,7 @@ export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: 
   offIds.forEach((id, i) => { const a = s.actors[id]; a.x = SPOTS.refRoom.x + (i - 1.5) * 1.6; a.y = SPOTS.refRoom.y; a.npc = newNpc("official", "referee"); });
 
   // The player, with whatever he chose to bring.
-  const pc = spawnActor(s, "protagonist", "Grozz", SPOTS.arrival.x, SPOTS.arrival.y, { id: "pc", radius: 0.55, speed: 2.2, money: campaign.money });
+  const pc = spawnActor(s, "protagonist", "Grozz", arrivalSpot().x, arrivalSpot().y, { id: "pc", radius: 0.55, speed: 2.2, money: campaign.money });
   pc.facing = -Math.PI / 2;
   const load = campaign.loadout.includes("shirt_eng") ? campaign.loadout : ["shirt_eng", ...campaign.loadout];
   for (const d of load) {
@@ -158,6 +159,7 @@ export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: 
   spawnEntries(w, staff);
   spawnScenarios(w);
   spawnBricks(w);
+  spawnKegs(w);
   // Things to hit people with: empties on the pub tables and round the bins, chairs in the pub,
   // pint glasses on the concourse bar, and the corner flags.
   const mx = (x: number) => (VENUE.id === "sf" ? -x : x);
@@ -378,6 +380,7 @@ export function stepGame(g: Game): void {
   stepTraffic(w);
   stepCombat(w);
   stepCreeps(w);
+  stepKegs(w);
   stepEntries(w);
   stepCoverups(w);
   stepChat(w);

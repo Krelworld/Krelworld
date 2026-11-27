@@ -53,7 +53,7 @@ export class Announcer {
           : `Security now believe the person responsible was an ${e.now === "ENG" ? "England supporter" : "individual"} wearing ${String(e.outer).toLowerCase()} over his shirt.`, src: "commentary", big: true });
         break;
       case "ejected":
-        if (e.who === pc) this.out({ t: e.t, text: "A supporter has been escorted from the ground.", src: "commentary", big: false });
+        if (e.who === pc && !e.soft) this.out({ t: e.t, text: "A supporter has been escorted from the ground.", src: "commentary", big: false });
         break;
       case "detained":
         if (e.who === pc) this.out({ t: e.t, text: "A man is being held in the security office.", src: "commentary", big: false });

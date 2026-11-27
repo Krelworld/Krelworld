@@ -16,7 +16,7 @@ export const CURIOS: Curio[] = [
   { id: "dog", r: 5, at: () => SPOTS.dogPost, text: "Ronson, tied up and dying to have a go at someone. Untie him and point him at whoever you like." },
   { id: "cellar", r: 4, at: () => (SPOTS as any).cellar, text: "The pub's cellar hatch. Locked. A big wrench would have it open, and the drains run under the ground." },
   { id: "publadder", r: 4, at: () => { const r = roofs().find((q) => q.id === "pub"); return r ? { x: r.ladders[0].bx, y: r.ladders[0].by } : null; }, text: "A ladder up onto the pub roof. Nobody looks up. Handy for lobbing things." },
-  { id: "kegs", r: 3.5, at: () => ({ x: X(-24.5), y: 78.6 }), text: "Kegs on the pavement. Heavy. Anything you put in a pint starts here." },
+  { id: "kegs", r: 5, at: () => ({ x: X(-31.2), y: 68.7 }), text: "The drayman's kegs, stacked by his lorry. One's right on the edge. Give it a roll and see what he does." },
   { id: "policevan", r: 4.5, at: () => ({ x: X(32), y: 55.6 }), text: "The police van. Confiscated gear in the back, and a spare uniform, if you could get in." },
   { id: "burgervan", r: 4.5, at: () => ({ x: X(46), y: 53 }), text: "Burger van. A pie for the ref? He'd never know what was in it." },
   { id: "staffdoor", r: 4, at: () => SPOTS.staffDoor, text: "Staff door. A pass, or just a hi-vis vest and a bit of front, and nobody asks." },

@@ -701,7 +701,7 @@ class OpeningScene extends Phaser.Scene {
     await this.wait(900);
     await say("k1", K, "Alright, big man? Kev. Budge up. Christ, what've you been eating?");
     swig(gz);
-    await say("g1", G, "Grozz. Fuckin' FIFA, Kev. They're gonna rig it again. Well not today. I'll stop at nothing. NOTHING. England are winning this if I have to do it meself.");
+    await say("g1", G, "Fuckin' FIFA, Kev. They're gonna rig it again. Well not today. I'll stop at nothing. NOTHING. England are winning this if I have to do it meself.");
     await fart(kv, "fart");
     await say("k2", K, "Ohhh. Smell that! That's a scotch egg, that is. Vintage.");
     await fart(gz, "fart_long");

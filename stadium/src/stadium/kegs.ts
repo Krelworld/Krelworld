@@ -9,7 +9,7 @@ import type { World } from "../core/world";
 import type { Actor, Item } from "../core/types";
 import { ITEM_DEFS, spawnItem, moveItem } from "../core/items";
 import { registerVerb } from "../core/verbs";
-import { SOLID, VENUE } from "./layout";
+import { PACE, SOLID, VENUE } from "./layout";
 import { say } from "./npc";
 import { pick } from "../core/rng";
 
@@ -62,7 +62,12 @@ export function knockOn(w: World, who: Actor | At | undefined, why: "search" | "
   const s = w.state, st = s.stadium!, tick = s.tick, c = st.chain;
   if (!c || tick - c.t0 > 60 * 14) chainStart(w, st.pc, first, who); else chainLink(w, first, who);
   for (const l of links) chainLink(w, l, who);
-  if (who && "npc" in who && who.npc) { who.npc.why = why; who.npc.whyUntil = tick + 60 * secs; w.bus.emit({ type: "post_left", t: tick, by: who.id, why, x: who.x, y: who.y }); }
+  if (who && "npc" in who && who.npc) {
+    who.npc.why = why; who.npc.whyUntil = tick + 60 * secs;
+    // In the game, a beat to react before he goes (the double-take the view plays), so you see the cause land.
+    if (PACE.calm && who.npc.plan.length && who.npc.plan[0].k !== "wait") who.npc.plan.unshift({ k: "wait", s: 0.75 });
+    w.bus.emit({ type: "post_left", t: tick, by: who.id, why, x: who.x, y: who.y });
+  }
 }
 
 const wallAt = (x: number, y: number) => SOLID.some((q) => q.h3 >= 0.5 && x > q.x && x < q.x + q.w && y > q.y && y < q.y + q.h);

@@ -1248,3 +1248,24 @@ The report recommends "simplified grimy diorama pixel art": keep the pixel art a
 **Outlines.** Things lying in the world (a pie, a brick, the kegs, the match ball) get a dark one-art-pixel outline, made at load from the icon. Fourteen of the fifty-five icons had no outline of their own, so a pie on the pavement read as a speck. Characters already have outlines from PixelLab. Scenery stays unoutlined, as the report says.
 
 **Not done yet:** reaction animations (double-take, point and wave, running with something). Those are the real art spend, starting with stewards.
+
+## Round: reaction animations, starting with stewards (the report's step 4)
+
+**Cartoony and colourful? No, except in reactions.** The creator asked whether the game should be more cartoony and colourful. The grim, deadpan British world is the straight man: Grozz's absurdity lands against it, and a bright cartoon world makes everything equally silly. The report puts it the same way: exaggerated cartoon art is for "faces/reactions". So the world stays grounded, and the reactions are big and a bit cartoony. If more colour is wanted, it should go on people (skin, kits), not places; that's untried.
+
+**Three new steward animations** (PixelLab, from the existing steward, 9 frames in each of 8 directions):
+- **Double-take (`notice`):** freezes, snaps round to stare, leans back. In the game it starts with a little six-pixel hop, so the body says "eh?!" before the head turns.
+- **Point (`point`):** arm fully out, other hand on hip, two jabs.
+- **Shrug (`shrug`):** looks left, looks right, palms up.
+
+**When they play** (view side, from events the sim already sends):
+- **Double-take at you:** when a steward catches you at something.
+- **Double-take at what caused it:** when he's given a problem and leaves his post (every knock-on: the keg, Ronson, the pawn shop, the ball). In the game build the sim gives him a 0.75-second beat before he goes, so you see the cause land. Tests run without the beat.
+- **Point at you:** when a steward near you tells you off ("Oi!", "Any more of that and you're out", "Hand it over"), or speaks while coming for you.
+- **Shrug:** when he loses you ("Where's he gone?", "Lost him", "He was right here"), and for every steward nearby when you get away.
+
+**The intent badge waits** until the reaction is over, so the body is the first thing you read.
+
+**These sheets load up front.** The game's other extra sheets load the first time they're used, but a reaction is over in a second and would otherwise be missed while its sheet arrived.
+
+**Next:** police use the steward fallback only for some things, so they could get the same three. The drayman and fans need their own: a stagger when a keg rolls into them, and a fist-shake. After that, drop the badges wherever an animation now says it.

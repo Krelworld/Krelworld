@@ -260,6 +260,7 @@ class StadiumScene extends Phaser.Scene {
     (this as any).announcer = ann;
     w.bus.on((e) => this.sounds(e));
     w.bus.on((e) => {
+      this.reactTo(e);
       if (e.type === "say" && e.by !== this.s.stadium!.pc) {
         // Only what is said close by, and only once.
         const a = this.s.actors[e.by];
@@ -2416,7 +2417,8 @@ class StadiumScene extends Phaser.Scene {
     const whySeen = new Set<string>();
     if (pc) for (const id in s.actors) {
       const a = s.actors[id], n = a.npc;
-      if (!n?.why || (n.whyUntil ?? 0) <= tick || a.hiddenIn || a.dead || !onScreen(a.x, a.y)) continue;
+      // While he's doing the double-take, the body says it: the badge comes after.
+      if (!n?.why || (n.whyUntil ?? 0) <= tick || a.hiddenIn || a.dead || !onScreen(a.x, a.y) || this.react.has(id)) continue;
       const u5 = DPR / cam.zoom, bx = P.sx(a.x, a.y), by = headTop(P, a.x, a.y) - 14 * u5 - Math.abs(Math.sin(tick * 0.12)) * 3 * u5, r5 = 9 * u5;
       ui.fillStyle(0x000000, 1).fillCircle(bx, by, r5 + 2 * u5).fillTriangle(bx - 4 * u5, by + r5 - u5, bx + 4 * u5, by + r5 - u5, bx, by + r5 + 6 * u5);
       ui.fillStyle(n.why === "angry" ? 0xd7263d : n.why === "search" ? 0xf2c94c : n.why === "report" ? 0x3d7fd9 : 0xfffdf3, 1).fillCircle(bx, by, r5);
@@ -3112,7 +3114,14 @@ class StadiumScene extends Phaser.Scene {
     }
     sp.setAngle(0).setOrigin(0.5, feetOf(base) / cellOf(base)).clearTint().setTintMode(Phaser.TintModes.MULTIPLY);
     const dragged = a.dragging ? this.s.actors[a.dragging] : null, choke = this.choking.get(a.id) ?? 0;
-    if (choke > performance.now() && has("choke")) {
+    const re = this.react.get(a.id);
+    if (re && now - re.at >= re.dur) this.react.delete(a.id);
+    if (re && now - re.at < re.dur && has(re.sheet) && !a.seated && a.downUntil <= tick && !a.heldBy) {
+      // A reaction (the double-take, the point, the shrug) plays through once, facing what caused it.
+      const n = this.frames(`${key}-${re.sheet}`), k = (now - re.at) / re.dur;
+      const d = re.face ? dirIndex(Math.atan2(re.face.y - a.y, re.face.x - a.x)) : di;
+      sp.setTexture(`${key}-${re.sheet}`, d * n + Math.min(n - 1, Math.floor(k * n)));
+    } else if (choke > performance.now() && has("choke")) {
       // The takedown: an arm round the neck from behind until he goes limp.
       const n = this.frames(`${key}-choke`), left = (choke - performance.now()) / 750;
       sp.setTexture(`${key}-choke`, di * n + Math.min(n - 1, Math.floor((1 - left) * n)));
@@ -3152,6 +3161,8 @@ class StadiumScene extends Phaser.Scene {
     // Throwing a punch: the punch frames (or a lunge) for a fifth of a second.
     const lg = this.lunge.get(a.id), la = lg ? (now - lg.at) / 220 : 1;
     let lx = 0, ly = 0;
+    // The double-take starts with a little jump, cartoon-style: the body says "eh?!" before the head turns.
+    if (re && re.sheet === "notice" && now - re.at < re.dur * 0.35 && !a.seated) ly -= Math.round(Math.sin(((now - re.at) / (re.dur * 0.35)) * Math.PI) * 6);
     if (lg && la < 1 && !a.seated) {
       const d = this.P.dir(lg.dx, lg.dy), push = Math.sin(Math.min(1, la * 1.6) * Math.PI) * 7;
       lx = Math.round(d.x * push); ly = Math.round(d.y * push);
@@ -3176,6 +3187,33 @@ class StadiumScene extends Phaser.Scene {
     if ((n.whyUntil ?? 0) > tick || (n.bubble && n.bubble.until > tick) || a.downUntil > tick || a.hand && this.s.items[a.hand]?.def !== "pint") return false;
     const pc = this.pc;
     return !pc || Math.hypot(a.x - pc.x, a.y - pc.y) > 6;
+  }
+  /** Reaction animations (the report's highest-value art): who's mid-reaction, which sheet, facing what. */
+  react = new Map<string, { sheet: string; at: number; dur: number; face?: { x: number; y: number } }>();
+  reactTo(e: any): void {
+    const s = this.s, pcA = s.actors[s.stadium!.pc];
+    const play = (id: string, sheet: string, dur: number, face?: { x: number; y: number }) => {
+      const a = s.actors[id];
+      if (!a?.npc || a.dead || this.react.has(id)) return;
+      this.react.set(id, { sheet, at: performance.now(), dur, face });
+    };
+    switch (e.type) {
+      // Seen you at it: the double-take, at you.
+      case "spotted": play(e.by, "notice", 800, pcA); break;
+      // Given a problem: the double-take at it, then off he goes (the sim gives him the beat).
+      case "post_left": play(e.by, "notice", 750, e.x !== undefined && s.stadium!.chain?.pts?.length ? s.stadium!.chain.pts[0] : undefined); break;
+      // Lost you.
+      case "evaded": for (const a of Object.values(s.actors)) if (a.npc && isSecurityJob(a.npc.job) && pcA && Math.hypot(a.x - pcA.x, a.y - pcA.y) < 30) play(a.id, "shrug", 1400); break;
+      case "say": {
+        const a = s.actors[e.by], n = a?.npc;
+        if (!a || !n || !isSecurityJob(n.job)) break;
+        if (/^(Where's he gone|Lost him|He was right here)/.test(e.text)) { play(a.id, "shrug", 1400); break; }
+        // Telling someone off, or telling them where to go: the point.
+        const near = pcA && Math.hypot(a.x - pcA.x, a.y - pcA.y) < 9;
+        if (near && (n.mode === "approach" || n.mode === "chase" || n.why === "angry" || /^(Oi|Any more|Do that again|The ball|That's the match ball|Hand it)/.test(e.text))) play(a.id, "point", 1100, pcA);
+        break;
+      }
+    }
   }
   knocked = new Set<string>();
   fellAt = new Map<string, number>();

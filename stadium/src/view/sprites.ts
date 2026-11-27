@@ -232,7 +232,10 @@ export class SpriteBank {
     scene.load.image("tiles-street", "art/tiles-street.png");
     scene.load.image("tiles-pitch", "art/tiles-pitch.png");
     for (const k of BASES) for (const x of EXTRA[k] ?? []) if (SpriteBank.EAGER.includes(x)) SpriteBank.fetch(k, x);
+    // Reactions are over in a second: fetch them now, so the first one isn't missed waiting for its sheet.
+    for (const k of BASES) for (const x of EXTRA[k] ?? []) if (SpriteBank.REACT.includes(x)) SpriteBank.fetch(k, x);
   }
+  static readonly REACT = ["notice", "point", "shrug"];
 
   /** Source sheets: an image once it has arrived, "wait" while it's on its way. */
   private static lazy = new Map<string, HTMLImageElement | "wait" | "none">();

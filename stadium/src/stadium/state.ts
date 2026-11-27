@@ -158,6 +158,8 @@ export interface StadiumState {
   rolling?: import("./kegs").Roll[];
   kegCarry?: Record<Id, Id>;
   chain?: import("./kegs").Chain;
+  /** The longest chain of the day (for the front page). */
+  chainBest?: import("./kegs").Chain;
   incidents: Incident[];
   /** Ever been inside the ground (for the admission checkpoint). */
   admitted: boolean;

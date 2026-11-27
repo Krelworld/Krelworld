@@ -18,7 +18,8 @@ const LOOSE = { x: -30.1, y: 69.5 };
 const mx = (x: number) => (VENUE.id === "sf" ? -x : x);
 
 export interface Roll { id: string; vx: number; vy: number; by: string }
-export interface Chain { t0: number; links: string[]; by: string }
+export interface Chain { t0: number; links: string[]; by: string; pts?: { x: number; y: number }[] }
+type At = { x: number; y: number };
 
 /** A stack of three and one loose at the edge, by the pub's back door where the lorry loads. */
 export function spawnKegs(w: World): void {
@@ -30,16 +31,20 @@ export function spawnKegs(w: World): void {
 }
 
 /** Start a chain (something Grozz did), or add a link to the one running. */
-export function chainStart(w: World, by: string, first: string): void {
-  const st = w.state.stadium!;
-  st.chain = { t0: w.state.tick, links: [first], by };
+export function chainStart(w: World, by: string, first: string, at?: At): void {
+  const st = w.state.stadium!, pc = w.state.actors[st.pc];
+  st.chain = { t0: w.state.tick, links: [first], by, pts: [at ? { x: at.x, y: at.y } : { x: pc?.x ?? 0, y: pc?.y ?? 0 }] };
 }
-export function chainLink(w: World, link: string): void {
-  const st = w.state.stadium!, c = st.chain;
+/** A link: where it happened is kept too, for the pundit's arrows and the front page. */
+export function chainLink(w: World, link: string, at?: At): void {
+  const st = w.state.stadium!, c = st.chain, pc = w.state.actors[st.pc];
   if (!c || w.state.tick - c.t0 > 60 * 14 || c.links.includes(link)) return;
   c.links.push(link);
+  (c.pts ??= []).push(at ? { x: at.x, y: at.y } : { x: pc?.x ?? 0, y: pc?.y ?? 0 });
   c.t0 = Math.max(c.t0, w.state.tick - 60 * 6); // each link buys a few more seconds for the next
-  w.bus.emit({ type: "chain", t: w.state.tick, links: c.links.slice(), by: c.by });
+  // The day's best chain (the longest), for the front page.
+  if (!st.chainBest || c.links.length > st.chainBest.links.length) st.chainBest = { t0: c.t0, by: c.by, links: c.links.slice(), pts: c.pts.slice() };
+  w.bus.emit({ type: "chain", t: w.state.tick, links: c.links.slice(), pts: c.pts.slice(), by: c.by });
 }
 
 /** The football's own knock-ons: Grozz puts it in, and whether it stands is up to the officials. */
@@ -53,11 +58,11 @@ export function installChainHooks(w: World): void {
 
 /** A knock-on somewhere else (Steve's chute, Lenny, Wally's card, the press pass): name it as a chain
  *  (joining one already running), badge whoever's broken off, and count it as someone leaving their post. */
-export function knockOn(w: World, who: Actor | undefined, why: "search" | "report", secs: number, first: string, ...links: string[]): void {
+export function knockOn(w: World, who: Actor | At | undefined, why: "search" | "report", secs: number, first: string, ...links: string[]): void {
   const s = w.state, st = s.stadium!, tick = s.tick, c = st.chain;
-  if (!c || tick - c.t0 > 60 * 14) chainStart(w, st.pc, first); else chainLink(w, first);
-  for (const l of links) chainLink(w, l);
-  if (who?.npc) { who.npc.why = why; who.npc.whyUntil = tick + 60 * secs; w.bus.emit({ type: "post_left", t: tick, by: who.id, why, x: who.x, y: who.y }); }
+  if (!c || tick - c.t0 > 60 * 14) chainStart(w, st.pc, first, who); else chainLink(w, first, who);
+  for (const l of links) chainLink(w, l, who);
+  if (who && "npc" in who && who.npc) { who.npc.why = why; who.npc.whyUntil = tick + 60 * secs; w.bus.emit({ type: "post_left", t: tick, by: who.id, why, x: who.x, y: who.y }); }
 }
 
 const wallAt = (x: number, y: number) => SOLID.some((q) => q.h3 >= 0.5 && x > q.x && x < q.x + q.w && y > q.y && y < q.y + q.h);
@@ -82,7 +87,7 @@ export function installKegs(): void {
       const k = Math.hypot(dx, dy) || 1, sp = 5.2;
       st.rolling = (st.rolling ?? []).filter((r) => r.id !== it.id);
       st.rolling.push({ id: it.id, vx: dx / k * sp, vy: dy / k * sp, by: actor.id });
-      if (actor.id === st.pc) chainStart(w, actor.id, "KEG");
+      if (actor.id === st.pc) chainStart(w, actor.id, "KEG", l);
       w.bus.emit({ type: "keg_rolled", t: s.tick, by: actor.id, item: it.id, x: l.x, y: l.y });
     },
   });
@@ -107,7 +112,7 @@ export function stepKegs(w: World): void {
         a.downUntil = tick + 100; a.vx = a.vy = 0;
         r.vx *= 0.6; r.vy *= 0.6;
         w.bus.emit({ type: "bowled", t: tick, who: a.id, by: r.by, x: a.x, y: a.y });
-        chainLink(w, `BOWLED OVER ${(a.name.split(" ").pop() ?? "").toUpperCase()}`);
+        chainLink(w, `BOWLED OVER ${(a.name.split(" ").pop() ?? "").toUpperCase()}`, a);
         if (a.npc) { a.npc.why = "angry"; a.npc.whyUntil = tick + 60 * 8; st.flags[`kegVictim_${a.id}`] = tick + 100; }
       }
     }
@@ -128,7 +133,7 @@ export function stepKegs(w: World): void {
     if (!v?.npc || v.dead || !dray || Math.hypot(dray.x - v.x, dray.y - v.y) > 18) continue;
     v.npc.plan = [{ k: "go", x: dray.x + 0.9, y: dray.y }, { k: "say", text: pick(s.rng.world, ["Oi! Watch your bloody kegs!", "You nearly broke my leg, you prick!", "Who taught you to stack kegs?!"]) }, { k: "wait", s: 3 }];
     if (dray.npc) { dray.npc.plan.unshift({ k: "wait", s: 3 }); say(w, dray, pick(s.rng.world, ["Not my fault, mate!", "It rolled on its own!", "Some fat bloke did it!"]), 3); }
-    chainLink(w, "A ROW WITH THE DRAYMAN");
+    chainLink(w, "A ROW WITH THE DRAYMAN", v);
   }
   if (!dray?.npc || dray.hiddenIn || dray.downUntil > tick) return;
   const n = dray.npc;
@@ -157,9 +162,9 @@ export function stepKegs(w: World): void {
   n.plan = [{ k: "go", x: l.x, y: l.y }];
   say(w, dray, pick(s.rng.world, ["Oi! Where's that going?", "Bloody hell, my keg!", "Who's rolled that?!"]), 2.5);
   w.bus.emit({ type: "post_left", t: tick, by: dray.id, why: "keg", x: dray.x, y: dray.y });
-  chainLink(w, "DRAYMAN GOES AFTER IT");
+  chainLink(w, "DRAYMAN GOES AFTER IT", dray);
   const lorry = Object.values(st.vehicles).find((v) => v.kind === "lorry");
-  if (lorry && (lorry.state === "loading" || lorry.state === "unloading") && Math.hypot(lorry.x - dray.x, lorry.y - dray.y) < 15) chainLink(w, "LORRY LEFT OPEN");
+  if (lorry && (lorry.state === "loading" || lorry.state === "unloading") && Math.hypot(lorry.x - dray.x, lorry.y - dray.y) < 15) chainLink(w, "LORRY LEFT OPEN", lorry);
 }
 
 /** While he's off after a keg the lorry doesn't go without him: the back stays open. */

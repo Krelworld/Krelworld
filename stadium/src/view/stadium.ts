@@ -1476,6 +1476,7 @@ class StadiumScene extends Phaser.Scene {
     g.lineStyle(2, 0xfff1c4, 0.35 * k).strokePoints(V([{ x: TL.x, y: top }, { x: TR.x, y: top }, { x: BR.x, y: bot }, { x: BL.x, y: bot }]), true);
   }
   roofDimK = 0;
+  tele: { pts: { x: number; y: number }[]; until: number } | null = null;
   quietG!: Phaser.GameObjects.Graphics;
   quiet = !location.search.includes("loud");
   whyIcons = new Map<string, Phaser.GameObjects.Image>();
@@ -2408,6 +2409,25 @@ class StadiumScene extends Phaser.Scene {
       }
     }
     for (const [id, ic] of this.whyIcons) if (!whySeen.has(id)) ic.setVisible(false);
+    // The pundit's arrows: a chain of three or more, drawn on the world like Sky's telestrator,
+    // one stroke after another from the first thing you did to what it led to.
+    if (this.tele && performance.now() < this.tele.until) {
+      const u4 = DPR / cam.zoom, age = 1 - (this.tele.until - performance.now()) / 4200, pts = this.tele.pts;
+      const shown = Math.min(pts.length - 1, Math.floor(age * 6));
+      for (let i = 0; i < pts.length; i++) {
+        const x = P.sx(pts[i].x, pts[i].y), y = P.sy(pts[i].x, pts[i].y) - P.S * 0.4;
+        if (i <= shown + 1) { ui.lineStyle(5 * u4, 0x000000, 0.6).strokeCircle(x, y, P.S * 0.75); ui.lineStyle(3 * u4, 0xf2e94c, 1).strokeCircle(x, y, P.S * 0.75); for (let k = 0; k <= i; k++) ui.fillStyle(0xf2e94c, 1).fillCircle(x - P.S * 0.3 + k * P.S * 0.22, y - P.S * 1.05, 3 * u4); }
+        if (i < pts.length - 1 && i <= shown) {
+          const x2 = P.sx(pts[i + 1].x, pts[i + 1].y), y2 = P.sy(pts[i + 1].x, pts[i + 1].y) - P.S * 0.4, a = Math.atan2(y2 - y, x2 - x), d = Math.hypot(x2 - x, y2 - y);
+          if (d < P.S * 1.6) continue;
+          const sx0 = x + Math.cos(a) * P.S * 0.8, sy0 = y + Math.sin(a) * P.S * 0.8, ex = x2 - Math.cos(a) * P.S * 0.85, ey = y2 - Math.sin(a) * P.S * 0.85;
+          ui.lineStyle(7 * u4, 0x000000, 0.55).lineBetween(sx0, sy0, ex, ey);
+          ui.lineStyle(4 * u4, 0xf2e94c, 1).lineBetween(sx0, sy0, ex, ey);
+          const hl = 9 * u4;
+          ui.fillStyle(0xf2e94c, 1).fillTriangle(ex + Math.cos(a) * hl * 0.6, ey + Math.sin(a) * hl * 0.6, ex + Math.cos(a + 2.5) * hl, ey + Math.sin(a + 2.5) * hl, ex + Math.cos(a - 2.5) * hl, ey + Math.sin(a - 2.5) * hl);
+        }
+      }
+    } else if (this.tele) this.tele = null;
     // Half-time: the referee's tea urn pulses for the break (that's where his cuppa comes from).
     if (pc && s.match?.phase === "break" && s.match.period === 1) {
       const urn = Object.values(s.items).find((i) => i.def === "tea_urn" && i.loc.k !== "gone");
@@ -4441,7 +4461,7 @@ class StadiumScene extends Phaser.Scene {
       case "gift": if (e.def) this.toast(e.def, ITEM_DEFS[e.def]?.name ?? e.def, "Given"); else if (e.money) this.hint(`+£${e.money}.`); this.audio.play("pickup", 0.8); break;
       case "scammed": this.hint(e.amount ? `−£${e.amount}. He's not coming back.` : "He's not coming back."); break;
       case "contact": this.toastTick(`☎ Number saved: ${e.id === "dealer" ? "Spliff Ricky" : "Bare-Knuckle Brendan"}`); this.audio.play("chime", 0.5); break;
-      case "chain": this.chainStrap(e.links); break;
+      case "chain": this.chainStrap(e.links); if (e.links.length === 3 && e.pts?.length >= 3) { this.tele = { pts: e.pts, until: performance.now() + 4200 }; this.slowUntil = Math.max(this.slowUntil, performance.now() + 1600); } break;
       // Half-time: one beat that says what's changed and where the openings are (the second
       // preparation phase), then the world shows it: the urn pulses, the players troop off.
       case "fb_period_end": if (e.period === 1) {
@@ -4573,7 +4593,7 @@ class StadiumScene extends Phaser.Scene {
     list.textContent = "";
     const items = inc.length ? inc.map((i) => `${i.what}${i.seenBy ? `, seen by ${i.seenBy}` : ", unseen"}${i.blamed && i.blamed !== "ENG" ? ` (blamed on ${i.blamed} fans)` : ""}`) : ["You didn't do anything anyone noticed."];
     for (const t of items.slice(-8)) { const li = document.createElement("li"); li.textContent = t; list.appendChild(li); }
-    void this.frontPage(news.headline, e.title);
+    void this.frontPage(this.spinHeadline() ?? news.headline, e.title);
     const cps = $("endCps");
     cps.textContent = "";
     if (e.kind === "through" && this.game2.campaign.fixture < FIXTURES.length - 1) {
@@ -4589,6 +4609,20 @@ class StadiumScene extends Phaser.Scene {
 
   /** The day on one front page: Krunch News, your worst moment as the headline, a photo of the
    *  scene, the day's tally and a star rating. Something to share (or at least to look at). */
+  /** The paper leads on the day's biggest chain, if there was one worth the name, and spins it. */
+  spinHeadline(): string | null {
+    const b = this.s.stadium!.chainBest;
+    if (!b || b.links.length < 3) return null;
+    const f = b.links[0];
+    return f === "KEG" ? "Beer keg carnage at the Three Lions: drayman blames 'fat bloke'"
+      : /ON THE FLOOR/.test(f) ? "Pie-crazed XL bully runs riot at England match"
+      : f === "STEVE'S CHUTE GONE" ? "Half-time parachute display axed after chute 'theft'"
+      : f === "LENNY MISSING" ? "Mascot mystery: where was Lenny the Lion?"
+      : f === "WALLY'S CARD GONE" ? "Kit man's card nicked, players' door left wide open"
+      : f === "PRESS PASS GONE" ? "TV reporter robbed in broad daylight at the ground"
+      : f === "GROZZ PUTS IT IN" ? "Fan 'scores' for England. Officials baffled."
+      : `Chaos at the ground: ${f.toLowerCase()}`;
+  }
   async frontPage(headline: string, title: string) {
     const host = $("frontPage");
     host.innerHTML = "";
@@ -4608,6 +4642,15 @@ class StadiumScene extends Phaser.Scene {
     linesOut.slice(0, 4).forEach((l, i) => c.fillText(l, 20, 152 + i * 40));
     const py = 152 + Math.min(4, linesOut.length) * 40 - 14;
     if (shot) { const ph = 250, sw = shot.width, sh2 = Math.min(shot.height, sw * (ph / (W2 - 40))); c.drawImage(shot, 0, (shot.height - sh2) / 2, sw, sh2, 20, py, W2 - 40, ph); c.strokeStyle = "#111"; c.lineWidth = 3; c.strokeRect(20, py, W2 - 40, 250); }
+    // The day's best chain, as the paper tells it, and Grozz taking the credit.
+    const best = st.chainBest;
+    if (best && best.links.length >= 3) {
+      const yb = py + 250 - 46;
+      c.fillStyle = "rgba(243,239,228,0.93)"; c.fillRect(22, yb, W2 - 44, 44);
+      c.fillStyle = "#111"; c.font = "italic 700 15px Georgia, serif"; c.textAlign = "left";
+      c.fillText("\u201cIt was all part of the plan,\u201d says local man, 48.", 30, yb + 18, W2 - 60);
+      c.font = "11px Georgia, serif"; c.fillStyle = "#8e1626"; c.fillText(best.links.join(" \u2192 "), 30, yb + 36, W2 - 60);
+    }
     // The tally and the rating.
     const fx = fixesDone(this.w), jobs = this.mayhemDone.size, cash = Object.keys(REWARDS).filter((k) => st.flags[`paid_${k}`]).reduce((t, k) => t + REWARDS[k], 0);
     const stars = Math.max(1, Math.min(5, Math.round(fx * 1.2 + jobs * 0.35 + (title.toLowerCase().includes("through") || st.ending?.kind === "through" ? 1 : 0))));

@@ -181,7 +181,7 @@ export function stepDog(w: World): void {
       if (d.state === "led" && pc) say(w, pc, pick(r, ["RONSON! Get back 'ere!", "Ronson, NO! ...Oh, go on then."]), 2.5);
       d.state = "loose"; d.target = null; d.food = grub.id;
       w.bus.emit({ type: "dog_lured", t: tick, item: grub.id });
-      knockOn(w, undefined, "search", 0, `${ITEM_DEFS[grub.def]?.name.split(" ").pop()?.toUpperCase() ?? "FOOD"} ON THE FLOOR`, "RONSON GOES FOR IT");
+      knockOn(w, grub.loc as { x: number; y: number }, "search", 0, `${ITEM_DEFS[grub.def]?.name.split(" ").pop()?.toUpperCase() ?? "FOOD"} ON THE FLOOR`, "RONSON GOES FOR IT");
     }
   }
   switch (d.state) {
@@ -253,7 +253,7 @@ export function stepDog(w: World): void {
           moveItem(s, grub.id, { k: "gone" });
           d.food = undefined; d.eatUntil = tick + 60 * 3;
           noise(w, dog, "gnash", 1);
-          chainLink(w, "RONSON SCOFFS IT");
+          chainLink(w, "RONSON SCOFFS IT", dog);
         }
       } else if ((d.eatUntil ?? 0) > tick) {
         dog.vx = dog.vy = 0;
@@ -277,7 +277,7 @@ export function stepDog(w: World): void {
         if (chance(r, 0.2)) say(w, a, pick(r, ["Aaargh!", "Get it off me!", "Whose dog is that?!"]), 1.5);
       }
       // The referee stops play for a dog near the action.
-      if (onPitch && m.phase === "live" && Math.hypot(b.x - dog.x, b.y - dog.y) < 30) { haltPlay(w, "dog"); chainLink(w, "PLAY STOPPED"); }
+      if (onPitch && m.phase === "live" && Math.hypot(b.x - dog.x, b.y - dog.y) < 30) { haltPlay(w, "dog"); chainLink(w, "PLAY STOPPED", dog); }
       stewardsGrab(w, dog);
       break;
     }
@@ -301,7 +301,7 @@ function stewardsGrab(w: World, dog: Actor): void {
     if (g.npc!.why !== "search") {
       g.npc!.why = "search"; g.npc!.whyUntil = tick + 60 * 20;
       w.bus.emit({ type: "post_left", t: tick, by: g.id, why: "dog", x: g.x, y: g.y });
-      chainLink(w, g.npc!.job === "turnstile" ? "TURNSTILE LEFT UNMANNED" : g.npc!.job === "pitchsteward" ? "STEWARDS OFF THE TOUCHLINE" : "A STEWARD GOES AFTER HIM");
+      chainLink(w, g.npc!.job === "turnstile" ? "TURNSTILE LEFT UNMANNED" : g.npc!.job === "pitchsteward" ? "STEWARDS OFF THE TOUCHLINE" : "A STEWARD GOES AFTER HIM", g);
     }
     g.npc!.whyUntil = Math.max(g.npc!.whyUntil ?? 0, tick + 60 * 4);
     g.npc!.plan = [{ k: "go", x: dog.x, y: dog.y, run: true }];

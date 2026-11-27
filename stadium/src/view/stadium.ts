@@ -954,7 +954,9 @@ class StadiumScene extends Phaser.Scene {
     if (this.job) must.push(`NOW: ${this.job.short}`);
     if (!st0.admitted && !pc.fb) must.push("Get into the ground");
     const known = FIXES.filter((fx) => f0[`fix_${fx.id}`] && !f0[`fixdone_${fx.id}`]);
-    if (known.length) for (const fx of known) must.push(`Sort out ${fx.title(this.w).replace(/^Their/, "their").replace(/^The/, "the")}`);
+    // The match's job already names one of them: don't say it twice.
+    const named = this.job?.target ? (this.job.id.includes("star") ? "star" : this.job.id.includes("gk") ? "keeper" : this.job.id.includes("ref") ? "ref" : "") : "";
+    if (known.length) for (const fx of known) if (fx.id !== named) must.push(`Sort out ${fx.title(this.w).replace(/^Their/, "their").replace(/^The/, "the")}`);
     else if (fixesDone(this.w) < FIXES.length) must.push("Find out what could stop England winning. Listen to people.");
     const nEl = $("todo");
     // The day's timetable (a matchday programme's): the next thing that happens, with how long till it.

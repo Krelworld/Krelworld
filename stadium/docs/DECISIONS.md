@@ -1376,3 +1376,5 @@ I did these:
 - the adjudication model's fuller outcomes (disputed, overruled, delayed) when Grozz plays at referee;
 - reaction animations for police, the drayman and fans;
 - the playtest gate, which needs people.
+
+**The police get the same three reactions** (double-take, point, shrug), from the same generator, on the police character. The game's reactions already treat police as security, so they play automatically: a copper who catches you at something does the double-take at you, one telling you off points, and one who loses you shrugs.

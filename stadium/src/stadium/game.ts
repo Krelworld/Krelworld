@@ -4,7 +4,7 @@ import { pick, rndRange, seedRng } from "../core/rng";
 import type { Actor, WorldState } from "../core/types";
 import { createWorld, spawnActor, stepWorld, type World } from "../core/world";
 import { createMatch, TEAMS } from "../football/setup";
-import { BOUNDS, KICKOFF_AT, setBreaches, setVenue, SOLID, SPOTS, VENUE, type Venue } from "./layout";
+import { BOUNDS, KICKOFF_AT, PACE, rushAt, setBreaches, setVenue, SOLID, SPOTS, VENUE, type Venue } from "./layout";
 import { newCampaign, type Campaign } from "./campaign";
 import { mayPass, newNpc, resetPathBudget, secs, spawnFan, spawnStaff, stepNpc } from "./npc";
 import { installBetting, installSettlement } from "./betting";
@@ -212,7 +212,7 @@ export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: 
   spawnItem(s, "tea_urn", { k: "ground", x: vx(1), y: -59 });
 
   // Supporters already in their seats; more arrive over the next few minutes.
-  for (let i = 0; i < 70; i++) giveFanThings(w, spawnFan(w, i % 6 === 5, true));
+  for (let i = 0; i < (PACE.calm ? 30 : 70); i++) giveFanThings(w, spawnFan(w, i % 6 === 5, true));
 
   createDog(w);
   installReactions(w);
@@ -316,7 +316,8 @@ export function stepGame(g: Game): void {
   const t = secs(w);
 
   // Supporters keep arriving until just after kick-off.
-  if (s.tick % (t < 150 ? 10 : t < KICKOFF_AT ? 20 : 60) === 0 && t < KICKOFF_AT + 60 && fanCount(s) < MAX_FANS) {
+  const every = PACE.calm ? (t < rushAt() ? 45 : t < KICKOFF_AT ? 12 : 60) : t < 150 ? 10 : t < KICKOFF_AT ? 20 : 60;
+  if (s.tick % every === 0 && t < KICKOFF_AT + 60 && fanCount(s) < MAX_FANS) {
     const away = s.rng.world.a % 5 === 0;
     giveFanThings(w, spawnFan(w, away, false));
   }

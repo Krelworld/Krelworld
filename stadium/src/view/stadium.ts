@@ -23,7 +23,7 @@ import { BOXER_FEE, burnerOn, knows } from "../stadium/phone";
 import { isSecurity } from "../stadium/security";
 import { aimThrow, bribeWhy, itemName, itemOptions, looksOutOfPlace, options, personName, primary, throwTarget, type Option } from "../stadium/context";
 import { createGame, loadCheckpoint, stepGame, type Game } from "../stadium/game";
-import { AREAS, areaAt, BOUNDS, KICKOFF_AT, setBreaches, SOLID, SPOTS, VENUE } from "../stadium/layout";
+import { AREAS, areaAt, BOUNDS, KICKOFF_AT, rushAt, setBreaches, setPace, SOLID, SPOTS, VENUE } from "../stadium/layout";
 import { afterMatch, describeDef, FIXTURES, loadoutProblem, newCampaign, notorietyText, type Campaign } from "../stadium/campaign";
 import { TEAMS } from "../football/setup";
 import { canBetHere, prices } from "../stadium/betting";
@@ -31,7 +31,7 @@ import { newsReport } from "../stadium/news";
 import { mayPass, secs } from "../stadium/npc";
 import { pawnOffer, REWARDS, SHOPS } from "../stadium/rules";
 import { LORRY_LEN, LORRY_WID } from "../stadium/vehicles";
-import { BUS_LEN, BUS_WID, holdOpen } from "../stadium/bus";
+import { BUS_LEN, BUS_WID, DEPART_BEFORE_KICKOFF, holdOpen } from "../stadium/bus";
 import { drawFigure, headTop, type FigureStyle } from "./figures";
 import { drawBall, drawGoalFrame, drawPitch } from "./pitchArt";
 import { Projection } from "./projection";
@@ -39,6 +39,8 @@ import { Audio, PC_LINES, VOICES, type Clip } from "./audio";
 import { Doorway } from "./doorway";
 import { playMini, type MiniKind } from "./minigame";
 import { instinctMarks, todoSpot, trackTarget, type Tracked } from "./guide";
+import { ITEM_TIPS, itemTargets, type ItemTarget } from "./itemhelp";
+import { curioHere, CURIOS } from "./curios";
 import { inDrag as inDragSim } from "../stadium/drag";
 import STW_JSON from "../../assets/audio/stwlines.json";
 const STW_VOICE = STW_JSON as Record<string, string>;
@@ -166,6 +168,7 @@ class StadiumScene extends Phaser.Scene {
 
   create() {
     (window as any).__scene = this; // for automated checks
+    (window as any).__dispatch = (a: any) => dispatch(this.w, a);
     (window as any).__fast = (secs: number) => { for (let i = 0; i < secs * 60 && !this.s.stadium!.ending; i++) stepGame(this.game2); };
     this.bank = new SpriteBank(this);
     this.world = new WorldArt(this);
@@ -227,6 +230,7 @@ class StadiumScene extends Phaser.Scene {
   newGame(campaign: Campaign = newCampaign()) {
     // Everything you've unlocked is in the stash to choose from.
     for (const d of StadiumScene.unlocked()) if (ITEM_DEFS[d] && !campaign.stash.includes(d)) campaign.stash.push(d);
+    setPace({ kickoffAt: 540, calm: true });
     this.game2 = createGame(`day${Date.now() % 100000}`, FIXTURES[campaign.fixture] ?? "qf", campaign);
     this.introFor(campaign);
     this.d3?.buildCrowd(this.s.match!.teams[1]);
@@ -968,6 +972,26 @@ class StadiumScene extends Phaser.Scene {
     // The notepad: two jobs, nearest first (those with a place), with what they pay. Once a second.
     if (now - this.todoAt < 1000) return;
     this.todoAt = now;
+    // Something new in your hands or pockets: what it's for, once ever per kind of thing.
+    if (this.itemsPrimedFor !== this.game2) { this.itemsPrimedFor = this.game2; for (const id of [pc.hand, ...pc.pockets]) if (id && this.s.items[id]) this.seenItems.add(this.s.items[id].def); }
+    if (!this.callOn && !this.sheetKind && !pc.heldBy && now - this.itemCardAt > 8000) {
+      const mine = [pc.hand, ...pc.pockets].filter((x): x is string => !!x).map((id) => this.s.items[id]).filter((it) => it && ITEM_TIPS[it.def] && !this.seenItems.has(it.def));
+      if (mine[0]) this.itemCard(mine[0]);
+    }
+    // Ideas: the first time you're near something with possibilities, a thought for the notes.
+    if (this.curiosFor !== this.game2) { this.curiosFor = this.game2; this.curios = new Set(); }
+    if (!this.callOn && !this.sheetKind && !pc.heldBy && !pc.hiddenIn && now - this.itemCardAt > 6000 && this.s.tick > 60) {
+      const c = curioHere(this.w, pc, this.curios);
+      if (c) {
+        this.curios.add(c.id); this.itemCardAt = now;
+        this.say(c.text, "Idea", false, false);
+        const el = $("itemCard");
+        el.innerHTML = `<i class="bulb">!</i><div><b>Idea · ${this.curios.size}/${CURIOS.length}</b><span>${esc(c.text)}</span></div>`;
+        el.hidden = false; el.classList.remove("in"); void el.offsetWidth; el.classList.add("in");
+        this.audio.play("chime", 0.45, { rate: 1.25 });
+        clearTimeout(this.itemCardTimer); this.itemCardTimer = window.setTimeout(() => { el.hidden = true; }, 5200);
+      }
+    }
     // Ricky rings, a couple of minutes in, if you haven't got his number.
     if (!this.incoming.ricky && !knows(this.w, "dealer") && this.s.tick > 60 * 140 && !pc.heldBy) void this.incomingCall("ricky", "Spliff Ricky", "ricky", [["r", "Alright, it's Ricky. Gaz gave me your number. Laxatives, burners, a bit of gear. Ring me. Don't say my name.", "v_in_ricky"], ["g", "What?", "v_ph_gwhat"]], "number");
     // Only what has to be done: get in, and sort out whatever could stop England (the fixes you've
@@ -978,18 +1002,23 @@ class StadiumScene extends Phaser.Scene {
     if (known.length) for (const fx of known) must.push(`Sort out ${fx.title(this.w).replace(/^Their/, "their").replace(/^The/, "the")}`);
     else if (fixesDone(this.w) < FIXES.length) must.push("Find out what could stop England winning. Listen to people.");
     const nEl = $("todo");
+    // The day's timetable (a matchday programme's): the next thing that happens, with how long till it.
+    const tNow = this.s.tick / 60 - (st0.arrivedAt ?? 0) / 60;
+    const SCHED: [number, string][] = [[KICKOFF_AT - DEPART_BEFORE_KICKOFF, "Their coach leaves the hotel"], [rushAt(), "The gates rush: big queues"], [KICKOFF_AT - 100, "Lenny the mascot's fag break ends"], [KICKOFF_AT, "Kick-off"]];
+    const next = SCHED.find(([at]) => at > tNow), left = next ? next[0] - tNow : 0, soon = !!next && left < 30;
     // It opens out when something on it changes, then folds away to a tab after a few seconds (tap the
     // tab to look again), so it isn't sat over the game the whole time.
-    const key = must.join("|");
+    const key = must.join("|") + (soon ? `|${next![1]}` : "");
     if (key !== this.todoKey) { this.todoKey = key; this.todoOpenUntil = now + 9000; }
     const open = now < this.todoOpenUntil;
     nEl.classList.toggle("shut", !open);
-    const html = open ? `<b>TO DO</b>${must.length ? must.slice(0, 3).map((t) => `<p>☐ ${esc(t)}</p>`).join("") : "<p>Watch England win.</p>"}<p class="side">Side jobs ▸</p>`
+    const nx = next && !st0.admitted ? `<p class="nx">NEXT <i>${fmtTime(left)}</i> ${esc(next[1])}</p>` : "";
+    const html = open ? `<b>TO DO</b>${must.length ? must.slice(0, 3).map((t) => `<p>☐ ${esc(t)}</p>`).join("") : "<p>Watch England win.</p>"}${nx}<p class="side">Side jobs ▸</p>`
       : `<b>TO DO${must.length ? ` · ${Math.min(3, must.length)}` : " ✓"}</b>`;
     // Pointing you at the side jobs once you're into it (and a dot on the menu till you've looked).
     if (!this.flags.jobsHint && this.s.tick > 60 * 25 && !pc.heldBy) { this.flags.jobsHint = 1; this.hint("There's money in mayhem. Tap Side jobs on your notes (or the menu) to see what pays."); $("menuBtn").classList.add("dot"); }
     if (nEl.innerHTML !== html) nEl.innerHTML = html;
-    nEl.hidden = !this.started || !!this.fp?.on || this.inCab() || this.callOn;
+    nEl.hidden = !this.started || !!this.fp?.on || this.inCab() || this.callOn || (!$("itemCard").hidden && window.innerHeight < 520);
   }
   /** One-off view hints. */
   flags: Record<string, number> = {};
@@ -1516,6 +1545,31 @@ class StadiumScene extends Phaser.Scene {
     g.lineStyle(2, 0xfff1c4, 0.35 * k).strokePoints(V([{ x: TL.x, y: top }, { x: TR.x, y: top }, { x: BR.x, y: bot }, { x: BL.x, y: bot }]), true);
   }
   roofDimK = 0;
+  seenItems: Set<string> = (() => { try { return new Set<string>(JSON.parse(localStorage.getItem("kd-items") ?? "[]")); } catch { return new Set<string>(); } })();
+  itemCardTimer = 0;
+  itemCardAt = 0;
+  itemsPrimedFor: unknown = null;
+  curios = new Set<string>();
+  curiosFor: unknown = null;
+  /** A card for a thing you've not had before: its picture, its name, what it's for, in his words. */
+  itemCard(it: Item) {
+    this.seenItems.add(it.def); this.itemCardAt = performance.now();
+    try { localStorage.setItem("kd-items", JSON.stringify([...this.seenItems])); } catch { /* ignore */ }
+    const el = $("itemCard"), lit = itemTargets(this.w, this.pc, it).length > 0;
+    el.innerHTML = `${icon(it.def)}<div><b>${esc(itemName(it))}</b><span>${esc(ITEM_TIPS[it.def])}</span>${lit ? `<small>In your hand, the places it works light up.</small>` : ""}</div>`;
+    el.hidden = false; el.classList.remove("in"); void el.offsetWidth; el.classList.add("in");
+    clearTimeout(this.itemCardTimer); this.itemCardTimer = window.setTimeout(() => { el.hidden = true; }, 5200);
+  }
+  itemTgts: ItemTarget[] = [];
+  itemTgtFor = "";
+  itemLabel: Phaser.GameObjects.Text | null = null;
+  /** The name over the nearest place the thing in your hand is for ("Brick → a window"). */
+  itemLabelAt(t: ItemTarget, x: number, y: number, u: number) {
+    if (!this.itemLabel) this.itemLabel = this.add.text(0, 0, "", { fontFamily: "monospace", fontSize: "13px", color: "#f2c94c", backgroundColor: "#000000b0", padding: { x: 4, y: 2 } }).setOrigin(0.5, 1).setDepth(8e6);
+    const h = this.pc.hand ? this.s.items[this.pc.hand] : undefined, txt = `${h ? itemName(h) : ""} → ${t.label}`;
+    if (this.itemLabel.text !== txt) this.itemLabel.setText(txt);
+    this.itemLabel.setPosition(Math.round(x), Math.round(y)).setScale(u).setVisible(true);
+  }
   choking = new Map<string, number>();
   startCine(ms: number, opts: { focus?: { x: number; y: number }; lead?: { x: number; y: number }; zoomAdd?: number; slow?: number; caption?: string }): void {
     const now = performance.now();
@@ -2250,7 +2304,7 @@ class StadiumScene extends Phaser.Scene {
     const ui = this.ui, u = P.S / 16;
     ui.clear();
     if (pc && !pc.hiddenIn) {
-      const tgt = pc.hand && hasProp(s.items[pc.hand], "throwable") || (pc.hand && defOf(s.items[pc.hand]).size === "small") ? throwTarget(this.w, pc, this.picked) : null;
+      const tgt = (pc.hand && hasProp(s.items[pc.hand], "throwable") || (pc.hand && defOf(s.items[pc.hand]).size === "small")) && (this.picked || this.fightOn()) ? throwTarget(this.w, pc, this.picked) : null;
       (this as any).throwAt = tgt;
       if (tgt) {
         const tx = P.sx(tgt.x, tgt.y), ty = P.sy(tgt.x, tgt.y) - (P.standing ? 0.9 * P.KZ * P.S : 0);
@@ -2348,6 +2402,29 @@ class StadiumScene extends Phaser.Scene {
         if (!on) { const ang = Math.atan2(ay - ey, ax - ex); ui.fillStyle(0xf2c94c, 0.9).fillTriangle(ex + Math.cos(ang) * r * 2.1, ey + Math.sin(ang) * r * 2.1, ex + Math.cos(ang + 0.5) * r * 1.4, ey + Math.sin(ang + 0.5) * r * 1.4, ex + Math.cos(ang - 0.5) * r * 1.4, ey + Math.sin(ang - 0.5) * r * 1.4); }
       }
     }
+    // What's in your hand is for: those places pulse (the nearest with its name), or an arrow at the
+    // edge points the way to the nearest. Worked out a few times a second.
+    if (pc && !pc.roof) {
+      if (tick % 15 === 0 || this.itemTgtFor !== (pc.hand ?? "")) { this.itemTgtFor = pc.hand ?? ""; const h = pc.hand ? s.items[pc.hand] : undefined; this.itemTgts = h ? itemTargets(this.w, pc, h) : []; }
+      const v = cam.worldView, u2 = DPR / cam.zoom, pad = 30 * u2, padT = 90 * u2, padB = 150 * u2;
+      let labelled = false;
+      this.itemTgts.forEach((t, i) => {
+        const ax = P.sx(t.x, t.y), ay = P.sy(t.x, t.y) - P.S * 1.2, on = ax > v.x + pad && ax < v.right - pad && ay > v.y + padT && ay < v.bottom - padB;
+        const pulse = 0.55 + 0.45 * Math.sin(tick * 0.18 + i), r = 8 * u2;
+        if (on) {
+          ui.lineStyle(3 * u2, 0xf2c94c, pulse).strokeCircle(P.sx(t.x, t.y), P.sy(t.x, t.y), P.S * (0.9 + 0.15 * pulse));
+          ui.fillStyle(0x000000, 0.5).fillTriangle(ax, ay - r * 1.5, ax + r * 1.1, ay, ax, ay + r * 1.5).fillTriangle(ax, ay - r * 1.5, ax - r * 1.1, ay, ax, ay + r * 1.5);
+          ui.fillStyle(0xf2c94c, 0.6 + 0.4 * pulse).fillTriangle(ax, ay - r, ax + r * 0.7, ay, ax, ay + r).fillTriangle(ax, ay - r, ax - r * 0.7, ay, ax, ay + r);
+          if (!labelled) { labelled = true; this.itemLabelAt(t, ax, ay - r * 2.2, u2); }
+        } else if (i === 0) {
+          const ex = Phaser.Math.Clamp(ax, v.x + pad, v.right - pad), ey = Phaser.Math.Clamp(ay, v.y + padT, v.bottom - padB), ang = Math.atan2(ay - ey, ax - ex);
+          ui.fillStyle(0x000000, 0.55).fillCircle(ex, ey, r * 1.5);
+          ui.fillStyle(0xf2c94c, 0.95).fillTriangle(ex + Math.cos(ang) * r * 1.4, ey + Math.sin(ang) * r * 1.4, ex + Math.cos(ang + 2.4) * r, ey + Math.sin(ang + 2.4) * r, ex + Math.cos(ang - 2.4) * r, ey + Math.sin(ang - 2.4) * r);
+          if (!labelled) { labelled = true; this.itemLabelAt(t, ex, ey - r * 2.6, u2); }
+        }
+      });
+      if (!labelled) this.itemLabel?.setVisible(false);
+    } else this.itemLabel?.setVisible(false);
     // Instinct (held): the world dims; useful things glow yellow, the fix targets red, the people
     // with a hook blue; every steward's eyeline is drawn on the ground.
     let instI = 0;
@@ -3204,9 +3281,12 @@ class StadiumScene extends Phaser.Scene {
     if (s.tick % 6 === 0 || !this.opts.length) {
       this.opts = options(this.w, pc, this.picked);
       // The hit button has the blows: the main button never repeats one of them (that's what doubled up "Take down Shaz").
-      const hitFirst = this.fightOpt() ?? this.opts.find((o) => o.action?.verb === "strike");
+      const fighting = this.fightOn();
+      const hitFirst = this.fightOpt() ?? (fighting ? this.opts.find((o) => o.action?.verb === "strike") : undefined);
+      // Blows never go on the main button: a fight is started on purpose (tap the person) or comes to you.
       const blow = (o: Option) => o.action?.verb === "strike" || (o.action?.verb === "finish" && !!hitFirst);
-      const p = hitFirst && !pc.heldBy && !pc.hiddenIn ? this.opts.find((o) => o.priority > 0 && !blow(o)) ?? null : primary(this.opts);
+      const p = !pc.heldBy && !pc.hiddenIn ? this.opts.find((o) => o.priority > 0 && !blow(o)) ?? null : primary(this.opts);
+      this.mainOpt = p;
       const act = $<HTMLButtonElement>("act");
       act.disabled = !p;
       act.hidden = !p;
@@ -3214,7 +3294,8 @@ class StadiumScene extends Phaser.Scene {
       this.primaryAt = p ? this.optionSpot(p) : null;
       const thr = $("throw");
       const ta = (this as any).throwAt as Actor | null;
-      const canThrow = !!pc.hand && !pc.heldBy && !pc.hiddenIn;
+      const MISSILE = new Set(["brick", "fart_can", "flare", "bottle", "pint_glass"]);
+      const canThrow = !!pc.hand && !pc.heldBy && !pc.hiddenIn && (fighting || MISSILE.has(this.s.items[pc.hand]?.def ?? ""));
       thr.hidden = !canThrow;
       // Short labels: the verb and the last word of their name ("Big Kev" is Kev, "Steward Pauline" is Pauline).
       const short = (n: string) => n.replace(/ \(.*\)$/, "").split(" ").pop() ?? n;
@@ -3247,6 +3328,17 @@ class StadiumScene extends Phaser.Scene {
 
   /** Who you're fighting: the last one you hit, for a few seconds, while he's close. */
   fight: { id: string; until: number } | null = null;
+  mainOpt: Option | null = null;
+  /** Is there a fight on? You've hit someone or been hit in the last few seconds, someone on duty is
+   *  coming for you up close, or a creep has his hands on you. Only then do the punch and throw buttons
+   *  (and the crosshair on a person) come up; otherwise you start one on purpose, by tapping someone. */
+  fightOn(): boolean {
+    const pc = this.pc, s = this.s, now = performance.now();
+    if (!pc) return false;
+    if (this.fight && now < this.fight.until) return true;
+    if (s.stadium!.creep?.id && s.stadium!.creep.phase !== "leer") return true;
+    return Object.values(s.actors).some((a) => a.npc && a.npc.target === pc.id && ["approach", "chase"].includes(a.npc.mode) && a.npc.crime >= 1 && Math.hypot(a.x - pc.x, a.y - pc.y) < 5);
+  }
   fightOpt(): Option | null {
     const f = this.fight, pc = this.pc;
     if (!f || !pc || performance.now() > f.until) return null;
@@ -3449,9 +3541,13 @@ class StadiumScene extends Phaser.Scene {
   }
 
   /** The radar: walls and stewards within 26 m, their eyelines, you in the middle. Under it, the heat. */
+  radarUntil = 0;
   drawRadar() {
     const box = $("radarBox"), pc = this.pc, s = this.s, st = s.stadium!;
-    const hide = !this.started || this.inCab() || !!this.fp?.on || !$("stall").hidden;
+    // Only while somebody's after you (and a few seconds after): otherwise it's one more thing on screen.
+    const hot = (st.flags.heatMode ?? 0) > 0 || !!st.detainedUntil || this.instinct;
+    if (hot) this.radarUntil = performance.now() + 4000;
+    const hide = !this.started || this.inCab() || !!this.fp?.on || !$("stall").hidden || performance.now() > this.radarUntil;
     if (box.hidden !== hide) box.hidden = hide;
     if (hide || !pc) return;
     // Sit just under the top bar, whatever shape it has wrapped to.
@@ -4430,7 +4526,7 @@ class StadiumScene extends Phaser.Scene {
         this.run(o && held > 380 && o.action?.verb === "strike" && o.action.arg !== "takedown" ? { ...o, action: { ...o.action, arg: "haymaker" } } : o);
       });
     };
-    holdable($("act"), () => primary(this.opts));
+    holdable($("act"), () => this.mainOpt);
     $("throw").addEventListener("click", () => this.throwNow());
     $("betBtn").addEventListener("click", () => (this.sheetKind === "bet" ? this.closeSheet() : this.openBet()));
     holdable($("hit"), () => (this as any).hitOpt ?? null);
@@ -4565,7 +4661,7 @@ class StadiumScene extends Phaser.Scene {
       const k = e.key.toLowerCase();
       if ((k !== "e" && k !== " ") || !this.started || !this.keyHeldAt) return;
       if (this.s.stadium!.vehicles.bus?.drivenBy === this.pc.id) { this.keyHeldAt = 0; return; }
-      const o = primary(this.opts), held = performance.now() - this.keyHeldAt;
+      const o = this.mainOpt, held = performance.now() - this.keyHeldAt;
       this.keyHeldAt = 0;
       this.run(o && held > 380 && o.action?.verb === "strike" && o.action.arg !== "takedown" ? { ...o, action: { ...o.action, arg: "haymaker" } } : o);
     });

@@ -263,7 +263,14 @@ export const QF_FURNITURE: Furniture[] = [
 ];
 const furnitureWalls = (list: Furniture[]): Wall[] => list.filter((q) => q.solid).map((q) => ({ ...prop(q.x, q.y, q.w, q.d, q.h3 ?? 1) }));
 
-export const KICKOFF_AT = 330; // seconds after arrival
+export let KICKOFF_AT = 330; // seconds after arrival
+/** How the day is paced. The tests run the short, busy day they were written against; the game itself
+ *  gives you nine minutes before kick-off and a street that starts quiet and fills up (the gate rush in
+ *  the last three minutes), so there's room to look around and things you do stand out. */
+export const PACE = { calm: false };
+export function setPace(o: { kickoffAt: number; calm: boolean }): void { KICKOFF_AT = o.kickoffAt; PACE.calm = o.calm; }
+/** When the fans rush the gates: the last three minutes. */
+export const rushAt = () => KICKOFF_AT - 180;
 
 const QF_SPOTS = {
   arrival: { x: 6, y: 58 },

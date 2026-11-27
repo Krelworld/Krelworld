@@ -15,7 +15,7 @@ import { canSee, crime } from "./security";
 import type { Vehicle } from "./state";
 
 export const BUS_LEN = 11, BUS_WID = 2.8;
-const DEPART_BEFORE_KICKOFF = 200; // seconds
+export const DEPART_BEFORE_KICKOFF = 200; // seconds
 
 const fwd = (v: Vehicle) => ({ x: Math.cos(v.facing), y: Math.sin(v.facing) });
 /** Where the door is: front, on the left-hand side. */

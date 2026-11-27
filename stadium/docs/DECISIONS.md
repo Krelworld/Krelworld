@@ -1046,3 +1046,38 @@ Now:
 - every walkable edge is kept half a metre in from the drawn edge.
 
 To make the height read, everything below the roof you're on dims (the street, the other buildings, your own building's front wall), the roof stays lit, and its edge is picked out. The camera follows your full height when you're up there.
+
+## Round: the fun pass (less on screen, items that explain themselves, a calmer street, a timetable, ideas)
+
+The game felt confusing and overwhelming: about ten HUD panels and buttons on a phone screen, a permanent invitation to punch a random stranger, and items that gave no clue what they were for. This round takes things away and makes the remaining verbs obvious.
+
+**Less on screen.**
+- The punch and throw buttons only come up when there's a fight on: you've hit someone or been hit in the last few seconds, someone on duty is coming for you up close, or a creep's hands are on you.
+- Otherwise you start a fight on purpose by tapping the person. The F key still punches on a keyboard.
+- Holding something throwable no longer locks a crosshair onto the nearest stranger. A missile (brick, fart can, flare, bottle) gets a plain Throw button.
+- The main button never offers a blow. It also now always does what its label says (before, a tap could throw a punch the label didn't show).
+- The radar only shows while someone's after you (and four seconds after).
+- Instinct is a small eye button by the menu, not a full-width button.
+
+**Items explain themselves** (Hitman's item cards; Zelda's highlights).
+- The first time you get a new kind of thing, a card says what it's for, in Grozz's words ("Brick: through a window. Or someone's head."). Once ever per kind; never for what you start with; at most one card every few seconds.
+- While it's in your hand, the places it works pulse on the ground ("Brick → a window"), or an arrow at the screen edge points to the nearest. For example: windows for a brick; drinks, the tea urn and the water coolers for laxative; the cellar hatch for the wrench; the staff door for a pass or hi-vis; their coach for a knife or hammer; the turnstiles for a ticket.
+
+**A calmer street and a longer build-up.** The game itself now gives nine minutes before kick-off instead of five and a half. The street starts with about 30 fans instead of 70, and people trickle in until the last three minutes, when the gates rush. The tests still run the original short, busy day (`setPace`).
+
+**A timetable.** The notepad shows what happens next and how long until it: their coach leaves the hotel, the gates rush, Lenny's fag break ends, kick-off. It opens by itself 30 seconds before each one.
+
+**Ideas, for looking around** (the Goose's "that's interesting"; Hitman's opportunities). Twelve spots in the street give Grozz a thought the first time you go near, with a sting. Each goes in the menu's log, numbered ("Idea · 3/12"). For example:
+- Ronson tied up;
+- the cellar hatch;
+- the pub ladder;
+- the police van's spare uniform;
+- the burger van;
+- the staff door;
+- the scaffold;
+- their coach;
+- Lenny smoking with his head off;
+- Dodgy Del;
+- the team hotel.
+
+Exploring is rewarded with a plan, not a waypoint.

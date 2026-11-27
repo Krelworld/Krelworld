@@ -28,6 +28,7 @@ export function installLulls(w: World): void {
     const st = w.state.stadium;
     if (!st || !PAYOFFS.has(e.type)) return;
     if (e.type === "chain" && e.by !== st.pc) return;
+    if (e.type === "post_left" && e.ambient) return; // the world going about its business isn't a payoff
     st.flags.lastPayoff = w.state.tick;
   });
 }
@@ -48,7 +49,7 @@ export function stepLulls(w: World): void {
   const since = (tick - Math.max(st.flags.lastPayoff ?? 0, st.flags.lastBeat ?? 0, 60 * 20)) / 60;
   if (since < Math.min(90, LULL_SECONDS + 15 * ignored)) return;
   // Least recently used first, so it's never the same thing twice running.
-  const all = [pintBeat, fagBeat, rowBeat], start = ((st.flags.beatKind ?? -1) + 1) % all.length;
+  const all = [pintBeat, fagBeat, rowBeat, yardBeat], start = ((st.flags.beatKind ?? -1) + 1) % all.length;
   for (let k = 0; k < all.length; k++) {
     const i = (start + k) % all.length;
     if (all[i](w, pc)) { st.flags.lastBeat = tick; st.flags.beatKind = i; st.flags.beatsIgnored = ignored + 1; return; }
@@ -113,6 +114,25 @@ function fagBeat(w: World, pc: Actor): boolean {
   it.owner = g.id; it.home = at; it.label = `${g.name.split(" ").pop()}'s radio`;
   say(w, g, pick(s.rng.world, ["Battery's flat again. Useless thing.", "Nothing but static. I'll sort it at half-time.", "Radio's packed up. Again."]), 4);
   w.bus.emit({ type: "beat", t: s.tick, kind: "radio", x: at.x, y: at.y, who: g.id, item: rid });
+  return true;
+}
+
+/** Somebody caught short uses the nearest working man's corner, and the working man has words: his head's
+ *  turned for a few seconds. (An argument, not an opening: what you do with his back is up to you.) */
+function yardBeat(w: World, pc: Actor): boolean {
+  const s = w.state;
+  const man = Object.values(s.actors).find((a) => a.npc && ["worker", "groundsman", "cook"].includes(a.npc.job) && !a.dead && !a.hiddenIn && a.downUntil <= s.tick && a.npc.mode === "routine" && !a.npc.duty && near(a, pc) < 14);
+  if (!man) return false;
+  const fan = Object.values(s.actors).filter((a) => a.npc?.job === "fan" && !a.dead && !a.hiddenIn && !a.seated && a.downUntil <= s.tick && a.npc.mode === "routine" && !a.npc.duty && !a.npc.need && !a.npc.bubble && near(a, man) < 40 && near(a, pc) > 4)
+    .sort((p, q) => near(p, man) - near(q, man))[0];
+  if (!fan) return false;
+  const at = { x: man.x + (man.x > pc.x ? 2.6 : -2.6), y: man.y - 1.6 };
+  fan.npc!.group = undefined;
+  fan.npc!.plan = [{ k: "go", ...at, run: true }, { k: "say", text: pick(s.rng.world, ["Don't mind me. Bursting.", "Won't be a sec, pal.", "Queue for the gents is a joke."]) }, { k: "wait", s: 7 }];
+  const secs = Math.min(9, near(fan, at) / 3.2) + 1.5;
+  man.npc!.plan.unshift({ k: "wait", s: secs }, { k: "say", text: pick(s.rng.world, ["Oi! Not on my kegs, you dirty sod!", "There's a toilet in the pub! USE IT!", "Every week. EVERY week."]) }, { k: "wait", s: 6 });
+  man.npc!.gawk = { until: s.tick + Math.round(60 * (secs + 7)), x: at.x, y: at.y, filming: false };
+  w.bus.emit({ type: "beat", t: s.tick, kind: "yard", x: at.x, y: at.y, who: fan.id });
   return true;
 }
 

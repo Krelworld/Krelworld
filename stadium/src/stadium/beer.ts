@@ -30,13 +30,15 @@ export const hasBeerLine = () => PACE.calm && VENUE.id === "qf";
 const beer = (w: World): Beer => (w.state.stadium!.beer ??= { hose: "lorry", at: 0, cause: 0, sick: 0, next: 0 });
 const drayman = (w: World) => Object.values(w.state.actors).find((a) => a.npc?.job === "worker" && !a.dead);
 
-/** Is he stood there looking at it? Away after a keg, or with his head turned, he isn't. */
-export function hoseWatched(w: World): Actor | undefined {
+/** Is the drayman stood there looking at it (his hose, the back of his lorry)? Away after a keg, or with
+ *  his head turned, he isn't. His attention is the gate on everything in his yard. */
+export const hoseWatched = (w: World): Actor | undefined => draymanWatching(w, hoseAt());
+export function draymanWatching(w: World, h: { x: number; y: number }): Actor | undefined {
   const d = drayman(w), tick = w.state.tick;
-  if (!d || !free(w, d) || d.npc!.duty || dist(d, hoseAt()) > 7.5) return undefined;
-  if (d.npc!.gawk && d.npc!.gawk.until > tick && dist(d.npc!.gawk, hoseAt()) > 3) return undefined;
+  if (!d || !free(w, d) || d.npc!.duty || dist(d, h) > 7.5) return undefined;
+  if (d.npc!.gawk && d.npc!.gawk.until > tick && dist(d.npc!.gawk, h) > 3) return undefined;
   // Nor with his back to it, unless he's right on top of it.
-  const h = hoseAt(), dd = dist(d, h);
+  const dd = dist(d, h);
   if (dd > 2.5 && Math.cos(Math.atan2(h.y - d.y, h.x - d.x) - d.facing) < 0.15) return undefined;
   return d;
 }

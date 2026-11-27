@@ -59,7 +59,7 @@ export function leavePost(w: World, a: Actor, cause: number, secs: number, why: 
   carry(a, cause, tick, secs + 10);
   // In the game, a beat to react before he goes (the double-take the view plays), so you see the cause land.
   if (PACE.calm && n.plan.length && n.plan[0].k !== "wait") n.plan.unshift({ k: "wait", s: 0.75 });
-  w.bus.emit({ type: "post_left", t: tick, by: a.id, why, x: a.x, y: a.y });
+  w.bus.emit({ type: "post_left", t: tick, by: a.id, why, x: a.x, y: a.y, cause, ambient: !cause });
   const on = post && dist(a, post) < 4;
   let c = cause;
   if (n.job === "worker") {

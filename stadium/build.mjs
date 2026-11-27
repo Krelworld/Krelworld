@@ -31,11 +31,14 @@ await build({
   entryPoints: ["src/view/stadium.ts"], bundle: true, minify: true, format: "iife",
   outfile: "dist/stadium/game.js", logLevel: "error",
 });
-copyFileSync("src/view/stadium.html", "dist/stadium/index.html");
+// A stamp on the start screen, so anyone can tell which build they're looking at.
+const STAMP = new Date().toISOString().slice(0, 16).replace("T", " ") + " UTC";
+const stadiumHtml = readFileSync("src/view/stadium.html", "utf8").replace("__BUILD__", STAMP);
+writeFileSync("dist/stadium/index.html", stadiumHtml);
 writeFileSync(
   "dist/stadium/local.html",
   '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"></head><body style="margin:0">' +
-    readFileSync("src/view/stadium.html", "utf8") + "</body></html>",
+    stadiumHtml + "</body></html>",
 );
 import { cpSync } from "node:fs";
 cpSync("assets/audio", "dist/stadium/audio", { recursive: true });

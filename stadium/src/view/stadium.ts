@@ -112,6 +112,8 @@ function shortLabel(o: Option): string {
   if (o.sheet?.kind === "bribe") return "Offer money";
   if (o.sheet?.kind === "report") return "Tip off";
   if (o.sheet?.kind === "rumour") return "Tell him";
+  if (v === "hide" && /lorry|van/.test(L)) return "Ride in the lorry";
+  if (v === "hide" && /hold/.test(L)) return "Ride in the hold";
   if (o.sheet?.kind === "loot") return "Search";
   const map: Record<string, string> = { talk: "Talk", show: "Show ticket", drive: "Drive the bus", getout: "Get out", hide: "Hide inside", unhide: "Climb out", sit: "Sit down", stand: "Stand up",
     untie: "Untie Ronson", release: "Let Ronson go", leash: "Grab Ronson", sic: "Set Ronson on him", servicedog: "\"Service dog\"", alarm: "Pull the fire alarm", vault: "Climb over",
@@ -1013,8 +1015,13 @@ class StadiumScene extends Phaser.Scene {
     // Pointing you at the side jobs once you're into it (and a dot on the menu till you've looked).
     // (Side jobs are discoveries now, not a list you're pushed towards: no nudge.)
     if (nEl.innerHTML !== html) nEl.innerHTML = html;
-    nEl.hidden = !this.started || !!this.fp?.on || this.inCab() || this.callOn || !!this.ring || (!$("itemCard").hidden && window.innerHeight < 520);
+    // Never over the game: the list is in the menu (☰), and the button carries the count.
+    nEl.hidden = true;
+    const mb = $("menuBtn"), cnt = must.length ? String(Math.min(9, must.length)) : "";
+    if (mb.dataset.n !== cnt) mb.dataset.n = cnt;
   }
+  /** The one thing on the ground the big button is about (it alone gets a ring). */
+  focusItem: string | null = null;
   /** One-off view hints. */
   flags: Record<string, number> = {};
   doorway = new Doorway();
@@ -1618,6 +1625,24 @@ class StadiumScene extends Phaser.Scene {
       t.setText(p.text).setOrigin(left ? 0 : 1, 0.5).setScale(px).setPosition(x + (left ? 15 : -15) * px, y).setVisible(true);
     });
   }
+  /** Stowed in the lorry: one strip that says what the lorry's doing and when, with a button to let time run.
+   *  (Why you're in here, and whether to stay: it's going into the ground.) */
+  lorryOn = false;
+  lorryStrip(v: { state: string; until: number } | undefined): void {
+    const el = $("custody"), st = this.s.stadium!;
+    if (!v) { if (this.lorryOn) { this.lorryOn = false; el.hidden = true; if (this.speed > 1 && !st.custody && !st.recover) this.setSpeed(1); } return; }
+    if (st.custody || st.recover) return;
+    if (!this.lorryOn) {
+      this.lorryOn = true; el.className = "strip"; el.innerHTML = `<b>IN THE LORRY</b><span class="cd wide"></span><button data-wait="1">Wait</button>`; el.hidden = false;
+      el.querySelector("button")!.addEventListener("click", () => { this.setSpeed(this.speed > 1 ? 1 : 6); this.audio.play("tap", 0.5); });
+    }
+    const sec = Math.max(0, Math.ceil((v.until - this.s.tick) / 60)), mm = `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`;
+    const inGround = VENUE.inside(this.pc.x, this.pc.y) || v.state === "unloading";
+    const txt = v.state === "loading" ? `Leaves for the ground in ${mm}` : v.state === "gate" ? "Service gate. Keep still." : inGround ? "In the ground. Out you get." : v.state === "returning" ? "Heading back to the pub" : "On its way round to the ground";
+    const cd = el.querySelector(".cd")!; if (cd.textContent !== txt) cd.textContent = txt;
+    const bt = el.querySelector("button")!; const lab = this.speed > 1 ? "Stop" : "Wait"; if (bt.textContent !== lab) bt.textContent = lab; (bt as HTMLElement).hidden = inGround;
+    if (inGround && this.speed > 1) this.setSpeed(1);
+  }
   /** A chain Grozz set off, named like a TV graphic as it grows ("KEG → DRAYMAN GOES AFTER IT → …"). */
   chainTimer = 0;
   chainStrap(links: string[], label?: string) {
@@ -1644,12 +1669,12 @@ class StadiumScene extends Phaser.Scene {
     this.pt?.rule(rule);
     if (!this.pt) try { localStorage.setItem("kd-rules", JSON.stringify([...this.rules])); } catch { /* ignore */ }
     this.say(`${rule} ${more}`, "Rule", false, false);
-    const el = $("itemCard");
-    el.innerHTML = `<i class="bulb rule">✓</i><div><b>Learned</b><span>${esc(rule)}</span></div>`;
-    el.hidden = false; el.classList.remove("in"); void el.offsetWidth; el.classList.add("in");
-    this.itemCardAt = performance.now();
-    this.audio.play("chime", 0.6, { rate: 1.1 });
-    clearTimeout(this.itemCardTimer); this.itemCardTimer = window.setTimeout(() => { el.hidden = true; }, 4200);
+    // One line under the score, where the chain count goes (not a card across the screen); the long form's in the notes.
+    const el = $("chainStrap");
+    el.innerHTML = `<b>✓</b><span><i>${esc(rule)}</i></span>`;
+    el.classList.remove("wide"); el.hidden = false; el.classList.remove("in"); void el.offsetWidth; el.classList.add("in");
+    this.audio.play("chime", 0.5, { rate: 1.1 });
+    clearTimeout(this.chainTimer); this.chainTimer = window.setTimeout(() => { el.hidden = true; }, 3400);
   }
   /** A footballer's card (the old Football Manager match screen): who he is, how good, how he is today. */
   playerCard(a: Actor) {
@@ -1897,7 +1922,8 @@ class StadiumScene extends Phaser.Scene {
     const job = a.npc?.job;
     if (job === "police") { shirt = 0x101830; trim = 0xffffff; }
     if (job === "barman" || job === "seller" || job === "cook") { shirt = 0xf0ece2; trim = 0x333333; }
-    if (job === "driver" || job === "worker") { shirt = 0x2d5a8a; trim = 0x1a3050; }
+    if (job === "driver") { shirt = 0x2d5a8a; trim = 0x1a3050; }
+    if (job === "worker") { shirt = 0xf08a24; trim = 0x8a4a10; } // the lorry's orange: he's the one that goes with it
     if (job === "cleaner") { shirt = 0x6a7a8a; trim = 0x445566; }
     if (outer?.role === "referee") { shirt = outer.colour!; trim = outer.colour2!; }
     const vest = a.worn.outer && defOf(s.items[a.worn.outer]).id === "hivis" ? 0xd9e021 : null;
@@ -2066,7 +2092,7 @@ class StadiumScene extends Phaser.Scene {
         if (nearB) things.push({ d: y + 1e-4, draw: () => g.lineStyle(3, 0xf2c94c, 0.5 + 0.4 * Math.sin(tick * 0.15)).strokeCircle(P.sx(x, y), P.sy(x, y) - P.S * 0.3, P.S * 0.9) });
         continue;
       }
-      const near = pc && Math.hypot(pc.x - x, pc.y - y) < 2.6;
+      const near = pc && Math.hypot(pc.x - x, pc.y - y) < 2.6 && this.focusItem === id;
       if (sprites && (def.size !== "huge" || it.def === "keg") && ICONS.has(it.def) && this.textures.exists(`ico-${it.def}`)) {
         // Its picture, half size (a 48 px icon is 0.75 m across), lying where it fell or flying.
         this.shadowG.fillStyle(0x000000, 0.3).fillEllipse(Math.round(P.sx(x, y)), Math.round(P.sy(x, y)), P.S * 0.6, P.S * 0.22);
@@ -2147,8 +2173,12 @@ class StadiumScene extends Phaser.Scene {
         } });
         const open = isBus ? holdOpen(v) : v.state === "loading" || v.state === "unloading";
         if (open) things.push({ d: depth + 0.001, draw: () => {
-          const rr = { x: v.x - Math.cos(v.facing) * (len / 2), y: v.y - Math.sin(v.facing) * (len / 2) };
-          g.fillStyle(0x1a1208, 0.9).fillCircle(P.sx(rr.x, rr.y), P.sy(rr.x, rr.y, 0.8), P.S * 0.6);
+          // The back, open: a dark doorway the width of the body and two doors swung out (was a floating black disc).
+          const rr = { x: v.x - Math.cos(v.facing) * (len / 2), y: v.y - Math.sin(v.facing) * (len / 2) }, px2 = -Math.sin(v.facing), py2 = Math.cos(v.facing);
+          const hw = (isBus ? 0.9 : 1.05), cx0 = P.sx(rr.x, rr.y), cy0 = P.sy(rr.x, rr.y, 0.9);
+          g.fillStyle(0x120d08, 0.92).fillRect(cx0 - Math.abs(px2) * hw * P.S - (Math.abs(px2) < 0.5 ? 0.25 * P.S : 0), cy0 - 0.55 * P.S, Math.max(0.5 * P.S, Math.abs(px2) * hw * 2 * P.S), 1.0 * P.S);
+          g.lineStyle(Math.max(2, P.S * 0.09), 0xc8ccd2, 1);
+          for (const sd of [-1, 1]) { const hx = rr.x + px2 * hw * sd, hy = rr.y + py2 * hw * sd, ex = hx + px2 * 0.75 * sd - Math.cos(v.facing) * 0.55, ey = hy + py2 * 0.75 * sd - Math.sin(v.facing) * 0.55; g.lineBetween(P.sx(hx, hy), P.sy(hx, hy, 0.9), P.sx(ex, ey), P.sy(ex, ey, 0.9)); }
         } });
         continue;
       }
@@ -2861,7 +2891,7 @@ class StadiumScene extends Phaser.Scene {
     const m = VENUE.id === "sf" ? -1 : 1, flip = (d: string) => (m === 1 ? d : d === "e" ? "w" : d === "w" ? "e" : d);
     const pub = VENUE.features.fanZone ? "FAN ZONE" : "PUB";
     const raw: { x: number; y: number; rows: [string, string][] }[] = VENUE.id === "final" ? [] : [
-      { x: -20.5, y: 60.2, rows: [["n", "ENTRANCE"], ["w", pub], ["e", "SHOPS"]] },
+      { x: -24.6, y: 60.3, rows: [["n", "ENTRANCE"], ["w", pub], ["e", "SHOPS"]] },
       { x: 24.5, y: 60.2, rows: [["w", "ENTRANCE"], ["n", "TICKETS"], ["e", "STAFF"]] },
       { x: 57, y: 60.4, rows: [["n", "STAFF DOOR"], ["e", "HOTEL 3 MIN"], ["s", "CAR PARK"]] },
       { x: 73.4, y: 47, rows: [["n", "TEAM HOTEL"], ["n", "LOADING BAY"], ["w", "ENTRANCE"]] },
@@ -3247,7 +3277,8 @@ class StadiumScene extends Phaser.Scene {
     if ((shop === "bookies" || shop === "pawn") && this.bank.has("suit")) return { base: "suit", rc: { skin: rc.skin }, h: 1.75 };
     if ((a.name === "Barmaid" || a.female) && a.npc?.job === "barman" && this.bank.has("woman")) return { base: "woman", rc: { shirt: 0x222222, trim: 0x222222, skin: rc.skin }, h: 1.6 };
     if (job === "barman" || job === "seller" || job === "cook") { rc.shirt = 0xf0ece2; rc.trim = 0x333333; rc.legs = 0x2a2a2a; }
-    if (job === "driver" || job === "worker") { rc.shirt = 0x2d5a8a; rc.trim = 0x1a3050; rc.legs = 0x2a3340; }
+    if (job === "driver") { rc.shirt = 0x2d5a8a; rc.trim = 0x1a3050; rc.legs = 0x2a3340; }
+    if (job === "worker") { rc.shirt = 0xf08a24; rc.trim = 0x8a4a10; rc.legs = 0x2a3340; }
     if (job === "cleaner") { rc.shirt = 0x6a7a8a; rc.trim = 0x445566; rc.legs = 0x445566; }
     if (job === "fan") {
       const n = Math.abs(hash(a.id + "s"));
@@ -3583,6 +3614,7 @@ class StadiumScene extends Phaser.Scene {
         ]);
         break;
       }
+      case "lorry_no": this.pcLine = { text: "Not while he's stood there.", until: now + 2400 }; a.play("nope", 0.7); break;
       case "hose_no": this.pcLine = { text: "Not while he's stood there.", until: now + 2400 }; a.play("nope", 0.7); break;
       case "kegs_foul": if (pc && Math.hypot(pc.x - e.x, pc.y - e.y) < 20) a.play("keg_slip", 0.4, { rate: 0.7 }); break;
       case "spew": {
@@ -3952,11 +3984,15 @@ class StadiumScene extends Phaser.Scene {
     if (area.name !== this.lastArea) { this.lastArea = area.name; this.areaShownAt = performance.now(); }
     const fresh = performance.now() - this.areaShownAt < 2200;
     const where = busV?.drivenBy === pc.id ? `Driving the ${m.teams[1].name} team bus` : pc.hiddenIn === "car" ? `Driving a nicked ${st.myCar?.kind === "policecar" ? "police car" : st.myCar?.kind === "taxi" ? "black cab" : "motor"}` : pc.hiddenIn ? (pc.hiddenIn === busV?.cargo ? "Hiding in the bus's luggage hold" : `Hiding in the back of the ${VENUE.delivery.name}`) : pc.heldBy ? "Being frogmarched"
-      : bad ? `${area.name} · you shouldn't be here` : fresh && this.s.tick > 60 * 4 ? area.name : "";
+      : bad ? `${area.name} · you shouldn't be here` : "";
+    void fresh;
     const wEl = $("where");
+    const lorryV = pc.hiddenIn ? Object.values(st.vehicles).find((v) => v.cargo === pc.hiddenIn && v.kind === "lorry") : undefined;
+    this.lorryStrip(lorryV);
+    if (lorryV) { if (wEl.textContent) wEl.textContent = ""; } else
     if (wEl.textContent !== where) wEl.textContent = where;
     // Like Hitman's and MGS's area names: up when it changes, then out of the way (a warning stays).
-    wEl.hidden = !where;
+    wEl.hidden = !where || !!lorryV;
     wEl.classList.toggle("bad", bad && !pc.hiddenIn);
     this.updateGuides();
     // One indicator for all of security: the worst attention you are getting.
@@ -3973,6 +4009,7 @@ class StadiumScene extends Phaser.Scene {
     if (st.detainedUntil) { eye.hidden = false; eye.textContent = `Detained · ${Math.ceil((st.detainedUntil - s.tick) / 60)}s`; eye.classList.add("hot"); }
     if (st.flags.heatMode === 3 && !pc.heldBy) { eye.hidden = false; eye.textContent = "Out of sight: stay hidden"; eye.classList.remove("hot"); }
     if (s.tick % 2 === 0) this.drawRadar();
+    if (!$("radarBox").hidden && worst < 4 && !st.detainedUntil) eye.hidden = true;
     // Where they last saw you: a ghost of you there (Splinter Cell's last known position). They'll go
     // and look; you can use that.
     {
@@ -4010,6 +4047,7 @@ class StadiumScene extends Phaser.Scene {
       // Blows never go on the main button: a fight is started on purpose (tap the person) or comes to you.
       const blow = (o: Option) => o.action?.verb === "strike" || (o.action?.verb === "finish" && !!hitFirst);
       const p = !pc.heldBy && !pc.hiddenIn ? this.opts.find((o) => o.priority > 0 && !blow(o)) ?? null : primary(this.opts);
+      this.focusItem = p?.action?.item ?? (p?.action?.target?.k === "item" ? p.action.target.id : null);
       this.mainOpt = p;
       const act = $<HTMLButtonElement>("act");
       act.disabled = !p;
@@ -5223,7 +5261,7 @@ class StadiumScene extends Phaser.Scene {
       case "fb_goal": if (e.legit === false && e.by !== this.s.stadium!.pc) this.chainStrap(["BALL IN THE NET", "THE REF NEVER SAW: IT STANDS"], "OFFICIAL DECISION"); break;
       case "fb_no_goal": if (!this.s.stadium!.chain || e.by !== this.s.stadium!.pc) this.chainStrap(["BALL IN THE NET", "NO GOAL"], "OFFICIAL DECISION"); this.audio.play("crowd_jeer" as Clip, 0.7); break;
       case "dog_lured": setTimeout(() => this.ruleCard("food", "Ronson goes for food.", "Drop a pie by someone and he'll go through them to get it. Stewards leave their post to catch him; on the pitch, play stops."), 1500); break;
-      case "post_left": if (this.s.stadium!.chain?.by === this.s.stadium!.pc) setTimeout(() => this.ruleCard("post", "People leave their post to fix a problem.", "Stewards, staff, Steve, Lenny, Wally: give them a problem and they go. Instinct now shows who's stood at a post."), 1800); break;
+      case "post_left": if (!e.ambient && this.s.stadium!.chain?.by === this.s.stadium!.pc) setTimeout(() => this.ruleCard("post", "People leave their post to fix a problem.", "Stewards, staff, Steve, Lenny, Wally: give them a problem and they go. Instinct now shows who's stood at a post."), 1800); break;
       case "secret": this.toastTick(`★ Found: ${e.title}`); this.audio.play("chime", 0.7, { rate: 0.9 }); this.tick("secret"); break;
       case "stripped": if (e.by === pcId) this.hint("Starkers. Every steward who sees you will have you for indecent exposure. The pitch is right there."); break;
       case "streak": this.tick("streak"); this.hint("A streaker! They've stopped the match."); this.audio.play("goal_roar", 0.7, { minGap: 3 }); this.crowdUpUntil = performance.now() + 5000; this.crowdUpSide = "all"; break;
@@ -5231,7 +5269,8 @@ class StadiumScene extends Phaser.Scene {
       case "guard_aside": this.hint(`The police have taken ${nm(e.who)} aside for a word. His post's empty.`); break;
       case "radio_decoy": this.audio.play("radio_squelch", 0.8); this.hint(e.rumbled ? "\"Who is this? Identify yourself.\" They're on to you." : e.sent ? `"All units to ${e.to}." ${e.sent} steward${e.sent > 1 ? "s" : ""} on their way.` : "\"Received.\" Nobody near enough to go."); break;
       case "boxer_done": this.hint("Brendan's done him. Fifty quid well spent."); this.tick("boxer"); break;
-      case "fix_found": this.toastTick(`★ A fix: ${e.title}`); this.audio.play("chime", 0.6, { rate: 0.8 }); if (!this.fixHinted) { this.fixHinted = true; this.quietHint("Something to fix. It's in your notes (☰). Any way you manage it counts.", 45); } break;
+      case "fix_found": this.audio.play("chime", 0.35, { rate: 0.8 }); break;
+      case "fix_found_old": this.toastTick(`★ A fix: ${e.title}`); this.audio.play("chime", 0.6, { rate: 0.8 }); if (!this.fixHinted) { this.fixHinted = true; this.quietHint("Something to fix. It's in your notes (☰). Any way you manage it counts.", 45); } break;
       case "fix_way": this.toastTick("✎ Noted"); break;
       case "fix_done": this.toastTick(e.ownWay ? `✓ FIXED, YOUR WAY: ${e.title}` : `✓ FIXED: ${e.title}`); this.audio.play("chime", 0.9, { rate: 1.2 }); this.audio.play("crowd_ooh", 0.4, { minGap: 2 }); break;
       case "tipoff": if (e.phone && e.by === pcId) setTimeout(() => this.hint("Control's sending an officer."), 3500); break;

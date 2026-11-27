@@ -6,7 +6,7 @@ import { chance, pick, rnd, rndRange } from "../core/rng";
 import { DT, type Actor, type Role } from "../core/types";
 import { spawnActor, type World } from "../core/world";
 import { HL } from "../football/config";
-import { AREAS, areaAt, areaById, KICKOFF_AT, SOLID, SPOTS, TURNSTILES, VENUE } from "./layout";
+import { AREAS, areaAt, areaById, KICKOFF_AT, SOLID, SPOTS, TURNSTILES, VENUE, PACE } from "./layout";
 import { findPath } from "./nav";
 import type { Job, Npc, Task } from "./state";
 
@@ -142,7 +142,8 @@ function hangOut(w: World, a: Actor, areaId: string, seconds: number): void {
       inside++;
       const e = at.find((q) => q.p.x === o.group!.x && q.p.y === o.group!.y); if (e) e.k++;
     }
-    if (inside >= PUB_CAP) areaId = "pub_yard";
+    // (In the game the yard is the drayman's: his lorry, his kegs, his hose. The overflow stands out front.)
+    if (inside >= PUB_CAP) areaId = PACE.calm ? "plaza" : "pub_yard";
     else {
       const open = at.filter((q) => q.k < 3);
       centre = (open.length ? pick(r, open) : pick(r, at)).p;
@@ -194,7 +195,7 @@ function routine(w: World, a: Actor): void {
         // Most hang about outside first: the pub, the approach, the car park. Then they go in, in a rush near the end.
         n.goInAt ??= KICKOFF_AT - (chance(r, 0.25) ? rndRange(r, 140, 240) : rndRange(r, 20, 140));
         if (t >= n.goInAt) { n.stage = 1; return; }
-        const where = n.team === 1 ? pick(r, ["plaza", "carpark", "plaza"]) : pick(r, ["pub", "pub", "pub_yard", "plaza", "plaza"]);
+        const where = n.team === 1 ? pick(r, ["plaza", "carpark", "plaza"]) : pick(r, PACE.calm ? ["pub", "pub", "plaza", "plaza", "plaza"] : ["pub", "pub", "pub_yard", "plaza", "plaza"]);
         hangOut(w, a, VENUE.features.fanZone && where === "pub" ? "plaza" : where, Math.min(rndRange(r, 15, 45), Math.max(1, n.goInAt - t)));
         return;
       }

@@ -89,8 +89,8 @@ function stepNeeds(w: World): void {
   const s = w.state, tick = s.tick, r = s.rng.world, L = loos(w);
   if (!L.length) return;
   // The ordinary run of it: now and then somebody who's been drinking has to go.
-  if (tick % 300 === 0) {
-    const drinkers = Object.values(s.actors).filter((a) => a.npc?.act === "drink" && !a.npc.need && free(w, a));
+  if (tick % (60 * 25) === 0) {
+    const drinkers = Object.values(s.actors).filter((a) => a.npc?.act === "drink" && !a.npc.need && free(w, a) && L.some((l) => dist(l, a) < 30));
     if (drinkers.length) urge(w, pick(r, drinkers), rndRange(r, 2, 12));
   }
   for (const l of L) { l.users = l.users.filter((id) => s.actors[id]?.npc?.need?.loo === l.id && s.actors[id].npc!.need!.stage === 2); l.queue = l.queue.filter((id) => s.actors[id]?.npc?.need?.loo === l.id && s.actors[id].npc!.need!.stage === 1); }
@@ -106,15 +106,19 @@ function stepNeeds(w: World): void {
       if (!l) { n.need = undefined; continue; }
       nd.loo = l.id; nd.stage = 1; nd.since = tick; l.queue.push(a.id);
       n.group = undefined; n.drawn = undefined;
-      say(w, a, pick(r, ["Back in a minute. Bursting.", "Hold that thought. Need the gents.", "Nature calls."]), 2.5);
       const c = linkCause(w, carried(w, a), `${SUR(a)} HAS TO GO`, a, "need");
-      if (n.post) leavePost(w, a, c, 40); else if (c) carry(a, c, tick, 60);
+      // He only says so if it's your doing (or he's leaving a post): the ordinary run of it happens without comment.
+      if (c || n.post) say(w, a, pick(r, ["Back in a minute. Bursting.", "Hold that thought. Need the gents.", "Nature calls."]), 2.5);
+      if (n.post && (isSecurity(a) || n.job === "worker")) leavePost(w, a, c, 40); else if (c) carry(a, c, tick, 60);
+      n.plan = [{ k: "go", x: l.qx, y: l.qy }, { k: "wait", s: 40 }];
       continue;
     }
     const l = L.find((q) => q.id === nd.loo);
     if (!l) { n.need = undefined; continue; }
     if (nd.stage === 1) {
       const k = l.queue.indexOf(a.id);
+      // The clock on his bladder only starts once he's got there and found he can't get in.
+      if (dist(a, { x: l.qx, y: l.qy }) > 6) { nd.since = tick; if (tick - nd.at > 60 * 60) { n.need = undefined; l.queue = l.queue.filter((q) => q !== a.id); } continue; }
       // In, if there's room and it's open and he's at the front.
       if (!l.shut && l.users.length < l.cap && k === 0 && dist(a, { x: l.qx, y: l.qy }) < 2.2) {
         l.queue.shift(); l.users.push(a.id); nd.stage = 2; nd.since = tick;

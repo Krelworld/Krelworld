@@ -1745,3 +1745,40 @@ Notes on the last brief said the four rules were a start but that "too many inte
 **The medical room** (game build). Knocked out inside the ground, you're out for half a minute of the match, not eight seconds. Time runs fast, the heat comes off, and you come round with the day moved on.
 
 **Rule cards:** each of the five new families says its rule once, in seven words or so, the first time you see it work.
+
+## Round: the opening, again (the creator's phone screenshots)
+
+Two screenshots from the creator's phone: a notepad open over the yard, a green "A FIX" banner, two speech bubbles, ten people round the lorry, and after climbing in the lorry nothing saying why you'd be there. "Like the fifth time I've told you about all the visual noise."
+
+**Which build that was.** It was the build from before the structural pass. It still had the "Side jobs" link, the More/Phone/Bag row and the brick pile, all removed since. I'd left twelve hours of work pushed but undeployed while tests ran, so the creator had been judging the old game the whole time. Two changes follow from that:
+- **Builds are stamped.** The start screen shows the build's date and time, so either of us can tell which one is on the phone.
+- **I deploy as soon as a round's tests pass,** not at the end of several.
+
+**Checked on the new build, not assumed.** I played the same opening on a phone-sized screen and logged every piece of text that appeared. It was far quieter, but the complaints still held in three places. All three are fixed.
+
+**1. You couldn't pick out the drayman, or tell the yard was his.**
+- **The yard is his in the game build.** Supporters hang about in the pub and out front, not round the lorry.
+- **He wears the lorry's orange.** One man goes with one lorry at a glance.
+- **The open back of the lorry** is drawn as an open back: a dark doorway and two doors swung out. It was a floating black disc.
+
+**2. Nothing said the lorry was a way in, or why you'd roll a keg.**
+- **He says where he's going.** His is the only voice in the yard to begin with: "Six more for the ground, then I'm round the back with this lot." "Straight into the loading bay, me. Nobody checks a beer lorry."
+- **Grozz says it once** by the lorry: "That lorry's going in the ground. Round the back, no ticket."
+- **His attention is the gate,** the same as for his hose. Climb in while he's looking and he has you out ("Oi! Out of my lorry!"), with no offence recorded. That's why you'd want him away, and it's what the keg is for.
+- **Getting past him is enough.** Before, climbing in with anyone watching was a crime: it brought a steward, a red banner, a radar and a WANTED tag in the first minute.
+- **The button** reads "Ride in the lorry", not "Hide inside".
+- **Inside, one strip** replaces the place banner. It says what the lorry's doing and when, with a Wait button that runs time on:
+  - "Leaves for the ground in 0:42";
+  - "On its way round to the ground";
+  - "Service gate. Keep still.";
+  - "In the ground. Out you get."
+
+**3. Things on screen that said nothing, or said the same thing twice.**
+- **The notepad** is never over the game. The list is in the menu, and the menu button carries a count.
+- **A fix overheard** goes into the notes with a soft chime. There's no banner.
+- **Place names** no longer pop up as you walk (there are signs now). Only "you shouldn't be here" does.
+- **Trouble has one indicator.** With the radar up there's no banner as well.
+- **Rule cards** are one line under the score, not a card across the screen.
+- **Rings on the ground:** only the thing the big button is about gets one, not every keg within reach.
+- **The pacing director** got a fourth beat that works in a quiet yard: somebody caught short uses the drayman's corner and he turns to shout at them.
+- **My new "needs the gents" rule** was noisy when nobody had caused it. Now only people you've given a drink to announce it, drinkers go by themselves far less often, and nobody gives up until they've reached the door and found it shut or full.

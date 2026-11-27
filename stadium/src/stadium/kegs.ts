@@ -125,6 +125,11 @@ export function stepKegs(w: World): void {
   }
   if (tick % 10 !== 0) return;
   const dray = Object.values(s.actors).find((a) => a.npc?.job === "worker" && !a.dead);
+  // He says where this lot's going, so you know what the lorry is before you know what to do about it.
+  if (PACE.calm && dray?.npc && !dray.hiddenIn && dray.npc.mode === "routine" && !dray.npc.duty && !dray.npc.bubble && (tick === 60 * 8 || (tick > 60 * 8 && tick % (60 * 24) === 0))) {
+    const lorry = Object.values(st.vehicles).find((v) => v.kind === "lorry");
+    if (lorry && lorry.state === "loading") say(w, dray, pick(s.rng.world, ["Six more for the ground, then I'm round the back with this lot.", "Service gate, straight in. No queueing for me.", "Last run to the ground before kick-off, this.", "Straight into the loading bay, me. Nobody checks a beer lorry."]), 4);
+  }
   // A fella who's been bowled over has words with the drayman, if he's about.
   for (const key in st.flags) {
     if (!key.startsWith("kegVictim_") || st.flags[key] > tick) continue;

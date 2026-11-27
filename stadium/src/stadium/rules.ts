@@ -14,9 +14,10 @@ import { registerVerb, VERBS } from "../core/verbs";
 import type { World } from "../core/world";
 import { bribePlayer, biasReferee, distractReferee, haltPlay, intruderKick, removePlayer, resumePlay, wirePlayer } from "../football/api";
 import { sendOff } from "../football/authority";
+import { draymanWatching } from "./beer";
 import { endPeriod } from "../football/match";
 import { beginRestart } from "../football/restarts";
-import { areaAt, SPOTS, TURNSTILES, VENUE, WALLS } from "./layout";
+import { areaAt, SPOTS, TURNSTILES, VENUE, WALLS, PACE } from "./layout";
 import { FAN_POOL, say, STAFF_LINES } from "./npc";
 import { alert, crime, isSecurity, struggle, wantedMatch, witnessesOf } from "./security";
 import { inDrag, isCreep, selfDefence } from "./drag";
@@ -276,6 +277,15 @@ export function installRules(): void {
     },
     perform: (w, act, actor) => {
       const it = targetItem(w, act)!;
+      // In the game, the back of the lorry is the drayman's to mind: while he's looking, he has you out of it
+      // (no offence, just no). Get him away, or his head turned, and it's yours.
+      if (PACE.calm && it.def === "lorry_cargo" && actor.id === w.state.stadium!.pc) {
+        const d = draymanWatching(w, actor);
+        if (d) { say(w, d, pick(w.state.rng.world, ["Oi! Out of my lorry!", "That's going to the ground, not you. Hop it.", "Get out of it, fatso."]), 3); d.facing = Math.atan2(actor.y - d.y, actor.x - d.x); w.bus.emit({ type: "lorry_no", t: w.state.tick, by: actor.id, who: d.id }); return; }
+        // Past him, you're in, and that's that: nobody else is minding his lorry (the service gate is where it's looked at).
+        actor.hiddenIn = it.id; actor.seated = false;
+        return;
+      }
       if (crimeSeenQuietly(w, actor, false)) crime(w, actor, "climbing into a lorry", 1, undefined, false);
       actor.hiddenIn = it.id; actor.seated = false;
     },

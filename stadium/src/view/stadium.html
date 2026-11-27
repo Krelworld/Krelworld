@@ -183,6 +183,9 @@
   #custody { position: fixed; inset: 0; z-index: 60; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; background: rgba(8,9,12,.94); color: #f3ecd6; text-align: center; padding: 24px; }
   #custody.strip { inset: auto; top: calc(max(8px, env(safe-area-inset-top, 0px)) + 96px); left: 50%; transform: translateX(-50%); flex-direction: row; gap: 10px; padding: 6px 8px 6px 10px; background: rgba(8,9,12,.9); border: 2px solid #000; box-shadow: 3px 3px 0 rgba(0,0,0,.5); z-index: 20; width: max-content; max-width: calc(100% - 24px); }
   #custody.strip b { font-size: 13px; letter-spacing: .1em; }
+  #custody.strip .cd.wide { font: 600 13px/1.2 system-ui, sans-serif; color: #f3ecd6; min-width: 0; }
+  #menuBtn[data-n]:not([data-n=""])::after { content: attr(data-n); position: absolute; top: -6px; right: -6px; min-width: 16px; height: 16px; padding: 0 3px; border-radius: 9px; background: #d7263d; color: #fff; font: 800 10px/16px system-ui, sans-serif; text-align: center; border: 1.5px solid #000; }
+  #menuBtn { position: relative; }
   #custody.strip .cd { font: 700 15px/1 system-ui, sans-serif; min-height: 0; min-width: 2.4em; color: #f2c94c; }
   #custody.strip button { min-height: 40px; padding: 0 12px; font: 800 12px/1 var(--display); background: #f3ecd6; color: #111; border: 2px solid #000; }
   #custody b { font: 800 34px/1 var(--display); letter-spacing: .12em; color: #d7263d; }
@@ -659,6 +662,7 @@
       </ul>
       <p>Nobody will tell you how. Listen to people, watch what goes on, and try things.</p>
       <div class="row"><button id="start" class="primary">Start</button></div>
+      <p style="margin-top:8px;opacity:.55;font:500 11px system-ui,sans-serif;text-align:center">Build __BUILD__</p>
     </div>
   </div>
 

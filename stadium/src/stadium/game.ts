@@ -1,4 +1,6 @@
 // A match day at one stadium: setting it up, running it, and the checkpoints.
+import { dispatch } from "../core/verbs";
+import { turnstileNear } from "./rules";
 import { ITEM_DEFS, spawnItem } from "../core/items";
 import { pick, rndRange, seedRng } from "../core/rng";
 import type { Actor, WorldState } from "../core/types";
@@ -398,6 +400,7 @@ export function stepGame(g: Game): void {
   stepCoke(w);
   stepLulls(w);
   stepOpening(w);
+  stepCredentials(w);
   stepEntries(w);
   stepCoverups(w);
   stepChat(w);
@@ -449,6 +452,25 @@ function stepOpening(w: World): void {
     for (const id in s.actors) { const a = s.actors[id]; if (a.npc && a.id !== pc.id && !a.hiddenIn && Math.hypot(a.x - pc.x, a.y - pc.y) < 2.5) n++; }
     if (n >= 4) st.flags.crowdCover = tick + 12;
   }
+}
+
+/** Credentials work by themselves (the report's identity layer): walk into a turnstile carrying a
+ *  ticket, a press pass or a warrant card and the steward checks it, no button. Game build only. */
+function stepCredentials(w: World): void {
+  if (!PACE.calm) return;
+  const s = w.state, st = s.stadium!, tick = s.tick, pc = s.actors[st.pc];
+  if (!pc || st.admitted || pc.heldBy || pc.hiddenIn || tick % 15 !== 0 || tick < (st.flags.autoShowAt ?? 0)) return;
+  const gate = turnstileNear(pc);
+  if (!gate?.gate || (st.gates[gate.gate]?.until ?? 0) > tick) return;
+  const cred = [pc.hand, ...pc.pockets].map((id) => (id ? s.items[id] : undefined))
+    .filter((i) => i && (i.def === "ticket" ? !i.void && (!i.used || i.usedBy === pc.id) : i.def === "press_pass" || i.def === "warrant_card"))
+    .sort((a, b) => (a!.def === "ticket" ? 0 : 1) - (b!.def === "ticket" ? 0 : 1))[0];
+  if (!cred) return;
+  const stw = Object.values(s.actors).filter((a) => a.npc?.job === "turnstile" && !a.dead && a.downUntil <= tick && Math.hypot(a.x - pc.x, a.y - pc.y) < 3.8)
+    .sort((a, b) => Math.hypot(a.x - pc.x, a.y - pc.y) - Math.hypot(b.x - pc.x, b.y - pc.y))[0];
+  if (!stw) return;
+  st.flags.autoShowAt = tick + 60 * 4;
+  dispatch(w, { verb: "show", actor: pc.id, item: cred.id, target: { k: "actor", id: stw.id } });
 }
 
 function checkpoints(g: Game): void {

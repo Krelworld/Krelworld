@@ -44,6 +44,10 @@ export const VERBS: Record<VerbId, VerbDef> = {
     },
     perform: (w, a, actor, item) => {
       item!.onRoof = undefined;
+      // Grozz: what you've just picked up is what's in your hand (no juggling), except a blade, which
+      // goes in a pocket until you mean to get it out.
+      if (!actor.npc && item!.def !== "knife") { intoHand(w.state, actor, item!); return; }
+      if (!actor.npc && item!.def === "knife" && canPocket(actor, item!)) { moveItem(w.state, item!.id, { k: "pocket", a: actor.id }); return; }
       if (!actor.hand) moveItem(w.state, item!.id, { k: "hand", a: actor.id });
       else if (canPocket(actor, item!)) moveItem(w.state, item!.id, { k: "pocket", a: actor.id });
       else intoHand(w.state, actor, item!);
@@ -100,7 +104,7 @@ export const VERBS: Record<VerbId, VerbDef> = {
   throw: {
     check: (w, a, actor, item) => {
       if (actor.hand !== item?.id) return "not in hand";
-      return hasProp(item!, "throwable") || defOf(item!).size === "small" ? null : "cannot be thrown";
+      return hasProp(item!, "throwable") ? null : "cannot be thrown";
     },
     perform: (w, a, actor, item) => {
       // Aimed at a distance: enough speed to land there, given the arc.

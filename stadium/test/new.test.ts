@@ -484,3 +484,26 @@ test("the mischief director: drift too long and something starts near you; nick 
     }
   } finally { setPace({ kickoffAt: before, calm: false }); }
 });
+test("caught in the game build: no march; detained means time passes, then you're let out by the office", async () => {
+  const { setPace, KICKOFF_AT } = await import("../src/stadium/layout");
+  const { crime } = await import("../src/stadium/security");
+  const before = KICKOFF_AT;
+  setPace({ kickoffAt: 540, calm: true });
+  try {
+    const g = createGame("custody1"), s = g.w.state, st = s.stadium!, pc = pcOf(g), ev = events(g);
+    st.admitted = true;
+    const stw = find(g, (a) => a.npc?.job === "pitchsteward" && !a.dead);
+    pc.x = stw.x + Math.cos(stw.facing) * 2; pc.y = stw.y + Math.sin(stw.facing) * 2;
+    run(g, 1);
+    crime(g.w, pc, "brawling", 2, undefined);
+    let held = false;
+    run(g, 20, () => { if (st.custody) held = true; });
+    assert.ok(held, "held");
+    assert.ok(ev.some((e) => e.type === "custody"));
+    assert.ok(!ev.some((e) => e.type === "escort_cut" && e.intent === "detain"), "no march");
+    run(g, 50);
+    assert.ok(!st.custody && !pc.hiddenIn, "let out");
+    assert.ok(ev.some((e) => e.type === "custody_end"));
+    assert.ok(Math.hypot(pc.x - 34, pc.y + 46.6) < 3, `by the office door, at ${pc.x.toFixed(1)},${pc.y.toFixed(1)}`);
+  } finally { setPace({ kickoffAt: before, calm: false }); }
+});

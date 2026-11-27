@@ -1459,3 +1459,41 @@ This matches the report's touch grammar: touch the world, then choose the verb i
 - A ticket somebody else used still gets refused.
 
 **Planting** (the creator: "why do you get the option to plant items such as bricks"). Plant used to need only that a thing was small enough for a pocket, so bricks and pies were offered. Now it's only what would get someone nicked if a copper turned out their pockets: gear (powder), flares and blades.
+
+## Round: the structural pass the report actually asked for
+
+The creator: "you haven't taken the structural implications of the pdf seriously". That's right. I'd been adding systems the report says to freeze (coke, the pawnbroker, the boot bag, the ball) and patching symptoms one by one. The report's reconciliation table and touch grammar ask for a change in how the existing systems are exposed. This round does that.
+
+**Items: behavioural, not encyclopaedic** (`affordances.ts`). One table says what each thing is for, and nothing outside it is offered anywhere: the Bag, the people menu, "Use…", throwing, giving, planting.
+- **Credentials** (ticket, press pass, warrant card, passes) work by themselves. Walk into a turnstile with one and the steward checks it, with no button. They can't be thrown, given (except a ticket) or planted.
+- **Wearables** are put on and taken off. That's all.
+- **Food and drink** are eaten or drunk, thrown, or given. You can no longer "take" a laxative yourself.
+- **Substances** go into drinks and the urn, and powder is lines or planting.
+- **Weapons** are hit with, and some are thrown or put through windows.
+- **Tools** do their one job.
+- **Throwing** needs a throwable thing; before, anything small would do.
+- **Planting** is limited to what would get someone nicked.
+
+**No equipping.** Hold and Put in pocket are gone from the Bag.
+- What you've just picked up is what's in your hand; the old one goes in a pocket.
+- In a fight, Grozz reaches for whatever improvised weapon he's carrying (a bottle, a brick) without being asked.
+- A knife is the one exception. Picking it up pockets it, and "Get the knife out" is a deliberate choice, because it kills.
+- The Bag reads "In your hand", "Wearing" or "Shown when you need it", not pocket counts.
+
+**People: one main action and a few alternatives, never in the way of moving.**
+- A tap must land on the person (0.85 m, down from 1.9 m). In a crowd, the old radius meant almost every tap to walk opened someone's actions.
+- With their actions open, a tap on the ground closes them and walks (before, it only closed them), and pushing the stick closes them too.
+- The main action sits where the big button is, with at most three alternatives beside it and "…" for the rest. Throw is only offered for things you can throw.
+
+**Consequences: the report's ladder, no march, no room** (game build).
+- **Caught and warned:** you're put back where you're allowed to be, behind a fade.
+- **Ejected:** you're outside, and re-entry is possible.
+- **Detained:** "time passes; world changes". A DETAINED card while the clock runs six times as fast for 45 seconds of game time ("A form. Another form. A biro that doesn't work."). Anything dodgy is confiscated, and you're let out by the security office door into a world that's moved on.
+- **Bad enough** (a serious incident): the police take you and the day ends.
+- **Removed:** the frogmarch, the side-on detention room and the in-and-out of it.
+
+**Exposure, per the reconciliation table.**
+- **Heat/wanted is collapsed** to one label with three states: Seen, Wanted, and Hide with a countdown. "Major incident" or "Armed police" only shows when it's that serious, and the radar only shows when they're after you or you're hiding.
+- **Witnesses:** their behaviour is kept, but they're no longer taught as a system. Instead of a paragraph about paying them off, Grozz mutters "He's off to grass…" and the witness carries the radio badge.
+- **Side jobs** are demoted to discoveries: no "Side jobs ▸" on the notes, and no nudge towards them. They're still in the menu's notes.
+- **Free driving** (carjacking, the coach, your car) and the **first-person view** are deferred behind a menu switch, "Extras (driving, first-person)", off by default. They're out of the core game, as the report recommends, but not deleted.

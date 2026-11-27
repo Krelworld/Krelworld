@@ -164,6 +164,13 @@
   #useBtn { display: inline-flex; align-items: center; gap: 6px; background: #f3ecd6 !important; color: #2a2418 !important; border-bottom-color: #a89870 !important; }
   #useBtn[hidden] { display: none; }
   #useBtn img, #useBtn .ico { width: 28px; height: 28px; image-rendering: pixelated; }
+  #custody { position: fixed; inset: 0; z-index: 60; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; background: rgba(8,9,12,.94); color: #f3ecd6; text-align: center; padding: 24px; }
+  #custody b { font: 800 34px/1 var(--display); letter-spacing: .12em; color: #d7263d; }
+  #custody span { font: 600 17px/1.35 var(--body); max-width: 26em; min-height: 2.8em; }
+  #custody i { display: block; width: min(70vw, 320px); height: 6px; background: #333; position: relative; overflow: hidden; }
+  #custody i::after { content: ""; position: absolute; inset: 0; background: #f2c94c; transform-origin: left; animation: custodyBar 7.5s linear forwards; }
+  @keyframes custodyBar { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  #custody small { font: 500 14px var(--body); color: #c9c2ae; }
   #ptBar { position: fixed; left: max(8px, env(safe-area-inset-left, 0px)); top: 50%; transform: translateY(-50%); z-index: 30; display: flex; flex-direction: column; gap: 6px; }
   #ptBar button { font: 700 13px/1 var(--body); padding: 8px 10px; background: #f3ecd6; color: #2a2418; border: 3px solid #000; box-shadow: 3px 3px 0 rgba(0,0,0,.5); }
   #ptBar button[data-l="open"] { font-size: 22px; padding: 6px 8px; opacity: .8; }
@@ -604,6 +611,7 @@
   <div id="roomCard" hidden></div>
   <div id="itemCard" hidden></div>
   <div id="chainStrap" hidden></div>
+  <div id="custody" hidden></div>
   <div id="cokeFx"></div>
   <button id="lineBtn" hidden>Another line <i></i></button>
   <div id="useBanner" hidden></div>

@@ -42,6 +42,8 @@ import { instinctMarks, itemAt, todoSpot, trackTarget, type Tracked } from "./gu
 import { ITEM_TIPS, itemTargets, type ItemTarget } from "./itemhelp";
 import { curioHere, CURIOS } from "./curios";
 import { PlayTest } from "./playtest";
+import { can } from "../stadium/affordances";
+import { EXTRAS, setExtras } from "../stadium/context";
 import { matchJob, type Job } from "../stadium/director";
 import { inDrag as inDragSim } from "../stadium/drag";
 import STW_JSON from "../../assets/audio/stwlines.json";
@@ -195,6 +197,7 @@ class StadiumScene extends Phaser.Scene {
     this.quietG = this.add.graphics().setDepth(0.9);
     setQuietFloors(this.quiet);
     this.outlineIcons();
+    try { setExtras(localStorage.getItem("kd-extras") === "1" || location.search.includes("extras")); } catch { setExtras(location.search.includes("extras")); }
     this.decalG = this.add.graphics().setDepth(0.36);
     this.g = this.add.graphics();
     this.layers = [this.g];
@@ -276,7 +279,7 @@ class StadiumScene extends Phaser.Scene {
       if (e.type === "fb_goal" || e.type === "caught" || e.type === "fb_foul" && e.penalty) this.setSpeed(1);
       // Watching sped up: anything worth seeing brings it back to normal (a shot, the woodwork, a card,
       // a change, the ref going down), so you never miss the moment.
-      if (this.speed > 1 && ["fb_shot", "fb_woodwork", "fb_sub", "fb_ref_down", "fb_removed", "fb_save", "ball_to_pc"].includes(e.type)) this.setSpeed(1);
+      if (this.speed > 1 && !this.s.stadium!.custody && ["fb_shot", "fb_woodwork", "fb_sub", "fb_ref_down", "fb_removed", "fb_save", "ball_to_pc"].includes(e.type)) this.setSpeed(1);
       if (e.type === "ball_to_pc") { this.audio.play("pickup", 1); this.cameras.main.shake(120, 0.004); }
       // Sat watching when they score: that's your cue.
       if (e.type === "fb_goal" && e.team === 1 && this.pc?.seated && e.legit !== false) {
@@ -299,6 +302,22 @@ class StadiumScene extends Phaser.Scene {
         setTimeout(() => { $("fade").classList.remove("on"); this.cutDone = false; }, 420);
       }
       if (e.type === "broke_free" && e.who === this.s.stadium!.pc) this.hint("You broke free. Run!");
+      // Detained (the report's ladder: time passes, the world changes): a card, the clock running fast,
+      // then out by the office door. No room, no march.
+      if (e.type === "custody" && e.who === this.s.stadium!.pc) {
+        const el = $("custody");
+        const lines = ["The chief reads you your rights. Then his own opinions.", "A form. Another form. A biro that doesn't work.", "\"Name?\" \"Grozz.\" \"Full name?\" \"…Grozz.\"", "Somebody's microwaving fish.", "The match goes on without you."];
+        el.innerHTML = `<b>DETAINED</b><span>${esc(lines[0])}</span><i></i>${e.taken?.length ? `<small>They've taken your ${esc(e.taken.join(", "))}.</small>` : ""}`;
+        el.hidden = false; this.closeRing(); this.closeSheet();
+        let k = 0; this.custodyTimer = window.setInterval(() => { k = (k + 1) % lines.length; const sp = el.querySelector("span"); if (sp) sp.textContent = lines[k]; }, 1600);
+        this.setSpeed(6);
+      }
+      if (e.type === "custody_end" && e.who === this.s.stadium!.pc) {
+        clearInterval(this.custodyTimer); $("custody").hidden = true; this.setSpeed(1);
+        const pc = this.pc; this.camX = this.P.sx(pc.x, pc.y); this.camY = this.P.sy(pc.x, pc.y) - this.P.S;
+        $("fade").classList.remove("on");
+        this.hint("Let out. The world's moved on while you were in there.");
+      }
       if (e.type === "action" && e.action.actor === this.s.stadium!.pc && e.action.verb === "take" && e.action.item) {
         const it = this.s.items[e.action.item];
         if (it) { this.audio.play("pickup", 0.9); this.toast(it.def, itemName(it), "Picked up"); }
@@ -976,10 +995,10 @@ class StadiumScene extends Phaser.Scene {
     const open = now < this.todoOpenUntil;
     nEl.classList.toggle("shut", !open);
     const nx = next && !st0.admitted ? `<p class="nx">NEXT <i>${fmtTime(left)}</i> ${esc(next[1])}</p>` : "";
-    const html = open ? `<b>TO DO</b>${must.length ? must.slice(0, 3).map((t) => `<p>☐ ${esc(t)}</p>`).join("") : "<p>Watch England win.</p>"}${nx}<p class="side">Side jobs ▸</p>`
+    const html = open ? `<b>TO DO</b>${must.length ? must.slice(0, 3).map((t) => `<p>☐ ${esc(t)}</p>`).join("") : "<p>Watch England win.</p>"}${nx}`
       : `<b>TO DO${must.length ? ` · ${Math.min(3, must.length)}` : " ✓"}</b>`;
     // Pointing you at the side jobs once you're into it (and a dot on the menu till you've looked).
-    if (!this.flags.jobsHint && this.s.tick > 60 * 120 && !pc.heldBy) { this.flags.jobsHint = 1; this.hint("There's money in mayhem. Tap Side jobs on your notes (or the menu) to see what pays."); $("menuBtn").classList.add("dot"); }
+    // (Side jobs are discoveries now, not a list you're pushed towards: no nudge.)
     if (nEl.innerHTML !== html) nEl.innerHTML = html;
     nEl.hidden = !this.started || !!this.fp?.on || this.inCab() || this.callOn || !!this.ring || (!$("itemCard").hidden && window.innerHeight < 520);
   }
@@ -1275,7 +1294,7 @@ class StadiumScene extends Phaser.Scene {
     this.cameras.main.setVisible(!on);
     $("fpBtn").classList.toggle("on", on);
     // In first person the button's the way back out; otherwise it lives in the menu.
-    $("fpBtn").hidden = !on || this.scoped;
+    $("fpBtn").hidden = !on || this.scoped || !EXTRAS;
   }
 
   // ---------- Held in the security office, side on ----------
@@ -1747,6 +1766,8 @@ class StadiumScene extends Phaser.Scene {
     let run = k.SHIFT.isDown;
     if (this.joyId !== -1) { x = this.jx; y = this.jy; run = Math.hypot(x, y) > 0.85; }
     if (this.pt && (Math.hypot(x, y) > 0.3 || this.walkTo)) this.pt.active(true);
+    // Moving off: whatever you had open on someone folds away (it never stops you walking).
+    if (this.ring && Math.hypot(x, y) > 0.35) this.closeRing();
     if (this.scoped) {
       // Through the scope: the stick nudges the aim (slowly), you can't walk, and it sways unless you steady it.
       const now = performance.now(), steady = this.steadyFrom && now - this.steadyFrom < 3000;
@@ -3274,7 +3295,7 @@ class StadiumScene extends Phaser.Scene {
     const changed = (job?.id ?? "") !== (this.job?.id ?? "");
     this.job = job;
     if (!job || !changed) return;
-    if (job.urgent && this.speed > 1) this.setSpeed(1);
+    if (job.urgent && this.speed > 1 && !this.s.stadium!.custody) this.setSpeed(1);
     if (now - this.jobAt < 25000 && !job.urgent) return;
     if (!$("chainStrap").hidden) return;
     this.jobAt = now;
@@ -3300,6 +3321,7 @@ class StadiumScene extends Phaser.Scene {
     if (want && btn.hidden) { btn.querySelector("i")!.textContent = String(gear!.uses ?? 4); }
     btn.hidden = !want;
   }
+  custodyTimer = 0;
   /** The observer's strip (playtest only): one tap per laugh, and what caused it. */
   ptBar(): void {
     if (!this.pt || document.getElementById("ptBar")) return;
@@ -3622,7 +3644,7 @@ class StadiumScene extends Phaser.Scene {
       const thr = $("throw");
       const ta = (this as any).throwAt as Actor | null;
       const MISSILE = new Set(["brick", "fart_can", "flare", "bottle", "pint_glass"]);
-      const canThrow = !!pc.hand && !pc.heldBy && !pc.hiddenIn && (fighting || MISSILE.has(this.s.items[pc.hand]?.def ?? ""));
+      const canThrow = !!pc.hand && !pc.heldBy && !pc.hiddenIn && can(this.s.items[pc.hand], "throw") && (fighting || MISSILE.has(this.s.items[pc.hand]?.def ?? ""));
       thr.hidden = !canThrow;
       // Short labels: the verb and the last word of their name ("Big Kev" is Kev, "Steward Pauline" is Pauline).
       const short = (n: string) => n.replace(/ \(.*\)$/, "").split(" ").pop() ?? n;
@@ -3645,7 +3667,7 @@ class StadiumScene extends Phaser.Scene {
       // Fast-forward only while you're sat watching, bottom left, out of the way.
       const canFast = !!pc.seated;
       $("speed").hidden = !canFast; $("speed").classList.toggle("seated", canFast);
-      if (!canFast && this.speed > 1) this.setSpeed(1); // (fast-forward only; a pause for the bag or a call stays a pause)
+      if (!canFast && this.speed > 1 && !st.custody) this.setSpeed(1); // (fast-forward only; a pause for the bag or a call stays a pause)
       if (this.sheetKind === "more") this.openMore();
     }
   }
@@ -3886,7 +3908,8 @@ class StadiumScene extends Phaser.Scene {
   drawRadar() {
     const box = $("radarBox"), pc = this.pc, s = this.s, st = s.stadium!;
     // Only while somebody's after you (and a few seconds after): otherwise it's one more thing on screen.
-    const hot = (st.flags.heatMode ?? 0) > 0 || !!st.detainedUntil || this.instinct;
+    // Only when it matters: they're after you, or you're hiding from them (or Instinct).
+    const hot = (st.flags.heatMode ?? 0) >= 3 || this.instinct;
     if (hot) this.radarUntil = performance.now() + 4000;
     const hide = !this.started || this.inCab() || !!this.fp?.on || !$("stall").hidden || performance.now() > this.radarUntil;
     if (box.hidden !== hide) box.hidden = hide;
@@ -3945,12 +3968,15 @@ class StadiumScene extends Phaser.Scene {
     // The heat: a label (with the countdown while you're out of sight) and five stars.
     const lbl = $("heatLbl"), heat = st.flags.heat ?? 0;
     const evade = st.flags.evadeUntil ? Math.max(0, (st.flags.evadeUntil - s.tick) / 60) : 0, caution = Math.max(0, ((st.flags.cautionUntil ?? 0) - s.tick) / 60);
-    const text = mode === 4 ? "Alert" : mode === 3 ? `Evasion ${evade.toFixed(1)}` : mode === 2 ? `Caution ${Math.ceil(caution)}` : mode === 1 ? "Noticed" : "";
+    // One thing on screen, three states (the report: "collapse the exposed representation"): they've
+    // clocked you; they're after you; they've lost sight of you and you need to stay hidden. The words
+    // for how bad it is only come up when it's serious.
+    void caution;
+    const text = mode === 4 ? "Wanted" : mode === 3 ? `Hide ${Math.ceil(evade)}` : mode >= 1 ? "Seen" : "";
     if (lbl.textContent !== text) lbl.textContent = text;
-    const cls = mode === 4 ? "alert" : mode === 3 ? "evasion" : mode === 2 ? "caution" : "";
+    const cls = mode === 4 ? "alert" : mode === 3 ? "evasion" : mode >= 1 ? "caution" : "";
     if (lbl.className !== cls) lbl.className = cls;
-    // How much trouble, in words, not five stars: what they saw you do sets it (the stars' rule).
-    const stars = heat ? `<b class="lv${Math.min(4, heat)}">${heat >= 5 ? "Armed police" : heat === 4 ? "Major incident" : heat === 3 ? "Incident" : heat === 2 ? "Trouble" : "Mischief"}</b>` : "";
+    const stars = heat >= 4 ? `<b class="lv4">${heat >= 5 ? "Armed police" : "Major incident"}</b>` : "";
     if (this.starsHtml !== stars) { this.starsHtml = stars; $("stars").innerHTML = stars; }
     // Like GTA's: no stars on screen until you're wanted.
     const hb = $("heat"); if (hb.hidden !== (!heat && !text)) hb.hidden = !heat && !text;
@@ -3960,7 +3986,9 @@ class StadiumScene extends Phaser.Scene {
 
   /** The person under a point on the ground (in metres), standing or down. */
   personAt(gx: number, gy: number): Actor | null {
-    let best: Actor | null = null, bd = 1.9;
+    // On the person, not near them: in a crowd a loose radius meant every tap to walk opened someone's
+    // actions instead.
+    let best: Actor | null = null, bd = 0.85;
     for (const id in this.s.actors) {
       const a = this.s.actors[id];
       if (a.id === this.pc.id || a.hiddenIn || a.npc?.job === "dog") continue;
@@ -3999,7 +4027,7 @@ class StadiumScene extends Phaser.Scene {
       if (n && n.job !== "player" && n.job !== "official" && !n.shop) out.push({ label: "Pickpocket", icon: act("pickpocket"), kind: "pickpocket" });
       const why = bribeWhy(this.w, pc, a);
       if (pc.money > 0 && why) out.push({ label: why === "snitch" ? "Pay off" : why === "ticket" ? "Buy ticket" : "Bribe", icon: act("money"), kind: "bribe" });
-      if (pc.hand && (hasProp(s.items[pc.hand], "throwable") || defOf(s.items[pc.hand]).size === "small")) out.push({ label: "Throw", icon: act("throw"), kind: "throw" });
+      if (pc.hand && can(s.items[pc.hand], "throw")) out.push({ label: "Throw", icon: act("throw"), kind: "throw" });
     } else {
       if (!a.splat) out.push({ label: "Stamp", icon: act("stamp"), kind: "stamp", main: true });
       out.push({ label: "Search", icon: act("search"), kind: "loot" }, { label: "Drag", icon: act("drag"), kind: "drag" });
@@ -4718,16 +4746,17 @@ class StadiumScene extends Phaser.Scene {
   openBag() {
     this.pt?.bag();
     const s = this.s, pc = this.pc;
-    const where = (it: Item) => (it.loc.k === "hand" ? "In your hand" : it.loc.k === "pocket" ? "In a pocket" : it.loc.k === "worn" ? "Wearing" : "");
+    const where = (it: Item) => (it.loc.k === "hand" ? "In your hand" : it.loc.k === "worn" ? "Wearing" : can(it, "show") ? "Shown when you need it" : "");
     const items = [pc.hand, ...pc.pockets, ...Object.values(pc.worn)].filter((x): x is string => !!x).map((id) => s.items[id]);
     const rows = items.map((it) => {
       const opts = itemOptions(this.w, pc, it);
       (this as any)[`bag_${it.id}`] = opts;
       const extra = it.def === "ticket" ? (it.void ? " (cancelled)" : it.used ? " (scanned)" : "") : it.spiked ? " (spiked)" : "";
-      const useIt = ITEM_TIPS[it.def] && !defOf(it).slot ? `<button class="primary" data-useit="${it.id}">Use…</button>` : "";
+      // "Use…" (then tap where) only for things you use on something out there.
+      const useIt = (["throw", "spike", "give", "plant", "smash", "tool"] as const).some((v) => can(it, v)) && it.def !== "burner" && it.def !== "radio" && it.def !== "rifle" ? `<button class="primary" data-useit="${it.id}">Use…</button>` : "";
       return `<div class="item bagged">${icon(it.def)}<div class="col"><span class="where">${where(it)}</span><b>${esc(itemName(it))}${extra}</b></div><div class="row">${useIt}${opts.map((o, i) => `<button data-bag="${it.id}" data-i="${i}">${esc(o.label)}</button>`).join("")}</div></div>`;
     }).join("");
-    this.sheet("bag", `<h2>Bag</h2><p>£${pc.money} in cash. Pockets: ${pc.pockets.length} of 3.</p><div class="row"><button data-wd="look">The look</button>${pc.naked ? `<button data-wd="dress">Pull your trousers up</button>` : `<button data-wd="strip">Strip naked</button>`}</div><div class="list">${rows || "<p>Nothing.</p>"}</div>`);
+    this.sheet("bag", `<h2>Bag</h2><p>£${pc.money} in cash.</p><div class="row"><button data-wd="look">The look</button>${pc.naked ? `<button data-wd="dress">Pull your trousers up</button>` : `<button data-wd="strip">Strip naked</button>`}</div><div class="list">${rows || "<p>Nothing.</p>"}</div>`);
   }
 
   /** What the newer systems have to say: grasses, the phone, the hidden stories, the streak. */
@@ -4747,7 +4776,7 @@ class StadiumScene extends Phaser.Scene {
         if (e.ok && e.who === pcId && e.x !== undefined) setTimeout(() => { if (!this.s.stadium!.admitted) this.walkTo = { x: e.x, y: e.y - 3, path: [], pathAt: 0, until: performance.now() + 8000 }; }, 700);
         break;
       case "pc_say": this.pcLine = { text: e.text, until: performance.now() + 2600 }; break;
-      case "snitch": if (e.who === pcId) { this.hint(`${nm(e.by)} saw that, and he's off to find a steward. Tap him: pay him off, lean on him, or flatten him first.`); this.audio.play("heat_alert", 0.35, { minGap: 2 }); } break;
+      case "snitch": if (e.who === pcId) { this.pcLine = { text: "He's off to grass…", until: performance.now() + 2200 }; this.audio.play("heat_alert", 0.35, { minGap: 2 }); } break;
       case "snitch_stopped": if (e.how !== "down") this.hint(e.how === "paid" ? `${nm(e.by)} never saw a thing.` : `${nm(e.by)} has seen sense.`); this.tick("grass"); break;
       case "crime_reported": if (e.who === pcId) this.hint(`${nm(e.by)} grassed you up. Here they come.`); break;
       case "phone_result": if (this.callOn) this.pendingCallText = e.text; else this.hint(e.text); break;
@@ -4855,7 +4884,7 @@ class StadiumScene extends Phaser.Scene {
   openMenu() {
     const cps = this.game2.checkpoints;
     this.sheet("menu", `<h2>Paused</h2><p>Go back to a checkpoint. Everything since then is undone, and the match will not play out the same way.</p>
-      <div class="list">${cps.map((c) => `<button data-cp="${c.id}">${esc(c.label)}</button>`).join("")}${this.s.match!.phase === "break" && this.s.match!.period === 1 && !cps.some((c) => c.id === "halftime") ? `<button data-keepht="1" class="primary">Keep a save here (half-time)</button>` : ""}${this.pt ? `<button data-pt="1" class="primary">Playtest report</button>` : ""}<button data-new="1">Start a new match day</button><button data-mute="1">${this.audio.muted ? "Sound: off" : "Sound: on"}</button><button data-mini="1">Mini-games: ${this.miniOn ? "on" : "off"}</button><button data-buzz="1">Vibration: ${this.buzzOn ? "on" : "off"}</button><button data-lefty="1">Buttons: ${document.body.classList.contains("lefty") ? "left hand" : "right hand"}</button><button data-zoom="1">Zoom: ${esc(this.zoomLabel())}</button><button data-fp="1">${this.fp.on ? "Back to the overhead view" : "First-person view"}</button></div>
+      <div class="list">${cps.map((c) => `<button data-cp="${c.id}">${esc(c.label)}</button>`).join("")}${this.s.match!.phase === "break" && this.s.match!.period === 1 && !cps.some((c) => c.id === "halftime") ? `<button data-keepht="1" class="primary">Keep a save here (half-time)</button>` : ""}${this.pt ? `<button data-pt="1" class="primary">Playtest report</button>` : ""}<button data-new="1">Start a new match day</button><button data-mute="1">${this.audio.muted ? "Sound: off" : "Sound: on"}</button><button data-mini="1">Mini-games: ${this.miniOn ? "on" : "off"}</button><button data-buzz="1">Vibration: ${this.buzzOn ? "on" : "off"}</button><button data-lefty="1">Buttons: ${document.body.classList.contains("lefty") ? "left hand" : "right hand"}</button><button data-zoom="1">Zoom: ${esc(this.zoomLabel())}</button>${EXTRAS ? `<button data-fp="1">${this.fp.on ? "Back to the overhead view" : "First-person view"}</button>` : ""}<button data-extras="1">Extras (driving, first-person): ${EXTRAS ? "on" : "off"}</button></div>
       <h2>Your notes</h2><div class="log">${[...this.rules].map((r) => `<p><b>Rule</b> ${esc(r === "post" ? "People leave their post to fix a problem." : r === "food" ? "Ronson goes for food." : r)}</p>`).join("")}${CURIOS.filter((c) => this.curios.has(c.id)).map((c) => `<p><b>Idea</b> ${esc(c.text)}</p>`).join("") || (this.rules.size ? "" : "<p>Nothing yet. Have a look round.</p>")}</div>
       <h2>Fixes (${fixesDone(this.w)}/${FIXES.length})</h2><div class="log">${this.fixesHtml()}</div>
       <h2>Side jobs (${this.mayhemDone.size}/${StadiumScene.MAYHEM.length})</h2><div class="list"><button data-jobs="1" class="primary">Side jobs: what pays ▸</button></div>
@@ -5127,6 +5156,7 @@ class StadiumScene extends Phaser.Scene {
       if (d.cp) { loadCheckpoint(this.game2, d.cp as any); this.closeSheet(); $("ending").hidden = true; this.setSpeed(1); this.hint("Back to the checkpoint."); this.setZoom(); return; }
       if (d.useit) { this.closeSheet(); this.startUse(d.useit); return; }
       if (d.pt) { this.closeSheet(); this.ptReport(); return; }
+      if (d.extras) { setExtras(!EXTRAS); try { localStorage.setItem("kd-extras", EXTRAS ? "1" : "0"); } catch { /* */ } if (!EXTRAS && this.fp?.on) this.toggleFirstPerson(); this.openMenu(); return; }
       if (d.keepht) { saveCheckpoint(this.game2, "halftime", "Half-time"); this.hint("Saved. Half-time's in the menu now if it all goes wrong."); this.openMenu(); return; }
       if (d.new) { this.newGame(); this.closeSheet(); this.setSpeed(1); $("ending").hidden = true; return; }
       if (d.next) { this.continueTournament(); return; }
@@ -5205,7 +5235,7 @@ class StadiumScene extends Phaser.Scene {
         if (this.useMode) { const g = this.groundAt(e.clientX, e.clientY); this.useAt(g.x, g.y, best); return; }
         this.picked = best ? best.id : null;
         if (best) this.openPerson(best.id);
-        else if (!hadRing) { const g = this.groundAt(e.clientX, e.clientY); this.setWalk(g.x, g.y); }
+        else { if (hadRing) this.closeRing(); const g = this.groundAt(e.clientX, e.clientY); this.setWalk(g.x, g.y); }
       }
     });
     function move(this: void, e: PointerEvent): void { scene.joyMove(e, knob); }
@@ -5223,7 +5253,7 @@ class StadiumScene extends Phaser.Scene {
         const who = this.personAt(wx / P.S, (wy + 0.9 * P.KZ * P.S) / (P.K * P.S));
         if (this.useMode) { const g = this.groundAt(t.x, t.y); this.useAt(g.x, g.y, who); }
         else if (who) { this.picked = who.id; this.openPerson(who.id); }
-        else if (!t.hadRing) { const g = this.groundAt(t.x, t.y); this.setWalk(g.x, g.y); }
+        else { if (t.hadRing) this.closeRing(); const g = this.groundAt(t.x, t.y); this.setWalk(g.x, g.y); }
       }
     };
     canvas.addEventListener("pointermove", move);

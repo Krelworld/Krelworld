@@ -1,6 +1,7 @@
 // Stadium-specific actions and how the world reacts to them. Nothing here knows
 // about "tricks": a pie that hits the referee distracts him because thrown things
 // that hit people distract them.
+import { autoWeapon } from "./affordances";
 import { sharpInHand, stab, staffHands } from "./knife";
 import { knockOut, land } from "./combat";
 import { appearance } from "../core/identity";
@@ -271,7 +272,7 @@ export function installRules(): void {
   });
 
   registerVerb("unhide", {
-    check: (w, act, actor) => (actor.hiddenIn ? null : "not hiding"),
+    check: (w, act, actor) => (w.state.stadium!.custody && actor.id === w.state.stadium!.pc ? "you're being held" : actor.hiddenIn ? null : "not hiding"),
     perform: (w, act, actor) => {
       const s = w.state, v = Object.values(s.stadium!.vehicles).find((vv) => vv.cargo === actor.hiddenIn);
       const it = s.items[actor.hiddenIn!];
@@ -392,7 +393,12 @@ export function installRules(): void {
         w.bus.emit({ type: "lunged", t: w.state.tick, who: actor.id, dist: gap - 0.95 });
       }
       if (sharpInHand(w, actor) && !t.dead) return stab(w, actor, t);
-      // Whatever's in your hand counts, if it's any use in a fight.
+      // Whatever's in your hand counts, if it's any use in a fight. Grozz reaches for whatever he's got
+      // on him that'll do (a bottle, a brick), without being told; a blade only if he's got it out.
+      if (!actor.npc && !(actor.hand && hasProp(w.state.items[actor.hand], "weapon"))) {
+        const grab = actor.pockets.map((id) => w.state.items[id]).find((i) => autoWeapon(i));
+        if (grab) { if (actor.hand) { const old = w.state.items[actor.hand]; if (canPocket(actor, old)) moveItem(w.state, old.id, { k: "pocket", a: actor.id }); else moveItem(w.state, old.id, { k: "ground", x: actor.x, y: actor.y }); } moveItem(w.state, grab.id, { k: "hand", a: actor.id }); }
+      }
       const held = actor.hand ? w.state.items[actor.hand] : item;
       const weapon = !!held && hasProp(held, "weapon");
       const heavy = act.arg === "haymaker" && !weapon;

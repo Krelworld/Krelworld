@@ -158,6 +158,8 @@ export interface StadiumState {
   rolling?: import("./kegs").Roll[];
   kegCarry?: Record<Id, Id>;
   chain?: import("./kegs").Chain;
+  /** Held by security (the game's detention): time passes, then he's let out. */
+  custody?: { until: number; taken: string[] };
   /** A fan's pint left on the wall while he's away (lulls.ts). */
   pintBeat?: import("./lulls").PintBeat;
   /** Their star, off looking for his boots instead of boarding (bootbag.ts). */

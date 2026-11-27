@@ -1,5 +1,6 @@
 // What the player could do right now, given where he is and what he holds.
 // The view shows the best one on the action button and the rest in a list.
+import { autoWeapon, can } from "./affordances";
 import { alarmPointNear } from "./kickoff";
 import { sharpInHand } from "./knife";
 import { fromBehind, hidingPlaceNear, incapacitated, knockedOut } from "./combat";
@@ -36,6 +37,10 @@ const lc = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
 export const itemName = (it: Item) => it.label ?? defOf(it).name;
 export const personName = (a: Actor) => (a.fb ? `${a.name} (${a.fb.team === 0 ? "England" : "opposition"} ${a.fb.number})` : a.off ? (a.off.job === "referee" ? "the referee" : a.name.toLowerCase()) : a.name);
 
+/** The report defers free driving (and first-person) from the core game: off unless Extras is on. */
+export let EXTRAS = false;
+export function setExtras(on: boolean): void { EXTRAS = on; }
+
 export function options(w: World, pc: Actor, picked?: string | null): Option[] {
   const s = w.state, out: Option[] = [];
   const base = { actor: pc.id };
@@ -56,6 +61,7 @@ export function options(w: World, pc: Actor, picked?: string | null): Option[] {
     { label: "Hoof it into row Z", priority: 99, action: { verb: "ballhoof", ...base } },
     { label: "Keep it", priority: 98, action: { verb: "ballkeep", ...base } },
   ];
+  if (s.stadium!.custody) return [];
   if (pc.hiddenIn) return [{ label: "Climb out", priority: 100, action: { verb: "unhide", ...base } }];
   if (pc.chute) return [];
   // At the penis detector.
@@ -135,8 +141,8 @@ export function options(w: World, pc: Actor, picked?: string | null): Option[] {
   {
     const cars = carsNear(w, pc.x, pc.y, 2.8);
     const stopped = cars.find((c) => c.traffic && !c.moving);
-    if (stopped) push((s.stadium!.traffic ?? []).find((t) => t.id === stopped.id)?.kind === "policecar" ? "Drag the copper out and take his car" : "Drag the driver out and take the car", 62, { verb: "carjack", ...base, arg: stopped.id });
-    if (cars.some((c) => c.id === "mine")) push("Get in the car", 58, { verb: "getincar", ...base });
+    if (stopped && EXTRAS) push((s.stadium!.traffic ?? []).find((t) => t.id === stopped.id)?.kind === "policecar" ? "Drag the copper out and take his car" : "Drag the driver out and take the car", 62, { verb: "carjack", ...base, arg: stopped.id });
+    if (EXTRAS && cars.some((c) => c.id === "mine")) push("Get in the car", 58, { verb: "getincar", ...base });
     if (cars[0]) push(cars[0].traffic ? "Kick the car" : "Kick the car (it's alarmed)", 4, { verb: "kickcar", ...base, arg: cars[0].id });
   }
 
@@ -175,20 +181,20 @@ export function options(w: World, pc: Actor, picked?: string | null): Option[] {
     if (pc.money > 0 && d < 2.2 && why) out.push({ label: why === "snitch" ? `Pay ${name} to keep quiet` : why === "ticket" ? `Buy ${name}'s ticket` : `Offer ${name} money`, priority: why === "snitch" ? 60 : 5, sheet: { kind: "bribe", who: a.id } });
     if (snitchOf(w, a.id)) push(`Lean on ${name}: "You saw nothing"`, 58 - d, { verb: "threaten", ...base, target: { k: "actor", id: a.id } });
     if (n && n.job !== "player" && n.job !== "official" && !n.shop) push(`Pickpocket ${name}`, 6, { verb: "pickpocket", ...base, target: { k: "actor", id: a.id } });
-    if (hand && d < 1.7) push(`Give ${lc(itemName(hand))} to ${name}`, 3, { verb: "give", ...base, item: hand.id, target: { k: "actor", id: a.id } });
+    if (hand && can(hand, "give") && d < 1.7) push(`Give ${lc(itemName(hand))} to ${name}`, 3, { verb: "give", ...base, item: hand.id, target: { k: "actor", id: a.id } });
     for (const sid of [pc.hand, ...pc.pockets]) {
       const it = sid ? s.items[sid] : undefined;
-      if (it && defOf(it).size === "small" && it.def !== "betslip" && d < 1.5) push(`Slip the ${lc(itemName(it))} into ${name}'s pocket`, 4, { verb: "plant", ...base, item: it.id, target: { k: "actor", id: a.id } });
+      if (it && can(it, "plant") && d < 1.5) push(`Slip the ${lc(itemName(it))} into ${name}'s pocket`, 4, { verb: "plant", ...base, item: it.id, target: { k: "actor", id: a.id } });
     }
     if (n?.job === "police") out.push({ label: `Tip off ${name} about someone`, priority: 15, sheet: { kind: "report", who: a.id } });
     if (appearance(s, pc).role === "police" && n?.job !== "police") push(`Arrest ${name}`, 22 - d, { verb: "arrest", ...base, target: { k: "actor", id: a.id } });
-    const weapon = hand && hasProp(hand, "weapon");
+    const weapon = hand && hasProp(hand, "weapon") ? hand : [pc.hand, ...pc.pockets].map((id) => (id ? s.items[id] : undefined)).find((i) => autoWeapon(i));
     const sneak = !weapon && !a.fb && fromBehind(pc, a);
-    const sharp = weapon && hasProp(hand!, "sharp");
-    const glassIt = hand && (hand.def === "bottle" || hand.def === "pint_glass"), chairIt = hand?.def === "chair";
+    const sharp = weapon && hasProp(weapon, "sharp");
+    const glassIt = weapon && (weapon.def === "bottle" || weapon.def === "pint_glass"), chairIt = weapon?.def === "chair";
     // Someone winding up to hit you back: catch him first.
     const windup = !!n?.retaliateAt && n.retaliateOn === pc.id && n.retaliateAt > s.tick && n.retaliateAt - s.tick <= 30;
-    const label = windup ? `Counter ${name}!` : sharp ? `Stab ${name}` : glassIt ? `Glass ${name}` : chairIt ? `Chair ${name}` : weapon ? `Hit ${name} with the ${lc(itemName(hand!))}` : sneak ? `Take down ${name}` : `Punch ${name}`;
+    const label = windup ? `Counter ${name}!` : sharp ? `Stab ${name}` : glassIt ? `Glass ${name}` : chairIt ? `Chair ${name}` : weapon ? `Hit ${name} with the ${lc(itemName(weapon))}` : sneak ? `Take down ${name}` : `Punch ${name}`;
     push(label, windup ? 60 : sneak ? 30 : -1, { verb: "strike", ...base, ...(sneak && !windup ? { arg: "takedown" } : {}), target: { k: "actor", id: a.id } });
   }
 
@@ -259,7 +265,7 @@ export function options(w: World, pc: Actor, picked?: string | null): Option[] {
 
   // The team bus.
   if (bus && !bus.crashed && !bus.drivenBy) {
-    push(`Get in the driver's seat of the ${s.match!.teams[1].name} bus`, 45, { verb: "drive", ...base });
+    if (EXTRAS) push(`Get in the driver's seat of the ${s.match!.teams[1].name} bus`, 45, { verb: "drive", ...base });
     if (pc.hand) push("Tamper with the bus", 20, { verb: "tamper", ...base, item: pc.hand });
   }
 
@@ -296,11 +302,11 @@ export function itemOptions(w: World, pc: Actor, it: Item): Option[] {
   const out: Option[] = [];
   const add = (label: string, verb: string) => { if (possibleVerbs(w, base).includes(verb)) out.push({ label, priority: 1, action: { verb, ...base } }); };
   const def = defOf(it);
-  add("Hold", "hold");
-  add("Put in pocket", "pocket");
-  add(def.slot ? `Put on` : "Wear", "wear");
+  // Only what it's for (affordances.ts): no holding, pocketing or eating a wig.
+  if (it.def === "knife") { if (pc.hand !== it.id) add("Get the knife out", "hold"); else add("Put the knife away", "pocket"); }
+  if (can(it, "wear") && it.loc.k !== "worn") add(def.slot ? "Put on" : "Wear", "wear");
   if (it.loc.k === "worn") add("Take off", "remove");
-  add(def.props.includes("food") ? "Eat" : def.props.includes("liquid") ? "Drink" : "Take", "consume");
+  if (can(it, "consume")) add(def.props.includes("food") ? "Eat" : "Drink", "consume");
   if (it.def === "powder" && possibleVerbs(w, { actor: pc.id }).includes("line")) out.unshift({ label: `Do a line (${it.uses ?? 4} left)`, priority: 1, action: { verb: "line", actor: pc.id } });
   add("Drop", "drop");
   // The walkie, from the bag: call in a body near you, or send the stewards somewhere else.

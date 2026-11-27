@@ -364,6 +364,10 @@ function apprehend(w: World, g: Actor, t: Actor): void {
   w.bus.emit({ type: "caught", t: w.state.tick, by: g.id, who: t.id, intent: n.intent });
   if (n.intent === "arrest") { finishArrest(w, t, "Arrested at the ground."); return; }
   if (n.intent === "warn") st.warnings++;
+  // The game: no march, no side-on room. The report's consequence ladder, resolved behind a fade:
+  // warned back to where you're allowed; ejected outside (re-entry possible); detained = time passes
+  // and the world moves on while you're held; the worst of it is an arrest.
+  if (PACE.calm && t.id === st.pc) { resolveNow(w, g, t); return; }
   setMode(w, g, "escort");
   const dest = n.intent === "warn" ? warnDestination(w, t) : n.intent === "detain" ? SPOTS.holding : SPOTS.ejectPoint;
   n.escortTo = { x: dest.x, y: dest.y };
@@ -428,6 +432,38 @@ function escort(w: World, g: Actor): void {
   setMode(w, g, "routine");
   // The steward goes back to his post.
   if (g.npc!.post) g.npc!.plan.push({ k: "go", ...g.npc!.post });
+}
+
+function resolveNow(w: World, g: Actor, t: Actor): void {
+  const s = w.state, st = s.stadium!, n = g.npc!, intent = n.intent;
+  w.bus.emit({ type: "escort_fade", t: s.tick, who: t.id, intent });
+  t.heldBy = undefined;
+  if (intent === "warn") {
+    const to = warnDestination(w, t);
+    t.x = to.x; t.y = to.y; t.seated = false;
+    say(w, g, "Don't let me see you back in there.");
+    n.sus[t.id] = 0.35;
+    calmDown(w, t, 8);
+    w.bus.emit({ type: "escort_cut", t: s.tick, who: t.id, intent });
+  } else if (intent === "eject") {
+    eject(w, g, t);
+  } else {
+    // Detained. Bad enough and the police take him (the day's over); otherwise he's held while time
+    // passes, anything dodgy taken off him, and let out by the office door to find the world moved on.
+    if (n.crime >= 3 || st.incidents.some((i) => i.by === t.id && i.severity >= 3)) { finishArrest(w, t, "The police collected him from the security office."); return; }
+    const taken: string[] = [];
+    for (const id of [t.hand, ...t.pockets]) {
+      if (!id) continue;
+      const it = s.items[id];
+      if (hasProp(it, "weapon") || hasProp(it, "illicit") || hasProp(it, "substance")) { moveItem(s, id, { k: "in", c: st.locker }); taken.push(defOf(it).name.toLowerCase()); }
+    }
+    t.hiddenIn = st.locker; t.seated = false; t.moveX = t.moveY = 0;
+    st.custody = { until: s.tick + 60 * 45, taken };
+    calmDown(w, t, 70);
+    w.bus.emit({ type: "custody", t: s.tick, who: t.id, until: st.custody.until, taken });
+  }
+  setMode(w, g, "routine");
+  if (n.post) n.plan.push({ k: "go", ...n.post });
 }
 
 /** Thrown out: tickets cancelled, anything nasty confiscated, face remembered. */
@@ -512,6 +548,12 @@ export function struggle(w: World, t: Actor): boolean {
 /** Detention: the police turn up, unless he has slipped away first. */
 export function stepDetention(w: World): void {
   const s = w.state, st = s.stadium!, pc = s.actors[st.pc];
+  // Held (the game's detention): let out when the time's up, by the security office door.
+  if (st.custody && pc && s.tick >= st.custody.until) {
+    pc.hiddenIn = undefined; pc.x = 34; pc.y = -46.6; pc.facing = Math.PI / 2;
+    const taken = st.custody.taken; st.custody = undefined;
+    w.bus.emit({ type: "custody_end", t: s.tick, who: pc.id, taken });
+  }
   if (!st.detainedUntil || !pc || st.ending) return;
   const inOffice = areaAt(pc.x, pc.y).id === "security";
   if (!inOffice) { st.detainedUntil = 0; st.policeCalled = false; return; } // escaped

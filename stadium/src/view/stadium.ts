@@ -1780,7 +1780,8 @@ class StadiumScene extends Phaser.Scene {
     switch (e.type) {
       case "scheme_clue":
         this.schemeNew++;
-        if (e.mutter && !this.sceneOn) this.pcLine = { text: e.mutter, until: performance.now() + 2600 };
+        // (Not on top of whoever he's just learnt it from.)
+        if (e.mutter && !this.sceneOn && this.talkN === 0) this.pcLine = { text: e.mutter, until: performance.now() + 2600 };
         this.audio.play("chime", 0.3, { rate: 1.35 });
         break;
       case "scheme_cond": if (e.on) { this.stripLine("✓", e.text); this.audio.play("chime", 0.5, { rate: 0.9 }); } break;
@@ -1813,6 +1814,8 @@ class StadiumScene extends Phaser.Scene {
    *  shown as you come up to one (the button's own line takes over once you're at the back of it). And how
    *  long a gate you've got open stays open, on the gate. */
   boards: Phaser.GameObjects.Text[] = [];
+  /** How many speech bubbles are up this frame. */
+  talkN = 0;
   schemeG?: Phaser.GameObjects.Graphics;
   drawBoards(): void {
     const s = this.s, st = s.stadium!, pc = this.pc, P = this.P, tick = s.tick, px = DPR / this.cameras.main.zoom;
@@ -1845,6 +1848,8 @@ class StadiumScene extends Phaser.Scene {
       if (th.cup) { const cx = x + 9 * u, cy = y + 7 * u; sg.fillStyle(0x15171a, 1).fillRect(cx - 4 * u, cy - 5 * u, 9 * u, 11 * u); sg.fillStyle(0xc9ced6, 1).fillRect(cx - 3 * u, cy - 4 * u, 6 * u, 9 * u); sg.lineStyle(1.6 * u, 0xc9ced6, 1).strokeCircle(cx + 4.5 * u, cy, 2.6 * u); sg.fillStyle(0xffffff, 0.8).fillRect(cx - 2 * u, cy - 3 * u, 1.5 * u, 5 * u); }
       if (th.board && !pc.hiddenIn && !this.cine && Math.hypot(th.x - pc.x, th.y - pc.y) < 9) out.push({ x: th.x, y: th.y, z: th.z ?? 1.6, text: th.board, col: "#f2c94c" });
     }
+    // Not while anybody's talking: a board can wait, a line can't.
+    if (this.talkN > 0) out.length = 0;
     // One at a time: the nearest to Grozz (two boards and a speech bubble in one yard is a wall of text).
     if (pc) out.sort((p1, p2) => Math.hypot(p1.x - pc.x, p1.y - pc.y) - Math.hypot(p2.x - pc.x, p2.y - pc.y)).splice(1);
     out.slice(0, 4).forEach((o, i) => {
@@ -3019,6 +3024,8 @@ class StadiumScene extends Phaser.Scene {
     const shownChat: Actor[] = [];
     const others = [...key, ...shownChat].slice(0, pcTalk ? 1 : 2);
     const talkers = [...(pcTalk ? [pc!] : []), ...others].slice(0, this.bubbles.length);
+    // The text budget (two pieces at most): speech comes first; boards and the button's line give way to it.
+    this.talkN = talkers.length;
     const dots = chatter.filter((a) => near0(a) < 9).slice(0, 3);
     if (!this.bubbleG) this.bubbleG = this.add.graphics().setDepth(1e7 + 0.5);
     const bg = this.bubbleG.clear(), zz = this.cameras.main.zoom, px = DPR / zz;
@@ -4487,7 +4494,7 @@ class StadiumScene extends Phaser.Scene {
       $("moreBtn").style.visibility = this.ring ? "hidden" : "";
       act.textContent = p ? shortLabel(p) : "";
       // What it'll do, in a line, right over it. (Nothing when the button's own words say it all.)
-      { const hEl = $("actHint"), ht = p && !this.ring && !fighting && !st.custody && !this.cine ? whatItDoes(this.w, pc, p) : ""; if (hEl.textContent !== ht) hEl.textContent = ht; hEl.hidden = !ht; }
+      { const hEl = $("actHint"), ht = p && !this.ring && !fighting && !st.custody && !this.cine && this.talkN < 2 ? whatItDoes(this.w, pc, p) : ""; if (hEl.textContent !== ht) hEl.textContent = ht; hEl.hidden = !ht; }
       this.primaryAt = p ? this.optionSpot(p) : null;
       const thr = $("throw");
       const ta = (this as any).throwAt as Actor | null;

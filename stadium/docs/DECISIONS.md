@@ -1269,3 +1269,38 @@ The report recommends "simplified grimy diorama pixel art": keep the pixel art a
 **These sheets load up front.** The game's other extra sheets load the first time they're used, but a reaction is over in a second and would otherwise be missed while its sheet arrived.
 
 **Next:** police use the steward fallback only for some things, so they could get the same three. The drayman and fans need their own: a stagger when a keg rolls into them, and a fist-shake. After that, drop the badges wherever an animation now says it.
+
+## Round: step 5, the first thing you see, and the "relevant now" tier
+
+The creator asked for a step 5 from the report, and two things alongside it: you should *see* something that grabs you when you're first put in the world, and important things should stand out more. Both come straight from the report:
+- **Its first-five-minutes table:** in the first 20–40 seconds the delivery worker leaves something in an awkward spot and turns away, with a small cue saying what he's doing.
+- **Its visual hierarchy:** the third tier, "currently relevant", gets a subtle rim, light or animation cue.
+- **Its playtest targets:** a first meaningful interaction within 45 seconds, and a visible NPC reaction within 90.
+
+**What step 5 is:** make the opening an event you see, give the few things that matter right now a cue, and give the first chain a sound. After this the report's next gate is people, not code (see below).
+
+**The opening beat** (game build only; tests unchanged). Three seconds after you're put in the pub yard, the loose keg slips off the top of the drayman's stack:
+- a hollow clang and a rumble (a new ElevenLabs sound) and a small camera nudge;
+- it rolls a metre and a half to the edge of the yard, three metres from Grozz;
+- the drayman shouts at it ("Oi! Stay there, you bastard!", "Bloody thing. STAY.", "Not again. Every week.").
+
+Then it teeters on the edge as before. Something moves and makes a noise, in frame, before anything has been explained. The keg that matters is the one you just watched misbehave.
+
+**The "relevant now" rim.** A soft warm rim that breathes, drawn behind the sprite. It's not neon or a universal glow, as the report asks. It goes on:
+- **the loose keg**, until you've learned what it does;
+- **Ronson**, while he's tied up, you're within 16 m, and you've not had the idea about him yet;
+- **whatever and whoever the thing in your hand is for:** the stewards when you hold a pie, the coppers when you hold powder, the urn and coolers for a laxative, pints on the ground;
+- **people worth a thought**, Lenny and Del, until you've had it, within 14 m.
+
+Instinct replaces it. Everything else stays in the background or interactive tiers.
+
+**Keg sounds.** `keg_slip` for the opening, and `keg_roll` when Grozz rolls one. Until now the first chain had no sound; the report asks for a short sound cue on the causal link.
+
+**Step 6: hand it to people.** The report's roadmap puts a gate here: "5+ naïve testers understand interaction without explanation", and "stop expansion if players cannot independently form a causal hypothesis about the first chain". The opening is now staged against its targets:
+- move within 20 seconds;
+- a meaningful interaction within 45;
+- a visible reaction within 90;
+- a first comic chain within 3 minutes;
+- explain one rule by 5 minutes.
+
+Before building more, put it in front of five people who've never seen it, on a phone, saying nothing. For each, note the time to their first touch, whether they noticed the keg, and whether they can say why the drayman walked off. Also note what made them laugh: a line, an animation, their own plan, or an accident. The report: if nearly all laughs come from dialogue, Option B hasn't worked yet.

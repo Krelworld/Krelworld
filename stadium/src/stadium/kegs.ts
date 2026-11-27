@@ -100,6 +100,21 @@ export function installKegs(): void {
 
 export function stepKegs(w: World): void {
   const s = w.state, st = s.stadium!, tick = s.tick;
+  // The first thing you see (the report's first-five-minutes staging): three seconds in, the loose keg
+  // slips off the top of the drayman's stack, clangs down and rolls to the edge, and he shouts at it.
+  // Something moving and a noise, in frame, before anyone has told you anything.
+  if (PACE.calm && !st.flags.kegIntro && tick === 60 * 3) {
+    st.flags.kegIntro = 1;
+    const it = Object.values(s.items).find((i) => i.def === "keg" && i.home && Math.abs(Math.abs(i.home.x) - Math.abs(mx(LOOSE.x))) < 0.05 && i.loc.k === "ground");
+    if (it && it.loc.k === "ground") {
+      const from = { x: mx(-31.25), y: 68.75 }, v = 1.33, d = Math.hypot(it.home!.x - from.x, it.home!.y - from.y) || 1;
+      it.loc.x = from.x; it.loc.y = from.y;
+      (st.rolling ??= []).push({ id: it.id, vx: ((it.home!.x - from.x) / d) * v, vy: ((it.home!.y - from.y) / d) * v, by: "intro" });
+      w.bus.emit({ type: "keg_slip", t: tick, item: it.id, x: from.x, y: from.y });
+      const dray = Object.values(s.actors).find((a) => a.npc?.job === "worker" && !a.dead && !a.hiddenIn);
+      if (dray) say(w, dray, pick(s.rng.world, ["Oi! Stay there, you bastard!", "Bloody thing. STAY.", "Not again. Every week."]), 3);
+    }
+  }
   // Rolling: friction, walls stop it, people in the way go over.
   if (st.rolling?.length) {
     for (const r of st.rolling) {

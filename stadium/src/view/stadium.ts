@@ -467,6 +467,8 @@ class StadiumScene extends Phaser.Scene {
       case "car_in": case "car_out": a.play("car_door", 0.7); if (e.type === "car_out") this.audio.engineOn(false); break;
       case "car_crash": a.play("car_crash", e.hard ? 1 : 0.6, { minGap: 0.3 }); this.trauma = Math.min(1, this.trauma + (e.hard ? 0.6 : 0.3)); break;
       case "car_hit": { a.play("bodyfall", 0.9); a.play("punch", 0.7, { rate: 0.6 }); const who = s.actors[e.who]; if (who) { this.spray(who.x, who.y, 1, Math.random() - 0.5, Math.random() - 0.5, e.hard ? 30 : 14, 1.6); this.trauma = Math.min(1, this.trauma + 0.35); } break; }
+      case "keg_slip": a.play("keg_slip", 1); this.cameras.main.shake(160, 0.0025); break;
+      case "keg_rolled": a.play("keg_roll", 0.9); break;
       case "spotted": {
         // "Oi! YOU!": a beat of slow motion to deal with him before he gets his radio out. Shorter each time.
         const now = performance.now(), g = s.actors[e.by];
@@ -1808,6 +1810,7 @@ class StadiumScene extends Phaser.Scene {
     this.shadowG.clear();
     const sprites = this.useSprites && this.bank.ready();
     const seenSprites = new Set<string>();
+    this.rimSeen.clear(); this.relevantNow();
     this.pcHidden = false;
     type Thing = { d: number; draw: () => void; spr?: (depth: number) => void };
     const things: Thing[] = [];
@@ -1959,6 +1962,7 @@ class StadiumScene extends Phaser.Scene {
           // The loose one teeters on the edge of the stack (a push-me, not a prompt) until a keg's been rolled.
           const teeter = it.def === "keg" && it.home && Math.abs(Math.abs(it.home.x) - 30.1) < 0.05 && !this.rules.has("post") && !s.stadium!.chain && Math.hypot(it.home.x - x, it.home.y - y) < 0.1;
           im.setTexture(ik).setOrigin(0.5, 0.9).setScale(it.def === "keg" ? 0.75 : 0.5).setPosition(Math.round(P.sx(x, y)), Math.round(P.sy(x, y, z))).setDepth(dep).setVisible(true).setAlpha(1).setAngle(l.k === "air" ? (tick * 12) % 360 : rolling ? Math.sin(tick * 0.9) * 14 : teeter ? (tick % 120 < 50 ? Math.sin(tick * 0.5) * 9 : 0) : 0);
+          if (this.relevant.has(`item-${id}`) || teeter) this.rim(`item-${id}`, im, dep);
         } });
         if (near && l.k === "ground") things.push({ d: y + 1e-4, draw: () => g.lineStyle(3, 0xf2c94c, 0.5 + 0.4 * Math.sin(tick * 0.15)).strokeCircle(P.sx(x, y), P.sy(x, y) - P.S * 0.2, P.S * 0.55) });
         continue;
@@ -2130,6 +2134,8 @@ class StadiumScene extends Phaser.Scene {
             this.worldSeen.add("dog-sprite");
             im.setTexture(key, f).setOrigin(0.5, 74 / 88).setPosition(Math.round(P.sx(a.x, a.y)), Math.round(P.sy(a.x, a.y))).setDepth(dep).setVisible(true).setAlpha(1).setAngle(a.dead ? 90 : 0)
               .setScale((P.standing && P.S === PPM ? 1 : P.S / PPM) * 0.95);
+            // Tied up and itching for it, and you've not thought of him yet: he gets the warm rim too.
+            if (!a.dead && st.dog?.state === "tied" && !this.curios.has("dog") && this.pc && Math.hypot(a.x - this.pc.x, a.y - this.pc.y) < 16) this.rim("dog-sprite", im, dep);
           } });
           continue;
         }
@@ -2215,6 +2221,7 @@ class StadiumScene extends Phaser.Scene {
     }
     g = nextLayer();
     for (const [id, sp] of this.spritePool) if (!seenSprites.has(id)) sp.setVisible(false);
+    for (const [id, r] of this.rimPool) if (!this.rimSeen.has(id)) r.setVisible(false);
     if (this.canopy && !this.pc?.chute) this.canopy.setVisible(false);
     // Behind a wall, roof or van: your outline drawn through it, so you never lose yourself.
     {
@@ -3176,6 +3183,7 @@ class StadiumScene extends Phaser.Scene {
       sp.setCrop(0, 0, CELL, 52);
       sp.setPosition(x, y + (FEET - 52) * scale * 0.8);
     } else { sp.setCrop(); sp.setPosition(x + lx, y + ly); }
+    if (!a.seated && this.relevant.has(a.id)) this.rim(a.id, sp, depth);
   }
   /** Background crowd (the report: lower-detail silhouettes, compressed palette): an ordinary fan who's no
    *  part of anything right now is drawn a touch darker and cooler, so the people who matter (Grozz, staff,
@@ -3187,6 +3195,38 @@ class StadiumScene extends Phaser.Scene {
     if ((n.whyUntil ?? 0) > tick || (n.bubble && n.bubble.until > tick) || a.downUntil > tick || a.hand && this.s.items[a.hand]?.def !== "pint") return false;
     const pc = this.pc;
     return !pc || Math.hypot(a.x - pc.x, a.y - pc.y) > 6;
+  }
+  /** The report's third tier, "currently relevant": a soft warm rim that breathes, on what matters right
+   *  now and nothing else. The loose keg before you've learned what it does; whatever and whoever the
+   *  thing in your hand is for; and the people you haven't had an idea about yet, once you're near. */
+  relevant = new Set<string>();
+  rimPool = new Map<string, Phaser.GameObjects.Image>();
+  rimSeen = new Set<string>();
+  relevantNow(): void {
+    const s = this.s, pc = this.pc, R = this.relevant;
+    if (!pc || (s.tick % 10 !== 0 && R.size)) return;
+    R.clear();
+    if (this.instinct) return;
+    // What your hand is for: the people and things among its targets.
+    for (const t of this.itemTgts) {
+      for (const a of Object.values(s.actors)) if (a.npc && !a.dead && Math.hypot(a.x - t.x, a.y - t.y) < 0.5) R.add(a.id);
+      for (const i of Object.values(s.items)) if (i.loc.k === "ground" && Math.hypot(i.loc.x - t.x, i.loc.y - t.y) < 0.5) R.add(`item-${i.id}`);
+    }
+    // People worth a thought, until you've had it (Lenny, Del), when you're within a stone's throw.
+    for (const c of CURIOS) {
+      if (this.curios.has(c.id) || (c.id !== "lenny" && c.id !== "del")) continue;
+      const p = c.at(this.w) as { id?: string; x: number; y: number } | null | undefined;
+      if (p?.id && Math.hypot(p.x - pc.x, p.y - pc.y) < 14) R.add(p.id);
+    }
+  }
+  rim(id: string, src: Phaser.GameObjects.Image | Phaser.GameObjects.Sprite, dep: number): void {
+    let r = this.rimPool.get(id);
+    if (!r) { r = this.add.image(0, 0, src.texture.key, src.frame.name); this.rimPool.set(id, r); }
+    const k = 0.5 + 0.5 * Math.sin(performance.now() / 280);
+    r.setTexture(src.texture.key, src.frame.name).setOrigin(src.originX, src.originY).setPosition(src.x, src.y)
+      .setScale(src.scaleX * 1.12, src.scaleY * 1.07).setAngle(src.angle).setFlipX(src.flipX)
+      .setTint(0xffd75a).setTintMode(Phaser.TintModes.FILL).setAlpha(0.28 + 0.3 * k).setDepth(dep - 0.5).setVisible(true);
+    this.rimSeen.add(id);
   }
   /** Reaction animations (the report's highest-value art): who's mid-reaction, which sheet, facing what. */
   react = new Map<string, { sheet: string; at: number; dur: number; face?: { x: number; y: number } }>();

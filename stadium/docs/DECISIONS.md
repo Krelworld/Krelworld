@@ -1849,3 +1849,16 @@ made possible."
    built to compare on a phone, as the brief asks; the game stays in Phaser unless that clearly wins.
 
 Deferred, as the brief says: free driving, first person, notoriety, more stadiums, any universal ontology.
+
+## Decision: the world goes 3D (27 Nov, late)
+
+The creator tried the miniature look test on his phone: "The 3d looks and feels so much better." That is the
+phone comparison the Option D brief asked for before any migration, so the decision is made: the world is
+rebuilt as the painted miniature. The pixel sprites, the sim, the DOM HUD and the scheme engine all stay.
+
+How: a Three.js canvas under a transparent Phaser canvas. Three draws ground, buildings, props and people
+(the existing sprites as billboards with real occlusion); Phaser keeps only what floats above the world
+(bubbles, rings, boards, Instinct). Both use one camera, by making the shared projection the same affine map
+as the orthographic camera. World geometry is generated from `layout.ts`, with hero facades where it counts.
+It is being built on a separate working copy behind a `?3d=1` switch and becomes the default once it matches
+the 2D game for behaviour. Nothing in the sim changes.

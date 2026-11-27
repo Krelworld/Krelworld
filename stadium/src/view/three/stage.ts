@@ -1,0 +1,171 @@
+// The stage: a Three canvas under Phaser's (which goes see-through), one camera for both, one light.
+// Three draws the ground, the buildings and, through the sprite bridge, everyone and everything that
+// stands in the world; Phaser keeps what floats above it (speech, rings, boards, markers).
+import * as THREE from "three";
+import { SpriteBridge, type Pic, type PicOpts } from "./bridge";
+import { CY, FWD, LIGHT, PITCH, PX_PER_M, RIGHT, SP, STRETCH, SY, UP, VIEW, YAW } from "./cam";
+import { makeCanvas } from "./paint";
+import { World3D, type WorldHost } from "./world3d";
+
+const HAZE = 0x9aa5ab, S = PX_PER_M;
+
+export interface Frame {
+  /** Phaser's camera: the middle of the view in its world pixels, the canvas size and zoom. */
+  midX: number; midY: number; width: number; height: number; zoom: number;
+  room: string | null; inside: boolean; outdoors: boolean; time: number;
+  gateOpen: (id: string) => boolean;
+}
+
+export class Stage3D {
+  canvas: HTMLCanvasElement; renderer: THREE.WebGLRenderer; scene = new THREE.Scene(); camera: THREE.OrthographicCamera;
+  bridge = new SpriteBridge(); world: World3D | null = null;
+  private sun: THREE.DirectionalLight; private rain: THREE.Mesh; private rainMat: THREE.ShaderMaterial;
+  private blobs: THREE.InstancedMesh; private blobN = 0; private m4 = new THREE.Matrix4();
+  private vig: HTMLDivElement; private haze: HTMLDivElement;
+  private viewW = 12; private viewH = 20; private dpr = 1;
+  private lx = new THREE.Vector3(); private ly = new THREE.Vector3();
+  private focus = new THREE.Vector3(); private tmp = new THREE.Vector3();
+  private ballTex: HTMLCanvasElement;
+  pitch = PITCH; yaw = YAW;
+
+  constructor(private host: HTMLElement) {
+    const canvas = document.createElement("canvas");
+    const gl = canvas.getContext("webgl2", { antialias: false, alpha: false, powerPreference: "high-performance", stencil: false });
+    if (!gl) throw new Error("no webgl2");
+    this.canvas = canvas;
+    this.renderer = new THREE.WebGLRenderer({ canvas, context: gl, antialias: false, alpha: false, stencil: false });
+    const r = this.renderer;
+    r.outputColorSpace = THREE.SRGBColorSpace; r.shadowMap.enabled = true; r.shadowMap.type = THREE.PCFShadowMap; r.setClearColor(0x15171c);
+    Object.assign(canvas.style, { position: "absolute", inset: "0", zIndex: "0", imageRendering: "auto" });
+    canvas.id = "world3d";
+    host.insertBefore(canvas, host.firstChild);
+    // Vignette, and a breath of haze along the top (outdoors only): both just CSS over the canvases.
+    const mk = (css: string) => { const d = document.createElement("div"); Object.assign(d.style, { position: "absolute", inset: "0", pointerEvents: "none", zIndex: "2", background: css, transition: "opacity .4s" }); host.appendChild(d); return d; };
+    this.vig = mk("radial-gradient(ellipse 85% 75% at 50% 50%, rgba(8,10,16,0) 52%, rgba(8,10,16,0.3) 86%, rgba(8,10,16,0.5) 100%), linear-gradient(to top, rgba(8,10,16,0.3) 0%, rgba(8,10,16,0) 16%)");
+    this.haze = mk("linear-gradient(to bottom, rgba(154,165,171,0.24) 0%, rgba(154,165,171,0) 13%)");
+
+    this.scene.fog = new THREE.Fog(HAZE, 173, 250);
+    this.camera = new THREE.OrthographicCamera(-6, 6, 10, -10, 1, 420);
+    this.scene.add(this.camera);
+    this.scene.add(new THREE.HemisphereLight(0xc4d2e2, 0x6e6258, 2.05));
+    this.sun = new THREE.DirectionalLight(0xfff0dc, 1.95);
+    this.sun.castShadow = true; this.sun.shadow.mapSize.set(1024, 1024); this.sun.shadow.bias = -0.0006; this.sun.shadow.normalBias = 0.05; this.sun.shadow.radius = 2.2;
+    this.scene.add(this.sun, this.sun.target);
+    const lz = LIGHT.clone().negate(); this.lx.crossVectors(FWD, lz).normalize(); this.ly.crossVectors(lz, this.lx).normalize();
+    this.scene.add(this.bridge.group);
+
+    // Rain: one full-screen quad, two layers of streaks, sliding.
+    const [rainCv, rc] = makeCanvas(256, 256);
+    { let s = 7; const rnd = () => ((s = (s * 16807) % 2147483647) / 2147483647); for (let i = 0; i < 70; i++) { const x = Math.floor(rnd() * 256), y = Math.floor(rnd() * 256), len = 10 + Math.floor(rnd() * 26), a = 0.25 + rnd() * 0.6; for (let k = 0; k < len; k++) { rc.fillStyle = `rgba(255,255,255,${a * Math.sin((k / len) * Math.PI)})`; rc.fillRect(x, (y + k) % 256, 1, 1); } } }
+    const rainTex = new THREE.CanvasTexture(rainCv); rainTex.wrapS = rainTex.wrapT = THREE.RepeatWrapping; rainTex.magFilter = THREE.NearestFilter; rainTex.minFilter = THREE.LinearFilter; rainTex.generateMipmaps = false;
+    this.rainMat = new THREE.ShaderMaterial({
+      uniforms: { map: { value: rainTex }, time: { value: 0 }, scale: { value: 512 }, strength: { value: 0.5 } },
+      vertexShader: "void main(){ gl_Position = vec4(position.xy, 0.0, 1.0); }",
+      fragmentShader: `uniform sampler2D map; uniform float time; uniform float scale; uniform float strength;
+        void main(){ vec2 p = gl_FragCoord.xy / scale; p.x += p.y * 0.16;
+          float a = texture2D(map, vec2(p.x, p.y + time * 2.6)).a * 0.55 + texture2D(map, vec2(p.x * 0.6 + 0.37, p.y * 0.5 + time * 1.7)).a * 0.4;
+          gl_FragColor = vec4(0.84, 0.89, 0.94, a * strength); }`,
+      transparent: true, depthTest: false, depthWrite: false,
+    });
+    this.rain = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), this.rainMat); this.rain.frustumCulled = false; this.rain.renderOrder = 999;
+    this.scene.add(this.rain);
+
+    // Soft blobs under feet (the contact shadow; the cast shadow comes from the shadow map).
+    const [bc, bx] = makeCanvas(64, 64);
+    { const gr = bx.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, "rgba(255,255,255,1)"); gr.addColorStop(0.35, "rgba(255,255,255,0.42)"); gr.addColorStop(1, "rgba(255,255,255,0)"); bx.fillStyle = gr; bx.fillRect(0, 0, 64, 64); }
+    const blobTex = new THREE.CanvasTexture(bc);
+    this.blobs = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: blobTex, color: 0x05060a, transparent: true, opacity: 0.55, depthWrite: false }), 400);
+    this.blobs.frustumCulled = false; this.blobs.renderOrder = 2; this.blobs.count = 0; this.scene.add(this.blobs);
+
+    // The ball: a little painted disc that stands up like everyone else.
+    const [ballCv, bb] = makeCanvas(12, 12);
+    bb.fillStyle = "#15171a"; bb.beginPath(); bb.arc(6, 6, 5.6, 0, 7); bb.fill(); bb.fillStyle = "#f4f4f0"; bb.beginPath(); bb.arc(6, 6, 4.6, 0, 7); bb.fill();
+    bb.fillStyle = "#22252a"; bb.fillRect(5, 5, 3, 3); bb.fillRect(2, 3, 2, 2); bb.fillRect(9, 4, 1, 2); bb.fillRect(4, 9, 2, 1); bb.fillStyle = "#ffffff"; bb.fillRect(4, 2, 2, 1);
+    this.ballTex = ballCv;
+    r.domElement.addEventListener("webglcontextlost", (e) => e.preventDefault());
+  }
+
+  /** (Re)build the district: at the start, and whenever the venue changes. */
+  build(host: Omit<WorldHost, "maxAniso">) {
+    this.world?.dispose();
+    this.world = new World3D({ ...host, maxAniso: this.renderer.capabilities.getMaxAnisotropy() });
+    this.scene.add(this.world.root);
+  }
+
+  begin() { this.bridge.begin(); this.blobN = 0; }
+  sprite(o: Pic, opt?: PicOpts) { this.bridge.sprite(o, opt); }
+  /** A soft dark blob on the ground under something. */
+  blob(x: number, y: number, w: number, d: number) {
+    if (this.blobN >= 400) return;
+    this.m4.makeRotationY(this.yaw).scale(this.tmp.set(w, 1, d)).setPosition(x + 0.03, 0.025, y + 0.02);
+    this.blobs.setMatrixAt(this.blobN++, this.m4);
+  }
+  ball(x: number, y: number, z: number) { this.bridge.upright(this.ballTex, x, y, z, 0.3, 0.3 * STRETCH / STRETCH); this.blob(x, y, 0.45 + z * 0.05, 0.3); }
+
+  /** In shade? A ray toward the sun against the big boxes. */
+  shaded(x: number, y: number): boolean {
+    const w = this.world; if (!w) return false;
+    const dx = -LIGHT.x, dy = -LIGHT.y / STRETCH, dz = -LIGHT.z;
+    for (const [x0, z0, x1, z1, h] of w.shaders) {
+      let t0 = 0, t1 = 60;
+      const slab = (o: number, d: number, lo: number, hi: number) => { if (Math.abs(d) < 1e-6) return o >= lo && o <= hi; let a = (lo - o) / d, c = (hi - o) / d; if (a > c) [a, c] = [c, a]; t0 = Math.max(t0, a); t1 = Math.min(t1, c); return t0 <= t1; };
+      if (slab(x, dx, x0, x1) && slab(1.2, dy, 0, h) && slab(y, dz, z0, z1) && t1 > 0.05) return true;
+    }
+    return false;
+  }
+
+  private fit(f: Frame) {
+    const w = f.width, h = f.height, r = this.renderer;
+    const cssW = this.host.clientWidth || 1, cssH = this.host.clientHeight || 1, dpr = Math.min(window.devicePixelRatio || 1, 2);
+    if (r.getPixelRatio() !== dpr || this.canvas.width !== Math.round(cssW * dpr) || this.canvas.height !== Math.round(cssH * dpr)) { r.setPixelRatio(dpr); r.setSize(cssW, cssH, false); }
+    this.dpr = dpr;
+    const vw = w / (f.zoom * S), vh = h / (f.zoom * S);
+    if (vw !== this.viewW || vh !== this.viewH || this.camera.right !== vw / 2) {
+      this.viewW = vw; this.viewH = vh;
+      const c = this.camera; c.left = -vw / 2; c.right = vw / 2; c.top = vh / 2; c.bottom = -vh / 2; c.updateProjectionMatrix();
+      // The shadow map covers what the camera can see (ground to rooftops), no more.
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity; const p = this.tmp;
+      for (const sx of [-1, 1]) for (const sy of [-1, 1]) for (const hgt of [0, 11.5 * STRETCH]) {
+        p.copy(RIGHT).multiplyScalar((sx * vw) / 2).addScaledVector(UP, (sy * vh) / 2);
+        const t = (p.y - hgt) / -VIEW.y; p.addScaledVector(VIEW, t);
+        minX = Math.min(minX, p.dot(this.lx)); maxX = Math.max(maxX, p.dot(this.lx)); minY = Math.min(minY, p.dot(this.ly)); maxY = Math.max(maxY, p.dot(this.ly));
+      }
+      const sc = this.sun.shadow.camera; sc.left = minX - 1; sc.right = maxX + 1; sc.bottom = minY - 1; sc.top = maxY + 1; sc.near = 1; sc.far = 260; sc.up.copy(FWD); sc.updateProjectionMatrix();
+    }
+    this.rainMat.uniforms.scale.value = 256 * dpr * Math.max(1, f.zoom / (window.devicePixelRatio || 1));
+  }
+
+  /** Draw the frame: the camera goes where Phaser's is. */
+  render(f: Frame) {
+    this.fit(f);
+    this.bridge.end();
+    this.blobs.count = this.blobN; this.blobs.instanceMatrix.needsUpdate = true;
+    // The ground point in the middle of the screen.
+    const u = f.midX / S, w = f.midY / (S * SP), gx = CY * u + SY * w, gz = -SY * u + CY * w;
+    this.focus.set(gx, 0, gz);
+    const cam = this.camera;
+    cam.position.copy(this.focus).addScaledVector(VIEW, -170);
+    cam.lookAt(this.tmp.copy(cam.position).add(VIEW)); cam.updateMatrixWorld();
+    // The light follows, in whole texels so shadow edges don't crawl.
+    const sc = this.sun.shadow.camera, tx = (sc.right - sc.left) / 1024, ty = (sc.top - sc.bottom) / 1024, fx = this.focus.dot(this.lx), fy = this.focus.dot(this.ly);
+    this.tmp.copy(this.focus).addScaledVector(this.lx, Math.round(fx / tx) * tx - fx).addScaledVector(this.ly, Math.round(fy / ty) * ty - fy);
+    this.sun.target.position.copy(this.tmp); this.sun.position.copy(this.tmp).addScaledVector(LIGHT, -120);
+    this.sun.target.updateMatrixWorld(); this.sun.updateMatrixWorld();
+    if (this.world) {
+      this.world.setCut(f.room, f.inside, f.gateOpen);
+      // What the camera sees of the ground: the screen's corners dropped on to it (and a margin).
+      let x0 = Infinity, z0 = Infinity, x1 = -Infinity, z1 = -Infinity;
+      for (const sx of [-1, 1]) for (const sy of [-1, 1]) { const uu = u + (sx * this.viewW) / 2, ww = w + (sy * this.viewH) / 2 / SP, x = CY * uu + SY * ww, z = -SY * uu + CY * ww; x0 = Math.min(x0, x); x1 = Math.max(x1, x); z0 = Math.min(z0, z); z1 = Math.max(z1, z); }
+      this.world.ground(x0 - 4, z0 - 4, x1 + 4, z1 + 4, this.first ? 99 : 2);
+      this.first = false;
+    }
+    this.rain.visible = f.outdoors; this.rainMat.uniforms.time.value = f.time;
+    this.haze.style.opacity = f.outdoors ? "1" : "0"; this.vig.style.opacity = f.room ? "0.6" : "1";
+    this.renderer.render(this.scene, cam);
+  }
+  private first = true;
+
+  info() { const i = this.renderer.info; return { calls: i.render.calls, triangles: i.render.triangles, textures: i.memory.textures, geometries: i.memory.geometries, sprites: this.bridge.quads, spriteBatches: this.bridge.draws, staticTris: this.world?.stats.tris ?? 0, chunks: this.world?.stats.chunks ?? 0, chunkMs: this.world?.stats.paintMs ?? 0, dpr: this.dpr, viewW: this.viewW, viewH: this.viewH }; }
+
+  dispose() { this.world?.dispose(); this.renderer.dispose(); this.canvas.remove(); this.vig.remove(); this.haze.remove(); }
+}

@@ -19,8 +19,12 @@ export const cellOf = (b: string) => (b.startsWith("horse") ? 128 : CELL);
 export const feetOf = (b: string) => (b.startsWith("horse") ? 108 : FEET);
 
 /** Which of the 8 directions a facing angle (radians, y down) is closest to. Sheet order: S, SE, E, NE, N, NW, W, SW. */
+let DIR_YAW = 0;
+/** The 3D view is turned about the vertical: which of a sprite's eight pictures shows for a facing turns with it. */
+export function setDirYaw(yaw: number): void { DIR_YAW = yaw; }
 export function dirIndex(a: number): number {
   const order = [2, 1, 0, 7, 6, 5, 4, 3];
+  a += DIR_YAW;
   const k = Math.round(((a % (2 * Math.PI)) + 2 * Math.PI) / (Math.PI / 4)) % 8;
   return order[k];
 }

@@ -60,7 +60,7 @@ import { LEADS } from "../stadium/entries";
 import { playOpening } from "./opening";
 import { assetURL, loadPacks } from "./packs";
 import { ROOM_WALLS } from "./world";
-import { CAP, ensureFloor, ensureMaterials, facade, floodlight, matOf, adBoard, banner, pixelText as pixelTextOn, PPM, roof, TILE_FILES, type BuildingSpec } from "./build";
+import { CAP, ensureFloor, setQuietFloors, ensureMaterials, facade, floodlight, matOf, adBoard, banner, pixelText as pixelTextOn, PPM, roof, TILE_FILES, type BuildingSpec } from "./build";
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 /** The canvas draws at the screen's real pixels (sharp text, and each art pixel a whole number of them). */
@@ -68,11 +68,15 @@ const DPR = Math.max(1, Math.min(3, window.devicePixelRatio || 1));
 /** The game's faces: a pixel font for things in the world, the condensed face for captions. */
 const FONT_POP = '"Silkscreen", "Pixelify Sans", monospace';
 const FONT_TALK = '"Pixelify Sans", "Silkscreen", monospace';
-/** Zoom levels, as camera zooms: whole screen pixels per art pixel (32 art pixels to the metre). The first
- *  shows about 22 screen points to the metre on a phone and 32 on anything bigger; then closer, then further. */
+/** Zoom levels, as camera zooms: whole screen pixels per art pixel (32 art pixels to the metre): the first,
+ *  then closer, then further. Phones in landscape now match bigger screens: Grozz about 60 points tall (he was 40, too small to read his pose or
+ *  tap people). ?gz=40|60|80 overrides it for a side-by-side test. */
+const GZ = (() => { const m = location.search.match(/[?&]gz=(\d+)/); return m ? +m[1] : 0; })();
 function zoomSteps(): number[] {
   const small = Math.min(window.innerWidth, window.innerHeight) < 520;
-  const z = Math.max(1, Math.round(((small ? 22 : 32) * DPR) / 32));
+  // Portrait phones keep the wider view (60 points would leave only about 12 m across).
+  const portrait = small && window.innerHeight > window.innerWidth;
+  const z = Math.max(1, Math.round(((GZ ? (GZ * 32) / 60 : portrait ? 22 : 32) * DPR) / 32));
   return [...new Set([z, z + 1, Math.max(1, z - 1)])];
 }
 const ZOOMS = [0, 1, 2];
@@ -183,9 +187,11 @@ class StadiumScene extends Phaser.Scene {
     this.detailG = this.add.graphics().setDepth(0.3);
     this.crowdG = this.add.graphics().setDepth(0.4);
     this.shadowG = this.add.graphics().setDepth(50);
-    // Art test (the report's quieter-surfaces slice): a soft flat veil over the ground layer only, so
-    // floor texture recedes and buildings, props and people keep their contrast. ?quiet to try it.
+    // Quiet ground (the report's background tier): the floor textures lose their speckle and some
+    // contrast as they're built, keeping their colour. ?loud for the old look.
     this.quietG = this.add.graphics().setDepth(0.9);
+    setQuietFloors(this.quiet);
+    this.outlineIcons();
     this.decalG = this.add.graphics().setDepth(0.36);
     this.g = this.add.graphics();
     this.layers = [this.g];
@@ -633,6 +639,7 @@ class StadiumScene extends Phaser.Scene {
     // PixelLab floor tiles at 1:1: paving, tarmac, concrete, grass, pub carpet, lino, quarry tiles.
     for (const t of this.groundTiles) t.destroy();
     this.groundTiles = [];
+    setQuietFloors(this.quiet);
     const FLOOR_OF: Record<string, string> = {
       street: "slabs", plaza: "slabs", road: "asphalt", eastroad: "asphalt", carpark: "tarmac", hotel_court: "slabs", ticket_office: "slabs", merch: "slabs",
       pub_yard: "herringbone", verge: "grass", concourse_s: "concourse", concourse_w: "concourse", concourse_e: "concourse", corner_sw: "concourse", corner_se: "concourse",
@@ -1148,6 +1155,8 @@ class StadiumScene extends Phaser.Scene {
       const sx = P.sx(st.x, st.y), sy = P.sy(st.x, st.y);
       if (blit) {
         const im = this.add.image(Math.round(sx), Math.round(sy), `crowd3-${opp.short}`, st.row * 8 + st.f).setOrigin(0.5, 46 / 52).setScale(scale);
+        // The filler crowd is background: darker and cooler, so the fans who are people (and you) stand out.
+        if (this.quiet) im.setTint(0x9ea3ad);
         blit.add(im);
         this.crowdImgs.push({ im, y: Math.round(sy), ph: rnd() * Math.PI * 2, sp: 1.5 + rnd() * 2.5, x: st.x, wy: st.y, fr: st.row * 8 + st.f, away: st.shirt >= 3 });
         continue;
@@ -1479,6 +1488,25 @@ class StadiumScene extends Phaser.Scene {
   roofDimK = 0;
   tele: { pts: { x: number; y: number }[]; until: number } | null = null;
   quietG!: Phaser.GameObjects.Graphics;
+  /** Things lying in the world get a dark one-pixel outline (the report: outline characters and the props
+   *  that matter, never the scenery), so a pie on the pavement reads as a thing, not a speck. */
+  outlineIcons(): void {
+    for (const k of ICONS) {
+      const src = `ico-${k}`, key = `icoW-${k}`;
+      if (!this.textures.exists(src) || this.textures.exists(key)) continue;
+      const img = this.textures.get(src).getSourceImage() as HTMLImageElement, w = img.width + 4, h = img.height + 4;
+      const cv = document.createElement("canvas"); cv.width = w; cv.height = h;
+      const cx = cv.getContext("2d")!;
+      // The silhouette, dark, stamped round the edges two pixels out (one art pixel at half size)...
+      const sil = document.createElement("canvas"); sil.width = w; sil.height = h;
+      const sx = sil.getContext("2d")!;
+      sx.drawImage(img, 2, 2); sx.globalCompositeOperation = "source-in"; sx.fillStyle = "#16130f"; sx.fillRect(0, 0, w, h);
+      for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) if (dx * dx + dy * dy <= 5) cx.drawImage(sil, dx, dy);
+      // ...then the picture on top.
+      cx.drawImage(img, 2, 2);
+      this.textures.addCanvas(key, cv);
+    }
+  }
   quiet = !location.search.includes("loud");
   whyIcons = new Map<string, Phaser.GameObjects.Image>();
   /** A chain Grozz set off, named like a TV graphic as it grows ("KEG → DRAYMAN GOES AFTER IT → …"). */
@@ -1923,12 +1951,13 @@ class StadiumScene extends Phaser.Scene {
         this.shadowG.fillStyle(0x000000, 0.3).fillEllipse(Math.round(P.sx(x, y)), Math.round(P.sy(x, y)), P.S * 0.6, P.S * 0.22);
         things.push({ d: onR ? 1e5 + y : y, draw: () => {}, spr: (dep) => {
           let im = this.worldSprites.get(`item-${id}`);
-          if (!im) { im = this.add.image(0, 0, `ico-${it.def}`); this.worldSprites.set(`item-${id}`, im); }
+          const ik = this.textures.exists(`icoW-${it.def}`) ? `icoW-${it.def}` : `ico-${it.def}`;
+          if (!im) { im = this.add.image(0, 0, ik); this.worldSprites.set(`item-${id}`, im); }
           this.worldSeen.add(`item-${id}`);
           const rolling = it.def === "keg" && s.stadium!.rolling?.some((r) => r.id === id);
           // The loose one teeters on the edge of the stack (a push-me, not a prompt) until a keg's been rolled.
           const teeter = it.def === "keg" && it.home && Math.abs(Math.abs(it.home.x) - 30.1) < 0.05 && !this.rules.has("post") && !s.stadium!.chain && Math.hypot(it.home.x - x, it.home.y - y) < 0.1;
-          im.setTexture(`ico-${it.def}`).setOrigin(0.5, 0.9).setScale(it.def === "keg" ? 0.75 : 0.5).setPosition(Math.round(P.sx(x, y)), Math.round(P.sy(x, y, z))).setDepth(dep).setVisible(true).setAlpha(1).setAngle(l.k === "air" ? (tick * 12) % 360 : rolling ? Math.sin(tick * 0.9) * 14 : teeter ? (tick % 120 < 50 ? Math.sin(tick * 0.5) * 9 : 0) : 0);
+          im.setTexture(ik).setOrigin(0.5, 0.9).setScale(it.def === "keg" ? 0.75 : 0.5).setPosition(Math.round(P.sx(x, y)), Math.round(P.sy(x, y, z))).setDepth(dep).setVisible(true).setAlpha(1).setAngle(l.k === "air" ? (tick * 12) % 360 : rolling ? Math.sin(tick * 0.9) * 14 : teeter ? (tick % 120 < 50 ? Math.sin(tick * 0.5) * 9 : 0) : 0);
         } });
         if (near && l.k === "ground") things.push({ d: y + 1e-4, draw: () => g.lineStyle(3, 0xf2c94c, 0.5 + 0.4 * Math.sin(tick * 0.15)).strokeCircle(P.sx(x, y), P.sy(x, y) - P.S * 0.2, P.S * 0.55) });
         continue;
@@ -2164,7 +2193,7 @@ class StadiumScene extends Phaser.Scene {
     for (const sgn of [-1, 1]) things.push({ d: PITCH.goalW / 2, draw: () => drawGoalFrame(g, P, sgn) });
 
     this.quietG.clear();
-    if (this.quiet) { const v = this.cameras.main.worldView; this.quietG.fillStyle(0x5f6166, 0.42).fillRect(v.x - 40, v.y - 40, v.width + 80, v.height + 80); }
+    // (No grey veil over the ground any more: the floors themselves are quieter; see ensureFloor.)
     // Up on a roof: the drop below dimmed, fading in and out.
     { const r = pc?.roof ? roofOf(pc) : undefined; this.roofDimK = Math.max(0, Math.min(1, this.roofDimK + (r ? 0.08 : -0.12)));
       if (r && this.roofDimK > 0) { const k = this.roofDimK; things.push({ d: 9e4, draw: () => this.roofView(g, r, k) }); } }
@@ -3130,11 +3159,23 @@ class StadiumScene extends Phaser.Scene {
       else sp.setTexture(`${key}-rot`, dirIndex(Math.atan2(lg.dy, lg.dx)));
     } else if (lg) this.lunge.delete(a.id);
     if (flashing) sp.setTint(0xffffff).setTintMode(Phaser.TintModes.FILL);
+    else if (this.recedes(a)) sp.setTint(a.seated ? 0x9ea3ad : 0xb4b8c0);
     if (a.seated) {
       // Only the top half shows over the seat in front.
       sp.setCrop(0, 0, CELL, 52);
       sp.setPosition(x, y + (FEET - 52) * scale * 0.8);
     } else { sp.setCrop(); sp.setPosition(x + lx, y + ly); }
+  }
+  /** Background crowd (the report: lower-detail silhouettes, compressed palette): an ordinary fan who's no
+   *  part of anything right now is drawn a touch darker and cooler, so the people who matter (Grozz, staff,
+   *  players, anyone near you, anyone up to something) carry the contrast. */
+  recedes(a: Actor): boolean {
+    if (!this.quiet || this.instinct || !a.npc || a.fb || a.off || a.dead || a.id === this.s.stadium!.pc) return false;
+    const n = a.npc, tick = this.s.tick;
+    if ((n.job !== "fan" && n.job !== "local") || n.shop || n.mode !== "routine") return false;
+    if ((n.whyUntil ?? 0) > tick || (n.bubble && n.bubble.until > tick) || a.downUntil > tick || a.hand && this.s.items[a.hand]?.def !== "pint") return false;
+    const pc = this.pc;
+    return !pc || Math.hypot(a.x - pc.x, a.y - pc.y) > 6;
   }
   knocked = new Set<string>();
   fellAt = new Map<string, number>();

@@ -1226,3 +1226,25 @@ The creator asked for, in order: touch item use, the action replay and tabloid c
 - **Keep it:** the match ball goes up his jumper (an item; Lionel gives £25 for it). They get another ball out, and a steward comes for it.
 - **Ignore it:** after 14 seconds the ballboy brings another, and he's kept it anyway.
 - **The point:** hoofing or keeping the ball is the touchline contraption. It's a reason to sit in the front row, and a way to pull the steward off his post when you want to get on the pitch.
+
+## Round: the report's art section, first three steps (size, background crowd, quiet ground)
+
+The report recommends "simplified grimy diorama pixel art": keep the pixel art and the British grime, but quieten the scenery, strengthen silhouettes, and save contrast for what matters. It sets three tiers: background, interactive, and currently relevant. No art was regenerated for this round.
+
+**1. Grozz's size on a phone.**
+- **The problem:** in landscape he was about 40 points tall. On a 2× phone he was 30. The report targets 80–110.
+- **What I tested:** 40, 60 and 80 points, in the pub yard and the stand. There's a `?gz=40|60|80` override for repeating the comparison.
+- **What I chose:** 60, the next whole-number zoom. At 80 you lose the stack, the lorry and the steward from the first frame. At 40 you can't read his pose, or what a steward's carrying.
+- **Orientation:** landscape phones now match bigger screens (32 points to the metre). Portrait keeps the wider view; at 60 points it would show only about 12 m across. The zoom button still steps in and out.
+
+**2. The background crowd recedes.**
+- **The filler crowd:** the atlas crowd that fills the stands is drawn darker and cooler.
+- **Ordinary fans and locals:** any who are no part of anything right now get a lighter version of the same tint. That means 6 m or more from Grozz, not talking, not up to something, not down, and holding nothing but a pint.
+- **Who keeps full contrast:** Grozz, staff, police, players, officials, shopkeepers, and anyone near you or busy. In the stand, the fans round you and Grozz himself now carry the picture.
+- **Instinct and `?loud`:** Instinct turns it off, and so does `?loud`.
+
+**3. Quiet ground, done properly.** The grey veil laid over the ground is gone. Each floor texture is quietened as it's built: a small wrap-around blur, mixed back with the original, with some contrast taken out and a slight darkening. The colour and the paving pattern survive; the speckle doesn't.
+
+**Outlines.** Things lying in the world (a pie, a brick, the kegs, the match ball) get a dark one-art-pixel outline, made at load from the icon. Fourteen of the fifty-five icons had no outline of their own, so a pie on the pavement read as a speck. Characters already have outlines from PixelLab. Scenery stays unoutlined, as the report says.
+
+**Not done yet:** reaction animations (double-take, point and wave, running with something). Those are the real art spend, starting with stewards.

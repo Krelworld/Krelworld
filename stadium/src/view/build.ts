@@ -191,6 +191,29 @@ export const FLOORS: Record<string, [string, number][]> = {
 export const TILE_FILES = [...new Set(Object.values(FLOORS).flatMap((l) => l.map(([k]) => k)))];
 
 /** A 256 px square of one floor, made of its tiles picked at random (so the repeat is 8 m, not 1 m). */
+/** Quiet ground (the report's background tier): the floor keeps its colour and its pattern, but loses
+ *  most of the speckle and some contrast, so people and props carry the eye. Off with ?loud. */
+let QUIET_FLOORS = true;
+export function setQuietFloors(on: boolean): void { QUIET_FLOORS = on; }
+function quietCanvas(cx: Ctx, w: number, h: number): void {
+  const img = cx.getImageData(0, 0, w, h), d = img.data, src = new Uint8ClampedArray(d), R = 2, n = (2 * R + 1) ** 2;
+  let mr = 0, mg = 0, mb = 0;
+  for (let i = 0; i < d.length; i += 4) { mr += d[i]; mg += d[i + 1]; mb += d[i + 2]; }
+  const px = d.length / 4; mr /= px; mg /= px; mb /= px;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    // A small box blur that wraps at the edges (the texture tiles), mixed back with the original.
+    let r = 0, g = 0, b = 0;
+    for (let dy = -R; dy <= R; dy++) for (let dx = -R; dx <= R; dx++) {
+      const j = ((((y + dy) % h) + h) % h * w + (((x + dx) % w) + w) % w) * 4;
+      r += src[j]; g += src[j + 1]; b += src[j + 2];
+    }
+    const i = (y * w + x) * 4, k = 0.6, c = 0.72, dark = 0.9;
+    const fr = src[i] * (1 - k) + (r / n) * k, fg = src[i + 1] * (1 - k) + (g / n) * k, fb = src[i + 2] * (1 - k) + (b / n) * k;
+    d[i] = (mr + (fr - mr) * c) * dark; d[i + 1] = (mg + (fg - mg) * c) * dark; d[i + 2] = (mb + (fb - mb) * c) * dark;
+  }
+  cx.putImageData(img, 0, 0);
+}
+
 export function ensureFloor(scene: Phaser.Scene, name: string): string | null {
   const key = `floor-${name}`;
   if (scene.textures.exists(key)) return key;
@@ -203,6 +226,7 @@ export function ensureFloor(scene: Phaser.Scene, name: string): string | null {
     for (const [kk, w] of set) { if ((pick -= w) < 0) { k = kk; break; } }
     cx.drawImage(scene.textures.get(`tile-${k}`).getSourceImage() as HTMLImageElement, tx * 32, ty * 32);
   }
+  if (QUIET_FLOORS) quietCanvas(cx, 256, 256);
   scene.textures.addCanvas(key, cv);
   return key;
 }

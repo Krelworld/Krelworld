@@ -9,6 +9,7 @@ import type { Option } from "./context";
 import { PACE, VENUE } from "./layout";
 import { draymanWatching } from "./beer";
 import { isSecurity } from "./security";
+import { schemeHint } from "./schemes";
 
 const mmss = (ticks: number) => { const s = Math.max(0, Math.ceil(ticks / 60)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; };
 const lorryOf = (w: World, cargo: string | undefined) => Object.values(w.state.stadium!.vehicles).find((v) => v.cargo === cargo);
@@ -31,6 +32,7 @@ export function whatItDoes(w: World, pc: Actor, o: Option): string {
       return "Out of sight till you climb out.";
     }
     case "unhide": { const v = lorryOf(w, pc.hiddenIn); return v && (v.state === "loading" || v.state === "parked") ? "It hasn't gone anywhere yet." : v && (v.state === "driving" || v.state === "gate") ? "It's still moving. You'll be seen." : ""; }
+    case "scheme": return schemeHint(a.arg);
     case "shove": return "The drayman will leave everything and go after it.";
     case "hose": return "The ground's kegs fill from the drain. It shows up inside, later.";
     case "rig": return ({ pigeons_w: "They go up over the queue. People duck into things.", pigeons_e: "They go up over the copper by the van.", barriers: "They all go over. A steward has to come out to them.", burger: "A bang. Everybody comes to look, and to eat.", board: "Any steward who reads it will stop work to moan." } as Record<string, string>)[a.arg ?? ""] ?? "";

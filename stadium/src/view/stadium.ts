@@ -47,6 +47,7 @@ import { RIG_IDS, RIGS, rigReady, type RigId } from "../stadium/rigs";
 import { RUMOURS, type RumourKind } from "../stadium/belief";
 import { hasBeerLine, hoseAt, hoseWatched } from "../stadium/beer";
 import { openFor, statusOf, whatItDoes, type Status } from "../stadium/outcomes";
+import { notebook, schemeThings } from "../stadium/schemes";
 import { EXTRAS, setExtras } from "../stadium/context";
 import { matchJob, type Job } from "../stadium/director";
 import { inDrag as inDragSim } from "../stadium/drag";
@@ -279,6 +280,7 @@ class StadiumScene extends Phaser.Scene {
       this.reactTo(e);
       this.rigEvent(e);
       this.machineEvent(e);
+      this.schemeEvent(e);
       if (this.pt) { const sa = e.type === "say" ? this.s.actors[e.by] : null; this.pt.event(e, this.s.stadium!.pc, !sa || !this.pc || Math.hypot(sa.x - this.pc.x, sa.y - this.pc.y) < 8); }
       if (e.type === "say" && e.by !== this.s.stadium!.pc) {
         // Only what is said close by, and only once.
@@ -1626,6 +1628,35 @@ class StadiumScene extends Phaser.Scene {
       t.setText(p.text).setOrigin(left ? 0 : 1, 0.5).setScale(px).setPosition(x + (left ? 15 : -15) * px, y).setVisible(true);
     });
   }
+  /** One line under the score, where the chain count goes. */
+  stripLine(mark: string, text: string, ms = 3600): void {
+    if (this.sceneOn) { setTimeout(() => this.stripLine(mark, text, ms), 2500); return; }
+    const el = $("chainStrap");
+    el.innerHTML = `<b>${esc(mark)}</b><span><i>${esc(text)}</i></span>`;
+    el.classList.remove("wide"); el.hidden = false; el.classList.remove("in"); void el.offsetWidth; el.classList.add("in");
+    clearTimeout(this.chainTimer); this.chainTimer = window.setTimeout(() => { el.hidden = true; }, ms);
+  }
+  /** An authored scheme's side of the screen: what Grozz mutters when he learns something, a tick when a
+   *  condition falls into place, and the payoff (the distant beats as cuts, the rest left in the world). */
+  schemeNew = 0;
+  schemeEvent(e: any): void {
+    switch (e.type) {
+      case "scheme_clue":
+        this.schemeNew++;
+        if (e.mutter && !this.sceneOn) this.pcLine = { text: e.mutter, until: performance.now() + 2600 };
+        this.audio.play("chime", 0.3, { rate: 1.35 });
+        break;
+      case "scheme_cond": if (e.on) { this.stripLine("✓", e.text); this.audio.play("chime", 0.5, { rate: 0.9 }); } break;
+      case "scheme_did": this.audio.play(e.what === "sent" ? "keg_roll" as Clip : "tap", 0.6); break;
+      case "scheme_play": {
+        const cuts = (e.beats as { ms: number; cut: boolean; caption: string; x: number; y: number }[]).filter((b) => b.cut);
+        if (cuts.length) { if (this.speed > 1) this.setSpeed(1); this.playScene(cuts.map((b) => ({ ms: b.ms, focus: { x: b.x, y: b.y }, caption: b.caption, zoomAdd: 0 }))); }
+        break;
+      }
+      case "scheme_line": this.pcLine = { text: e.text, until: performance.now() + 2600 }; break;
+      case "scheme_news": this.stripLine("NEWS", e.text, 6000); if (e.clip) this.audio.play(e.clip as Clip, 0.9); break;
+    }
+  }
   /** In or doing something that isn't obvious (stowed in the lorry, the coach hold, the hamper, a bin, a
    *  queue): one strip that says what's happening, where it's going and when, with a button to let time run. */
   stripOn = "";
@@ -1645,6 +1676,7 @@ class StadiumScene extends Phaser.Scene {
    *  shown as you come up to one (the button's own line takes over once you're at the back of it). And how
    *  long a gate you've got open stays open, on the gate. */
   boards: Phaser.GameObjects.Text[] = [];
+  schemeG?: Phaser.GameObjects.Graphics;
   drawBoards(): void {
     const s = this.s, st = s.stadium!, pc = this.pc, P = this.P, tick = s.tick, px = DPR / this.cameras.main.zoom;
     const out: { x: number; y: number; z: number; text: string; col: string }[] = [];
@@ -1663,6 +1695,21 @@ class StadiumScene extends Phaser.Scene {
       if (Math.hypot(x - pc.x, y - pc.y) > 12) continue;
       out.push({ x, y, z: 2.5, text: `OPEN ${mm(g.secs * 60)}`, col: "#b8f28a" });
     }
+    // What a scheme has put in the world: its board when you're near, a bow, a tankard hung on it.
+    if (!this.schemeG) this.schemeG = this.add.graphics().setDepth(9.3e6);
+    const sg = this.schemeG.clear(), u = P.S / 32;
+    if (pc) for (const th of schemeThings(this.w)) {
+      const x = P.sx(th.x, th.y), y = P.sy(th.x, th.y, 0.95);
+      if (th.bow) {
+        sg.fillStyle(0x15171a, 1).fillTriangle(x - 8 * u, y - 6 * u, x - 8 * u, y + 6 * u, x + 1 * u, y).fillTriangle(x + 8 * u, y - 6 * u, x + 8 * u, y + 6 * u, x - 1 * u, y);
+        sg.fillStyle(0xc8102e, 1).fillTriangle(x - 7 * u, y - 4.5 * u, x - 7 * u, y + 4.5 * u, x, y).fillStyle(0x1f8a4c, 1).fillTriangle(x + 7 * u, y - 4.5 * u, x + 7 * u, y + 4.5 * u, x, y);
+        sg.fillStyle(0xf2c94c, 1).fillCircle(x, y, 2.2 * u);
+      }
+      if (th.cup) { const cx = x + 9 * u, cy = y + 7 * u; sg.fillStyle(0x15171a, 1).fillRect(cx - 4 * u, cy - 5 * u, 9 * u, 11 * u); sg.fillStyle(0xc9ced6, 1).fillRect(cx - 3 * u, cy - 4 * u, 6 * u, 9 * u); sg.lineStyle(1.6 * u, 0xc9ced6, 1).strokeCircle(cx + 4.5 * u, cy, 2.6 * u); sg.fillStyle(0xffffff, 0.8).fillRect(cx - 2 * u, cy - 3 * u, 1.5 * u, 5 * u); }
+      if (th.board && !pc.hiddenIn && !this.cine && Math.hypot(th.x - pc.x, th.y - pc.y) < 9) out.push({ x: th.x, y: th.y, z: th.z ?? 1.6, text: th.board, col: "#f2c94c" });
+    }
+    // One at a time: the nearest to Grozz (two boards and a speech bubble in one yard is a wall of text).
+    if (pc) out.sort((p1, p2) => Math.hypot(p1.x - pc.x, p1.y - pc.y) - Math.hypot(p2.x - pc.x, p2.y - pc.y)).splice(1);
     out.slice(0, 4).forEach((o, i) => {
       let t = this.boards[i];
       if (!t) { t = this.add.text(0, 0, "", { fontFamily: "system-ui, sans-serif", fontStyle: "bold", fontSize: "11px", color: "#f2c94c", backgroundColor: "#0b0c10e0", padding: { x: 5, y: 3 } }).setOrigin(0.5, 1).setDepth(9.4e6).setResolution(2); this.boards[i] = t; }
@@ -2707,6 +2754,8 @@ class StadiumScene extends Phaser.Scene {
       }
       // A local inspector, not a blueprint: what's round you, and only the relationships you've seen at work.
       const marks = instinctMarks(this.w).filter((mk) => Math.hypot(mk.x - pc.x, mk.y - pc.y) < 20);
+      // What he's learnt about a scheme's things, and nothing he hasn't.
+      for (const th of schemeThings(this.w)) if (th.mark && Math.hypot(th.x - pc.x, th.y - pc.y) < 20) marks.push({ x: th.x, y: th.y, col: 0xf2c94c, label: th.mark, z: th.z ?? 1.6 });
       // Once you know people leave their post to fix a problem: the nearest two stood at one.
       if (this.rules.has("post")) {
         const posted = Object.values(s.actors).filter((a) => a.npc?.post && a.npc.mode === "routine" && !a.dead && !a.hiddenIn && Math.hypot(a.x - pc.x, a.y - pc.y) < 18 && Math.hypot(a.x - a.npc.post.x, a.y - a.npc.post.y) < 2)
@@ -2782,13 +2831,16 @@ class StadiumScene extends Phaser.Scene {
     // and Animal Crossing show the rest as a little "..."): anyone talking to you or near you,
     // security, and anything useful (a lead, a fix). Of the background chatter, only the nearest
     // one line at a time; everyone else chatting gets a chat dot.
-    const speaking = Object.values(s.actors).filter((a) => a.npc?.bubble && !a.hiddenIn && onScreen(a.x, a.y)).sort((p, q) => near0(p) - near0(q));
+    // (In a cut, nearest to what the camera's on, and only what's being said now.)
+    const cut = this.cine?.focus;
+    const nearC = (a: Actor) => (cut ? Math.hypot(a.x - cut.x, a.y - cut.y) : near0(a));
+    const speaking = Object.values(s.actors).filter((a) => a.npc?.bubble && !a.hiddenIn && onScreen(a.x, a.y) && (!cut || a.npc.bubble.until > s.tick)).sort((p, q) => nearC(p) - nearC(q));
     const talkingTo = this.talkedTo && performance.now() - this.talkedTo.at < 12000 ? this.talkedTo.id : null;
     // A text budget: tips only count when said near you; the first ten seconds belong to the drayman
     // and his keg; and never more than two other people's lines on screen at once (one while Grozz talks).
     const opening = s.tick < 60 * 10;
     const beatIds = this.beatRel && performance.now() < this.beatRel.until ? this.beatRel.ids : [];
-    const matters = (a: Actor) => opening ? (a.npc!.job === "worker" || beatIds.includes(a.id)) : a.id === talkingTo || (a.npc!.mode !== "routine" && a.npc!.mode !== "flee") || (isHint(a.npc!.bubble!.text) && near0(a) < 8) || !!st.snitches?.some((x) => x.by === a.id) || ((a.npc!.whyUntil ?? 0) > s.tick && !!a.npc!.why) || ((a.npc!.causeUntil ?? 0) > s.tick && !!a.npc!.cause && near0(a) < 14) || beatIds.includes(a.id);
+    const matters = (a: Actor) => (((a.npc!.told ?? 0) > s.tick || (a.npc!.staged ?? 0) > s.tick) && a.npc!.bubble!.until > s.tick) || (opening ? (a.npc!.job === "worker" || beatIds.includes(a.id)) : a.id === talkingTo || (a.npc!.mode !== "routine" && a.npc!.mode !== "flee") || (isHint(a.npc!.bubble!.text) && near0(a) < 8) || !!st.snitches?.some((x) => x.by === a.id) || ((a.npc!.whyUntil ?? 0) > s.tick && !!a.npc!.why) || ((a.npc!.causeUntil ?? 0) > s.tick && !!a.npc!.cause && near0(a) < 14) || beatIds.includes(a.id));
     const key = speaking.filter(matters), chatter = speaking.filter((a) => !matters(a));
     // Background chatter never gets a full bubble (it was most of the text on screen and none of it
     // mattered): the nearest two or three get a chat dot, and that's all.
@@ -3098,7 +3150,9 @@ class StadiumScene extends Phaser.Scene {
     }
 
     // The ground from outside: a roofed ring of stands behind a clad facade, the turnstiles let into it.
-    const ins = !!pc && !pc.roof && (VENUE.inside(pc.x, pc.y) || !!pc.seated) && !pc.hiddenIn;
+    // (A cut to somewhere inside the ground takes the roof off too.)
+    const cf = this.cine?.focus;
+    const ins = (!!pc && !pc.roof && (VENUE.inside(pc.x, pc.y) || !!pc.seated) && !pc.hiddenIn) || (!!cf && VENUE.inside(cf.x, cf.y));
     const H = 9;
     const gx0 = VENUE.id !== "sf" ? -57 : -56.5, gx1 = VENUE.id !== "sf" ? 56.5 : 57;
     const blocks = [
@@ -4086,7 +4140,7 @@ class StadiumScene extends Phaser.Scene {
       $("moreBtn").style.visibility = this.ring ? "hidden" : "";
       act.textContent = p ? shortLabel(p) : "";
       // What it'll do, in a line, right over it. (Nothing when the button's own words say it all.)
-      { const hEl = $("actHint"), ht = p && !this.ring && !fighting && !st.custody ? whatItDoes(this.w, pc, p) : ""; if (hEl.textContent !== ht) hEl.textContent = ht; hEl.hidden = !ht; }
+      { const hEl = $("actHint"), ht = p && !this.ring && !fighting && !st.custody && !this.cine ? whatItDoes(this.w, pc, p) : ""; if (hEl.textContent !== ht) hEl.textContent = ht; hEl.hidden = !ht; }
       this.primaryAt = p ? this.optionSpot(p) : null;
       const thr = $("throw");
       const ta = (this as any).throwAt as Actor | null;
@@ -5379,7 +5433,7 @@ class StadiumScene extends Phaser.Scene {
   }
   openMenu() {
     const cps = this.game2.checkpoints;
-    this.sheet("menu", `<h2>Paused</h2><p>Go back to a checkpoint. Everything since then is undone, and the match will not play out the same way.</p>
+    this.sheet("menu", `${notebook(this.w).map((n) => `<h2>${esc(n.title)}</h2><div class="log scheme">${n.lines.map((l) => `<p class="${l.ok ? "ok" : "q"}"><b>${l.ok ? "✓" : "?"}</b> ${esc(l.text)}</p>`).join("")}</div>`).join("")}<h2>Paused</h2><p>Go back to a checkpoint. Everything since then is undone, and the match will not play out the same way.</p>
       <div class="list">${cps.map((c) => `<button data-cp="${c.id}">${esc(c.label)}</button>`).join("")}${this.s.match!.phase === "break" && this.s.match!.period === 1 && !cps.some((c) => c.id === "halftime") ? `<button data-keepht="1" class="primary">Keep a save here (half-time)</button>` : ""}${this.pt ? `<button data-pt="1" class="primary">Playtest report</button>` : ""}<button data-new="1">Start a new match day</button><button data-mute="1">${this.audio.muted ? "Sound: off" : "Sound: on"}</button><button data-mini="1">Mini-games: ${this.miniOn ? "on" : "off"}</button><button data-buzz="1">Vibration: ${this.buzzOn ? "on" : "off"}</button><button data-lefty="1">Buttons: ${document.body.classList.contains("lefty") ? "left hand" : "right hand"}</button><button data-zoom="1">Zoom: ${esc(this.zoomLabel())}</button>${EXTRAS ? `<button data-fp="1">${this.fp.on ? "Back to the overhead view" : "First-person view"}</button>` : ""}<button data-extras="1">Extras (driving, first-person): ${EXTRAS ? "on" : "off"}</button></div>
       <h2>Your notes</h2><div class="log">${[...this.rules].map((r) => `<p><b>Rule</b> ${esc(r === "post" ? "People leave their post to fix a problem." : r === "food" ? "Ronson goes for food." : r)}</p>`).join("")}${CURIOS.filter((c) => this.curios.has(c.id)).map((c) => `<p><b>Idea</b> ${esc(c.text)}</p>`).join("") || (this.rules.size ? "" : "<p>Nothing yet. Have a look round.</p>")}</div>
       <h2>Fixes (${fixesDone(this.w)}/${FIXES.length})</h2><div class="log">${this.fixesHtml()}</div>

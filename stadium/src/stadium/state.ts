@@ -50,6 +50,10 @@ export interface Npc {
   heardR?: number[];
   /** Stays at his post rather than walking a round (the copper on the van). */
   stay?: boolean;
+  /** Stood in place for a scheme's scene until this tick. */
+  staged?: number;
+  /** What he's just said is part of a scheme: it gets a proper bubble until this tick. */
+  told?: number;
   /** Standing about with others: the middle of the group, and what they're doing (chat, drink, smoke, cheer, idle). */
   group?: { x: number; y: number };
   act?: "chat" | "drink" | "smoke" | "cheer" | "idle";
@@ -174,6 +178,8 @@ export interface StadiumState {
   causes?: import("./cause").Cause[]; causeSeq?: number;
   rumours?: import("./belief").Rumour[];
   beer?: import("./beer").Beer;
+  /** Authored schemes: what's been learnt, what's arranged, what's playing. */
+  schemes?: Record<string, import("./schemes").SchemeState>;
   loos?: import("./social").Loo[];
   stims?: import("./machine").Stim[]; problems?: import("./machine").Problem[]; machineSeq?: number;
   /** Held by security (the game's detention): time passes, then he's let out. */

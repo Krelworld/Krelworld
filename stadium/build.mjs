@@ -93,3 +93,14 @@ writeFileSync("dist/arttest/local.html", '<!doctype html><html><head><meta chars
 cpSync("assets/audio", "dist/arttest/audio", { recursive: true });
 cpSync("assets/art", "dist/arttest/art", { recursive: true });
 console.log("built dist/arttest");
+
+// The separate look test (a 3D miniature of the pub yard; no game in it), published beside the game at vistest/.
+{
+  const { existsSync, cpSync } = await import("node:fs");
+  const { execFileSync } = await import("node:child_process");
+  if (existsSync("tools/build-vistest.mjs")) {
+    execFileSync("node", ["tools/build-vistest.mjs"], { stdio: "inherit" });
+    cpSync("vistest/dist", "dist/stadium/vistest", { recursive: true });
+    console.log("copied vistest");
+  }
+}

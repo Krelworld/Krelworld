@@ -312,6 +312,8 @@ function routine(w: World, a: Actor): void {
 function teamWalk(w: World, a: Actor): void {
   const s = w.state, m = s.match!, n = a.npc!, st = s.stadium!;
   if (m.cfg.venue !== true || (m.phase !== "pre" && m.phase !== "break")) { n.goal = null; n.path = []; return; }
+  // Stood somewhere for a scene (a scheme's payoff): he stays put till it's over.
+  if ((n.staged ?? 0) > s.tick) { if (a.fb) { a.fb.tx = a.x; a.fb.ty = a.y; a.fb.sprint = false; } a.moveX = a.moveY = 0; return; }
   // The away team come by bus: wait at the hotel, then board when it's time.
   const bus = st.vehicles.bus;
   if (a.fb?.team === 1 && m.phase === "pre" && bus && !st.flags.busArrived && !st.flags.awayOnFoot && !bus.crashed && !bus.drivenBy) {

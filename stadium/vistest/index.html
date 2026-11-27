@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Knockout Day: 3D miniature test</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #14161b; overflow: hidden; overscroll-behavior: none; }
+  body { position: fixed; inset: 0; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+  #c { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+  /* Vignette, and a breath of haze along the top: both free, both just CSS over the canvas. */
+  #vig { position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(ellipse 85% 75% at 50% 50%, rgba(8,10,16,0) 52%, rgba(8,10,16,0.34) 86%, rgba(8,10,16,0.56) 100%),
+                linear-gradient(to bottom, rgba(154,165,171,0.22) 0%, rgba(154,165,171,0) 12%),
+                linear-gradient(to top, rgba(8,10,16,0.34) 0%, rgba(8,10,16,0) 16%); }
+  #hud { position: absolute; top: max(6px, env(safe-area-inset-top)); right: max(6px, env(safe-area-inset-right)); pointer-events: none; display: none;
+    font: 10px/1.2 ui-monospace, Menlo, Consolas, monospace; color: #e8f0e0; background: rgba(0,0,0,0.55); padding: 3px 5px; border-radius: 3px; white-space: nowrap; }
+  #stick { position: absolute; left: 26px; bottom: 34px; width: 112px; height: 112px; border-radius: 50%; pointer-events: none; opacity: 0.4;
+    border: 2px solid rgba(240,236,220,0.5); background: rgba(10,12,16,0.18); box-sizing: border-box; transition: opacity 0.15s; }
+  #knob { position: absolute; left: 50%; top: 50%; width: 46px; height: 46px; margin: -23px 0 0 -23px; border-radius: 50%; background: rgba(240,236,220,0.5); border: 2px solid rgba(20,22,28,0.5); box-sizing: border-box; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="vig"></div>
+<div id="stick"><div id="knob"></div></div>
+<div id="hud"></div>
+<script src="app.js"></script>
+</body>
+</html>

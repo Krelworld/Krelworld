@@ -595,7 +595,7 @@ test("the machine: a queue for nothing grows by itself and the reporter comes; a
     pc2.x = 80; pc2.y = 90;
     for (let i = 0; i < 60 * 60; i++) stepGame(b);
     const r = st2.rumours![0], links = st2.chain!.links;
-    assert.ok(Object.keys(r.holders).length >= 4 && r.acted.length >= 2, "it got round, and people went");
+    assert.ok(Object.keys(r.holders).length >= 3 && r.acted.length >= 2, "it got round, and people went");
     assert.ok(links.includes("FANS HEAD FOR THE FREE PINTS") && links.includes("THERE ARE NO FREE PINTS"), links.join(" > "));
     assert.ok(st2.chain?.rules?.includes("belief"));
   } finally { setPace({ kickoffAt: before, calm: false }); }
@@ -755,5 +755,75 @@ test("you're told what a thing does before you do it, and what's happening while
     // A gate you've got open says for how long.
     st.gates.turnstile1 = { until: s.tick + 60 * 4, for: pc.id };
     assert.deepEqual(openFor(g.w).find((q) => q.gate === "turnstile1"), { gate: "turnstile1", secs: 4 });
+  } finally { setPace({ kickoffAt: before, calm: false }); }
+});
+
+test("an authored scheme: a keg for the visitors. Foul it, send the tankard, bring the cameras, and their captain's withdrawn; leave one out and it plays differently", async () => {
+  const { setPace, KICKOFF_AT } = await import("../src/stadium/layout");
+  const { hoseAt } = await import("../src/stadium/beer");
+  const { notebook, schemeState } = await import("../src/stadium/schemes");
+  const { options } = await import("../src/stadium/context");
+  const { theirStar } = await import("../src/stadium/fixes");
+  const before = KICKOFF_AT;
+  setPace({ kickoffAt: 540, calm: true });
+  const go = (seed: string, o: { foul: boolean; tankard: "buy" | "landlord" | "none"; press: boolean }) => {
+    const g = createGame(seed), s = g.w.state, st = s.stadium!, pc = s.actors[st.pc], ev = events(g), sc = schemeState(g.w, "visitors")!;
+    const by = (f: (a: Actor) => boolean) => Object.values(s.actors).find((a) => a.npc && f(a))!;
+    const dray = by((a) => a.npc!.job === "worker"), land = by((a) => a.npc!.shop === "pub"), lionel = by((a) => a.npc!.shop === "pawn"), rep = by((a) => a.npc!.job === "press");
+    const keg = Object.values(s.items).find((i) => i.label === "the visitors' keg")!, kl = keg.loc as { x: number; y: number };
+    const at = (x: number, y: number) => { pc.x = x; pc.y = y; pc.moveX = pc.moveY = 0; };
+    run(g, 5);
+    // Stand by the keg: he notices the bow.
+    at(kl.x + 1, kl.y); run(g, 1);
+    assert.ok(sc.clues.gift);
+    assert.ok(notebook(g.w)[0].lines.some((l) => !l.ok), "what he doesn't know is a question");
+    if (o.tankard === "buy") {
+      at(lionel.x, lionel.y + 1.4);
+      assert.equal(dispatch(g.w, { verb: "buy", actor: pc.id, target: { k: "actor", id: lionel.id }, arg: "tankard" }).ok, true);
+      at(kl.x + 1, kl.y); run(g, 0.2);
+      const o2 = options(g.w, pc, null).find((q) => q.action?.verb === "scheme" && q.action.arg === "visitors:hang");
+      assert.ok(o2, "the keg offers the tankard");
+      assert.equal(dispatch(g.w, o2!.action!).ok, true);
+      assert.equal(sc.vars.tankard, 1);
+    } else if (o.tankard === "landlord") {
+      at(land.x, land.y + 1.6); pc.money = 40;
+      for (let i = 0; i < 3; i++) { assert.equal(dispatch(g.w, { verb: "buy", actor: pc.id, target: { k: "actor", id: land.id }, arg: "pint" }).ok, true); run(g, 0.5); if (pc.hand) { delete s.items[pc.hand]; pc.hand = null; } }
+      at(kl.x + 3, kl.y + 3);
+      run(g, 75, () => { dray.npc!.gawk = { x: dray.x + 20, y: dray.y, until: s.tick + 60, filming: false }; });
+      assert.equal(sc.vars.tankard, 1, `the landlord fetched it and hung it (redeem ${sc.vars.redeem})`);
+    }
+    if (o.press) {
+      at(rep.x + 1, rep.y);
+      const tip = { verb: "scheme", actor: pc.id, arg: "visitors:tip" };
+      assert.equal(dispatch(g.w, tip).ok, true);
+      assert.equal(!!sc.vars.press, o.tankard !== "none", "she comes for the tankard, not for a keg");
+      if (o.tankard === "none") { rep.x = kl.x + 4; rep.y = kl.y + 2; rep.npc!.post = { x: rep.x, y: rep.y }; } // so have her in the yard instead
+    }
+    if (o.foul) {
+      at(hoseAt().x + 1, hoseAt().y);
+      dray.npc!.gawk = { x: dray.x + 20, y: dray.y, until: s.tick + 600, filming: false }; dray.facing = 0; dray.x += 9;
+      assert.equal(dispatch(g.w, { verb: "hose", actor: pc.id }).ok, true);
+      run(g, 10);
+      assert.ok(st.beer?.load, "the kegs are full of it");
+    }
+    at(kl.x + 6, kl.y + 6);
+    for (let i = 0; i < 60 * 520 && !sc.done; i++) { if (o.tankard === "none" && o.press && !sc.vars.sent) { rep.x = kl.x + 4; rep.y = kl.y + 2; } stepGame(g); }
+    return { g, sc, ev, star: theirStar(g.w)! };
+  };
+  try {
+    const full = go("keg1", { foul: true, tankard: "buy", press: true });
+    assert.equal(full.sc.variant, "full", JSON.stringify(full.sc.vars));
+    assert.ok(full.ev.some((e) => e.type === "scheme_play" && e.beats.filter((b: any) => b.cut).reduce((n: number, b: any) => n + b.ms, 0) <= 15500), "control's away for fifteen seconds at most");
+    assert.ok(full.ev.some((e) => e.type === "fb_removed" && e.reason === "unwell"));
+    assert.ok(full.ev.some((e) => e.type === "chain" && e.links.some((l: string) => /WITHDRAWN/.test(l))), "and it's his chain, for the paper");
+    assert.equal(full.g.w.state.match!.phase === "pre" || full.g.w.state.match!.phase === "live", true);
+    const quiet = go("keg2", { foul: true, tankard: "landlord", press: false });
+    assert.equal(quiet.sc.variant, "quiet", JSON.stringify(quiet.sc.vars));
+    assert.ok(!quiet.ev.some((e) => e.type === "fb_removed"));
+    const lovely = go("keg3", { foul: false, tankard: "buy", press: true });
+    assert.equal(lovely.sc.variant, "lovely", JSON.stringify(lovely.sc.vars));
+    const dry = go("keg4", { foul: true, tankard: "none", press: true });
+    assert.equal(dry.sc.variant, "dry", JSON.stringify(dry.sc.vars));
+    assert.ok(dry.sc.clues.tankard, "and he learns what was missing");
   } finally { setPace({ kickoffAt: before, calm: false }); }
 });

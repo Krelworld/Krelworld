@@ -12,6 +12,8 @@ cp dist/stadium/local.html "$SITE/index.html"
 cp dist/stadium/game.js "$SITE/"
 # The assets as three bundles plus an index: one download with a progress bar.
 cp -r dist/stadium/packs "$SITE/packs"
+# The separate look test (the 3D miniature of the pub yard), if it's been built.
+[ -d dist/stadium/vistest ] && cp -r dist/stadium/vistest "$SITE/vistest"
 touch "$SITE/.nojekyll"
 cat > "$REPO/README.md" <<'MD'
 # Knockout Day

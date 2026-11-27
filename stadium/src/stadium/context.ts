@@ -1,5 +1,6 @@
 // What the player could do right now, given where he is and what he holds.
 // The view shows the best one on the action button and the rest in a list.
+import { schemeOptions } from "./schemes";
 import { autoWeapon, can } from "./affordances";
 import { alarmPointNear } from "./kickoff";
 import { sharpInHand } from "./knife";
@@ -111,6 +112,8 @@ export function options(w: World, pc: Actor, picked?: string | null): Option[] {
   // The forecourt contraptions: one tap, and off it goes.
   { const rg = !pc.seated && !pc.roof ? rigNear(w, pc) : undefined; if (rg) push(RIGS[rg].label, 78, { verb: "rig", ...base, arg: rg }); }
 
+  // What an authored scheme adds, just here.
+  if (!pc.seated) for (const o of schemeOptions(w, pc)) push(o.label, o.priority, { verb: "scheme", ...base, arg: o.arg });
   // The drayman's filling hose, and the drain beside it.
   if (hasBeerLine() && !pc.seated && (s.stadium!.beer?.hose ?? "lorry") === "lorry" && Math.hypot(hoseAt().x - pc.x, hoseAt().y - pc.y) < 2.2) push("Hose into the drain", 77, { verb: "hose", ...base });
   // The chief's form, while you're being held.

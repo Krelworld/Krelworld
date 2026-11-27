@@ -1806,3 +1806,46 @@ One rule, in one file (`src/stadium/outcomes.ts`), read-only over the sim:
 
 Kept quiet on purpose (the noise complaint stands): one line per button, one strip, at most four boards, all
 of them only when near; the carried-item reminder was cut because the pick-up line already says it.
+
+## Round: Option D, the authored convergent sandbox (27 Nov, night)
+
+The brief (*Option D: The Authored Domino Sandbox*): stop hoping the big match-changing sequences emerge from
+shared rules colliding; keep the world a place with a few cheap rules, and write the big sequences down as
+schemes the player discovers and assembles. "The player must discover what consequences the designer has
+made possible."
+
+**What the repository looked like going in** (the brief asks for this before any structural change):
+- Shared rules, all live and tested: custody, obligation, attraction, attention (`machine.ts`), plus the
+  later belief (`belief.ts`), process state (`beer.ts`) and the social set (`social.ts`: grievance, need,
+  capacity, authority, recognition). A cause graph (`cause.ts`) feeds the chain count, the replay and the paper.
+- Authored bits were scattered: rigs, lulls, kegs, the hotel luggage, scenarios, each with its own flags.
+  Nothing said "these three things together make that happen".
+- Football is already behind an API (`football/api.ts`); detention is a playable room; Cash Kings keeps
+  what it's sold and its till; ladders, roofs, the medical room and the stretcher all exist.
+- Free driving and first person are behind the Extras switch and stay there.
+
+**Decisions**
+1. **The rule vocabulary is frozen.** No new shared rule until a need for it has shown up in three schemes.
+   A state that matters to one scheme is that scheme's own variable.
+2. **Schemes are declared, not scattered** (`schemes.ts`): clues (what Grozz can find out), conditions (what
+   can be arranged, each a test over ordinary world state, most with more than one way to make them true),
+   actions the scheme adds, a step for its people's routines and its clock, and variants: one payoff per
+   combination of conditions, each a list of beats. The engine tracks what's learnt and what holds, runs the
+   beats on the sim's clock, and joins them to the cause graph so the paper credits Grozz.
+3. **Football through one doorway** (`matchfx.ts`): withdraw a player, dose him, lift him, halt play. Schemes
+   never script a goal or a result.
+4. **The notebook and Instinct show what he's learnt, never the answer.** An unknown link is a question
+   ("What do they drink it from?"), not an arrow.
+5. **Cuts only for what's far away, fifteen seconds at most**, skippable; everything else happens in the world.
+6. **The first scheme, in the slice the brief names (pub, yard, Cash Kings): A KEG FOR THE VISITORS.** The pub
+   sends the visiting team a keg with a bow on. What's in it (the hose down the drain while the drayman's off
+   it), the '66 tankard (buy it from Lionel, send it on a later run, or drink enough that the landlord can
+   redeem it himself: money stays in the world) and the cameras (the reporter wants something shiny before
+   she'll come, or just have her in the yard when it leaves) are counted when the team arrive. All three:
+   their captain toasts on camera and is withdrawn "unwell", two more follow in the first half. Tankard but
+   no cameras: he passes it to Rui. No tankard: it goes undrunk (and Grozz learns why). Clean beer: the
+   captain's never felt better. Nothing: a keg is a keg. No outcome is a dead end.
+7. **Art and engine are not decided here.** A separate, logic-free 3D miniature of the same yard is being
+   built to compare on a phone, as the brief asks; the game stays in Phaser unless that clearly wins.
+
+Deferred, as the brief says: free driving, first person, notoriety, more stadiums, any universal ontology.

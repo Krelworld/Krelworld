@@ -16,6 +16,7 @@ export const ITEM_TIPS: Record<string, string> = {
   knife: "Serious. Their bus tyres, or worse. Everyone remembers a knife.",
   whistle: "Blow it on the pitch and see who listens.",
   ticket: "Show it at the turnstiles. The honest way in.",
+  tankard: "The visitors' first pint is drunk from this. Hang it on their keg.",
   bicycle: "Faster than walking. Leave it and anyone can have it.",
   wallet: "Somebody's. There's cash in it.",
   laxative: "In a drink, a pie, or the ref's tea. Then wait.",

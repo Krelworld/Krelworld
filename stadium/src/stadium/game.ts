@@ -34,6 +34,8 @@ import { installRigs, stepRigs } from "./rigs";
 import { installMachine, installMachineVerbs, stepMachine } from "./machine";
 import { installBelief, stepBelief } from "./belief";
 import { installBeer, installBeerWatch, stepBeer } from "./beer";
+import { initSchemes, installSchemes, stepSchemes } from "./schemes";
+import { installVisitors } from "./scheme_visitors";
 import { installSocial, installSocialWatch, stepSocial } from "./social";
 import { installBallOut, installBallWatch, stepBallOut } from "./ballout";
 import { spawnBootBag, stepBootBag } from "./bootbag";
@@ -69,7 +71,7 @@ export const HALF_SECONDS = 450;
 export const HALFTIME_SECONDS = 150;
 
 export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: Campaign = newCampaign()): Game {
-  if (!rulesInstalled) { installRules(); installBetting(); installPolice(); installBus(); installDog(); installKickoff(); installKnife(); installGloryHole(); installCombat(); installHorse(); installRoutes(); installEntries(); installDetector(); installCoverup(); installBike(); installLech(); installCars(); installWitness(); installPhone(); installNaked(); installRoofs(); installKegs(); installRigs(); installMachineVerbs(); installBelief(); installBeer(); installSocial(); installCustody(); installBallOut(); installCoke(); rulesInstalled = true; }
+  if (!rulesInstalled) { installSchemes(); installVisitors(); installRules(); installBetting(); installPolice(); installBus(); installDog(); installKickoff(); installKnife(); installGloryHole(); installCombat(); installHorse(); installRoutes(); installEntries(); installDetector(); installCoverup(); installBike(); installLech(); installCars(); installWitness(); installPhone(); installNaked(); installRoofs(); installKegs(); installRigs(); installMachineVerbs(); installBelief(); installBeer(); installSocial(); installCustody(); installBallOut(); installCoke(); rulesInstalled = true; }
   setVenue(venueId);
   const oppKey = VENUE.opp;
   const opp = TEAMS[oppKey];
@@ -239,6 +241,7 @@ export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: 
   installLulls(w);
   installMachine(w);
   installBeerWatch(w);
+  initSchemes(w);
   installSocialWatch(w);
   installMissiles(w);
   installFixes(w);
@@ -408,6 +411,7 @@ export function stepGame(g: Game): void {
   stepMachine(w);
   stepBelief(w);
   stepBeer(w);
+  stepSchemes(w);
   stepSocial(w);
   stepPawnSeek(w);
   stepPawnBack(w);

@@ -409,7 +409,9 @@ function checkpoints(g: Game): void {
     saveCheckpoint(g, "admission", "Inside the ground");
   }
   if (m.phase === "restart" && m.period === 1 && !g.checkpoints.some((c) => c.id === "kickoff") && m.restart?.type === "kickoff") saveCheckpoint(g, "kickoff", "Kick-off");
-  if (m.phase === "break" && m.period === 1 && !g.checkpoints.some((c) => c.id === "halftime")) saveCheckpoint(g, "halftime", "Half-time");
+  // Half-time isn't saved by itself in the game (it might be a disaster you'd be stuck with); the menu
+  // offers to keep it. The tests keep the old automatic save.
+  if (!PACE.calm && m.phase === "break" && m.period === 1 && !g.checkpoints.some((c) => c.id === "halftime")) saveCheckpoint(g, "halftime", "Half-time");
 }
 
 function endings(g: Game): void {

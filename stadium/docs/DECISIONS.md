@@ -1399,3 +1399,29 @@ I did these:
 - **Planting and grassing:**
   - **The existing part:** plant it on someone and report them to a copper, and the copper goes and turns their pockets out. A footballer is taken off at the next stoppage, a steward is taken aside to the van, and a random is marched off.
   - **New:** the turning-out draws a crowd. Up to three stewards and coppers nearby leave their posts to come and watch for about fifteen seconds. The chain reads "GRASSED UP TO THE OLD BILL → COPPER TURNS HIS POCKETS OUT → THE STEWARDS COME TO WATCH (→ NICKED FOR SOMETHING HE NEVER HAD)". It's the same rule as everything else: give them a show, and they leave their post.
+
+## Round: the rhythm principle (exploration and payoff keep moving)
+
+The creator: "the mix between exploration and payoff should keep moving. Not too much dead period and aimless wandering." How I'm applying it:
+
+**1. The mischief director** (`lulls.ts`; Left 4 Dead's AI director, but for comedy). It watches how long it's been since something paid off. Payoffs are a chain, someone leaving their post, someone going over, the ball, a theft, a line, a tip-off or a goal.
+- **What it does:** after 45 seconds of nothing (not while you're sat watching the match, held, hiding or detained), it starts a small beat near you, 3 to 13 metres away, built from systems that already run:
+  - **The pint:** a fan puts his pint down ("Mind my pint, I'm bursting.") and goes for a slash. When he's back:
+    - if it's still there, "Cheers, lads";
+    - if it's in your hand, he comes for you;
+    - if someone else is near it, he blames the wrong bloke, there's a row, and a steward comes to break it up.
+    - The chain reads "HIS PINT GOES MISSING → HE BLAMES THE WRONG BLOKE". Spike it, and he drinks it ("Tastes funny, that.").
+  - **The fag break:** a steward stood at his post says "Two minutes. I'm gasping." and leaves it for twenty seconds. Grozz clocks it ("He's left his post…").
+  - **The row:** two fans square up ("You spilled my pint, you muppet!" / "Come on then!"), and the nearest steward comes over to break it up.
+- **How it shows:** whoever and whatever the beat is about gets the warm "relevant now" rim for twenty seconds. There's no marker and no text beyond what the people say.
+- **Pacing:**
+  - the kinds rotate, so it's never the same thing twice running;
+  - if you ignore an offer, the next one waits 15 seconds longer, up to 90 (you may just be busy looking round);
+  - anything that pays off resets the clock.
+- **For a player who stands still,** that's a beat at about 65 s, 125 s, 200 s and 290 s, on top of the keg at 3 s, the gossip at 2:30 and the gate-rush warning.
+
+**2. Every action answers back.** Most of this was in place already (reactions, chain straps, reaction animations, the rim).
+
+**3. The matchday timetable** keeps a "next thing" on the notes before you're in the ground: their coach leaving, the gate rush, Lenny's fag break, kick-off. During the match, the director's job does the same.
+
+**4. It's measured.** The playtest recorder now logs dead time: the longest stretch with nothing paying off, and how many stretches ran past a minute.

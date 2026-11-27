@@ -31,6 +31,7 @@ import { installChainHooks, installKegs, spawnKegs, stepKegs, stepPawnSeek } fro
 import { installBallOut, installBallWatch, stepBallOut } from "./ballout";
 import { spawnBootBag, stepBootBag } from "./bootbag";
 import { installCoke, stepCoke } from "./coke";
+import { installLulls, stepLulls } from "./lulls";
 import { installFixes, stepFixes } from "./fixes";
 import { installWitness, stepSnitches } from "./witness";
 import { installPhone, stepPhone } from "./phone";
@@ -226,6 +227,7 @@ export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: 
   installReactions(w);
   installChainHooks(w);
   installBallWatch(w);
+  installLulls(w);
   installMissiles(w);
   installFixes(w);
   // A change of clothes out of sight shakes off whoever was after you.
@@ -394,6 +396,7 @@ export function stepGame(g: Game): void {
   stepBallOut(w);
   stepBootBag(w);
   stepCoke(w);
+  stepLulls(w);
   stepOpening(w);
   stepEntries(w);
   stepCoverups(w);

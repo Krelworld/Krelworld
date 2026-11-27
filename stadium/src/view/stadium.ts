@@ -474,11 +474,17 @@ class StadiumScene extends Phaser.Scene {
       case "line": if (e.by === pcId) {
         a.play("sniff", 1); this.cameras.main.shake(220, 0.006);
         const fx = $("cokeFx"); fx.classList.remove("rush"); void fx.offsetWidth; fx.classList.add("rush"); setTimeout(() => fx.classList.remove("rush"), 750);
-        this.pcLine = { text: pick2(["Ohhhh. YES.", "Right. Who's first?", "COME ON THEN!", "I can see through time."]), until: performance.now() + 2600 };
+        this.pcLine = { text: pick2(["Ohhhh. YES.", "Right. Who's first?", "COME ON THEN!", "I can hear colours."]), until: performance.now() + 2600 };
         if (e.left <= 0) setTimeout(() => this.hint("That's the bag done."), 1400);
       } break;
       case "shrugged_off": a.play("haymaker", 0.9); this.cameras.main.shake(160, 0.006); break;
       case "comedown": if (e.by === pcId) this.pcLine = { text: pick2(["Oh no. Oh, I feel awful.", "Why is everyone so loud.", "Need another. Need another."]), until: performance.now() + 2800 }; break;
+      case "beat": {
+        // The mischief director's offer: whoever and whatever it's about gets the warm rim for a while.
+        this.beatRel = { ids: [e.who, ...(e.item ? [`item-${e.item}`] : [])], until: performance.now() + 20000 };
+        if (e.kind === "fag") setTimeout(() => { this.pcLine = { text: "He's left his post…", until: performance.now() + 2400 }; }, 1200);
+        break;
+      }
       case "keg_slip": a.play("keg_slip", 1); this.cameras.main.shake(160, 0.0025); break;
       case "keg_rolled": a.play("keg_roll", 0.9); break;
       case "spotted": {
@@ -3331,6 +3337,7 @@ class StadiumScene extends Phaser.Scene {
    *  now and nothing else. The loose keg before you've learned what it does; whatever and whoever the
    *  thing in your hand is for; and the people you haven't had an idea about yet, once you're near. */
   relevant = new Set<string>();
+  beatRel: { ids: string[]; until: number } | null = null;
   rimPool = new Map<string, Phaser.GameObjects.Image>();
   rimSeen = new Set<string>();
   relevantNow(): void {
@@ -3345,6 +3352,8 @@ class StadiumScene extends Phaser.Scene {
     }
     // Their star's boots, sat by the coach, until you've clocked them.
     if (!this.curios.has("bootbag")) for (const i of Object.values(s.items)) if (i.def === "boot_bag" && i.loc.k === "ground" && Math.hypot(i.loc.x - pc.x, i.loc.y - pc.y) < 14) R.add(`item-${i.id}`);
+    // Whatever the mischief director has just set going near you.
+    if (this.beatRel && performance.now() < this.beatRel.until) for (const id of this.beatRel.ids) R.add(id);
     // The match's job of the moment: whoever it names (their star, their keeper, the ref).
     if (this.job?.target) R.add(this.job.target);
     // People worth a thought, until you've had it (Lenny, Del), when you're within a stone's throw.

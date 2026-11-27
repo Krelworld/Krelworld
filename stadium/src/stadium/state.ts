@@ -158,6 +158,8 @@ export interface StadiumState {
   rolling?: import("./kegs").Roll[];
   kegCarry?: Record<Id, Id>;
   chain?: import("./kegs").Chain;
+  /** A fan's pint left on the wall while he's away (lulls.ts). */
+  pintBeat?: import("./lulls").PintBeat;
   /** Their star, off looking for his boots instead of boarding (bootbag.ts). */
   bootHunt?: import("./bootbag").BootHunt;
   /** The ball's come to Grozz (out of play, into the stand). */

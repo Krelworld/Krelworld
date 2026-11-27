@@ -462,3 +462,25 @@ test("gear: a bag of lines makes Grozz faster and nastier, and a grab is often s
   assert.equal(s.items[bag.id].loc.k, "gone", "bag done");
   assert.equal(dispatch(g.w, { verb: "line", actor: pc.id }).ok, false);
 });
+test("the mischief director: drift too long and something starts near you; nick the pint and he comes for you", async () => {
+  const { setPace, KICKOFF_AT } = await import("../src/stadium/layout");
+  const { moveItem } = await import("../src/core/items");
+  const before = KICKOFF_AT;
+  setPace({ kickoffAt: 540, calm: true });
+  try {
+    const g = createGame("lull1"), s = g.w.state, st = s.stadium!, pc = pcOf(g), ev = events(g);
+    // Stand about doing nothing.
+    run(g, 75);
+    const beat = ev.find((e) => e.type === "beat");
+    assert.ok(beat, "something happened near him");
+    // Force the pint beat to test the payoff.
+    st.flags.lastBeat = 0; st.flags.lastPayoff = 0; st.pintBeat = undefined;
+    let pb: any;
+    for (let i = 0; i < 20 && !pb; i++) { run(g, 50); pb = st.pintBeat; }
+    if (pb) {
+      moveItem(s, pb.pint, { k: "hand", a: pc.id });
+      run(g, 32);
+      assert.ok(ev.some((e) => e.type === "say" && e.by === pb.fan && /pint/i.test(e.text)), "he noticed");
+    }
+  } finally { setPace({ kickoffAt: before, calm: false }); }
+});

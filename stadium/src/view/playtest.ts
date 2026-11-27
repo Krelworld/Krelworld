@@ -20,6 +20,9 @@ export interface PtSession {
   continuedAfterFail: boolean;
   kickoff?: number;
   laughs: { t: number; kind: string; ctx: string }[];
+  /** Dead time: the longest stretch with nothing paying off, and how many ran past a minute. */
+  maxGap?: number;
+  longGaps?: number;
   chains: string[];
   notes: string;
 }
@@ -41,6 +44,13 @@ export class PlayTest {
   stuckFrom = 0;
   lastFailAt = -1;
   lastContext = "";
+  lastPayoff = 0;
+  private payoff(): void {
+    const n = this.now(), gap = n - this.lastPayoff;
+    this.s.maxGap = Math.max(this.s.maxGap ?? 0, Math.round(gap));
+    if (gap > 60) this.s.longGaps = (this.s.longGaps ?? 0) + 1;
+    this.lastPayoff = n;
+  }
   constructor() { this.s = PlayTest.fresh(); }
   static fresh(): PtSession { return { at: new Date().toISOString().slice(0, 19).replace("T", " "), secs: 0, bagOpens: 0, stuck: [], verbs: [], failed: 0, continuedAfterFail: false, laughs: [], chains: [], notes: "" }; }
   get running(): boolean { return this.t0 > 0; }
@@ -87,6 +97,7 @@ export class PlayTest {
       this.lastContext = line;
     }
     if (["post_left", "bowled", "dog_lured", "ball_to_pc", "keg_rolled", "stole", "spotted"].includes(e.type)) this.first("firstReaction");
+    if (["chain", "post_left", "bowled", "keg_rolled", "ball_to_pc", "dog_lured", "stole", "knockout", "item_hit", "pawned", "line", "tipoff", "planted", "smashed", "fb_goal"].includes(e.type) && (e.type !== "chain" || e.by === pcId)) this.payoff();
     if (e.type === "say" && e.by !== pcId && near) this.lastContext = `"${e.text}"`;
     if (e.type === "fb_kickoff" && e.period === 1 && this.s.kickoff === undefined) this.s.kickoff = this.now();
   }
@@ -111,6 +122,7 @@ export class PlayTest {
       out.push(`Tester ${i + 1} (${s.at}), ${Math.round(s.secs)} s played`);
       for (const [k, label, target] of TARGETS) { const v = s[k] as number | undefined; out.push(`  ${label}: ${v === undefined ? "never" : v + " s"} (target < ${target} s) ${v !== undefined && v <= target ? "PASS" : "MISS"}`); }
       if (s.ruleText) out.push(`  Rule: ${s.ruleText}`);
+      out.push(`  Dead time: longest stretch with nothing paying off ${s.maxGap ?? Math.round(s.secs)} s; stretches over a minute: ${s.longGaps ?? 0}`);
       out.push(`  Bag opened: ${s.bagOpens} (target ≤ 1)  Stuck over 30 s: ${s.stuck.length ? s.stuck.map((x) => x + " s").join(", ") : "never"}`);
       out.push(`  Things tried: ${s.verbs.length} (${s.verbs.join(", ")})  Failed attempts: ${s.failed}${s.failed ? (s.continuedAfterFail ? ", carried on after" : ", stopped trying") : ""}`);
       if (s.kickoff !== undefined) out.push(`  Kick-off at ${s.kickoff} s`);

@@ -943,7 +943,7 @@ class StadiumScene extends Phaser.Scene {
     }
     // Ideas: the first time you're near something with possibilities, a thought for the notes.
     if (this.curiosFor !== this.game2) { this.curiosFor = this.game2; this.curios = new Set(); }
-    if (!this.callOn && !this.sheetKind && !pc.heldBy && !pc.hiddenIn && now - this.itemCardAt > 6000 && this.s.tick > 60) {
+    if (!this.callOn && !this.sheetKind && !pc.heldBy && !pc.hiddenIn && now - this.itemCardAt > 6000 && this.s.tick > 60 * 8 && !(this.pcLine && this.pcLine.until > now)) {
       const c = curioHere(this.w, pc, this.curios);
       if (c) {
         this.curios.add(c.id); this.itemCardAt = now;
@@ -2607,10 +2607,15 @@ class StadiumScene extends Phaser.Scene {
     // one line at a time; everyone else chatting gets a chat dot.
     const speaking = Object.values(s.actors).filter((a) => a.npc?.bubble && !a.hiddenIn && onScreen(a.x, a.y)).sort((p, q) => near0(p) - near0(q));
     const talkingTo = this.talkedTo && performance.now() - this.talkedTo.at < 12000 ? this.talkedTo.id : null;
-    const matters = (a: Actor) => a.id === talkingTo || (a.npc!.mode !== "routine" && a.npc!.mode !== "flee") || isHint(a.npc!.bubble!.text) || !!st.snitches?.some((x) => x.by === a.id) || ((a.npc!.whyUntil ?? 0) > s.tick && !!a.npc!.why);
+    // A text budget: tips only count when said near you; the first ten seconds belong to the drayman
+    // and his keg; and never more than two other people's lines on screen at once (one while Grozz talks).
+    const opening = s.tick < 60 * 10;
+    const beatIds = this.beatRel && performance.now() < this.beatRel.until ? this.beatRel.ids : [];
+    const matters = (a: Actor) => opening ? (a.npc!.job === "worker" || beatIds.includes(a.id)) : a.id === talkingTo || (a.npc!.mode !== "routine" && a.npc!.mode !== "flee") || (isHint(a.npc!.bubble!.text) && near0(a) < 8) || !!st.snitches?.some((x) => x.by === a.id) || ((a.npc!.whyUntil ?? 0) > s.tick && !!a.npc!.why) || beatIds.includes(a.id);
     const key = speaking.filter(matters), chatter = speaking.filter((a) => !matters(a));
-    const shownChat = chatter.filter((a) => near0(a) < 4.5).slice(0, 1);
-    const talkers = [...(pcTalk ? [pc!] : []), ...key.slice(0, 2), ...shownChat].slice(0, this.bubbles.length);
+    const shownChat = opening ? [] : chatter.filter((a) => near0(a) < 4.5).slice(0, 1);
+    const others = [...key, ...shownChat].slice(0, pcTalk ? 1 : 2);
+    const talkers = [...(pcTalk ? [pc!] : []), ...others].slice(0, this.bubbles.length);
     const dots = chatter.filter((a) => !shownChat.includes(a));
     if (!this.bubbleG) this.bubbleG = this.add.graphics().setDepth(1e7 + 0.5);
     const bg = this.bubbleG.clear(), zz = this.cameras.main.zoom, px = DPR / zz;
@@ -3609,6 +3614,9 @@ class StadiumScene extends Phaser.Scene {
       const act = $<HTMLButtonElement>("act");
       act.disabled = !p;
       act.hidden = !p;
+      act.style.visibility = this.ring ? "hidden" : "";
+      $("fightRow").style.visibility = this.ring ? "hidden" : "";
+      $("moreBtn").style.visibility = this.ring ? "hidden" : "";
       act.textContent = p ? shortLabel(p) : "";
       this.primaryAt = p ? this.optionSpot(p) : null;
       const thr = $("throw");
@@ -3713,6 +3721,15 @@ class StadiumScene extends Phaser.Scene {
     });
   }
   hintTimer = 0;
+  /** A tip that waits its turn: not before `minSecs` into the day, and not while anything else is on screen. */
+  quietHint(text: string, minSecs: number): void {
+    const tryIt = () => {
+      const busy = !$("hint").hidden || !$("itemCard").hidden || !$("chainStrap").hidden || !!this.callOn || !!this.sheetKind || (this.pcLine && this.pcLine.until > performance.now());
+      if (this.s.tick < 60 * minSecs || busy) { setTimeout(tryIt, 1500); return; }
+      this.hint(text);
+    };
+    setTimeout(tryIt, 2600);
+  }
   hint(text: string) {
     const h = $("hint");
     h.hidden = false; h.textContent = text.charAt(0).toUpperCase() + text.slice(1) + (/[.!?]$/.test(text) ? "" : ".");
@@ -4095,19 +4112,30 @@ class StadiumScene extends Phaser.Scene {
     const cam = this.cameras.main, P = this.P, rect = this.game.canvas.getBoundingClientRect();
     let x = rect.left + ((P.sx(a.x, a.y) - cam.worldView.x) * cam.zoom) / DPR;
     let y = rect.top + ((P.sy(a.x, a.y) - P.S * 0.9 - cam.worldView.y) * cam.zoom) / DPR;
-    const n = r.items.length, rad = n > 5 ? 86 : 76;
-    x = Math.max(rad + 34, Math.min(window.innerWidth - rad - 34, x));
-    y = Math.max(rad + 70, Math.min(window.innerHeight - rad - 40, y));
-    const kids = el.querySelectorAll<HTMLElement>(".rb");
-    kids.forEach((b, i) => {
-      // Spread round the circle from the top; the main one sits at the bottom, nearest your thumb.
-      const ang = n === 1 ? Math.PI / 2 : Math.PI / 2 + (i / n) * Math.PI * 2;
-      b.style.left = `${Math.round(x + Math.cos(ang) * rad)}px`; b.style.top = `${Math.round(y + Math.sin(ang) * rad)}px`;
+    // All the actions live in one place, the thumb's corner, whatever you picked: the main one exactly
+    // where the big button sits, the rest fanned out up and to the left of it. Only the name stays over
+    // the person, so you can see who you've picked.
+    const lefty = document.body.classList.contains("lefty");
+    const ab = $("act").getBoundingClientRect();
+    const ax = ab.width ? ab.left + ab.width / 2 : lefty ? 96 : window.innerWidth - 96;
+    const ay = ab.height ? ab.top + ab.height / 2 : window.innerHeight - 150;
+    const kids = [...el.querySelectorAll<HTMLElement>(".rb")];
+    const mainB = kids.find((b) => b.classList.contains("main")) ?? kids[0], rest = kids.filter((b) => b !== mainB);
+    if (mainB) { mainB.style.left = `${Math.round(ax)}px`; mainB.style.top = `${Math.round(ay)}px`; }
+    rest.forEach((b, i) => {
+      // A quarter circle from beside the main button round to above it; a second, wider arc if there are lots.
+      const ring2 = i >= 3, k = ring2 ? i - 3 : i, m = ring2 ? rest.length - 3 : Math.min(3, rest.length);
+      const rad = ring2 ? 215 : 128, t = m <= 1 ? 0.5 : k / (m - 1);
+      const ang = Math.PI + t * (Math.PI / 2);
+      const dx = Math.cos(ang) * rad * (lefty ? -1 : 1), dy = Math.sin(ang) * rad;
+      b.style.left = `${Math.round(ax + dx)}px`; b.style.top = `${Math.round(ay + dy)}px`;
     });
     const who = el.querySelector<HTMLElement>(".who")!;
     const meter = who.querySelector<HTMLElement>(".eye");
     if (meter) meter.style.width = `${Math.round(this.eyeMeter * 100)}%`;
-    who.style.left = `${Math.round(x)}px`; who.style.top = `${Math.round(y - rad - 34)}px`;
+    x = Math.max(70, Math.min(window.innerWidth - 70, x));
+    y = Math.max(110, Math.min(window.innerHeight - 220, y));
+    who.style.left = `${Math.round(x)}px`; who.style.top = `${Math.round(y - 34)}px`;
   }
 
   /** Already on his way to do something: this one's next (and only this one). */
@@ -4745,7 +4773,7 @@ class StadiumScene extends Phaser.Scene {
       case "guard_aside": this.hint(`The police have taken ${nm(e.who)} aside for a word. His post's empty.`); break;
       case "radio_decoy": this.audio.play("radio_squelch", 0.8); this.hint(e.rumbled ? "\"Who is this? Identify yourself.\" They're on to you." : e.sent ? `"All units to ${e.to}." ${e.sent} steward${e.sent > 1 ? "s" : ""} on their way.` : "\"Received.\" Nobody near enough to go."); break;
       case "boxer_done": this.hint("Brendan's done him. Fifty quid well spent."); this.tick("boxer"); break;
-      case "fix_found": this.toastTick(`★ A fix: ${e.title}`); this.audio.play("chime", 0.6, { rate: 0.8 }); if (!this.fixHinted) { this.fixHinted = true; setTimeout(() => this.hint("Something to fix. What you hear about it goes in the menu (☰), under Fixes. Any way you manage it counts."), 2600); } break;
+      case "fix_found": this.toastTick(`★ A fix: ${e.title}`); this.audio.play("chime", 0.6, { rate: 0.8 }); if (!this.fixHinted) { this.fixHinted = true; this.quietHint("Something to fix. It's in your notes (☰). Any way you manage it counts.", 45); } break;
       case "fix_way": this.toastTick("✎ Noted"); break;
       case "fix_done": this.toastTick(e.ownWay ? `✓ FIXED, YOUR WAY: ${e.title}` : `✓ FIXED: ${e.title}`); this.audio.play("chime", 0.9, { rate: 1.2 }); this.audio.play("crowd_ooh", 0.4, { minGap: 2 }); break;
       case "tipoff": if (e.phone && e.by === pcId) setTimeout(() => this.hint("Control's sending an officer."), 3500); break;
@@ -4955,6 +4983,19 @@ class StadiumScene extends Phaser.Scene {
     });
     // Phones may suspend audio; any tap brings it back.
     window.addEventListener("pointerdown", () => { if (this.started) void this.audio.unlock(); this.pt?.active(false); });
+    // iOS Safari: no pinch-zoom and no double-tap zoom of the page (quick taps to walk were zooming it in,
+    // leaving the HUD off-screen and the stick dead). And if it ever does get zoomed, snap it back.
+    for (const ev of ["gesturestart", "gesturechange", "gestureend", "dblclick"]) document.addEventListener(ev, (e) => e.preventDefault(), { passive: false } as AddEventListenerOptions);
+    let lastTouchEnd = 0;
+    document.addEventListener("touchend", (e) => { const n = Date.now(); const onUi = !!(e.target as HTMLElement)?.closest?.("button,textarea,input,a,label,[data-who],[data-cp]"); if (n - lastTouchEnd < 350 && !onUi) e.preventDefault(); lastTouchEnd = n; }, { passive: false });
+    document.addEventListener("touchmove", (e) => { if ((e as TouchEvent).touches.length > 1) e.preventDefault(); }, { passive: false });
+    const vv = window.visualViewport;
+    if (vv) vv.addEventListener("resize", () => {
+      if (vv.scale <= 1.01) return;
+      const meta = document.querySelector('meta[name="viewport"]') as HTMLMetaElement | null;
+      if (meta) { const c = meta.content; meta.content = c.replace(/maximum-scale=[^,]*/, "maximum-scale=1.0001"); setTimeout(() => { meta.content = c; }, 60); }
+      window.scrollTo(0, 0);
+    });
     // Hold the button to wind up a haymaker (on a punch); a tap is an ordinary swing.
     const holdable = (el: HTMLElement, get: () => Option | null) => {
       let t0 = 0, timer = 0;

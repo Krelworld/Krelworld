@@ -1425,3 +1425,27 @@ The creator: "the mix between exploration and payoff should keep moving. Not too
 **3. The matchday timetable** keeps a "next thing" on the notes before you're in the ground: their coach leaving, the gate rush, Lenny's fag break, kick-off. During the match, the director's job does the same.
 
 **4. It's measured.** The playtest recorder now logs dead time: the longest stretch with nothing paying off, and how many stretches ran past a minute.
+
+## Round: the creator's phone playtest (portrait iPhone)
+
+Three problems in the first minute:
+
+**1. Stuck, zoomed in, joystick dead.** The cause was iPhone Safari zooming the page, not the game. Quick repeated taps to walk counted as a double-tap, and Safari zoomed the whole page in. The camera seemed to "pan down and zoom in", the scoreboard and buttons went off the edge of the zoomed view, and touches panned Safari instead of reaching the game. The page allowed zoom: its viewport had no maximum scale, and nothing blocked double-tap or pinch. Fixed three ways:
+- the page tells Safari not to zoom (`maximum-scale=1, user-scalable=no`, `touch-action` on everything);
+- double-tap, pinch and gesture events are blocked in code (taps on buttons are left alone, so a fast second punch still works);
+- if the page ever does get zoomed, it snaps back.
+
+**2. The opening was a wall of text.** In the first four seconds there were the drayman's shout, Grozz's keg idea, a fan's overheard tip about the ref's tea (from across the yard), and a yellow card about Fixes. Now there's a text budget:
+- **the first ten seconds** are the drayman's and his keg's alone;
+- **at most two other people's lines** are on screen at once (one while Grozz is talking);
+- **an overheard tip only shows** if it's said within eight metres;
+- **Grozz's ideas wait** eight seconds and never talk over him;
+- **fans don't gossip fix tips** in the first minute;
+- **the Fixes card waits** until 45 seconds in and for a quiet moment, and it's shorter.
+
+**3. Actions in two places.** Objects put their action on the big button at the bottom right, but tapping a person opened a ring of buttons around them. Now everything is in the thumb's corner:
+- the person's main action sits exactly where the big button is;
+- the others fan out up and to the left in one or two arcs (spaced so they don't overlap), and the MORE button and fight row hide while it's open;
+- only the person's name stays over their head, so you can see who you picked.
+
+This matches the report's touch grammar: touch the world, then choose the verb in the thumb zone.

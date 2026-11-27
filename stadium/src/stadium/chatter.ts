@@ -6,6 +6,8 @@
 // Talking to someone is an exchange, not a line. It can be funny, useful (a tip, a lead, a phone
 // number), a gift, a scam, or trouble, weighted so it is mostly comedy and sometimes the thing you
 // needed (Yakuza substories; Hitman's overheard leads).
+import { PACE } from "./layout";
+import { isHint } from "./fixes";
 import type { World } from "../core/world";
 import type { Actor } from "../core/types";
 import { chance, pick, rnd } from "../core/rng";
@@ -240,6 +242,8 @@ export function banter(w: World, a: Actor): void {
   const n = a.npc!, s = w.state, r = s.rng.world;
   const pool = n.team === 1 ? AWAY_BANTER : isWoman(a) && chance(r, 0.6) ? FEMALE_BANTER : FAN_BANTER;
   const line = fresh(w, pool, a);
+  // The first minute is for looking round, not being told things: no tips overheard yet.
+  if (PACE.calm && s.tick < 60 * 60 && isHint(line)) return;
   say(w, a, line, 4.5);
   hearLead(w, line);
   // Somebody in the same group answers back, sometimes.

@@ -49,6 +49,9 @@
   #stallCap { position: absolute; left: 50%; transform: translateX(-50%); top: max(14px, env(safe-area-inset-top)); max-width: 80%; background: var(--night); color: var(--ink); font: 600 17px/1.3 var(--display); padding: 8px 14px; border-left: 4px solid #e879f9; }
   #stallBtns { position: absolute; bottom: max(12px, env(safe-area-inset-bottom)); left: 0; right: 0; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; padding: 0 12px; }
   #stallBtns button.red { background: var(--red, #d7263d); }
+  /* No browser zoom, ever: double-tapping to walk must never zoom the page (iOS Safari). */
+  html, body { touch-action: none; -webkit-text-size-adjust: 100%; }
+  button, input, textarea, .panel, #todo, #ring, #sheet { touch-action: manipulation; }
   #game canvas { display: block; touch-action: none; width: 100% !important; height: 100% !important; image-rendering: pixelated; image-rendering: crisp-edges; }
   .float { position: absolute; z-index: 2; }
   .panel { background: var(--night); border: 0; }

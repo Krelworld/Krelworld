@@ -1924,6 +1924,11 @@ class StadiumScene extends Phaser.Scene {
           im.setTexture(`ico-${it.def}`).setOrigin(0.5, 0.9).setScale(it.def === "keg" ? 0.75 : 0.5).setPosition(Math.round(P.sx(x, y)), Math.round(P.sy(x, y, z))).setDepth(dep).setVisible(true).setAlpha(1).setAngle(l.k === "air" ? (tick * 12) % 360 : rolling ? Math.sin(tick * 0.9) * 14 : 0);
         } });
         if (near && l.k === "ground") things.push({ d: y + 1e-4, draw: () => g.lineStyle(3, 0xf2c94c, 0.5 + 0.4 * Math.sin(tick * 0.15)).strokeCircle(P.sx(x, y), P.sy(x, y) - P.S * 0.2, P.S * 0.55) });
+        // The loose keg glints (a slow gold sparkle) until you've rolled one: something here's worth a look.
+        else if (it.def === "keg" && l.k === "ground" && it.home && Math.abs(Math.abs(it.home.x) - 30.1) < 0.05 && !this.rules.has("post") && !s.stadium!.chain && Math.hypot(it.home.x - x, it.home.y - y) < 0.1 && (tick % 150) < 40) {
+          const k = (tick % 150) / 40, sx = P.sx(x, y) + P.S * 0.25, sy = P.sy(x, y) - P.S * 0.85, r = P.S * 0.32 * Math.sin(k * Math.PI);
+          things.push({ d: y + 1e-4, draw: () => g.fillStyle(0xfff4c2, 0.95).fillTriangle(sx - r, sy, sx + r, sy, sx, sy - r * 0.25).fillTriangle(sx - r, sy, sx + r, sy, sx, sy + r * 0.25).fillTriangle(sx, sy - r, sx, sy + r, sx - r * 0.25, sy).fillTriangle(sx, sy - r, sx, sy + r, sx + r * 0.25, sy) });
+        }
         continue;
       }
       // Hampers get the hamper picture.

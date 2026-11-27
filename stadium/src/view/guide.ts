@@ -75,7 +75,7 @@ export function todoSpot(w: World, id: string): { x: number; y: number } | null 
 /** What Instinct lights up: things you can use (yellow), people a fix is about (red), with a label. */
 export function instinctMarks(w: World): { x: number; y: number; col: number; label: string; z?: number }[] {
   const s = w.state, st = s.stadium!, m = s.match!, out: { x: number; y: number; col: number; label: string; z?: number }[] = [];
-  const USEFUL = new Set(["brick", "fart_can", "rifle", "wrench", "kitbag", "laundry", "cooler_away", "cooler_home", "tea_urn", "hivis", "staff_pass", "press_pass", "kit_card", "radio", "ticket", "pool_cue", "knife", "hammer", "bottle", "chair"]);
+  const USEFUL = new Set(["keg", "brick", "fart_can", "rifle", "wrench", "kitbag", "laundry", "cooler_away", "cooler_home", "tea_urn", "hivis", "staff_pass", "press_pass", "kit_card", "radio", "ticket", "pool_cue", "knife", "hammer", "bottle", "chair"]);
   for (const it of Object.values(s.items)) {
     if (it.loc.k !== "ground" || !USEFUL.has(it.def)) continue;
     out.push({ x: it.loc.x, y: it.loc.y, col: 0xf2c94c, label: "" });

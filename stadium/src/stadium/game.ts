@@ -29,6 +29,7 @@ import { clampToRoof, installRoofs } from "./roofs";
 import { installMissiles, spawnBricks, stepStench } from "./missiles";
 import { installChainHooks, installKegs, spawnKegs, stepKegs, stepPawnSeek } from "./kegs";
 import { installBallOut, installBallWatch, stepBallOut } from "./ballout";
+import { spawnBootBag, stepBootBag } from "./bootbag";
 import { installFixes, stepFixes } from "./fixes";
 import { installWitness, stepSnitches } from "./witness";
 import { installPhone, stepPhone } from "./phone";
@@ -188,6 +189,7 @@ export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: 
   const driver = spawnStaff(w, "driver", "catering", VENUE.id !== "sf" ? "Lorry driver" : "Van driver", lx, ly);
   spawnStaff(w, "worker", "catering", VENUE.id !== "sf" ? "Drayman" : "Caterer", lx - 2 * Math.sign(lx || 1), ly - 4).npc!.post = undefined;
   createBus(w, oppKey);
+  spawnBootBag(w);
   st.vehicles.lorry = { id: "lorry", kind: "lorry", x: lx, y: ly, facing: S, route: [lx, ly], ri: 0, speed: 0, state: "loading", until: 60 * 45, cargo: cargo.id, driver: driver.id, cycle: 0, inspected: false };
 
   // Things lying about, for whoever finds them. (Positions are for the quarter-final; the semi-final is mirrored.)
@@ -388,6 +390,7 @@ export function stepGame(g: Game): void {
   stepKegs(w);
   stepPawnSeek(w);
   stepBallOut(w);
+  stepBootBag(w);
   stepOpening(w);
   stepEntries(w);
   stepCoverups(w);

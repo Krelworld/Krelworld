@@ -25,6 +25,7 @@ export const CURIOS: Curio[] = [
   { id: "lenny", short: "Lenny. Head off. Who's in that suit?", r: 5, at: (w) => who(w, (a) => a.npc?.job === "mascot"), text: "Lenny the Lion, head off, having a fag. Nobody knows who's inside that costume." },
   { id: "del", short: "Del. Tickets. Or pockets.", r: 4, at: (w) => who(w, (a) => a.name === "Dodgy Del"), text: "Dodgy Del, touting tickets. Pricey. Or he's got pockets." },
   { id: "pawn", short: "Lionel. Nicked or not, he'll take it.", r: 5, at: (w) => who(w, (a) => a.npc?.shop === "pawn"), text: "Lionel's pawn shop. He'll take anything, no questions. Pawn something nicked off a steward and he'll see it in the window, and come for it." },
+  { id: "bootbag", short: "Their No.10's boots. Unattended. Hmm.", r: 5, at: (w) => { const b = Object.values(w.state.items).find((i) => i.def === "boot_bag" && i.loc.k === "ground"); return b && b.loc.k === "ground" ? { x: b.loc.x, y: b.loc.y } : null; }, text: "Their star's boot bag, by their coach while the driver loads. Move it and see what he does when they board." },
   { id: "hotel", short: "Their water's in there…", r: 6, at: () => SPOTS.hotelLobby, text: "The team hotel. Their players are in there, and so is their water." },
 ];
 

@@ -90,7 +90,7 @@ const esc = (t: string) => t.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&l
 interface TickerLine { text: string; src: string; big: boolean }
 
 /** A PixelLab picture of an item, if there is one. */
-const ICONS = new Set(["keg", "match_ball", "brick", "fart_can", "rifle", "burner", "warrant_card", "pint", "pie", "knife", "whistle", "ticket", "wallet", "laxative", "powder", "shirt_eng", "shirt_por", "shirt_bra", "shirt_arg", "police_uniform", "kit_eng", "kit_opp",
+const ICONS = new Set(["keg", "match_ball", "boot_bag", "brick", "fart_can", "rifle", "burner", "warrant_card", "pint", "pie", "knife", "whistle", "ticket", "wallet", "laxative", "powder", "shirt_eng", "shirt_por", "shirt_bra", "shirt_arg", "police_uniform", "kit_eng", "kit_opp",
   "staff_pass", "radio", "hivis", "ref_kit", "police_hat", "mask", "flat_cap", "sunglasses", "moustache", "tracksuit", "chef_whites", "overalls", "balaclava", "hammer", "flare", "betslip", "face", "hands", "censored_bar", "wrench", "kit_card", "parachute", "mascot_suit", "press_pass", "bottle", "pint_glass", "chair", "corner_flag", "wig", "long_wig", "dress", "pool_cue", "bicycle"]);
 interface RingItem { label: string; icon: string; kind: string; item?: string; arg?: string; main?: boolean; glyph?: string; opt?: Option }
 const icon = (def: string) => (ICONS.has(def) ? `<img class="ico" src="${assetURL(`icons/${def}.png`)}" alt="" onerror="this.remove()">` : `<span class="ico none"></span>`);
@@ -3312,6 +3312,8 @@ class StadiumScene extends Phaser.Scene {
       for (const a of Object.values(s.actors)) if (a.npc && !a.dead && Math.hypot(a.x - t.x, a.y - t.y) < 0.5) R.add(a.id);
       for (const i of Object.values(s.items)) if (i.loc.k === "ground" && Math.hypot(i.loc.x - t.x, i.loc.y - t.y) < 0.5) R.add(`item-${i.id}`);
     }
+    // Their star's boots, sat by the coach, until you've clocked them.
+    if (!this.curios.has("bootbag")) for (const i of Object.values(s.items)) if (i.def === "boot_bag" && i.loc.k === "ground" && Math.hypot(i.loc.x - pc.x, i.loc.y - pc.y) < 14) R.add(`item-${i.id}`);
     // The match's job of the moment: whoever it names (their star, their keeper, the ref).
     if (this.job?.target) R.add(this.job.target);
     // People worth a thought, until you've had it (Lenny, Del), when you're within a stone's throw.

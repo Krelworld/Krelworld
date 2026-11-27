@@ -1,4 +1,5 @@
 // People with routines of their own. They carry on whether or not the player is watching.
+import { bootHuntGoal } from "./bootbag";
 import { banter } from "./chatter";
 import { appearance } from "../core/identity";
 import { chance, pick, rnd, rndRange } from "../core/rng";
@@ -313,7 +314,11 @@ function teamWalk(w: World, a: Actor): void {
   const bus = st.vehicles.bus;
   if (a.fb?.team === 1 && m.phase === "pre" && bus && !st.flags.busArrived && !st.flags.awayOnFoot && !bus.crashed && !bus.drivenBy) {
     if (a.hiddenIn === bus.cab) return;
-    if (st.flags.boarding) {
+    const hunt = st.flags.boarding ? bootHuntGoal(w, a) : null;
+    if (hunt) {
+      // Not without his boots (bootbag.ts): round the coach looking for them.
+      if (!n.goal || Math.hypot(n.goal.x - hunt.x, n.goal.y - hunt.y) > 0.8) goTo(a, hunt.x, hunt.y);
+    } else if (st.flags.boarding) {
       const door = { x: bus.x + Math.cos(bus.facing) * 3.9 + Math.sin(bus.facing) * 2.2, y: bus.y + Math.sin(bus.facing) * 3.9 - Math.cos(bus.facing) * 2.2 };
       if (Math.hypot(a.x - door.x, a.y - door.y) < 1.6) { a.hiddenIn = bus.cab; return; }
       if (!n.goal || Math.hypot(n.goal.x - door.x, n.goal.y - door.y) > 1) goTo(a, door.x, door.y);

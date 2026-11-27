@@ -31,6 +31,7 @@ export const ITEM_TIPS: Record<string, string> = {
   hammer: "Hit things. Or do their bus.",
   flare: "Smoke. Cover to slip through, or just chaos.",
   wrench: "Prises open the pub's cellar hatch. There's a drain down there.",
+  boot_bag: "His boots. Hide them, bin them, pawn them. See how he plays without.",
   match_ball: "The actual match ball. A souvenir, or worth a few quid to Lionel.",
   bottle: "Hit someone with it, or throw it.", pint_glass: "Hit someone with it, or throw it.", chair: "Hit someone with it.",
   pool_cue: "Hit someone with it. Long reach.", corner_flag: "Hit someone with it.",

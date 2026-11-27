@@ -54,7 +54,7 @@ export const REWARDS: Record<string, number> = {
 
 /** What the pawnbroker gives for a thing (0: he won't have it). Stolen goods go for about half. */
 const PAWN: Record<string, number> = {
-  wallet: 15, radio: 15, match_ball: 25, burner: 12, ticket: 30, press_pass: 20, staff_pass: 15, warrant_card: 35, police_hat: 10, police_uniform: 25,
+  wallet: 15, radio: 15, match_ball: 25, boot_bag: 20, burner: 12, ticket: 30, press_pass: 20, staff_pass: 15, warrant_card: 35, police_hat: 10, police_uniform: 25,
   kit_card: 10, whistle: 5, ref_kit: 20, kit_eng: 40, kit_opp: 25, mascot_suit: 30, rifle: 120, bicycle: 12, knife: 6, hammer: 6, wrench: 8,
   shirt_eng: 15, shirt_opp: 10, shirt_por: 10, shirt_bra: 10, shirt_arg: 10, hivis: 8, parachute: 30, sunglasses: 2, flare: 6, powder: 0,
 };

@@ -421,3 +421,21 @@ test("the match directs: one job read off the score and clock, naming a target",
   m.score = [1, 1]; m.clock = m.cfg.halfSeconds * 0.8;
   assert.equal(matchJob(g.w)!.id, "level-late");
 });
+test("the boot bag: move their star's boots and he goes looking instead of boarding, then plays in borrowed boots", async () => {
+  const { theirStar } = await import("../src/stadium/fixes");
+  const { moveItem } = await import("../src/core/items");
+  const g = createGame("boots1"), s = g.w.state, st = s.stadium!, pc = pcOf(g), ev = events(g);
+  const bag = Object.values(s.items).find((i) => i.def === "boot_bag")!;
+  assert.ok(bag, "a boot bag by their coach");
+  const star = theirStar(g.w)!, shot0 = star.fb!.shooting;
+  // Grozz pockets it and walks off with it.
+  moveItem(s, bag.id, { k: "hand", a: pc.id });
+  while (!st.flags.boarding) stepGame(g);
+  run(g, 1);
+  assert.ok(st.bootHunt && st.bootHunt.who === star.id, "he's off looking");
+  assert.ok(ev.some((e) => e.type === "post_left" && e.by === star.id));
+  run(g, 24);
+  assert.ok(st.flags.borrowedBoots, "gave up");
+  assert.ok(star.fb!.shooting < shot0, "and it shows in his shooting");
+  assert.ok(ev.some((e) => e.type === "chain" && e.links.some((l: string) => /BORROWED BOOTS/.test(l))), "named on the strap");
+});

@@ -1352,3 +1352,27 @@ I did these:
   - whoever it names gets the warm rim and a pulsing ring at their feet, so it reads even at the wide spectating zoom;
   - an urgent change drops fast-forward back to normal speed.
 - **It never names a route.** That's the report's "identify current match objective within 1 min of kick-off".
+
+**Step 9: the hotel's contraption, the boot bag** (the report's zone table: "Team hotel: staff routine or luggage error").
+- **Setup:** their star's boot bag sits by their coach while the driver loads.
+- **If it's moved** (hidden, binned, thrown, pawned for £20), then when they board he finds it gone:
+  - "Where's my boots?! Who's had my bloody boots?!";
+  - he goes round the coach looking instead of boarding, and the coach waits for him;
+  - the chain reads "NUMBER 10'S BOOTS GO MISSING → HE GOES LOOKING → THE COACH WAITS FOR HIM".
+- **If he spots it** on the floor within ten metres, he fetches it ("Who put my boots over there?!").
+- **If you walk past him with it under your arm:** "OI! Them's MY boots, you fat thief!"
+- **After 18 seconds he gives up:** "Sod it. I'll borrow some. They're two sizes too small." His shooting drops by about a quarter, and his composure and control drop too, in the match engine's own numbers. The strap reads "NUMBER 10 IN BORROWED BOOTS → TWO SIZES TOO SMALL".
+- **Discoverable:**
+  - a warm rim on the bag until you've clocked it;
+  - Grozz mutters "Their No.10's boots. Unattended. Hmm.";
+  - the item tip says "Hide them, bin them, pawn them. See how he plays without."
+- **Untouched bags:** they get packed when they board.
+- **Why this one:** it's the same rule as the keg, Ronson, the pawn shop and the ball (people leave their post to fix a problem), applied to a footballer. It ties the exterior to the match, so something you did at the hotel shows on the pitch. That's the report's "player actions visibly matter".
+
+**Already in place, so not redone:** the report's disorder ladder ("mischief → disruption → incident → major incident, not five generic GTA stars") is what the wanted display already says: Mischief, Trouble, Incident, Major incident, Armed police. Its consequence ladder (soft ejection outside, re-entry possible, detention, checkpoint reload only for the worst) was built earlier.
+
+**Still to come from the report:**
+- campaign escalation, where knowledge carries between matches as the main mastery;
+- the adjudication model's fuller outcomes (disputed, overruled, delayed) when Grozz plays at referee;
+- reaction animations for police, the drayman and fans;
+- the playtest gate, which needs people.

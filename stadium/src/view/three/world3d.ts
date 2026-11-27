@@ -10,6 +10,9 @@ import { RIGHT, STRETCH, SY, CY, UP } from "./cam";
 import { CHUNK_M, paintChunk, type GroundSpec } from "./ground";
 import { Builder, setYS, type V3 } from "./mesh";
 import { Atlas, BRICK_DARK, BRICK_RED, BRICK_STOCK, H, PXM, brick, grain, pixText, rect, rng, weather, type BrickPal, type Region } from "./paint";
+import { buildInteriors, wallPlan } from "./interiors";
+import { buildStands, Stands } from "./stands";
+import { awning, buildDressing, cabinDressing, flatRoofClutter, groundPaint, hotelDressing, pubDressing, shopFrontDressing, shopSide } from "./dressing";
 
 export interface WorldHost {
   venue: Venue; walls: Wall[]; areas: Area[]; blds: BuildingSpec[];
@@ -19,7 +22,10 @@ export interface WorldHost {
   maxAniso: number;
 }
 
-interface Part { id: string; A: Builder; U: Builder; GL: Builder; group: THREE.Group }
+export interface Part { id: string; A: Builder; U: Builder; GL: Builder; group: THREE.Group }
+/** When a part shows: always; only from outside the ground (it hides with the stadium's shell); only once you are in
+ *  the ground; the main stand, which lies flat when the camera goes behind it; or only inside one building. */
+export type When = "always" | "outside" | "inside" | "terrace" | "stand_n" | "stand_n_flat" | `room:${string}`;
 const col = (c: number, c2?: number) => ({ c, c2 });
 const SHELL_H = 9;
 
@@ -27,29 +33,36 @@ export class World3D {
   root = new THREE.Group();
   /** The outsides of the buildings (and the ground's shell), by id: hidden when you are inside. */
   shells = new Map<string, THREE.Group>();
-  /** Rooms' painted back walls that only show once their building is open. */
-  private backWalls = new Map<string, THREE.Object3D>();
   private gates = new Map<string, THREE.Object3D>();
-  private roofFn = new Map<string, (y: number) => number>();
+  private whens: { when: When; g: THREE.Object3D }[] = [];
+  roofFn = new Map<string, (y: number) => number>();
+  /** Furniture pictures the 3D world has built for itself (so the scene need not draw them): "key@x,y". */
+  private replaced = new Set<string>();
+  stands: Stands | null = null;
+  /** Where the camera is looking (the middle of the ground it can see), and whether that is behind the main stand. */
+  focus = { x: 0, z: 0 }; northCut = false; private insideNow = false;
+  mirror = false;
   private chunks = new Map<string, { mesh: THREE.Mesh; tex: THREE.Texture; used: number }>();
-  private spec: GroundSpec;
-  private atlas = new Atlas(2048);
+  spec: GroundSpec;
+  atlas = new Atlas(2048, 4096);
   private atlasTex!: THREE.Texture;
   lit!: THREE.MeshLambertMaterial; private unlit!: THREE.MeshBasicMaterial; private glowMat!: THREE.MeshBasicMaterial; private groundMat: THREE.MeshLambertMaterial[] = [];
   glowTex!: THREE.Texture;
   private white: Region;
   private frame = 0;
   private disposables: { dispose(): void }[] = [];
-  stats = { tris: 0, chunks: 0, paintMs: 0 };
+  stats = { tris: 0, chunks: 0, paintMs: 0, atlasPx: 4096, build: {} as Record<string, number> };
   /** Tall things, for putting people in shade: x0, y0, x1, y1, height. */
   shaders: [number, number, number, number, number][] = [];
   private wallsGroup: THREE.Mesh | null = null;
-  private sw!: Record<string, Region>;
+  sw!: Record<string, Region>;
 
-  constructor(private host: WorldHost) {
+  constructor(public host: WorldHost) {
     setYS(STRETCH);
     this.white = this.atlas.solid(0xffffff);
-    this.spec = { areas: host.areas, mirror: host.venue.id === "sf", fanZone: host.venue.features.fanZone, ao: [], streaks: [], extras: [], lean: Math.tan(Math.asin(SY)) };
+    this.mirror = host.venue.id === "sf";
+    this.spec = { areas: host.areas, mirror: this.mirror, fanZone: host.venue.features.fanZone, ao: [], streaks: [], extras: [], under: [], lean: Math.tan(Math.asin(SY)), labels: host.venue.labels };
+    const tStart = performance.now();
     this.materials();
     this.swatches();
     const base = this.part("base");
@@ -64,12 +77,46 @@ export class World3D {
       const { x0, y0, x1, y1 } = b.rect;
       this.shaders.push([x0, y0, x1, y1, b.height + 1]); // (its walls darken the ground at their feet; the floor inside stays clean)
       this.finish(p, true);
-      this.backWall(b.id, `w-wall-${b.id}`, x0, x1, y0 + 0.5, false);
     }
     this.stadium();
-    for (const id of ["security", "kitchen", "medical", "kitroom", "ref_room"]) { const a = host.areas.find((q) => q.id === id); if (a) this.backWall(`room-${id}`, `w-wall-${id}`, a.x, a.x + a.w, a.y + 0.5, true); }
+    this.stats.build.m1 = Math.round(performance.now() - tStart);
+    const safe = (what: string, f: () => void) => { const t0 = performance.now(); try { f(); } catch (e) { console.warn(`3D world: ${what} failed`, e); } this.stats.build[what] = Math.round(performance.now() - t0); };
+    safe("stands", () => { this.stands = buildStands(this); });
+    safe("interiors", () => buildInteriors(this));
+    safe("dressing", () => buildDressing(this));
+    groundPaint(this);
+    this.cropAtlas();
     this.atlasTex.needsUpdate = true;
   }
+  /** Send the card only as much of the sheet as got painted: the sheet is cut off below the last region and every UV rescaled to suit. */
+  private cropAtlas() {
+    const full = this.atlas.height, used = Math.min(full, Math.ceil((this.atlas.used() + 8) / 64) * 64);
+    if (used >= full) return;
+    const cv = document.createElement("canvas"); cv.width = this.atlas.size; cv.height = used;
+    cv.getContext("2d")!.drawImage(this.atlas.canvas, 0, 0);
+    this.atlasTex.image = cv;
+    const k = full / used;
+    this.root.traverse((o) => {
+      const m = o as THREE.Mesh;
+      if (!m.isMesh || (m.material !== this.lit && m.material !== this.unlit)) return;
+      const uv = m.geometry.getAttribute("uv") as THREE.BufferAttribute;
+      for (let i = 0; i < uv.count; i++) uv.setY(i, 1 - (1 - uv.getY(i)) * k);
+      uv.needsUpdate = true;
+    });
+    this.stats.atlasPx = used;
+  }
+  /** How much of the atlas is painted. */
+  atlasUse(): number { return Math.round(this.atlas.usage() * 100) / 100; }
+  /** A mirrored x for the semi-final's ground. */
+  mx(x: number): number { return this.mirror ? -x : x; }
+  /** Say that the 3D world has built this piece of furniture itself. */
+  replace(key: string, x: number, y: number) { this.replaced.add(`${key}@${x.toFixed(1)},${y.toFixed(1)}`); }
+  /** Has the 3D world built this piece of furniture itself (so its picture should not be drawn as well)? */
+  replaces(key: string, x: number, y: number): boolean { return this.replaced.has(`${key}@${x.toFixed(1)},${y.toFixed(1)}`); }
+  /** How high the terracing stands at a point (0 anywhere else): whoever is there is drawn that much higher. */
+  standLift(x: number, y: number): number { this.liftAsked = true; return this.stands && this.insideNow ? this.stands.lift(x, y, this.northCut) : 0; }
+  /** Does the scene ask where the terracing is? Until it does, the stands stay flat (or the crowd would be buried in them). */
+  private liftAsked = false;
 
   // ---------------------------------------------------------------------------------------------
   private materials() {
@@ -95,31 +142,39 @@ export class World3D {
       slate: a.paintM(7.6, 3.6, (c, w, h) => art.slateRoof(c, w, h, 5)), felt: a.paintM(6, 5, (c, w, h) => art.flatRoof(c, w, h, 12)), steelroof: a.paintM(8, 6, (c, w, h) => art.steelRoof(c, w, h, 14)),
       palisade: a.paint(64, 58, art.palisade, false), net: a.paint(32, 32, art.netting, false),
       ac: a.paint(32, 19, art.acSide), acTop: a.paint(32, 26, art.acTop),
+      slats: a.paint(128, 14, (c, w, h) => { rect(c, 0, 0, w, h, H(0x3a2a1c)); for (let y = 0; y < h; y += 5) { rect(c, 0, y, w, 4, H(0x8a6a48)); rect(c, 0, y, w, 1, H(0xa98a62)); } grain(c, 0, 0, w, h, 6, 9); }),
+      wicker: a.paint(36, 20, (c, w, h) => { rect(c, 0, 0, w, h, H(0x8a6a3c)); for (let y = 0; y < h; y += 2) for (let x = (y & 2 ? 2 : 0); x < w; x += 4) rect(c, x, y, 2, 1, H(0xb8924e)); rect(c, 0, 0, w, 2, H(0x6a4a24)); rect(c, 0, h - 2, w, 2, H(0x5a3e1e)); }),
+      formica: a.paint(32, 16, (c, w, h) => { rect(c, 0, 0, w, h, H(0xd8d4c8)); grain(c, 0, 0, w, h, 7, 4); rect(c, 0, 0, w, 1, H(0xf4f1ea)); }),
+      urn: a.paint(32, 20, (c, w, h) => { for (let x = 0; x < w; x++) rect(c, x, 0, 1, h, H([0x8f959c, 0xa9afb6, 0xc9cdd2, 0xe8ecf0, 0xc9cdd2, 0xa9afb6, 0x8f959c, 0x6f757c][Math.floor((x / w) * 8)])); rect(c, 0, 3, w, 1, H(0x5c6168)); rect(c, 0, h - 4, w, 1, H(0x5c6168)); }),
+      marble: a.paintM(1, 3, (c, w, h) => { rect(c, 0, 0, w, h, H(0xd9d2c0)); const r = rng(19); for (let k = 0; k < 14; k++) { let x = r.int(w), y = r.int(h); c.strokeStyle = r() < 0.5 ? "rgba(120,110,100,0.5)" : "rgba(244,240,230,0.7)"; c.beginPath(); c.moveTo(x, y); for (let i = 0; i < 6; i++) { x += r.int(9) - 4; y += 4 + r.int(8); c.lineTo(x, y); } c.stroke(); } }),
+      pane: a.paint(24, 32, (c, w, h) => { rect(c, 0, 0, w, h, H(0xa9c4d4)); c.fillStyle = "rgba(240,248,252,0.6)"; c.beginPath(); c.moveTo(0, h * 0.7); c.lineTo(w * 0.6, 0); c.lineTo(w, 0); c.lineTo(0, h); c.fill(); rect(c, 0, 0, w, 1, H(0x3a3f46)); rect(c, 0, h - 1, w, 1, H(0x3a3f46)); }),
     };
   }
-  private part(id: string): Part {
-    const s = this.atlas.size;
-    return { id, A: new Builder(s, s, this.white), U: new Builder(s, s, this.white), GL: new Builder(64, 64, { x: 0, y: 0, w: 64, h: 64 }), group: new THREE.Group() };
+  part(id: string): Part {
+    const s = this.atlas.size, h = this.atlas.height;
+    return { id, A: new Builder(s, h, this.white), U: new Builder(s, h, this.white), GL: new Builder(64, 64, { x: 0, y: 0, w: 64, h: 64 }), group: new THREE.Group() };
   }
-  private finish(p: Part, shell: boolean) {
+  /** Pour a part's buffers into meshes. `cast`: does it throw a shadow (each part that does is one more draw). */
+  finish(p: Part, shell: boolean, when: When = "always", cast = true) {
     const add = (b: Builder, mat: THREE.Material, shadow: boolean, order = 0) => {
       if (!b.tris) return;
       const g = b.geometry(), m = new THREE.Mesh(g, mat);
-      m.castShadow = shadow; m.receiveShadow = shadow; m.matrixAutoUpdate = false; m.renderOrder = order; m.name = `${p.id}`;
+      m.castShadow = shadow && cast; m.receiveShadow = shadow; m.matrixAutoUpdate = false; m.renderOrder = order; m.name = `${p.id}`;
       p.group.add(m); this.disposables.push(g); this.stats.tris += b.tris;
     };
     add(p.A, this.lit, true); add(p.U, this.unlit, false); add(p.GL, this.glowMat, false, 5);
     this.root.add(p.group);
     if (shell) this.shells.set(p.id, p.group);
+    else if (when !== "always") { this.whens.push({ when, g: p.group }); p.group.visible = false; }
   }
-  private halo(p: Part, at: V3, size: number, c: number, alpha: number, squash = 1) {
+  halo(p: Part, at: V3, size: number, c: number, alpha: number, squash = 1) {
     const hw = size / 2, q = (sx: number, sy: number): V3 => [at[0] + RIGHT.x * sx * hw + UP.x * sy * hw * squash, at[1] + (UP.y * sy * hw * squash) / STRETCH, at[2] + RIGHT.z * sx * hw + UP.z * sy * hw * squash];
     p.GL.quad(q(-1, -1), q(1, -1), q(1, 1), q(-1, 1), { c }, { alpha });
   }
-  private pool(p: Part, x: number, z: number, rx: number, rz: number, c: number, alpha: number, y = 0.03) { p.GL.quad([x - rx, y, z + rz], [x + rx, y, z + rz], [x + rx, y, z - rz], [x - rx, y, z - rz], { c }, { alpha }); }
+  pool(p: Part, x: number, z: number, rx: number, rz: number, c: number, alpha: number, y = 0.03) { p.GL.quad([x - rx, y, z + rz], [x + rx, y, z + rz], [x + rx, y, z - rz], [x - rx, y, z - rz], { c }, { alpha }); }
 
   /** A wall face from (ax, az) to (bx, bz), left to right as you look at it, tiled from a swatch `tw` x `th` metres. */
-  private face(B: Builder, ax: number, az: number, bx: number, bz: number, y0: number, y1: number, r: Region, tw = 2, th = 2, tint = 0xffffff) {
+  face(B: Builder, ax: number, az: number, bx: number, bz: number, y0: number, y1: number, r: Region, tw = 2, th = 2, tint = 0xffffff) {
     const len = Math.hypot(bx - ax, bz - az), n = Math.max(1, Math.ceil(len / tw - 1e-6));
     for (let i = 0; i < n; i++) {
       const t0 = (i * tw) / len, t1 = Math.min(1, ((i + 1) * tw) / len), fx = (Math.min(len, (i + 1) * tw) - i * tw) / tw;
@@ -130,7 +185,7 @@ export class World3D {
     }
   }
   /** A flat or sloping roof panel tiled from a swatch: corners near-left, near-right, far-right, far-left. */
-  private roofPanel(B: Builder, a: V3, b: V3, c: V3, d: V3, r: Region, tw: number, th: number) {
+  roofPanel(B: Builder, a: V3, b: V3, c: V3, d: V3, r: Region, tw: number, th: number) {
     const w = Math.hypot(b[0] - a[0], b[2] - a[2]), dep = Math.hypot(d[0] - a[0], (d[1] - a[1]) * STRETCH, d[2] - a[2]);
     const nx = Math.max(1, Math.ceil(w / tw - 1e-6)), ny = Math.max(1, Math.ceil(dep / th - 1e-6));
     const at = (s: number, t: number): V3 => { const p0 = [a[0] + (b[0] - a[0]) * s, a[1] + (b[1] - a[1]) * s, a[2] + (b[2] - a[2]) * s], p1 = [d[0] + (c[0] - d[0]) * s, d[1] + (c[1] - d[1]) * s, d[2] + (c[2] - d[2]) * s]; return [p0[0] + (p1[0] - p0[0]) * t, p0[1] + (p1[1] - p0[1]) * t, p0[2] + (p1[2] - p0[2]) * t]; };
@@ -171,8 +226,11 @@ export class World3D {
         this.finish(gp, false); this.gates.set(wl.gate, gp.group);
         continue;
       }
-      // Cut to a metre, except a wall with nothing behind it (the ground's back wall), which can stand.
-      const mat = this.matOf(wl), r = this.sw[mat], h = wl.h3 <= 1.2 ? wl.h3 : z1 <= -60.9 && wl.w > 20 ? 3 : 1.0, cap = CAPS[mat] ?? 0xb4b8bc;
+      // Cut to a metre, except a wall with nothing behind it (the ground's back wall), which can stand,
+      // and the walls the rooms and the stands have plans for.
+      const plan = wallPlan(this, wl);
+      if (plan === "skip") continue;
+      const mat = this.matOf(wl), r = this.sw[mat], h = plan ?? (wl.h3 <= 1.2 ? wl.h3 : z1 <= -60.9 && wl.w > 20 ? 3 : 1.0), cap = CAPS[mat] ?? 0xb4b8bc;
       this.face(p.A, x0, z1, x1, z1, 0, h, r); this.face(p.A, x1, z1, x1, z0, 0, h, r); this.face(p.A, x1, z0, x0, z0, 0, h, r); this.face(p.A, x0, z0, x0, z1, 0, h, r);
       p.A.quad([x0, h, z1], [x1, h, z1], [x1, h, z0], [x0, h, z0], col(cap));
       this.spec.ao.push([x0, z0, x1, z1, h]);
@@ -271,6 +329,7 @@ export class World3D {
       for (const [px, flp] of [[x0 + 8.0, false], [x0 + 8.5, true], [x1 - 7.4, false], [x1 - 9, true]] as [number, boolean][]) A.quad([px, ridge + 0.12, zr + 0.05], [px + 0.3, ridge + 0.12, zr + 0.05], [px + 0.3, ridge + 0.34, zr + 0.05], [px, ridge + 0.34, zr + 0.05], { r: rPig, flip: flp }, { normal: [0, 1, 0.3], double: true });
     }
     A.bar([x1 - 0.22, 0, F + 0.07], [x1 - 0.22, ey, F + 0.07], 0.1, col(0x1b1c20)); A.bar([x0 + 0.22, 0, F + 0.07], [x0 + 0.22, ey, F + 0.07], 0.1, col(0x1b1c20));
+    pubDressing(this, p, b, ridge, zr, east);
     this.roofFn.set("pub", (y) => e + Math.max(0, 1 - Math.abs(y - zr) / (D / 2)) * rise + 0.05);
   }
 
@@ -285,7 +344,7 @@ export class World3D {
     const cfg = CFG[b.front] ?? CFG.charity, d = b.doors[0], dx0 = d ? d.x0 : x0 + W / 2 - 2, dx1 = d ? d.x1 : x0 + W / 2 + 2;
     A.quad([x0, 0, F], [x1, 0, F], [x1, hgt, F], [x0, hgt, F], a.paintM(W, hgt, (c, w, h) => art.shopFront(c, w, h, { pal: cfg.pal, fascia: cfg.fascia, frame: cfg.frame, kind: "glass", seed: 60 + b.id.length })));
     const side = cfg.pal === BRICK_STOCK ? this.sw.stock : cfg.pal === BRICK_DARK ? this.sw.dark : this.sw.brick;
-    this.face(A, x1 + 0.03, z1, x1 + 0.03, z0, 0, hgt, side); this.face(A, x1, z0 - 0.03, x0, z0 - 0.03, 0, hgt, side, 2, 2, 0xb0b0b0); this.face(A, x0 - 0.03, z0, x0 - 0.03, z1, 0, hgt, side, 2, 2, 0xb8b8b8);
+    A.quad([x1 + 0.03, 0, z1], [x1 + 0.03, 0, z0], [x1 + 0.03, hgt, z0], [x1 + 0.03, hgt, z1], shopSide(this, p, b)); this.face(A, x1, z0 - 0.03, x0, z0 - 0.03, 0, hgt, side, 2, 2, 0xb0b0b0); this.face(A, x0 - 0.03, z0, x0 - 0.03, z1, 0, hgt, side, 2, 2, 0xb8b8b8);
     // Parapet, felt roof, a vent, a flue.
     A.box(x0 - 0.03, hgt, z0 - 0.03, x1 + 0.03, hgt + 0.12, z0 + 0.25, this.sw.stone); A.box(x0 - 0.03, hgt, z1 - 0.25, x1 + 0.03, hgt + 0.12, F, this.sw.stone);
     A.box(x0 - 0.03, hgt, z0 + 0.25, x0 + 0.25, hgt + 0.12, z1 - 0.25, this.sw.stone); A.box(x1 - 0.25, hgt, z0 + 0.25, x1 + 0.03, hgt + 0.12, z1 - 0.25, this.sw.stone);
@@ -305,6 +364,9 @@ export class World3D {
       this.halo(p, [(wa + wb) / 2, 1.4, F + 0.4], (wb - wa) * 1.5, cfg.glow, 0.16, 0.6); this.spec.streaks.push([wa + 0.1, F + 0.1, wb - wa - 0.2, 2.6, cfg.glow, 0.26]);
     };
     win(x0 + 0.2, dx0 - 0.1); win(dx1 + 0.1, x1 - 0.2);
+    if (b.front !== "bookies") { const [c1, c2] = b.awning ?? [0x3f4a30, 0xd9cfa8]; awning(this, p, x0 + 0.2, dx0 - 0.1, F, c1, c2); awning(this, p, dx1 + 0.1, x1 - 0.2, F, c1, c2); }
+    flatRoofClutter(this, p, x0 + 0.3, z0 + 0.3, x1 - 0.3, z1 - 0.3, roofY, 40 + b.id.length * 3);
+    shopFrontDressing(this, p, b);
     const rD = a.paintM(1.0, 2.2, (c, w, h) => art.shopDoor(c, w, h, cfg.frame, true, !!cfg.cool)), dm = (dx0 + dx1) / 2;
     U.quad([dx0, 0, F + 0.02], [dm, 0, F + 0.02], [dm, 2.3, F + 0.02], [dx0, 2.3, F + 0.02], rD); U.quad([dm, 0, F + 0.02], [dx1, 0, F + 0.02], [dx1, 2.3, F + 0.02], [dm, 2.3, F + 0.02], a.paintM(1.0, 2.2, (c, w, h) => { c.translate(w, 0); c.scale(-1, 1); art.shopDoor(c, w, h, cfg.frame, true, !!cfg.cool, false); }));
     this.pool(p, dm, F + 1.3, 1.8, 1.4, cfg.glow, 0.2);
@@ -328,6 +390,8 @@ export class World3D {
       A.box(da - 0.4, 3.1, F + 1.45, db + 0.4, 3.75, F + 1.6, { all: col(0x22262c), s: a.paint((db - da + 0.8) * 64, 0.65 * 64, (c, w, h) => art.fasciaSign(c, w, h, b.sign?.text ?? "TEAM HOTEL", 0x22262c, 0xf4f1ea, { font: art.SERIF, edge: 0xb8923a })) });
       this.halo(p, [(da + db) / 2, 1.5, F + 0.4], 6, 0xfff0c0, 0.22); this.pool(p, (da + db) / 2, F + 1.6, 2.6, 1.8, 0xfff0c0, 0.24); this.spec.streaks.push([da + 0.2, F + 0.1, db - da - 0.4, 3.2, 0xfff0c0, 0.36]);
     }
+    flatRoofClutter(this, p, x0 + 1, z0 + 1, x1 - 1, z1 - 2.5, e + 0.05, 77, false);
+    hotelDressing(this, p, b);
     this.roofFn.set(b.id, () => e + 0.07);
   }
 
@@ -336,6 +400,7 @@ export class World3D {
     A.quad([x0, 0, F], [x1, 0, F], [x1, e, F], [x0, e, F], a.paintM(W, e, (c, w, h) => { art.cabinSide(c, w, h, 81); rect(c, w / 2 - 56, 8, 112, 16, H(0xf4f4f4)); pixText(c, b.sign?.text ?? "STEWARDS", w / 2, 21, 10, H(0x1c2a1c), { align: "center" }); }));
     this.face(A, x1 + 0.03, z1, x1 + 0.03, z0, 0, e, this.sw.cabin, 2, 2); this.face(A, x0 - 0.03, z0, x0 - 0.03, z1, 0, e, this.sw.cabin, 2, 2, 0xc0c0c0); this.face(A, x1, z0 - 0.03, x0, z0 - 0.03, 0, e, this.sw.cabin, 2, 2, 0xb0b0b0);
     this.roofPanel(A, [x0 - 0.1, e, z1 + 0.1], [x1 + 0.1, e, z1 + 0.1], [x1 + 0.1, e + 0.12, z0 - 0.1], [x0 - 0.1, e + 0.12, z0 - 0.1], this.sw.steelroof, 8, 6);
+    cabinDressing(this, p, b);
     this.roofFn.set(b.id, () => e + 0.05);
   }
 
@@ -350,7 +415,7 @@ export class World3D {
     const front = this.host.image(`stadfront-${this.host.venue.id}`);
     if (front) {
       const t = new THREE.CanvasTexture(front as HTMLCanvasElement); t.colorSpace = THREE.SRGBColorSpace; t.magFilter = THREE.NearestFilter; t.minFilter = THREE.LinearMipmapLinearFilter; t.generateMipmaps = true; t.anisotropy = Math.min(4, this.host.maxAniso);
-      const g = new THREE.BufferGeometry(), y1 = Hh * STRETCH, z = 45 + e;
+      const g = new THREE.BufferGeometry(), y1 = Hh * STRETCH, z = 45.012; // (a hair in front of the wall, behind the turnstiles' and banners' pictures at 45.03)
       g.setAttribute("position", new THREE.Float32BufferAttribute([gx0, 0, z, gx1, 0, z, gx1, y1, z, gx0, y1, z], 3)); g.setAttribute("normal", new THREE.Float32BufferAttribute([0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1], 3)); g.setAttribute("uv", new THREE.Float32BufferAttribute([0, 0, 1, 0, 1, 1, 0, 1], 2)); g.setIndex([0, 1, 2, 0, 2, 3]);
       const mat = new THREE.MeshLambertMaterial({ map: t, alphaTest: 0.5 }), mesh = new THREE.Mesh(g, mat); mesh.receiveShadow = true; mesh.matrixAutoUpdate = false; p.group.add(mesh); this.disposables.push(t, g, mat);
     } else clad(gx0, 45 + e, gx1, 45 + e, 0xffffff);
@@ -372,6 +437,17 @@ export class World3D {
       if (i === 1) A.box(b.x0, Hh + lift - 0.9, b.y1, b.x1, Hh + lift, b.y1 + 0.1, { all: col(0x16225a, 0x1b2a6b), top: null });
       if (i === 2) A.box(b.x1, Hh + lift - 0.9, b.y0, b.x1 + 0.1, Hh + lift, b.y1, { all: col(0x16225a, 0x1b2a6b), top: null });
       if (i === 3) A.box(b.x0 - 0.1, Hh + lift - 0.9, b.y0, b.x0, Hh + lift, b.y1, { all: col(0x16225a, 0x1b2a6b), top: null });
+      // strips of old clear sheeting between the trusses, a walkway along the high edge, rust running to the gutter
+      {
+        const wideB = b.x1 - b.x0 > b.y1 - b.y0, L = wideB ? b.x1 - b.x0 : b.y1 - b.y0, Dp = wideB ? b.y1 - b.y0 : b.x1 - b.x0, rr = rng(120 + i);
+        const pt = (t: number, u: number, up = 0.02): V3 => { const x = wideB ? b.x0 + t : b.x0 + u, z = wideB ? b.y0 + u : b.y0 + t; return [x, yAt(x, z) + up, z]; };
+        const strip = (t0: number, t1: number, u0: number, u1: number, f: { c: number; c2?: number } | Region, up = 0.02) => (wideB ? A.quad(pt(t0, u1, up), pt(t1, u1, up), pt(t1, u0, up), pt(t0, u0, up), f) : A.quad(pt(t1, u0, up), pt(t1, u1, up), pt(t0, u1, up), pt(t0, u0, up), f));
+        for (let t = 5; t < L - 3; t += 8) { const k = rr(); strip(t, t + 1.3, Dp * 0.14, Dp * 0.86, k < 0.75 ? { c: 0x8fa6b4, c2: 0xb4c6d0 } : { c: 0x6f7f8a, c2: 0x8a9aa4 }); if (rr() < 0.5) strip(t + 2.2 + rr() * 2, t + 2.5 + rr() * 2 + 0.2, Dp * (0.1 + rr() * 0.3), Dp * 0.98, { c: 0x6a4a34, c2: 0x545a62 }, 0.015); }
+        const uHi = i === 0 ? 0.06 : i === 1 ? 0.94 : i === 2 ? 0.94 : 0.06; // which side is the high (pitch) edge
+        strip(1, L - 1, Dp * uHi - 0.45, Dp * uHi + 0.45, { c: 0x4a4f56, c2: 0x6a7078 }, 0.05);
+        for (let t = 1; t < L - 1; t += 2.4) { const a0 = pt(t, Dp * uHi - 0.45, 0.05), a1: V3 = [a0[0], a0[1] + 0.9, a0[2]]; A.bar(a0, a1, 0.05, col(0xc9a23a)); }
+        A.bar(((q) => [q[0], q[1] + 0.9, q[2]] as V3)(pt(1, Dp * uHi - 0.45, 0.05)), ((q) => [q[0], q[1] + 0.9, q[2]] as V3)(pt(L - 1, Dp * uHi - 0.45, 0.05)), 0.05, col(0xc9a23a));
+      }
       // rooflights and plant, so the roof is not a blank sheet
       const wide = b.x1 - b.x0 > b.y1 - b.y0, r = rng(90 + i);
       for (let k = 0; k < (wide ? 7 : 4); k++) {
@@ -386,34 +462,24 @@ export class World3D {
     this.roofFn.set("stand", (y) => SHELL_H + lift * (1 - (y - 28) / 17) + 0.05);
   }
 
-  /** A room's painted back wall (the game's own picture), three metres high along the north side. */
-  private backWall(id: string, key: string, x0: number, x1: number, z: number, always: boolean) {
-    const img = this.host.image(key);
-    if (!img) return;
-    const t = new THREE.Texture(img as HTMLImageElement); t.colorSpace = THREE.SRGBColorSpace; t.magFilter = THREE.NearestFilter; t.minFilter = THREE.LinearFilter; t.generateMipmaps = false; t.needsUpdate = true;
-    z += 0.05; // just proud of the wall it hangs on
-    const g = new THREE.BufferGeometry(), y1 = 3 * STRETCH, fl = this.spec.mirror;
-    g.setAttribute("position", new THREE.Float32BufferAttribute([x0, 0, z, x1, 0, z, x1, y1, z, x0, y1, z], 3)); g.setAttribute("normal", new THREE.Float32BufferAttribute([0, 0.3, 1, 0, 0.3, 1, 0, 0.3, 1, 0, 0.3, 1], 3));
-    g.setAttribute("uv", new THREE.Float32BufferAttribute(fl ? [1, 0, 0, 0, 0, 1, 1, 1] : [0, 0, 1, 0, 1, 1, 0, 1], 2)); g.setIndex([0, 1, 2, 0, 2, 3]);
-    const mat = new THREE.MeshBasicMaterial({ map: t, color: 0xd8d8d8 }), m = new THREE.Mesh(g, mat);
-    m.matrixAutoUpdate = false; m.visible = always; this.root.add(m); this.disposables.push(t, g, mat);
-    if (!always) this.backWalls.set(id, m);
-  }
-
   // ---------------------------------------------------------------------------------------------
   /** How high the roof of a building stands at depth y (so whoever is up there stands on it). */
   roofLift(id: string, y: number): number | null { const f = this.roofFn.get(id); return f ? f(y) : null; }
 
   /** Take the lid off whatever you are inside; open or shut the gates. */
   setCut(room: string | null, inside: boolean, openGates: (id: string) => boolean) {
+    this.insideNow = inside;
     for (const [id, g] of this.shells) g.visible = id === "stadium" ? !inside : id !== room;
-    for (const [id, m] of this.backWalls) m.visible = id === room;
+    for (const q of this.whens) q.g.visible = q.when === "inside" ? inside : q.when === "outside" ? !inside : q.when === "terrace" ? inside && this.liftAsked : q.when === "stand_n" ? inside && this.liftAsked && !this.northCut : q.when === "stand_n_flat" ? inside && (this.northCut || !this.liftAsked) : q.when === `room:${room}`;
     for (const [id, g] of this.gates) g.visible = !openGates(id);
   }
 
   /** Make sure the ground is painted wherever the camera can see: the rectangle given, in metres. */
   ground(x0: number, z0: number, x1: number, z1: number, budget = 2) {
     this.frame++;
+    // The middle of what the camera sees. Behind the main stand (the corridor, the dressing rooms) the stand lies flat, or it would hide them.
+    this.focus.x = (x0 + x1) / 2; this.focus.z = (z0 + z1) / 2;
+    if (this.northCut ? this.focus.z > -35.5 : this.focus.z < -36.5) this.northCut = !this.northCut;
     const c0x = Math.floor(x0 / CHUNK_M), c1x = Math.floor(x1 / CHUNK_M), c0z = Math.floor(z0 / CHUNK_M), c1z = Math.floor(z1 / CHUNK_M);
     for (let cz = c0z; cz <= c1z; cz++) for (let cx = c0x; cx <= c1x; cx++) {
       const key = `${cx},${cz}`;

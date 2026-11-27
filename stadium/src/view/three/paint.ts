@@ -271,20 +271,34 @@ export interface Region { x: number; y: number; w: number; h: number }
 const PAD = 3;
 
 export class Atlas {
-  canvas: HTMLCanvasElement; ctx: Ctx; size: number;
-  private cx = PAD; private cy = PAD; private rowH = 0;
+  canvas: HTMLCanvasElement; ctx: Ctx; size: number; height: number;
+  /** The skyline: the top edge of everything placed so far, left to right. Each new region goes where it sits lowest. */
+  private sky: { x: number; y: number; w: number }[]; private bottom = 0; private area = 0;
   private solids = new Map<string, Region>();
-  constructor(size = 2048) {
-    this.size = size;
-    [this.canvas, this.ctx] = makeCanvas(size, size);
+  constructor(size = 2048, height = size) {
+    this.size = size; this.height = height;
+    [this.canvas, this.ctx] = makeCanvas(size, height);
+    this.sky = [{ x: 0, y: 0, w: size }];
   }
   alloc(w: number, h: number): Region {
     w = Math.max(1, Math.round(w)); h = Math.max(1, Math.round(h));
-    if (this.cx + w + PAD > this.size) { this.cx = PAD; this.cy += this.rowH + PAD * 2; this.rowH = 0; }
-    if (this.cy + h + PAD > this.size) throw new Error("atlas full");
-    const r = { x: this.cx, y: this.cy, w, h };
-    this.cx += w + PAD * 2; this.rowH = Math.max(this.rowH, h);
-    return r;
+    const W = w + PAD * 2, Hh = h + PAD * 2, sky = this.sky;
+    let bi = -1, by = Infinity, bw = Infinity;
+    for (let i = 0; i < sky.length; i++) {
+      const x = sky[i].x;
+      if (x + W > this.size) break;
+      let y = 0, left = W;
+      for (let j = i; left > 0 && j < sky.length; j++) { y = Math.max(y, sky[j].y); left -= sky[j].w; }
+      if (y + Hh > this.height) continue;
+      if (y < by || (y === by && sky[i].w < bw)) { bi = i; by = y; bw = sky[i].w; }
+    }
+    if (bi < 0) throw new Error("atlas full");
+    const x = sky[bi].x, end = x + W;
+    sky.splice(bi, 0, { x, y: by + Hh, w: W });
+    for (let j = bi + 1; j < sky.length;) { const n = sky[j]; if (n.x + n.w <= end) sky.splice(j, 1); else { if (n.x < end) { n.w -= end - n.x; n.x = end; } break; } }
+    for (let j = 0; j < sky.length - 1;) { if (sky[j].y === sky[j + 1].y) { sky[j].w += sky[j + 1].w; sky.splice(j + 1, 1); } else j++; }
+    this.bottom = Math.max(this.bottom, by + Hh); this.area += W * Hh;
+    return { x: x + PAD, y: by + PAD, w, h };
   }
   /** Allocate w x h px and paint into it (origin at the region's top-left, clipped). */
   paint(w: number, h: number, fn: (c: Ctx, w: number, h: number) => void, opaque = true): Region {
@@ -301,15 +315,11 @@ export class Atlas {
   }
   /** Smear the border outward into the padding so mip levels don't pull in the neighbour. */
   private extrude(r: Region) {
-    const c = this.ctx, cv = this.canvas;
-    for (let k = 1; k <= PAD; k++) {
-      c.drawImage(cv, r.x, r.y, r.w, 1, r.x, r.y - k, r.w, 1);
-      c.drawImage(cv, r.x, r.y + r.h - 1, r.w, 1, r.x, r.y + r.h - 1 + k, r.w, 1);
-    }
-    for (let k = 1; k <= PAD; k++) {
-      c.drawImage(cv, r.x, r.y - PAD, 1, r.h + PAD * 2, r.x - k, r.y - PAD, 1, r.h + PAD * 2);
-      c.drawImage(cv, r.x + r.w - 1, r.y - PAD, 1, r.h + PAD * 2, r.x + r.w - 1 + k, r.y - PAD, 1, r.h + PAD * 2);
-    }
+    // (Read, smear in memory, write back: drawing the atlas on to itself copies the whole sheet every time.)
+    const W = r.w + PAD * 2, Hh = r.h + PAD * 2, img = this.ctx.getImageData(r.x - PAD, r.y - PAD, W, Hh), d = new Uint32Array(img.data.buffer);
+    for (let y = PAD; y < PAD + r.h; y++) { const row = y * W, l = d[row + PAD], rr = d[row + PAD + r.w - 1]; for (let k = 0; k < PAD; k++) { d[row + k] = l; d[row + PAD + r.w + k] = rr; } }
+    for (let k = 0; k < PAD; k++) { d.copyWithin(k * W, PAD * W, PAD * W + W); d.copyWithin((PAD + r.h + k) * W, (PAD + r.h - 1) * W, (PAD + r.h) * W); }
+    this.ctx.putImageData(img, r.x - PAD, r.y - PAD);
   }
   /** A flat swatch (with a breath of grain so big faces aren't dead). */
   solid(col: number): Region {
@@ -318,5 +328,5 @@ export class Atlas {
     if (!r) { r = this.paint(8, 8, (c) => rect(c, 0, 0, 8, 8, H(col))); this.solids.set(k, r); }
     return r;
   }
-  usage(): number { return (this.cy + this.rowH) / this.size; }
+  usage(): number { return this.bottom / this.height; }
 }

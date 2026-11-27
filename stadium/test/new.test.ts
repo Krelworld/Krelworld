@@ -403,3 +403,21 @@ test("the gate rush: packed in a crowd, a steward a few metres off can't pick Gr
     void seen;
   } finally { setPace({ kickoffAt: before, calm: false }); }
 });
+test("the match directs: one job read off the score and clock, naming a target", async () => {
+  const { matchJob } = await import("../src/stadium/director");
+  const { theirStar, theirKeeper } = await import("../src/stadium/fixes");
+  const g = createGame("job1"), s = g.w.state;
+  assert.equal(matchJob(g.w), null, "nothing before kick-off");
+  while (s.match!.phase !== "live") stepGame(g);
+  const m = s.match!;
+  let j = matchJob(g.w)!;
+  assert.equal(j.id, "level-star"); assert.equal(j.target, theirStar(g.w)!.id);
+  m.score = [0, 1];
+  j = matchJob(g.w)!;
+  assert.equal(j.id, "behind-gk"); assert.equal(j.target, theirKeeper(g.w)!.id);
+  m.score = [1, 0]; m.period = 2; m.clock = m.cfg.halfSeconds * 0.5;
+  j = matchJob(g.w)!;
+  assert.equal(j.id, "ahead-late"); assert.match(j.text, /Waste time/);
+  m.score = [1, 1]; m.clock = m.cfg.halfSeconds * 0.8;
+  assert.equal(matchJob(g.w)!.id, "level-late");
+});

@@ -1304,3 +1304,51 @@ Instinct replaces it. Everything else stays in the background or interactive tie
 - explain one rule by 5 minutes.
 
 Before building more, put it in front of five people who've never seen it, on a phone, saying nothing. For each, note the time to their first touch, whether they noticed the keg, and whether they can say why the drayman walked off. Also note what made them laugh: a line, an animation, their own plan, or an accident. The report: if nearly all laughs come from dialogue, Option B hasn't worked yet.
+
+## Round (overnight): steps 6–8 from the report's roadmap
+
+The creator asked me to "go for it" with step 6, then identify the report's next big steps and work through them. In the report's roadmap, after the opening playground, the core grammar and the visual prototype come:
+- **the playtest gate:** naïve testers must understand the opening without explanation;
+- **exterior rollout:** zone by zone, with multiple routes and no global checklist;
+- **football integration:** spectating, dynamic objectives, physical-versus-official events, pitch participation;
+- **campaign progression:** escalation across the three matches, notoriety, carry-over;
+- **polish.**
+
+I did these:
+
+**Step 6: a playtest recorder (`?playtest`).** Real testers have to be people, so this makes the gate measurable.
+- **What it times:** each tester against the report's opening targets:
+  - moving within 20 s;
+  - a meaningful interaction within 45 s;
+  - a visible reaction within 90 s;
+  - a 2+ link chain within 3 min;
+  - learning a rule within 5 min.
+- **What else it counts:** Bag opens (target ≤ 1), stuck spells over 30 s, how many different things they tried, failed attempts, and whether they carried on after one.
+- **Laughs:** the observer gets a 😂 button at the left edge. One tap per laugh, then what caused it: a line, an animation, their plan, or an accident. It records what had just happened.
+- **The report:** in the menu. It shows every tester on that device, a notes box, a Copy button, and "Next tester", which starts fresh. Every tester starts knowing no rules.
+- **The verdict:** a summary against the report's warnings ("nearly all laughs came from dialogue"; "fewer than half made a chain: stop expanding").
+
+**Step 7: the rest of the report's first five minutes** (game build only).
+- **2:30, a lead:** a fan near you says the turnstiles get rammed just before kick-off, and the stewards can't see a thing in that crush. It goes in the notes as "The gate rush", with no marker.
+- **Two minutes before the rush, a warning in the world:** the turnstile stewards brace out loud ("Two minutes, lads. Then the whole lot come at once." "Christ. Here we go.").
+- **The rush is cover:** packed in with four or more people around you during the rush, any steward more than four metres off can't pick you out. Grozz clocks it the first time ("Packed in like this, they can't see a thing. Heh.").
+- **Phone and Bag appear when there's a reason:**
+  - the Bag once you've picked something up;
+  - the Phone once it rings;
+  - both after four minutes or at kick-off.
+  - Anyone who's played before (knows a rule) has them from the start.
+
+**Step 8: the match as director** (`director.ts`).
+- **One job at a time, read off the score, the clock and who's still standing:**
+  - **level:** stop their star, then their keeper, then the ref;
+  - **behind:** their keeper, then the ref, then "anything: the pitch, the ball, the fire alarm";
+  - **ahead with 40% to go:** waste time;
+  - **level late:** "one moment of chaos wins this";
+  - **half-time:** everyone's away from their usual spot;
+  - **penalties:** their keeper's the difference.
+- **How it shows:**
+  - a "THE JOB" strap when it changes (at most every 25 s, unless it's urgent);
+  - it heads the notes ("NOW: 0–1 down: their keeper");
+  - whoever it names gets the warm rim and a pulsing ring at their feet, so it reads even at the wide spectating zoom;
+  - an urgent change drops fast-forward back to normal speed.
+- **It never names a route.** That's the report's "identify current match objective within 1 min of kick-off".

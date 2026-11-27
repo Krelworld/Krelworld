@@ -42,6 +42,7 @@ import { instinctMarks, itemAt, todoSpot, trackTarget, type Tracked } from "./gu
 import { ITEM_TIPS, itemTargets, type ItemTarget } from "./itemhelp";
 import { curioHere, CURIOS } from "./curios";
 import { PlayTest } from "./playtest";
+import { matchJob, type Job } from "../stadium/director";
 import { inDrag as inDragSim } from "../stadium/drag";
 import STW_JSON from "../../assets/audio/stwlines.json";
 const STW_VOICE = STW_JSON as Record<string, string>;
@@ -941,6 +942,7 @@ class StadiumScene extends Phaser.Scene {
     // Only what has to be done: get in, and sort out whatever could stop England (the fixes you've
     // heard about; before that, a nudge to listen). The optional paid stuff is in Side jobs.
     const st0 = this.s.stadium!, f0 = st0.flags, must: string[] = [];
+    if (this.job) must.push(`NOW: ${this.job.short}`);
     if (!st0.admitted && !pc.fb) must.push("Get into the ground");
     const known = FIXES.filter((fx) => f0[`fix_${fx.id}`] && !f0[`fixdone_${fx.id}`]);
     if (known.length) for (const fx of known) must.push(`Sort out ${fx.title(this.w).replace(/^Their/, "their").replace(/^The/, "the")}`);
@@ -1210,6 +1212,7 @@ class StadiumScene extends Phaser.Scene {
     if (!this.started) { this.draw(dms); return; }
     if (this.pt) { this.pt.frame(this.speed === 0 || !!this.callOn); if (this.s.tick % 600 === 0) this.pt.save(); }
     if (this.s.tick % 20 === 0) this.progressiveUI();
+    if (this.s.tick % 30 === 0) this.directJob();
     // In the gate-rush crush for the first time: Grozz clocks it.
     if (!this.flags.crushSaid && (this.s.stadium!.flags.crowdCover ?? 0) > this.s.tick) { this.flags.crushSaid = 1; this.pcLine = { text: "Packed in like this, they can't see a thing. Heh.", until: performance.now() + 3200 }; }
     const st = this.s.stadium!;
@@ -2477,6 +2480,16 @@ class StadiumScene extends Phaser.Scene {
         }
       }
     } else if (this.tele) this.tele = null;
+    // The match's job: whoever it names gets a warm ring at their feet (the rim alone is lost at the wide
+    // spectating zoom).
+    if (pc && this.job?.target && !this.instinct) {
+      const ja = s.actors[this.job.target];
+      if (ja && !ja.dead && ja.fb?.status !== "gone" && onScreen(ja.x, ja.y)) {
+        const k = 0.5 + 0.5 * Math.sin(tick * 0.12), u6 = DPR / cam.zoom, jx = P.sx(ja.x, ja.y), jy = P.sy(ja.x, ja.y);
+        ui.lineStyle(5 * u6, 0x000000, 0.45).strokeEllipse(jx, jy, P.S * (1.3 + 0.3 * k) + 12 * u6, (P.S * (1.3 + 0.3 * k) + 12 * u6) * 0.45);
+        ui.lineStyle(3 * u6, 0xffd75a, 0.6 + 0.4 * k).strokeEllipse(jx, jy, P.S * (1.3 + 0.3 * k) + 12 * u6, (P.S * (1.3 + 0.3 * k) + 12 * u6) * 0.45);
+      }
+    }
     // Half-time: the referee's tea urn pulses for the break (that's where his cuppa comes from).
     if (pc && s.match?.phase === "break" && s.match.period === 1) {
       const urn = Object.values(s.items).find((i) => i.def === "tea_urn" && i.loc.k !== "gone");
@@ -3226,6 +3239,25 @@ class StadiumScene extends Phaser.Scene {
     show("bag", veteran || late || held > this.bag0 || this.sheetKind === "bag");
     show("phone", veteran || late || !!this.callOn || Object.keys(this.incoming).length > 0);
   }
+  /** The match as director: one job at a time, read off the score and the clock (director.ts). When it
+   *  changes it's said once on a strap, it heads the notes, and whoever it names gets the warm rim. */
+  job: Job | null = null;
+  jobAt = 0;
+  directJob(): void {
+    const job = matchJob(this.w), now = performance.now();
+    const changed = (job?.id ?? "") !== (this.job?.id ?? "");
+    this.job = job;
+    if (!job || !changed) return;
+    if (job.urgent && this.speed > 1) this.setSpeed(1);
+    if (now - this.jobAt < 25000 && !job.urgent) return;
+    if (!$("chainStrap").hidden) return;
+    this.jobAt = now;
+    const el = $("chainStrap");
+    el.innerHTML = `<b>THE JOB</b><span><i>${esc(job.text)}</i></span>`;
+    el.hidden = false; el.classList.remove("in"); void el.offsetWidth; el.classList.add("in");
+    this.audio.play("chime", 0.45, { rate: job.urgent ? 1.2 : 0.85 });
+    clearTimeout(this.chainTimer); this.chainTimer = window.setTimeout(() => { el.hidden = true; }, 6000);
+  }
   /** The observer's strip (playtest only): one tap per laugh, and what caused it. */
   ptBar(): void {
     if (!this.pt || document.getElementById("ptBar")) return;
@@ -3280,6 +3312,8 @@ class StadiumScene extends Phaser.Scene {
       for (const a of Object.values(s.actors)) if (a.npc && !a.dead && Math.hypot(a.x - t.x, a.y - t.y) < 0.5) R.add(a.id);
       for (const i of Object.values(s.items)) if (i.loc.k === "ground" && Math.hypot(i.loc.x - t.x, i.loc.y - t.y) < 0.5) R.add(`item-${i.id}`);
     }
+    // The match's job of the moment: whoever it names (their star, their keeper, the ref).
+    if (this.job?.target) R.add(this.job.target);
     // People worth a thought, until you've had it (Lenny, Del), when you're within a stone's throw.
     for (const c of CURIOS) {
       if (this.curios.has(c.id) || (c.id !== "lenny" && c.id !== "del")) continue;

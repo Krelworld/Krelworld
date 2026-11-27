@@ -4742,7 +4742,10 @@ class StadiumScene extends Phaser.Scene {
       case "knockout": if (e.by === pcId) this.buzz(70); break;
       case "payout": if (this.started) this.buzz([20, 30, 20]); break;
       case "fruit": if (e.by === pcId) this.fruitSpin(e.reels, e.win); break;
-      case "ticket_scanned": if (e.who === pcId) this.scanCard(e.ok); if (e.ok) this.gateFlash[e.gate] = performance.now() + 4500; break;
+      case "ticket_scanned": if (e.who === pcId) this.scanCard(e.ok); if (e.ok) this.gateFlash[e.gate] = performance.now() + 4500;
+        // Through you go: he walks himself through the turnstile (inside is up the screen).
+        if (e.ok && e.who === pcId && e.x !== undefined) setTimeout(() => { if (!this.s.stadium!.admitted) this.walkTo = { x: e.x, y: e.y - 3, path: [], pathAt: 0, until: performance.now() + 8000 }; }, 700);
+        break;
       case "pc_say": this.pcLine = { text: e.text, until: performance.now() + 2600 }; break;
       case "snitch": if (e.who === pcId) { this.hint(`${nm(e.by)} saw that, and he's off to find a steward. Tap him: pay him off, lean on him, or flatten him first.`); this.audio.play("heat_alert", 0.35, { minGap: 2 }); } break;
       case "snitch_stopped": if (e.how !== "down") this.hint(e.how === "paid" ? `${nm(e.by)} never saw a thing.` : `${nm(e.by)} has seen sense.`); this.tick("grass"); break;

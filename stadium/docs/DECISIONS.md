@@ -1449,3 +1449,13 @@ Three problems in the first minute:
 - only the person's name stays over their head, so you can see who you picked.
 
 This matches the report's touch grammar: touch the world, then choose the verb in the thumb zone.
+
+**The turnstile** (the creator: "very unintuitive how to enter the stadium when they scan your ticket and then they say 'this one's been scanned'").
+- **Before:** the gate opened for four seconds after a scan. Miss that, and showing the ticket again got "This one's already been scanned."
+- **Now:**
+  - after a good scan the gate stays open for you until you're through;
+  - Grozz walks himself through it;
+  - showing a ticket that was scanned for you, when you never went in, gets "You've been scanned, mate. Go on, through you go." and the gate opens again.
+- A ticket somebody else used still gets refused.
+
+**Planting** (the creator: "why do you get the option to plant items such as bricks"). Plant used to need only that a thing was small enough for a pocket, so bricks and pies were offered. Now it's only what would get someone nicked if a copper turned out their pockets: gear (powder), flares and blades.

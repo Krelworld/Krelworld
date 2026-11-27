@@ -66,6 +66,8 @@ export interface Item {
   cash?: number;
   /** A ticket that has already been through a turnstile. */
   used?: boolean;
+  /** Who it was scanned for (a ticket). */
+  usedBy?: Id;
   /** Who slipped this into someone else's pocket. */
   plantedBy?: Id;
   /** Whose it was (a face, a pair of hands). */

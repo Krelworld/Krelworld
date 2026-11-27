@@ -633,6 +633,12 @@ function turnstileCheck(w: World, act: Action): void {
   if (it.def !== "ticket") return void say(w, t, "That's not a ticket, is it?");
   if (st.dog?.state === "led" && !st.flags.serviceDog && !VENUE.features.penisDetector) return void say(w, t, "No dogs. Not even that one. Especially not that one.");
   if (it.void) { n.sus[by.id] = Math.max(n.sus[by.id] ?? 0, 0.6); w.bus.emit({ type: "ticket_scanned", t: s.tick, who: by.id, gate: g.gate, ok: false }); return void say(w, t, "This ticket's been cancelled. Hop it."); }
+  // Scanned already, by you, and you never went through: he just lets you through again.
+  if (it.used && it.usedBy === by.id && !st.admitted) {
+    st.gates[g.gate] = { until: s.tick + 60 * 30, for: by.id };
+    w.bus.emit({ type: "ticket_scanned", t: s.tick, who: by.id, gate: g.gate, ok: true, x: g.x + g.w / 2, y: g.y + g.h / 2 });
+    return void say(w, t, "You've been scanned, mate. Go on, through you go.");
+  }
   if (it.used) { w.bus.emit({ type: "ticket_scanned", t: s.tick, who: by.id, gate: g.gate, ok: false }); return void say(w, t, "This one's already been scanned."); }
   if (ap.faceHidden) return void say(w, t, ap.sinister ? "You're not coming in dressed like that." : "Mask off, please.");
   // The cameras: a barred face is flagged unless at least half of it is covered.
@@ -657,10 +663,11 @@ function turnstileCheck(w: World, act: Action): void {
     crime(w, by, "carrying a weapon at the gate", 1);
     return;
   }
-  it.used = true;
+  it.used = true; it.usedBy = by.id;
   if (startDetector(w, by, g.gate, t)) return;
-  st.gates[g.gate] = { until: s.tick + 60 * 4, for: by.id };
-  w.bus.emit({ type: "ticket_scanned", t: s.tick, who: by.id, gate: g.gate, ok: true });
+  // Open until he's through (the view walks him through it).
+  st.gates[g.gate] = { until: s.tick + 60 * 30, for: by.id };
+  w.bus.emit({ type: "ticket_scanned", t: s.tick, who: by.id, gate: g.gate, ok: true, x: g.x + g.w / 2, y: g.y + g.h / 2 });
   say(w, t, "Enjoy the game.");
 }
 

@@ -1319,3 +1319,18 @@ test("a steward who sees it reaches for his radio: flatten him in time and no ba
   run(g, 2);
   assert.ok(stopped && !radioed, "no backup");
 });
+
+test("a scanned ticket: the gate waits for you, and showing it again just lets you through", () => {
+  const g = createGame("ticket2");
+  const pc = pcOf(g), s = g.w.state;
+  const ticket = spawnItem(s, "ticket", { k: "hand", a: pc.id });
+  pc.hand = ticket.id;
+  walk(g, 0, 46.3, 20);
+  const steward = find(g, (a) => a.npc?.job === "turnstile" && Math.abs(a.x) < 1);
+  assert.equal(dispatch(g.w, { verb: "show", actor: pc.id, item: ticket.id, target: { k: "actor", id: steward.id } }).ok, true);
+  assert.equal(s.items[ticket.id].used, true);
+  // Dawdle: ten seconds and the gate's still his.
+  run(g, 10);
+  walk(g, 0, 40, 10);
+  assert.ok(pc.y < 44, `through after dawdling, at ${pc.y.toFixed(1)}`);
+});

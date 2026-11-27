@@ -28,6 +28,8 @@ export function installPolice(): void {
       const t = targetActor(w, act);
       if (!item || (actor.hand !== item.id && !actor.pockets.includes(item.id))) return "not carrying it";
       if (defOf(item).size !== "small") return "too big to slip into a pocket";
+      // Only what would get somebody nicked if a copper found it on them: gear, flares, a blade.
+      if (!hasProp(item, "illicit") && !hasProp(item, "sharp")) return "nothing anyone would get nicked for";
       if (!t || t === actor || t.hiddenIn) return "nobody to plant it on";
       if (!near(actor, t, 1.5)) return "too far";
       if (t.pockets.length >= 3) return "his pockets are full";

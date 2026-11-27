@@ -271,7 +271,7 @@ export const PACE = { calm: false };
 export function setPace(o: { kickoffAt: number; calm: boolean }): void { KICKOFF_AT = o.kickoffAt; PACE.calm = o.calm; }
 /** Where the coach drops Grozz. In the game, the top of the pub yard (the drayman, his lorry and his
  *  kegs in view, the first thing to mess with); the tests keep the old spot on the approach. */
-export const arrivalSpot = () => (PACE.calm ? { x: VENUE.id === "sf" ? 24 : -24, y: 63.6 } : SPOTS.arrival);
+export const arrivalSpot = () => (PACE.calm ? { x: VENUE.id === "sf" ? 26.6 : -26.6, y: 65.6 } : SPOTS.arrival);
 /** When the fans rush the gates: the last three minutes. */
 export const rushAt = () => KICKOFF_AT - 180;
 

@@ -244,7 +244,10 @@ class StadiumScene extends Phaser.Scene {
       alarm: "tannoy_alarm", breach: "tannoy_breach", forfeit: "tannoy_forfeit", incident: "tannoy_incident",
       display_off: "tannoy_display_off", lenny: "tannoy_lenny", lenny_off: "tannoy_lenny_off", card: "tannoy_card", press: "tannoy_press" };
     const ann = new Announcer(w, (a) => {
-      this.say(a.text, a.src === "tannoy" ? "Tannoy" : "Commentary", a.big);
+      // Voiced tannoy lines are heard, not read (it's all in the log); only the ones that change what
+      // you should do get a caption: an alarm, a breach, the cameras, the detector.
+      const voiced = !!a.key && !!TANNOY[a.key], matters = ["alarm", "breach", "facerec", "detector", "forfeit", "incident"].includes(a.key ?? "");
+      this.say(a.text, a.src === "tannoy" ? "Tannoy" : "Commentary", a.big, !voiced || matters);
       const clip = a.key ? (TANNOY[a.key] ?? (a.key.startsWith("cam") ? "tannoy_supervisor" : undefined)) : undefined;
       if (clip && !(VENUE.id === "sf" && a.key === "lorry")) this.audio.tannoy(clip, this.hearsMatch() ? 0.9 : 0.5, this.hearsMatch() ? 0 : 0.6);
     });
@@ -915,11 +918,8 @@ class StadiumScene extends Phaser.Scene {
       if (c) {
         this.curios.add(c.id); this.itemCardAt = now;
         this.say(c.text, "Idea", false, false);
-        const el = $("itemCard");
-        el.innerHTML = `<i class="bulb">!</i><div><b>Idea · ${this.curios.size}/${CURIOS.length}</b><span>${esc(c.text)}</span></div>`;
-        el.hidden = false; el.classList.remove("in"); void el.offsetWidth; el.classList.add("in");
-        this.audio.play("chime", 0.45, { rate: 1.25 });
-        clearTimeout(this.itemCardTimer); this.itemCardTimer = window.setTimeout(() => { el.hidden = true; }, 5200);
+        this.pcLine = { text: c.short, until: now + 3400 };
+        this.audio.play("chime", 0.35, { rate: 1.25 });
       }
     }
     // Ricky rings, a couple of minutes in, if you haven't got his number.
@@ -939,14 +939,14 @@ class StadiumScene extends Phaser.Scene {
     // It opens out when something on it changes, then folds away to a tab after a few seconds (tap the
     // tab to look again), so it isn't sat over the game the whole time.
     const key = must.join("|") + (soon ? `|${next![1]}` : "");
-    if (key !== this.todoKey) { this.todoKey = key; this.todoOpenUntil = now + 9000; }
+    if (key !== this.todoKey) { const first = !this.todoKey; this.todoKey = key; if (!first) this.todoOpenUntil = now + 6000; }
     const open = now < this.todoOpenUntil;
     nEl.classList.toggle("shut", !open);
     const nx = next && !st0.admitted ? `<p class="nx">NEXT <i>${fmtTime(left)}</i> ${esc(next[1])}</p>` : "";
     const html = open ? `<b>TO DO</b>${must.length ? must.slice(0, 3).map((t) => `<p>☐ ${esc(t)}</p>`).join("") : "<p>Watch England win.</p>"}${nx}<p class="side">Side jobs ▸</p>`
       : `<b>TO DO${must.length ? ` · ${Math.min(3, must.length)}` : " ✓"}</b>`;
     // Pointing you at the side jobs once you're into it (and a dot on the menu till you've looked).
-    if (!this.flags.jobsHint && this.s.tick > 60 * 25 && !pc.heldBy) { this.flags.jobsHint = 1; this.hint("There's money in mayhem. Tap Side jobs on your notes (or the menu) to see what pays."); $("menuBtn").classList.add("dot"); }
+    if (!this.flags.jobsHint && this.s.tick > 60 * 120 && !pc.heldBy) { this.flags.jobsHint = 1; this.hint("There's money in mayhem. Tap Side jobs on your notes (or the menu) to see what pays."); $("menuBtn").classList.add("dot"); }
     if (nEl.innerHTML !== html) nEl.innerHTML = html;
     nEl.hidden = !this.started || !!this.fp?.on || this.inCab() || this.callOn || !!this.ring || (!$("itemCard").hidden && window.innerHeight < 520);
   }
@@ -1476,7 +1476,7 @@ class StadiumScene extends Phaser.Scene {
   }
   roofDimK = 0;
   quietG!: Phaser.GameObjects.Graphics;
-  quiet = location.search.includes("quiet");
+  quiet = !location.search.includes("loud");
   whyIcons = new Map<string, Phaser.GameObjects.Image>();
   /** A chain Grozz set off, named like a TV graphic as it grows ("KEG → DRAYMAN GOES AFTER IT → …"). */
   chainTimer = 0;
@@ -1497,11 +1497,11 @@ class StadiumScene extends Phaser.Scene {
     try { localStorage.setItem("kd-rules", JSON.stringify([...this.rules])); } catch { /* ignore */ }
     this.say(`${rule} ${more}`, "Rule", false, false);
     const el = $("itemCard");
-    el.innerHTML = `<i class="bulb rule">✓</i><div><b>A rule of the day</b><span>${esc(rule)}</span><small>${esc(more)}</small></div>`;
+    el.innerHTML = `<i class="bulb rule">✓</i><div><b>Learned</b><span>${esc(rule)}</span></div>`;
     el.hidden = false; el.classList.remove("in"); void el.offsetWidth; el.classList.add("in");
     this.itemCardAt = performance.now();
     this.audio.play("chime", 0.6, { rate: 1.1 });
-    clearTimeout(this.itemCardTimer); this.itemCardTimer = window.setTimeout(() => { el.hidden = true; }, 6500);
+    clearTimeout(this.itemCardTimer); this.itemCardTimer = window.setTimeout(() => { el.hidden = true; }, 4200);
   }
   /** A footballer's card (the old Football Manager match screen): who he is, how good, how he is today. */
   playerCard(a: Actor) {
@@ -1526,7 +1526,7 @@ class StadiumScene extends Phaser.Scene {
     this.seenItems.add(it.def); this.itemCardAt = performance.now();
     try { localStorage.setItem("kd-items", JSON.stringify([...this.seenItems])); } catch { /* ignore */ }
     const el = $("itemCard"), lit = itemTargets(this.w, this.pc, it).length > 0;
-    el.innerHTML = `${icon(it.def)}<div><b>${esc(itemName(it))}</b><span>${esc(ITEM_TIPS[it.def])}</span>${lit ? `<small>In your hand, the places it works light up.</small>` : ""}</div>`;
+    el.innerHTML = `${icon(it.def)}<div><b>${esc(itemName(it))}</b><span>${esc(ITEM_TIPS[it.def])}</span></div>`;
     el.hidden = false; el.classList.remove("in"); void el.offsetWidth; el.classList.add("in");
     clearTimeout(this.itemCardTimer); this.itemCardTimer = window.setTimeout(() => { el.hidden = true; }, 5200);
   }
@@ -1921,14 +1921,11 @@ class StadiumScene extends Phaser.Scene {
           if (!im) { im = this.add.image(0, 0, `ico-${it.def}`); this.worldSprites.set(`item-${id}`, im); }
           this.worldSeen.add(`item-${id}`);
           const rolling = it.def === "keg" && s.stadium!.rolling?.some((r) => r.id === id);
-          im.setTexture(`ico-${it.def}`).setOrigin(0.5, 0.9).setScale(it.def === "keg" ? 0.75 : 0.5).setPosition(Math.round(P.sx(x, y)), Math.round(P.sy(x, y, z))).setDepth(dep).setVisible(true).setAlpha(1).setAngle(l.k === "air" ? (tick * 12) % 360 : rolling ? Math.sin(tick * 0.9) * 14 : 0);
+          // The loose one teeters on the edge of the stack (a push-me, not a prompt) until a keg's been rolled.
+          const teeter = it.def === "keg" && it.home && Math.abs(Math.abs(it.home.x) - 30.1) < 0.05 && !this.rules.has("post") && !s.stadium!.chain && Math.hypot(it.home.x - x, it.home.y - y) < 0.1;
+          im.setTexture(`ico-${it.def}`).setOrigin(0.5, 0.9).setScale(it.def === "keg" ? 0.75 : 0.5).setPosition(Math.round(P.sx(x, y)), Math.round(P.sy(x, y, z))).setDepth(dep).setVisible(true).setAlpha(1).setAngle(l.k === "air" ? (tick * 12) % 360 : rolling ? Math.sin(tick * 0.9) * 14 : teeter ? (tick % 120 < 50 ? Math.sin(tick * 0.5) * 9 : 0) : 0);
         } });
         if (near && l.k === "ground") things.push({ d: y + 1e-4, draw: () => g.lineStyle(3, 0xf2c94c, 0.5 + 0.4 * Math.sin(tick * 0.15)).strokeCircle(P.sx(x, y), P.sy(x, y) - P.S * 0.2, P.S * 0.55) });
-        // The loose keg glints (a slow gold sparkle) until you've rolled one: something here's worth a look.
-        else if (it.def === "keg" && l.k === "ground" && it.home && Math.abs(Math.abs(it.home.x) - 30.1) < 0.05 && !this.rules.has("post") && !s.stadium!.chain && Math.hypot(it.home.x - x, it.home.y - y) < 0.1 && (tick % 150) < 40) {
-          const k = (tick % 150) / 40, sx = P.sx(x, y) + P.S * 0.25, sy = P.sy(x, y) - P.S * 0.85, r = P.S * 0.32 * Math.sin(k * Math.PI);
-          things.push({ d: y + 1e-4, draw: () => g.fillStyle(0xfff4c2, 0.95).fillTriangle(sx - r, sy, sx + r, sy, sx, sy - r * 0.25).fillTriangle(sx - r, sy, sx + r, sy, sx, sy + r * 0.25).fillTriangle(sx, sy - r, sx, sy + r, sx - r * 0.25, sy).fillTriangle(sx, sy - r, sx, sy + r, sx + r * 0.25, sy) });
-        }
         continue;
       }
       // Hampers get the hamper picture.
@@ -2501,7 +2498,7 @@ class StadiumScene extends Phaser.Scene {
     const talkingTo = this.talkedTo && performance.now() - this.talkedTo.at < 12000 ? this.talkedTo.id : null;
     const matters = (a: Actor) => a.id === talkingTo || (a.npc!.mode !== "routine" && a.npc!.mode !== "flee") || isHint(a.npc!.bubble!.text) || !!st.snitches?.some((x) => x.by === a.id) || ((a.npc!.whyUntil ?? 0) > s.tick && !!a.npc!.why);
     const key = speaking.filter(matters), chatter = speaking.filter((a) => !matters(a));
-    const shownChat = chatter.filter((a) => near0(a) < 9).slice(0, 1);
+    const shownChat = chatter.filter((a) => near0(a) < 4.5).slice(0, 1);
     const talkers = [...(pcTalk ? [pc!] : []), ...key.slice(0, 2), ...shownChat].slice(0, this.bubbles.length);
     const dots = chatter.filter((a) => !shownChat.includes(a));
     if (!this.bubbleG) this.bubbleG = this.add.graphics().setDepth(1e7 + 0.5);
@@ -3257,7 +3254,7 @@ class StadiumScene extends Phaser.Scene {
     if (area.name !== this.lastArea) { this.lastArea = area.name; this.areaShownAt = performance.now(); }
     const fresh = performance.now() - this.areaShownAt < 2200;
     const where = busV?.drivenBy === pc.id ? `Driving the ${m.teams[1].name} team bus` : pc.hiddenIn === "car" ? `Driving a nicked ${st.myCar?.kind === "policecar" ? "police car" : st.myCar?.kind === "taxi" ? "black cab" : "motor"}` : pc.hiddenIn ? (pc.hiddenIn === busV?.cargo ? "Hiding in the bus's luggage hold" : `Hiding in the back of the ${VENUE.delivery.name}`) : pc.heldBy ? "Being frogmarched"
-      : bad ? `${area.name} · you shouldn't be here` : fresh ? area.name : this.objectiveNow();
+      : bad ? `${area.name} · you shouldn't be here` : fresh && this.s.tick > 60 * 4 ? area.name : "";
     const wEl = $("where");
     if (wEl.textContent !== where) wEl.textContent = where;
     // Like Hitman's and MGS's area names: up when it changes, then out of the way (a warning stays).
@@ -4563,7 +4560,7 @@ class StadiumScene extends Phaser.Scene {
 
   // ---------- Wiring ----------
   wireHud() {
-    $("start").addEventListener("click", () => { $("intro").hidden = true; void this.audio.unlock(); this.started = true; if (this.s.stadium!.dog?.state === "tied" && !VENUE.features.fanZone) setTimeout(() => this.hint("Kev's tied Ronson up outside the Three Lions."), 2500); });
+    $("start").addEventListener("click", () => { $("intro").hidden = true; void this.audio.unlock(); this.started = true; });
     $("prepGo").addEventListener("click", () => {
       if (!this.pendingCampaign) return;
       $("prep").hidden = true;

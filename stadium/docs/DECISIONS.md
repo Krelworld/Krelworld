@@ -1168,3 +1168,19 @@ From the creator's original brief: "finding a vicious dog outside the stadium an
 - **On the pitch:** while you're sat watching (or holding Instinct), their star is labelled in red ("★ Jr") and both keepers "GK". Anyone off their game (bribed, sick, knackered) gets a yellow "off his game" (a keeper, "GK ?").
 - **Player cards:** tap a footballer while you're seated and you get his card, as on an old Football Manager match screen: number, name, team, bars for pace, shooting, passing and tackling (keeping and composure for a keeper), and how he is today ("Looks up for it", "Not himself today. Shifty.", "Sick as a dog.", "Knackered.", "On a yellow.", or why he's off).
 - **The numbers are real:** they're the same ones the match engine plays with. A bribed keeper's saves really are worse, and a missing star really does lower their attack.
+
+## Round: less text, more world
+
+The creator: "the keg thing doesn't read too clearly; there's so much visual noise, it's like the text is the main thing you ever see." The report's principle (show reactions through movement, sound and animation, not explanation) hadn't been applied to our own guidance. So:
+
+- **The opening screen has almost no text:**
+  - the notes start folded ("TO DO · 2"), and open briefly only when something on them changes later;
+  - no "Kev's tied Ronson…" banner, and no "Get into the ground" strap (the strap only names places and warnings);
+  - the tannoy's voiced lines are heard, not read. Only the ones that change what you should do get a caption: alarm, breach, cameras, detector, forfeit, incident. Everything's still in the log.
+  - the "side jobs" nudge waits two minutes;
+  - strangers' chatter only shows when they're right beside you (4.5 m, not 9).
+- **Ideas are Grozz muttering.** A short line in his own bubble ("Shame if one of them kegs rolled off…", "Ronson. He'd go through anyone for a pie.", "Del. Tickets. Or pockets."), not a card. The full thought goes in the notes.
+- **The loose keg teeters** on the edge of the stack, rocking every couple of seconds until a keg's been rolled: a push-me, not a prompt (the sparkle is gone).
+- **Grozz arrives three metres from the kegs**, facing the pub yard, with the stack, the drayman and his lorry in the first frame.
+- **Cards are shorter:** the rule card is one line ("Learned: People leave their post to fix a problem."), the item card drops its second line, and both go sooner.
+- **The quieter ground is the default** (`?loud` for the old look): pavement texture recedes, and people, props and shopfronts carry the contrast.

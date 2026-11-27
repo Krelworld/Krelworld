@@ -195,6 +195,9 @@
   #todo, #todo p, #todo i, #todo b { font-family: var(--body) !important; text-transform: none !important; letter-spacing: 0 !important; text-shadow: none !important; }
   #todo { display: block; text-align: left; max-width: 190px; padding: 5px 8px 4px; background: #f3ecd6; color: #2a2418; border: 2px solid #000; box-shadow: 3px 3px 0 rgba(0,0,0,.45); transform: rotate(-1.2deg); font: 600 12px/1.25 var(--body); text-transform: none; min-height: 0; }
   #todo b { display: block; font: 800 9px/1 var(--display) !important; letter-spacing: .12em; color: #8e1626; margin-bottom: 3px; }
+  #todo p.side { margin-top: 3px; color: #8e1626; font-weight: 800 !important; }
+  #menuBtn.dot { position: relative; }
+  #menuBtn.dot::after { content: ""; position: absolute; top: 4px; right: 4px; width: 9px; height: 9px; border-radius: 50%; background: #f2c94c; box-shadow: 0 0 0 2px #000; animation: ansPulse .5s ease-in-out infinite alternate; }
   #todo p { margin: 1px 0; font-size: 11.5px !important; line-height: 1.2; font-weight: 600; }
   #todo i { font-style: normal; font-weight: 800; color: #1e5a1e; }
   #todo[hidden], #track[hidden] { display: none; }

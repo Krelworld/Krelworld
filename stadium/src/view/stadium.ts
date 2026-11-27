@@ -968,10 +968,17 @@ class StadiumScene extends Phaser.Scene {
     this.todoAt = now;
     // Ricky rings, a couple of minutes in, if you haven't got his number.
     if (!this.incoming.ricky && !knows(this.w, "dealer") && this.s.tick > 60 * 140 && !pc.heldBy) void this.incomingCall("ricky", "Spliff Ricky", "ricky", [["r", "Alright, it's Ricky. Gaz gave me your number. Laxatives, burners, a bit of gear. Ring me. Don't say my name.", "v_in_ricky"], ["g", "What?", "v_ph_gwhat"]], "number");
-    const open = StadiumScene.MAYHEM.filter((m) => !this.mayhemDone.has(m.id));
-    const ranked = open.map((m, i) => { const sp = todoSpot(this.w, m.id); return { m, d: sp ? Math.hypot(sp.x - pc.x, sp.y - pc.y) : 999 + i }; }).sort((a, b) => a.d - b.d).slice(0, 2);
+    // Only what has to be done: get in, and sort out whatever could stop England (the fixes you've
+    // heard about; before that, a nudge to listen). The optional paid stuff is in Side jobs.
+    const st0 = this.s.stadium!, f0 = st0.flags, must: string[] = [];
+    if (!st0.admitted && !pc.fb) must.push("Get into the ground");
+    const known = FIXES.filter((fx) => f0[`fix_${fx.id}`] && !f0[`fixdone_${fx.id}`]);
+    if (known.length) for (const fx of known) must.push(`Sort out ${fx.title(this.w).replace(/^Their/, "their").replace(/^The/, "the")}`);
+    else if (fixesDone(this.w) < FIXES.length) must.push("Find out what could stop England winning. Listen to people.");
     const nEl = $("todo");
-    const html = ranked.length ? `<b>TO DO</b>${ranked.map((r) => `<p>☐ ${esc(r.m.text)} <i>£${REWARDS[r.m.id] ?? 0}</i></p>`).join("")}` : "<b>ALL DONE</b><p>Legend.</p>";
+    const html = `<b>TO DO</b>${must.length ? must.slice(0, 3).map((t) => `<p>☐ ${esc(t)}</p>`).join("") : "<p>Watch England win.</p>"}<p class="side">Side jobs ▸</p>`;
+    // Pointing you at the side jobs once you're into it (and a dot on the menu till you've looked).
+    if (!this.flags.jobsHint && this.s.tick > 60 * 25 && !pc.heldBy) { this.flags.jobsHint = 1; this.hint("There's money in mayhem. Tap Side jobs on your notes (or the menu) to see what pays."); $("menuBtn").classList.add("dot"); }
     if (nEl.innerHTML !== html) nEl.innerHTML = html;
     nEl.hidden = !this.started || !!this.fp?.on || this.inCab();
   }
@@ -3326,7 +3333,7 @@ class StadiumScene extends Phaser.Scene {
 
   // ---------- Sheets ----------
   /** Rummaging in the bag, changing, on the phone: the world waits (the speed it was going at comes back after). */
-  static readonly PAUSING = new Set(["bag", "wardrobe", "phone"]);
+  static readonly PAUSING = new Set(["bag", "wardrobe", "phone", "jobs"]);
   pausedFrom: number | null = null;
   sheet(kind: string, html: string) {
     this.closeRing();
@@ -4235,12 +4242,24 @@ class StadiumScene extends Phaser.Scene {
     setTimeout(() => el.remove(), 2600);
   }
 
+  /** The optional stuff: every daft thing the lads will pay you for, what it pays, and what it
+   *  unlocks for next time. */
+  openJobs() {
+    $("menuBtn").classList.remove("dot");
+    const pc = this.pc;
+    const side = StadiumScene.MAYHEM.filter((m) => m.id !== "in"), doneN = side.filter((m) => this.mayhemDone.has(m.id)).length;
+    const rows = side.map((m, i) => { const sp = todoSpot(this.w, m.id); return { m, d: sp ? Math.hypot(sp.x - pc.x, sp.y - pc.y) : 999 + i }; })
+      .sort((a, b) => Number(this.mayhemDone.has(a.m.id)) - Number(this.mayhemDone.has(b.m.id)) || a.d - b.d);
+    this.sheet("jobs", `<h2>Side jobs (${doneN}/${side.length})</h2><p>None of this is needed. All of it pays: the lads have a whip-round for every daft thing you pull off. Nearest first.</p>
+      <div class="log">${rows.map(({ m }) => { const done = this.mayhemDone.has(m.id), un = StadiumScene.UNLOCKS[m.id];
+        return `<p>${done ? "<b>✓</b> <s>" + esc(m.text) + "</s>" : "☐ " + esc(m.text)} <span class="pay">£${REWARDS[m.id] ?? 0}</span>${un && !done ? `<br><small class="dim">Unlocks: ${esc(ITEM_DEFS[un]?.name ?? un)}</small>` : ""}</p>`; }).join("")}</div>`);
+  }
   openMenu() {
     const cps = this.game2.checkpoints;
     this.sheet("menu", `<h2>Paused</h2><p>Go back to a checkpoint. Everything since then is undone, and the match will not play out the same way.</p>
       <div class="list">${cps.map((c) => `<button data-cp="${c.id}">${esc(c.label)}</button>`).join("")}<button data-new="1">Start a new match day</button><button data-mute="1">${this.audio.muted ? "Sound: off" : "Sound: on"}</button><button data-mini="1">Mini-games: ${this.miniOn ? "on" : "off"}</button><button data-buzz="1">Vibration: ${this.buzzOn ? "on" : "off"}</button><button data-lefty="1">Buttons: ${document.body.classList.contains("lefty") ? "left hand" : "right hand"}</button><button data-zoom="1">Zoom: ${esc(this.zoomLabel())}</button><button data-fp="1">${this.fp.on ? "Back to the overhead view" : "First-person view"}</button></div>
       <h2>Fixes (${fixesDone(this.w)}/${FIXES.length})</h2><div class="log">${this.fixesHtml()}</div>
-      <h2>To do (${this.mayhemDone.size}/${StadiumScene.MAYHEM.length})</h2><div class="log">${StadiumScene.MAYHEM.map((m) => `<p>${this.mayhemDone.has(m.id) ? "<b>✓</b> <s>" + esc(m.text) + "</s>" : "☐ " + esc(m.text)} <span class="pay">£${REWARDS[m.id] ?? 0}</span></p>`).join("")}</div>
+      <h2>Side jobs (${this.mayhemDone.size}/${StadiumScene.MAYHEM.length})</h2><div class="list"><button data-jobs="1" class="primary">Side jobs: what pays ▸</button></div>
       <h2>Ways in you've heard about</h2><div class="log">${LEADS.filter((l) => this.s.stadium!.flags[`lead_${l.id}`]).map((l) => `<p><b>${esc(l.title)}</b> ${esc(l.how)} ${this.s.stadium!.admitted ? "" : `<button class="trk${this.tracked?.kind === "lead" && this.tracked.id === l.id ? " on" : ""}" data-track="lead:${l.id}">${this.tracked?.kind === "lead" && this.tracked.id === l.id ? "Tracking" : "Track"}</button>`}</p>`).join("") || "<p>Nothing yet. Talk to people: locals, staff, the man at the shed.</p>"}</div>
       <h2>What you've heard</h2><div class="log">${this.log.slice(-12).reverse().map((l) => `<p><b>${esc(l.src)}</b> ${esc(l.text)}</p>`).join("") || "<p>Nothing yet.</p>"}</div>`);
     this.setSpeed(0);
@@ -4370,7 +4389,7 @@ class StadiumScene extends Phaser.Scene {
     for (const ev of ["pointerup", "pointercancel", "pointerleave"]) $("instBtn").addEventListener(ev, instOff);
     window.addEventListener("keydown", (e) => { if (e.key.toLowerCase() === "i" && this.started) instOn(); });
     window.addEventListener("keyup", (e) => { if (e.key.toLowerCase() === "i") instOff(); });
-    $("todo").addEventListener("click", () => this.openMenu());
+    $("todo").addEventListener("click", () => this.openJobs());
     try { if (localStorage.getItem("kd-lefty") === "1") document.body.classList.add("lefty"); } catch { /* */ }
     $("bagBtn").addEventListener("click", () => (this.sheetKind === "bag" ? this.closeSheet() : this.openBag()));
     $("phoneBtn").addEventListener("click", () => (this.sheetKind === "phone" ? this.closeSheet() : this.openPhone()));
@@ -4463,6 +4482,7 @@ class StadiumScene extends Phaser.Scene {
       if (d.new) { this.newGame(); this.closeSheet(); this.setSpeed(1); $("ending").hidden = true; return; }
       if (d.next) { this.continueTournament(); return; }
       if (d.mute) { this.audio.toggleMute(); this.openMenu(); return; }
+      if (d.jobs) { this.openJobs(); return; }
       if (d.mini) { this.miniOn = !this.miniOn; try { localStorage.setItem("kd-mini", this.miniOn ? "1" : "0"); } catch { /* */ } this.openMenu(); return; }
       if (d.buzz) { this.buzzOn = !this.buzzOn; try { localStorage.setItem("kd-buzz", this.buzzOn ? "1" : "0"); } catch { /* */ } this.buzz(40); this.openMenu(); return; }
       if (d.lefty) { const on = document.body.classList.toggle("lefty"); try { localStorage.setItem("kd-lefty", on ? "1" : "0"); } catch { /* */ } this.openMenu(); return; }

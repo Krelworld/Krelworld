@@ -1,0 +1,14 @@
+{
+  "name": "wanderer",
+  "seed": "qa-wander",
+  "about": "A first-timer: walks about the yard and street, presses whatever the main button offers now and then.",
+  "steps": [
+    { "do": "wait", "s": 4 },
+    { "do": "hold", "keys": "D", "s": 2.5 }, { "do": "act" }, { "do": "hold", "keys": "S", "s": 1.5 }, { "do": "act" },
+    { "do": "hold", "keys": "W", "s": 3 }, { "do": "act" }, { "do": "hold", "keys": "WD", "s": 4 }, { "do": "act" },
+    { "do": "hold", "keys": "D", "s": 6 }, { "do": "act" }, { "do": "wait", "s": 3 }, { "do": "act" },
+    { "do": "hold", "keys": "W", "s": 3 }, { "do": "act" }, { "do": "hold", "keys": "A", "s": 8 }, { "do": "act" },
+    { "do": "hold", "keys": "S", "s": 3 }, { "do": "act" }, { "do": "wait", "s": 5 }, { "do": "act" },
+    { "do": "hold", "keys": "A", "s": 4 }, { "do": "act" }, { "do": "wait", "s": 8 }
+  ]
+}

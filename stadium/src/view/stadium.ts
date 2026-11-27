@@ -279,7 +279,7 @@ class StadiumScene extends Phaser.Scene {
     // Everything you've unlocked is in the stash to choose from.
     for (const d of StadiumScene.unlocked()) if (ITEM_DEFS[d] && !campaign.stash.includes(d)) campaign.stash.push(d);
     setPace({ kickoffAt: 540, calm: true });
-    this.game2 = createGame(`day${Date.now() % 100000}`, FIXTURES[campaign.fixture] ?? "qf", campaign);
+    this.game2 = createGame(new URLSearchParams(location.search).get("seed") ?? `day${Date.now() % 100000}`, FIXTURES[campaign.fixture] ?? "qf", campaign);
     this.introFor(campaign);
     this.d3?.buildCrowd(this.s.match!.teams[1]);
     const w = this.w;

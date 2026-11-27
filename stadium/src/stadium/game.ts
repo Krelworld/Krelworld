@@ -36,6 +36,7 @@ import { installBelief, stepBelief } from "./belief";
 import { installBeer, installBeerWatch, stepBeer } from "./beer";
 import { initSchemes, installSchemes, stepSchemes } from "./schemes";
 import { installVisitors } from "./scheme_visitors";
+import { recordTick, startRecording, stepping } from "./replay";
 import { stepDeadpan } from "./knife";
 import { DEADPAN } from "../core/identity";
 import { installReferee } from "./scheme_referee";
@@ -269,6 +270,7 @@ export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: 
   installSettlement(w);
   const g: Game = { w, checkpoints: [], opp: oppKey, venue: venueId, campaign };
   saveCheckpoint(g, "arrival", "Arrival outside the ground");
+  if (typeof window !== "undefined") startRecording(g, seed);
   return g;
 }
 
@@ -345,6 +347,13 @@ const fanCount = (s: World["state"]) => { let n = 0; for (const id in s.actors) 
 export function stepGame(g: Game): void {
   const w = g.w, s = w.state, st = s.stadium!;
   if (st.ending) return;
+  recordTick(w);
+  stepping.on = true;
+  try { stepInner(g); } finally { stepping.on = false; }
+}
+
+function stepInner(g: Game): void {
+  const w = g.w, s = w.state, st = s.stadium!;
   setBreaches(st.breaches);
   resetPathBudget();
   const t = secs(w);

@@ -1,0 +1,7 @@
+{
+  "name": "idle",
+  "seed": "qa-idle",
+  "about": "A player who does nothing for four minutes: does the world entertain on its own, and is the screen quiet?",
+  "everyMs": 15000,
+  "steps": [ { "do": "wait", "s": 60 }, { "do": "speed", "n": 4 }, { "do": "wait", "s": 45 } ]
+}

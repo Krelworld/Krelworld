@@ -1,0 +1,27 @@
+{
+  "name": "keg-scheme",
+  "seed": "qa-keg",
+  "about": "The first-eight-minutes slice, played by someone who knows the keg scheme: roll a keg to draw the drayman, hose into the drain, buy the tankard, hang it, tip off the reporter, then let it play out.",
+  "steps": [
+    { "do": "wait", "s": 6 },
+    { "do": "walk", "x": -29.2, "y": 70.6, "r": 1.0, "max": 25 },
+    { "do": "option", "match": "Roll the keg" },
+    { "do": "wait", "s": 1.5 },
+    { "do": "walk", "x": -28.6, "y": 70.8, "r": 1.0, "max": 10 },
+    { "do": "option", "match": "Hose into the drain" },
+    { "do": "wait", "s": 10 },
+    { "do": "walk", "x": 36, "y": 64.8, "r": 1.4, "max": 40 },
+    { "do": "option", "match": "Buy from" },
+    { "do": "wait", "s": 1 },
+    { "do": "click", "sel": "[data-buy=tankard]" },
+    { "do": "close" },
+    { "do": "walk", "x": -25.2, "y": 72.2, "r": 0.8, "max": 40 },
+    { "do": "option", "match": "Hang the tankard" },
+    { "do": "walk", "x": 9.2, "y": 56.4, "r": 1.6, "max": 40 },
+    { "do": "option", "match": "Tell her about the keg" },
+    { "do": "wait", "s": 4 },
+    { "do": "walk", "x": -20, "y": 76, "r": 2, "max": 30 },
+    { "do": "until", "event": "scheme_play", "max": 520, "speed": 6 },
+    { "do": "wait", "s": 22 }
+  ]
+}

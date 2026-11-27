@@ -187,8 +187,12 @@ export function registerVerb(id: VerbId, def: VerbDef): void { VERBS[id] = def; 
 
 export interface DispatchResult { ok: boolean; reason?: string }
 
+/** Listeners told of every action asked for, before it is tried (the replay recorder uses this). */
+export const dispatchHooks: ((w: World, a: Action) => void)[] = [];
+
 /** Try an action. On success it is announced on the bus and, if the actor is being recorded, stored. */
 export function dispatch(w: World, a: Action): DispatchResult {
+  for (const h of dispatchHooks) h(w, a);
   const actor = w.state.actors[a.actor];
   if (!actor) return { ok: false, reason: "no such actor" };
   if (actor.downUntil > w.state.tick) return { ok: false, reason: "out of action" };

@@ -208,6 +208,10 @@ export class Stage3D {
     }
   }
   private first = true;
+  /** The picture as it stands (drawn again this instant, so it can be read): for the newspaper's photograph. */
+  snapshot(): HTMLCanvasElement | null {
+    try { this.renderer.render(this.scene, this.camera); const cv = document.createElement("canvas"); cv.width = this.canvas.width; cv.height = this.canvas.height; cv.getContext("2d")!.drawImage(this.canvas, 0, 0); return cv; } catch { return null; }
+  }
 
   private static FAR_SIZE = 2048;
   /** Make sure the small ground covers the rectangle, each tile `C` pixels across; says whether it can be used at all. */

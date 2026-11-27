@@ -3147,7 +3147,7 @@ class StadiumScene extends Phaser.Scene {
   probe3D(): void {
     const st = this.stage;
     if (!st || this.probe === 3) return;
-    if (forced3D() || proven3D()) { this.probe = 3; return; }
+    if (forced3D() || proven3D()) { this.probe = 3; this.bank.holdGL(false); return; }
     const now = performance.now();
     if (!this.bank.ready() || document.visibilityState !== "visible") { this.probe = 0; return; }
     if (this.probe === 0) { this.probe = 1; this.probeAt = now; return; }
@@ -3156,13 +3156,14 @@ class StadiumScene extends Phaser.Scene {
     if (m.ms < 4000 || m.frames < 12) { if (now - this.probeAt > 20000) this.probe = 0; return; }
     this.probe = 3;
     if (m.fps < 20) { remember3D(false); console.warn(`3D world: about ${m.fps.toFixed(0)} frames a second here; drawing in 2D from now on (?3d=1 to try again)`); this.drop3D(); }
-    else remember3D(true);
+    else { remember3D(true); this.bank.holdGL(false); }
   }
   /** Give up the 3D world mid-game and carry on in the flat picture, as if it had never been asked for. */
   drop3D(): void {
     const st = this.stage;
     if (!st) return;
     this.stage = null; this.pg = this.pgAir = this.ringG = null;
+    this.bank.holdGL(true);
     try { st.dispose(); } catch (e) { console.warn(e); }
     delete (window as any).__stage;
     this.P.cam3 = null; this.P.mode = "tilted"; setDirYaw(0);
@@ -5896,8 +5897,15 @@ class StadiumScene extends Phaser.Scene {
   async frontPage(headline: string, title: string) {
     const host = $("frontPage");
     host.innerHTML = "";
-    const shot = await new Promise<HTMLImageElement | null>((r) => { try { this.game.renderer.snapshot((im) => r(im instanceof HTMLImageElement ? im : null)); } catch { r(null); } });
-    if (shot && !shot.complete) await new Promise((r) => (shot.onload = r));
+    let shot = await new Promise<HTMLImageElement | null>((r) => { try { this.game.renderer.snapshot((im) => r(im instanceof HTMLImageElement ? im : null)); } catch { r(null); } });
+    if (shot && !shot.complete) await new Promise((r) => (shot!.onload = r));
+    // In 3D this canvas holds only what floats over the world: the photograph is the world with that laid over it.
+    const under = this.stage?.active ? this.stage.snapshot() : null;
+    if (under && shot) {
+      const both = document.createElement("canvas"); both.width = shot.width; both.height = shot.height;
+      const bc = both.getContext("2d")!; bc.drawImage(under, 0, 0, both.width, both.height); bc.drawImage(shot, 0, 0);
+      shot = both as unknown as HTMLImageElement;
+    }
     const W2 = 540, H2 = 720, cv = document.createElement("canvas"); cv.width = W2; cv.height = H2;
     const c = cv.getContext("2d")!, m = this.s.match!, st = this.s.stadium!;
     c.fillStyle = "#f3efe4"; c.fillRect(0, 0, W2, H2);

@@ -247,16 +247,20 @@ export function buildStands(w: World3D): Stands {
   }
   w.finish(bowl, false, "inside");
 
-  // ---- Outside: a canopy over the turnstiles with their name on it.
+  // ---- Outside: the turnstiles' name on a board over them, a shallow glazed canopy, a lamp over each way in.
   {
-    const out = w.part("turnstiles"), { A: B } = out, z = 45.05, x0 = -10.4, x1 = 10.4, y0 = 5.15, dep = 1.7;
-    B.box(x0, y0, z, x1, y0 + 0.14, z + dep, { all: col(0x3a3f47, 0x4a505a), top: { r: w.sw.steelroof, uv: [0, 0, 1, 0.3] }, bot: col(0x23262b) });
-    const rT = a.paint(Math.round((x1 - x0) * 32), 45, (c, ww, h) => { rect(c, 0, 0, ww, h, H(art2.BLUE)); rect(c, 0, 0, ww, 3, "#f4f4f4"); rect(c, 0, h - 3, ww, 3, H(art2.RED)); });
-    B.box(x0, y0 - 0.55, z + dep - 0.1, x1, y0 + 0.14, z + dep, { all: col(art2.BLUE), s: rT });
-    const rN = a.paint(Math.round(9 * 64), 40, (c, ww, h) => art2.plate(c, ww, h, "TURNSTILES 1 - 3", art2.BLUE, 0xf4f4f4, { sub: "HAVE YOUR TICKET, YOUR EXCUSES AND YOUR BAG READY", border: art2.BLUE }));
-    B.quad([-4.5, y0 - 0.52, z + dep + 0.01], [4.5, y0 - 0.52, z + dep + 0.01], [4.5, y0 + 0.1, z + dep + 0.01], [-4.5, y0 + 0.1, z + dep + 0.01], rN);
-    for (const px of [x0 + 0.1, -3.05, 2.95, x1 - 0.22]) B.box(px, 0, z + dep - 0.16, px + 0.12, y0 - 0.55, z + dep - 0.04, col(0x4a505a, 0x6a707a));
-    for (const lx of [-6, 0, 6]) { w.halo(out, [mx(lx), 3.2, z + 0.9], 3.6, 0xfff0c8, 0.2); w.pool(out, mx(lx), z + 2.3, 1.7, 2.0, 0xfff0c8, 0.2); w.spec.streaks.push([mx(lx) - 1.1, z + 0.2, 2.2, 3.4, 0xfff0c8, 0.3]); }
+    const out = w.part("turnstiles"), { A: B, U: BU } = out, z = 45.05, x0 = -10.2, x1 = 10.2, y0 = 5.3;
+    const rN = a.paint(Math.round(10 * 64), 46, (c, ww, h) => art2.plate(c, ww, h, "TURNSTILES 1 - 3", art2.BLUE, 0xf4f4f4, { sub: "HAVE YOUR TICKET, YOUR EXCUSES AND YOUR BAG READY", border: 0xf4f4f4 }));
+    B.box(-5, y0 + 0.25, z, 5, y0 + 0.97, z + 0.1, { all: col(art2.BLUE), s: rN, top: col(0x2a3f9a) });
+    B.box(x0, y0, z, x1, y0 + 0.07, z + 0.55, { all: col(0x3a3f47, 0x4a505a), top: { r: w.sw.pane, uv: [0, 0, 1, 1], c: 0xd0d8e0 } });
+    for (let x = x0; x <= x1 + 0.01; x += (x1 - x0) / 6) B.bar([x, y0 - 0.5, z + 0.02], [x, y0 + 0.02, z + 0.5], 0.06, col(0x3a3f47));
+    for (const lx of [-6, 0, 6].map(mx)) {
+      B.box(lx - 0.3, y0 - 0.14, z, lx + 0.3, y0 - 0.04, z + 0.3, col(0x15171a)); BU.box(lx - 0.25, y0 - 0.2, z + 0.03, lx + 0.25, y0 - 0.14, z + 0.27, { all: col(0xfff4d6), bot: col(0xfff4d6) });
+      w.halo(out, [lx, y0 - 0.4, z + 0.5], 3.4, 0xfff0c8, 0.24); w.pool(out, lx, z + 2.0, 1.9, 2.2, 0xfff0c8, 0.22); w.spec.streaks.push([lx - 1.1, z + 0.2, 2.2, 3.8, 0xfff0c8, 0.34]);
+    }
+    // a poster of the man they are looking for, by each way in
+    const rW = a.paint(64, 90, (c, ww, h) => art2.wanted(c, ww, h, 4));
+    for (const px of [-8.6, -2.95, 2.95, 8.6].map(mx)) B.quad([px - 0.45, 1.25, z + 0.02], [px + 0.45, 1.25, z + 0.02], [px + 0.45, 2.5, z + 0.02], [px - 0.45, 2.5, z + 0.02], rW);
     w.finish(out, false, "outside");
   }
   return st;

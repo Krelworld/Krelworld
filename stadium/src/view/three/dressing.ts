@@ -204,6 +204,18 @@ export function pubDressing(w: World3D, p: Part, b: BuildingSpec, ridge: number,
   for (let x = x0 + 1.5; x < x1 - 8; x += 9.5) A.quad(sl(x, 0.04), sl(x + 7, 0.04), sl(x + 7, 0.3), sl(x, 0.3), t.moss);
   for (const x of [x0 + 7.2, x0 + (x1 - x0) * 0.6, x1 - 4.4]) A.quad(sl(x, 0.55), sl(x + 0.9, 0.55), sl(x + 0.9, 0.72), sl(x, 0.72), col(0x2c323c));
 }
+/** The stewards' cabin: a telly aerial, a dish, a gas bottle, steps, a lamp over the door, a notice. */
+export function cabinDressing(w: World3D, p: Part, b: BuildingSpec) {
+  const { A } = p, { x0, x1, y0: z0, y1: z1 } = b.rect, e = b.height, F = z1 + 0.03, t = tex(w);
+  aerial(A, x0 + 1.5, e + 0.05, z0 + 2, 1.8); dish(w, A, x1 - 1.2, e + 0.3, z1 - 1.0, 0.8);
+  A.cyl(x1 - 0.5, 0, 1.1, F + 0.35, 0.18, 6, col(0xb8322a, 0xd85a4a), col(0x8a8f96), 0.16); A.cyl(x1 - 0.95, 0, 1.1, F + 0.35, 0.18, 6, col(0x2f5a9a, 0x4a7aba), col(0x8a8f96), 0.16);
+  A.box(x0 + 1.0, 0, F, x0 + 2.6, 0.2, F + 0.9, { all: col(0x6a6e75, 0x8a8e95) }); A.box(x0 + 1.2, 0.2, F, x0 + 2.4, 0.4, F + 0.45, { all: col(0x6a6e75, 0x8a8e95) });
+  A.quad([x1 + 0.055, 1.0, z1 - 1.2], [x1 + 0.055, 1.0, z1 - 2.06], [x1 + 0.055, 2.2, z1 - 2.06], [x1 + 0.055, 2.2, z1 - 1.2], t.wanted);
+  A.quad([x1 + 0.055, 1.1, z1 - 2.5], [x1 + 0.055, 1.1, z1 - 3.3], [x1 + 0.055, 2.18, z1 - 3.3], [x1 + 0.055, 2.18, z1 - 2.5], t.posters[5]);
+  lampE(w, p, x1 + 0.03, 2.6, z1 - 4.5);
+  for (let x = x0 + 1; x < x1 - 1; x += 3.4) A.box(x, e + 0.02, z0 + 0.4, x + 0.5, e + 0.3, z0 + 0.9, { all: col(0x8f959c, 0xb9bec4), top: col(0x565c62) });
+  w.spec.ao.push([x1 - 1.2, F, x1 - 0.3, F + 0.6, 1]);
+}
 /** HOTEL in red on a frame on the roof, one letter gone; flags and planters by the door. */
 export function hotelDressing(w: World3D, p: Part, b: BuildingSpec) {
   const { A, U } = p, a = w.atlas, { x0, x1, y1: z1 } = b.rect, e = b.height, d = b.doors[0], cx = d ? (d.x0 + d.x1) / 2 : (x0 + x1) / 2, F = z1 + 0.03;
@@ -241,7 +253,6 @@ export function buildDressing(w: World3D): void {
     const anchors: V3[] = pub ? [[px + e * 0.25, 5.2, zn + 2.2], [px + e * 0.3, 6.5, zr], [px + e * 0.25, 4.9, zs - 2.6]] : [[px - e * 0.3, 4.6, zn + 0.6], [px - e * 0.3, 4.9, zn + 8.4], [px - e * 0.3, 4.6, zs - 0.4]];
     if (!pub) for (const q of anchors) pole(A, q[0], q[2], q[1]);
     bunting(w, A, anchors[0], poles[0], 0.7); bunting(w, A, anchors[1], poles[1], 0.9); bunting(w, A, anchors[2], poles[2], 0.7);
-    bunting(w, A, anchors[1], poles[0], 0.8); bunting(w, A, anchors[1], poles[2], 0.8);
     festoon(w, p, poles[0], poles[1], 0.55); festoon(w, p, poles[1], poles[2], 0.55); festoon(w, p, [anchors[0][0], anchors[0][1] - 0.5, anchors[0][2]], [poles[1][0], poles[1][1] - 0.4, poles[1][2]], 0.8);
     // the big flag, hung from the middle line
     { const a0 = anchors[1], b0 = poles[1], at = (tt: number): V3 => [a0[0] + (b0[0] - a0[0]) * tt, a0[1] + (b0[1] - a0[1]) * tt - Math.sin(tt * Math.PI) * 0.9 - 0.36, a0[2] + (b0[2] - a0[2]) * tt]; const q0 = at(0.42), q1 = at(0.6); A.quad([q0[0], q0[1] - 1.25, q0[2]], [q1[0], q1[1] - 1.25, q1[2]], q1, q0, t.flag, { double: true, normal: [0, 0.6, 1] }); }
@@ -274,11 +285,11 @@ export function buildDressing(w: World3D): void {
   }
 
   // ---- The approach: lamp columns standing where four of the bollards are, bunting from one to the next and up to the ground.
-  const cols = [-39, -13, 13, 39].map(mx).sort((a, b) => a - b), cz = 60.45, ch = 5.4;
+  const cols = [-39, -26, -13, 13, 26, 39], cz = 60.45, ch = 5.4;
   cols.forEach((x, i) => lampColumn(w, partFor(m ? -x : x), x, cz, ch, i));
-  for (let i = 0; i < cols.length - 1; i++) { if (i === 1) continue; bunting(w, partFor(m ? -cols[i] : cols[i]).A, [cols[i], ch - 0.6, cz], [cols[i + 1], ch - 0.6, cz], 1.3); }
-  for (const [i, tx] of [[0, -31], [1, -17], [2, 17], [3, 31]] as [number, number][]) bunting(w, out.A, [cols[i], ch - 0.6, cz], [tx, 6.3, 45.2], 1.1);
-  if (ya) { const p0 = partFor(-30); bunting(w, p0.A, [cols[m ? 3 : 0], ch - 0.6, cz], [m ? ya.x + ya.w - 0.3 : ya.x + 0.3, hasPub ? 5.2 : 4.6, ya.y + (hasPub ? 2.2 : 0.6)], 0.8); bunting(w, p0.A, [cols[m ? 2 : 1], ch - 0.6, cz], [(m ? ya.x : ya.x + ya.w) + (m ? -0.3 : 0.3), 4.6, ya.y + 0.6], 1.0); }
+  for (let i = 0; i < cols.length - 1; i++) { if (i === 2) continue; bunting(w, partFor(m ? -cols[i] : cols[i]).A, [cols[i], ch - 0.6, cz], [cols[i + 1], ch - 0.6, cz], 0.9); }
+  for (const [i, tx] of [[0, -33], [2, -15], [3, 15], [5, 33]] as [number, number][]) bunting(w, out.A, [cols[i], ch - 0.6, cz], [tx, 6.3, 45.2], 1.1);
+  if (ya) { const p0 = partFor(-30), near = m ? 26 : -26; bunting(w, p0.A, [near, ch - 0.6, cz], [(m ? ya.x : ya.x + ya.w) + (m ? -0.3 : 0.3), 4.6, ya.y + 0.6], 0.7); }
 
   // ---- The ring road: what the lamp posts throw, a beacon at each end of each crossing.
   for (let x = -84; x <= 84; x += 24) { const p = partFor(m ? -x : x); w.halo(p, [x, 3.75, 83.9], 2.2, 0xffd9a0, 0.5); w.halo(p, [x, 3.75, 83.9], 6, 0xffc878, 0.1); w.pool(p, x + 0.2, 85.0, 3.6, 2.6, 0xffc878, 0.2); w.spec.streaks.push([x - 0.6, 84.2, 1.2, 4.6, 0xffcf7a, 0.3]); }
@@ -308,12 +319,39 @@ export function buildDressing(w: World3D): void {
     }
   }
 
+  // ---- The fan zone's big screen: a truss, the match on it, a ticker, speakers; its light on the grass.
+  if (v.features.fanZone) {
+    const fz = w.host.areas.find((q) => q.id === "pub");
+    if (fz) {
+      const cx = fz.x + fz.w / 2, z = fz.y + 2.3, p = partFor(m ? -cx : cx), { A, U } = p, sw = 12, sh = 5, y0 = 1.5;
+      const r = w.atlas.paintM(sw, sh, (c, ww, h) => bigScreen(c, ww, h, OPPN[v.opp] ?? "THEM"));
+      A.box(cx - sw / 2 - 0.25, y0 - 0.25, z - 0.5, cx + sw / 2 + 0.25, y0 + sh + 0.25, z, { all: col(0x15171a, 0x2a2d33) });
+      U.quad([cx - sw / 2, y0, z + 0.02], [cx + sw / 2, y0, z + 0.02], [cx + sw / 2, y0 + sh, z + 0.02], [cx - sw / 2, y0 + sh, z + 0.02], r);
+      for (const px of [cx - sw / 2 - 0.1, cx - 2, cx + 2, cx + sw / 2 + 0.1]) { A.bar([px, 0, z - 0.25], [px, y0, z - 0.25], 0.16, col(0x6f757c, 0x9aa0a6)); A.bar([px, 0, z - 1.6], [px, y0 + sh * 0.7, z - 0.5], 0.1, col(0x6f757c)); }
+      for (const s2 of [-1, 1]) A.box(cx + s2 * (sw / 2 + 0.9) - 0.45, 0, z - 0.5, cx + s2 * (sw / 2 + 0.9) + 0.45, 2.6, z + 0.2, { all: col(0x15171a, 0x23262b), s: w.atlas.paint(29, 83, (c, ww, h) => { rect(c, 0, 0, ww, h, H(0x15171a)); for (const cy of [16, 42, 66]) { c.fillStyle = H(0x2a2d33); c.beginPath(); c.arc(ww / 2, cy, 10, 0, 7); c.fill(); c.fillStyle = H(0x0c0d10); c.beginPath(); c.arc(ww / 2, cy, 6, 0, 7); c.fill(); } }) });
+      w.halo(p, [cx, y0 + sh / 2, z + 0.5], sw * 1.5, 0x9fe0a8, 0.22, 0.5); w.pool(p, cx, z + 4.5, sw * 0.55, 4.5, 0xb8f0c0, 0.16);
+      w.replace("bigscreen", m ? 48 : -48, 64.5);
+      w.spec.ao.push([cx - sw / 2, z - 0.5, cx + sw / 2, z, 2]);
+    }
+  }
+
   // ---- The alley and the far pavement want light too.
   for (const [x, z] of [[-63.5, -30], [-63.5, 4], [-63.5, 38], [-63.5, 70]]) { const p = partFor(x); w.pool(p, mx(x), z, 3.2, 2.8, 0xffe2b0, 0.1); }
 
   for (const p of [west, mid, east]) w.finish(p, false);
   w.finish(out, false, "outside");
   void v;
+}
+const OPPN: Record<string, string> = { POR: "PORTUGAL", BRA: "BRAZIL", ARG: "ARGENTINA" };
+function bigScreen(c: Ctx, w: number, h: number, opp: string) {
+  rect(c, 0, 0, w, h, H(0x0c0d10));
+  const x = 4, y = 4, sw = w - 8, sh = h - 30;
+  for (let i = 0; i < sw; i += 24) { rect(c, x + i, y, 12, sh, H(0x3b8a45)); rect(c, x + i + 12, y, 12, sh, H(0x34803f)); }
+  c.strokeStyle = "rgba(238,244,238,0.9)"; c.lineWidth = 2; c.beginPath(); c.moveTo(x + sw / 2, y); c.lineTo(x + sw / 2, y + sh); c.stroke(); c.beginPath(); c.arc(x + sw / 2, y + sh / 2, sh * 0.2, 0, 7); c.stroke(); c.strokeRect(x + 1, y + sh * 0.25, sw * 0.12, sh * 0.5); c.strokeRect(x + sw - sw * 0.12 - 1, y + sh * 0.25, sw * 0.12, sh * 0.5);
+  const r = rng(66); for (let k = 0; k < 22; k++) { const px = x + 20 + r.int(sw - 40), py = y + 14 + r.int(sh - 30), en = k % 2 === 0; rect(c, px, py, 4, 7, H(en ? 0xf4f4f4 : 0xf2d21e)); rect(c, px, py + 7, 4, 4, H(en ? 0x1b2a6b : 0x1f7a3a)); rect(c, px + 1, py - 3, 3, 3, H(0xdba585)); rect(c, px - 1, py + 11, 7, 2, "rgba(10,20,10,0.4)"); }
+  rect(c, x + 6, y + 6, 118, 16, H(0x15171a)); pixText(c, `ENG 0-0 ${opp.slice(0, 3)}`, x + 10, y + 19, 10, "#f2c94c", {}); rect(c, x + sw - 46, y + 6, 40, 14, H(0xc8102e)); pixText(c, "LIVE", x + sw - 26, y + 18, 9, "#ffffff", { align: "center" });
+  rect(c, 0, h - 24, w, 24, H(art2.BLUE)); pixText(c, "FAN ZONE · LAGER £9 · THE QUEUE FOR THE TOILETS STARTS HERE · NO JUMPERS FOR GOALPOSTS", w / 2, h - 7, 10, "#f4f4f4", { align: "center", maxW: w - 12, weight: 700 });
+  c.fillStyle = "rgba(7,8,10,0.28)"; for (let yy = 0; yy < h; yy += 3) c.fillRect(0, yy, w, 1);
 }
 function outerWall(c: Ctx, w: number, h: number, k: number) {
   art.blockwork(c, w, h);

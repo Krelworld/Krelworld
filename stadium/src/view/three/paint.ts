@@ -329,4 +329,6 @@ export class Atlas {
     return r;
   }
   usage(): number { return this.bottom / this.height; }
+  /** How far down the sheet anything is painted, in px. */
+  used(): number { return this.bottom; }
 }

@@ -261,7 +261,8 @@ export function hungShirt(c: Ctx, w: number, h: number, col: number, trim: numbe
   rect(c, 3, 5, w - 6, h - 6, css(b)); rect(c, 0, 5, 4, Math.round(h * 0.34), css(shade(b, 0.9))); rect(c, w - 4, 5, 4, Math.round(h * 0.34), css(shade(b, 0.82)));
   rect(c, 0, 5 + Math.round(h * 0.34) - 2, 4, 2, H(trim)); rect(c, w - 4, 5 + Math.round(h * 0.34) - 2, 4, 2, H(trim));
   rect(c, cx - 3, 5, 6, 2, H(trim)); rect(c, 3, 5, 1, h - 6, css(shade(b, 1.15))); rect(c, w - 4, 5, 1, h - 6, css(shade(b, 0.7))); rect(c, 3, h - 2, w - 6, 1, css(shade(b, 0.7)));
-  tiny(c, num, cx, 5 + Math.round((h - 6) * 0.35), H(trim), num.length > 1 || w < 20 ? 1 : 2, "center");
+  const light = b[0] + b[1] + b[2] > 520;
+  pixText(c, num, cx, 5 + Math.round((h - 6) * 0.72), Math.round((h - 6) * 0.42), light ? H(trim) : "#f4f4f0", { align: "center", maxW: w - 8 });
 }
 /** Coats, a hi-vis and an umbrella on hooks. */
 export function coatHooks(c: Ctx, w: number, h: number, seed: number, cols = [0x23252b, 0xd8e020, 0x2a3a5a, 0x15171a, 0x6a4a2a]) {

@@ -12,7 +12,7 @@ import { Builder, setYS, type V3 } from "./mesh";
 import { Atlas, BRICK_DARK, BRICK_RED, BRICK_STOCK, H, PXM, brick, grain, pixText, rect, rng, weather, type BrickPal, type Region } from "./paint";
 import { buildInteriors, wallPlan } from "./interiors";
 import { buildStands, Stands } from "./stands";
-import { awning, buildDressing, flatRoofClutter, groundPaint, hotelDressing, pubDressing, shopFrontDressing, shopSide } from "./dressing";
+import { awning, buildDressing, cabinDressing, flatRoofClutter, groundPaint, hotelDressing, pubDressing, shopFrontDressing, shopSide } from "./dressing";
 
 export interface WorldHost {
   venue: Venue; walls: Wall[]; areas: Area[]; blds: BuildingSpec[];
@@ -33,8 +33,6 @@ export class World3D {
   root = new THREE.Group();
   /** The outsides of the buildings (and the ground's shell), by id: hidden when you are inside. */
   shells = new Map<string, THREE.Group>();
-  /** Rooms' painted back walls that only show once their building is open. */
-  private backWalls = new Map<string, THREE.Object3D>();
   private gates = new Map<string, THREE.Object3D>();
   private whens: { when: When; g: THREE.Object3D }[] = [];
   roofFn = new Map<string, (y: number) => number>();
@@ -53,7 +51,7 @@ export class World3D {
   private white: Region;
   private frame = 0;
   private disposables: { dispose(): void }[] = [];
-  stats = { tris: 0, chunks: 0, paintMs: 0, build: {} as Record<string, number> };
+  stats = { tris: 0, chunks: 0, paintMs: 0, atlasPx: 4096, build: {} as Record<string, number> };
   /** Tall things, for putting people in shade: x0, y0, x1, y1, height. */
   shaders: [number, number, number, number, number][] = [];
   private wallsGroup: THREE.Mesh | null = null;
@@ -87,7 +85,25 @@ export class World3D {
     safe("interiors", () => buildInteriors(this));
     safe("dressing", () => buildDressing(this));
     groundPaint(this);
+    this.cropAtlas();
     this.atlasTex.needsUpdate = true;
+  }
+  /** Send the card only as much of the sheet as got painted: the sheet is cut off below the last region and every UV rescaled to suit. */
+  private cropAtlas() {
+    const full = this.atlas.height, used = Math.min(full, Math.ceil((this.atlas.used() + 8) / 64) * 64);
+    if (used >= full) return;
+    const cv = document.createElement("canvas"); cv.width = this.atlas.size; cv.height = used;
+    cv.getContext("2d")!.drawImage(this.atlas.canvas, 0, 0);
+    this.atlasTex.image = cv;
+    const k = full / used;
+    this.root.traverse((o) => {
+      const m = o as THREE.Mesh;
+      if (!m.isMesh || (m.material !== this.lit && m.material !== this.unlit)) return;
+      const uv = m.geometry.getAttribute("uv") as THREE.BufferAttribute;
+      for (let i = 0; i < uv.count; i++) uv.setY(i, 1 - (1 - uv.getY(i)) * k);
+      uv.needsUpdate = true;
+    });
+    this.stats.atlasPx = used;
   }
   /** How much of the atlas is painted. */
   atlasUse(): number { return Math.round(this.atlas.usage() * 100) / 100; }
@@ -384,6 +400,7 @@ export class World3D {
     A.quad([x0, 0, F], [x1, 0, F], [x1, e, F], [x0, e, F], a.paintM(W, e, (c, w, h) => { art.cabinSide(c, w, h, 81); rect(c, w / 2 - 56, 8, 112, 16, H(0xf4f4f4)); pixText(c, b.sign?.text ?? "STEWARDS", w / 2, 21, 10, H(0x1c2a1c), { align: "center" }); }));
     this.face(A, x1 + 0.03, z1, x1 + 0.03, z0, 0, e, this.sw.cabin, 2, 2); this.face(A, x0 - 0.03, z0, x0 - 0.03, z1, 0, e, this.sw.cabin, 2, 2, 0xc0c0c0); this.face(A, x1, z0 - 0.03, x0, z0 - 0.03, 0, e, this.sw.cabin, 2, 2, 0xb0b0b0);
     this.roofPanel(A, [x0 - 0.1, e, z1 + 0.1], [x1 + 0.1, e, z1 + 0.1], [x1 + 0.1, e + 0.12, z0 - 0.1], [x0 - 0.1, e + 0.12, z0 - 0.1], this.sw.steelroof, 8, 6);
+    cabinDressing(this, p, b);
     this.roofFn.set(b.id, () => e + 0.05);
   }
 
@@ -398,7 +415,7 @@ export class World3D {
     const front = this.host.image(`stadfront-${this.host.venue.id}`);
     if (front) {
       const t = new THREE.CanvasTexture(front as HTMLCanvasElement); t.colorSpace = THREE.SRGBColorSpace; t.magFilter = THREE.NearestFilter; t.minFilter = THREE.LinearMipmapLinearFilter; t.generateMipmaps = true; t.anisotropy = Math.min(4, this.host.maxAniso);
-      const g = new THREE.BufferGeometry(), y1 = Hh * STRETCH, z = 45 + e;
+      const g = new THREE.BufferGeometry(), y1 = Hh * STRETCH, z = 45.012; // (a hair in front of the wall, behind the turnstiles' and banners' pictures at 45.03)
       g.setAttribute("position", new THREE.Float32BufferAttribute([gx0, 0, z, gx1, 0, z, gx1, y1, z, gx0, y1, z], 3)); g.setAttribute("normal", new THREE.Float32BufferAttribute([0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1], 3)); g.setAttribute("uv", new THREE.Float32BufferAttribute([0, 0, 1, 0, 1, 1, 0, 1], 2)); g.setIndex([0, 1, 2, 0, 2, 3]);
       const mat = new THREE.MeshLambertMaterial({ map: t, alphaTest: 0.5 }), mesh = new THREE.Mesh(g, mat); mesh.receiveShadow = true; mesh.matrixAutoUpdate = false; p.group.add(mesh); this.disposables.push(t, g, mat);
     } else clad(gx0, 45 + e, gx1, 45 + e, 0xffffff);
@@ -420,6 +437,17 @@ export class World3D {
       if (i === 1) A.box(b.x0, Hh + lift - 0.9, b.y1, b.x1, Hh + lift, b.y1 + 0.1, { all: col(0x16225a, 0x1b2a6b), top: null });
       if (i === 2) A.box(b.x1, Hh + lift - 0.9, b.y0, b.x1 + 0.1, Hh + lift, b.y1, { all: col(0x16225a, 0x1b2a6b), top: null });
       if (i === 3) A.box(b.x0 - 0.1, Hh + lift - 0.9, b.y0, b.x0, Hh + lift, b.y1, { all: col(0x16225a, 0x1b2a6b), top: null });
+      // strips of old clear sheeting between the trusses, a walkway along the high edge, rust running to the gutter
+      {
+        const wideB = b.x1 - b.x0 > b.y1 - b.y0, L = wideB ? b.x1 - b.x0 : b.y1 - b.y0, Dp = wideB ? b.y1 - b.y0 : b.x1 - b.x0, rr = rng(120 + i);
+        const pt = (t: number, u: number, up = 0.02): V3 => { const x = wideB ? b.x0 + t : b.x0 + u, z = wideB ? b.y0 + u : b.y0 + t; return [x, yAt(x, z) + up, z]; };
+        const strip = (t0: number, t1: number, u0: number, u1: number, f: { c: number; c2?: number } | Region, up = 0.02) => (wideB ? A.quad(pt(t0, u1, up), pt(t1, u1, up), pt(t1, u0, up), pt(t0, u0, up), f) : A.quad(pt(t1, u0, up), pt(t1, u1, up), pt(t0, u1, up), pt(t0, u0, up), f));
+        for (let t = 5; t < L - 3; t += 8) { const k = rr(); strip(t, t + 1.3, Dp * 0.14, Dp * 0.86, k < 0.75 ? { c: 0x8fa6b4, c2: 0xb4c6d0 } : { c: 0x6f7f8a, c2: 0x8a9aa4 }); if (rr() < 0.5) strip(t + 2.2 + rr() * 2, t + 2.5 + rr() * 2 + 0.2, Dp * (0.1 + rr() * 0.3), Dp * 0.98, { c: 0x6a4a34, c2: 0x545a62 }, 0.015); }
+        const uHi = i === 0 ? 0.06 : i === 1 ? 0.94 : i === 2 ? 0.94 : 0.06; // which side is the high (pitch) edge
+        strip(1, L - 1, Dp * uHi - 0.45, Dp * uHi + 0.45, { c: 0x4a4f56, c2: 0x6a7078 }, 0.05);
+        for (let t = 1; t < L - 1; t += 2.4) { const a0 = pt(t, Dp * uHi - 0.45, 0.05), a1: V3 = [a0[0], a0[1] + 0.9, a0[2]]; A.bar(a0, a1, 0.05, col(0xc9a23a)); }
+        A.bar(((q) => [q[0], q[1] + 0.9, q[2]] as V3)(pt(1, Dp * uHi - 0.45, 0.05)), ((q) => [q[0], q[1] + 0.9, q[2]] as V3)(pt(L - 1, Dp * uHi - 0.45, 0.05)), 0.05, col(0xc9a23a));
+      }
       // rooflights and plant, so the roof is not a blank sheet
       const wide = b.x1 - b.x0 > b.y1 - b.y0, r = rng(90 + i);
       for (let k = 0; k < (wide ? 7 : 4); k++) {
@@ -434,20 +462,6 @@ export class World3D {
     this.roofFn.set("stand", (y) => SHELL_H + lift * (1 - (y - 28) / 17) + 0.05);
   }
 
-  /** A room's painted back wall (the game's own picture), three metres high along the north side. */
-  private backWall(id: string, key: string, x0: number, x1: number, z: number, always: boolean) {
-    const img = this.host.image(key);
-    if (!img) return;
-    const t = new THREE.Texture(img as HTMLImageElement); t.colorSpace = THREE.SRGBColorSpace; t.magFilter = THREE.NearestFilter; t.minFilter = THREE.LinearFilter; t.generateMipmaps = false; t.needsUpdate = true;
-    z += 0.05; // just proud of the wall it hangs on
-    const g = new THREE.BufferGeometry(), y1 = 3 * STRETCH, fl = this.spec.mirror;
-    g.setAttribute("position", new THREE.Float32BufferAttribute([x0, 0, z, x1, 0, z, x1, y1, z, x0, y1, z], 3)); g.setAttribute("normal", new THREE.Float32BufferAttribute([0, 0.3, 1, 0, 0.3, 1, 0, 0.3, 1, 0, 0.3, 1], 3));
-    g.setAttribute("uv", new THREE.Float32BufferAttribute(fl ? [1, 0, 0, 0, 0, 1, 1, 1] : [0, 0, 1, 0, 1, 1, 0, 1], 2)); g.setIndex([0, 1, 2, 0, 2, 3]);
-    const mat = new THREE.MeshBasicMaterial({ map: t, color: 0xd8d8d8 }), m = new THREE.Mesh(g, mat);
-    m.matrixAutoUpdate = false; m.visible = always; this.root.add(m); this.disposables.push(t, g, mat);
-    if (!always) this.backWalls.set(id, m);
-  }
-
   // ---------------------------------------------------------------------------------------------
   /** How high the roof of a building stands at depth y (so whoever is up there stands on it). */
   roofLift(id: string, y: number): number | null { const f = this.roofFn.get(id); return f ? f(y) : null; }
@@ -456,7 +470,6 @@ export class World3D {
   setCut(room: string | null, inside: boolean, openGates: (id: string) => boolean) {
     this.insideNow = inside;
     for (const [id, g] of this.shells) g.visible = id === "stadium" ? !inside : id !== room;
-    for (const [id, m] of this.backWalls) m.visible = id === room;
     for (const q of this.whens) q.g.visible = q.when === "inside" ? inside : q.when === "outside" ? !inside : q.when === "terrace" ? inside && this.liftAsked : q.when === "stand_n" ? inside && this.liftAsked && !this.northCut : q.when === `room:${room}`;
     for (const [id, g] of this.gates) g.visible = !openGates(id);
   }

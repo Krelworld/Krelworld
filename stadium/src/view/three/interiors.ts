@@ -185,6 +185,22 @@ function dressingRoom(K: Kit, a: Area, home: boolean) {
   const clk = K.at.paint(22, 22, art2.clock, false);
   for (const f of of("lockers")) { K.lampS(f.x, 2.62, zB + 0.01, home ? 0xffe6b0 : 0xe8f0d8, 2.4); }
   K.onS(clk, signX + 2.3, 2.3, 0.6, 0.6, zB + 0.03);
+  // Whatever stretch of the back wall nothing stands against gets what such walls get.
+  {
+    const taken = [...of("lockers").map((f) => [f.x - 1.5, f.x + 1.5] as [number, number]), ...of("kitpegs").map((f) => [f.x - 2.2, f.x + 2.2] as [number, number]), ...of("showers").map((f) => [f.x - 2.0, f.x + 2.0] as [number, number]), [signX - 1.9, signX + 2.8] as [number, number]].sort((p, q) => p[0] - q[0]);
+    let x = xW + 0.3, k = 0;
+    const fill = (g0: number, g1: number) => {
+      for (let cx = g0 + 1.0; cx < g1 - 0.6; cx += 2.2, k++) {
+        const kind = (k + (home ? 0 : 2)) % 4;
+        if (kind === 0) K.onS(K.pm(1.6, 1.1, (c, ww, h) => art2.noticeboard(c, ww, h, 20 + k, home ? "TEAM" : "RULES")), cx, 1.35, 1.6, 1.1, zB + 0.03);
+        else if (kind === 1) { K.onS(K.pm(1.5, 0.75, (c, ww, h) => art2.clutter(c, ww, h, "rad"), false), cx, 0.2, 1.5, 0.75, zB + 0.05); K.onS(K.hd(0.8, 1.1, (c, ww, h) => (home ? art2.plate(c, ww, h, "HYDRATE", art2.BLUE, 0xf4f4f4, { sub: "NOT LIKE THAT" }) : art2.poster(c, ww, h, 5))), cx, 1.35, 0.8, 1.1, zB + 0.03); }
+        else if (kind === 2) { K.onS(K.at.paint(22, 22, (c, ww, h) => art2.clutter(c, ww, h, "aid"), false), cx - 0.5, 1.5, 0.6, 0.6, zB + 0.03); K.onS(K.pm(1.2, 0.9, (c, ww, h) => art2.coatHooks(c, ww, h, 30 + k, home ? [0xf4f4f4, 0x1b2a6b, 0xc8102e] : [0x8a8672, 0x5e3a3c, 0x3a3d44]), false), cx + 0.5, 1.0, 1.2, 0.9, zB + 0.04); }
+        else K.onS(K.hd(1.5, 0.95, (c, ww, h) => art2.menuBoard(c, ww, h, home ? "TODAY" : "NOTICE", home ? [["WARM UP", "2:15"], ["TEAM TALK", "2:40"], ["PANIC", "2:59"]] : [["TOWELS", "1"], ["HOT TAP", "NO"], ["COMPLAINTS", "NO"]], 0xf1efe6, home ? 0x1b2a6b : 0x5e3a3c)), cx, 1.4, 1.5, 0.95, zB + 0.03);
+      }
+    };
+    for (const [t0, t1] of taken) { if (t0 - x > 2.2) fill(x, t0); x = Math.max(x, t1); }
+    if (xE - 0.3 - x > 2.2) fill(x, xE - 0.3);
+  }
   // The west wall.
   const zc = (zB + z1) / 2;
   K.wallE(xW + 0.02, zB, z1, 2.8, (c, ww, h) => {
@@ -320,12 +336,41 @@ function corridor(K: Kit) {
     let gx0 = NaN, gx1 = NaN;
     for (let i = 0; i < segs.length - 1; i++) { const e = segs[i].x + segs[i].w, s = segs[i + 1].x; if (s - e > 1.5 && s - e < 6 && (e + s) / 2 > a.x - 1 && (e + s) / 2 < a.x + a.w + 1 && !segs[i].gate && !segs[i + 1].gate) { gx0 = e; gx1 = s; } else if (segs[i + 1].gate && (segs[i + 1].x + segs[i + 1].w / 2) > a.x && (segs[i + 1].x + segs[i + 1].w / 2) < a.x + a.w) { gx0 = segs[i + 1].x; gx1 = gx0 + segs[i + 1].w; } }
     if (isNaN(gx0)) continue;
-    for (const px of [gx0 - 0.12, gx1]) A.box(px, 0, z - 0.14, px + 0.12, 2.5, z + 0.14, col(0x3a3f46, 0x565c66));
-    const r = K.hd(gx1 - gx0, 0.42, (c, ww, h) => art2.plate(c, ww, h, name, bg, fg));
-    A.box(gx0 - 0.12, 2.2, z - 0.1, gx1 + 0.12, 2.66, z + 0.1, { all: col(0x3a3f46), s: r, top: col(0x565c66) });
+    for (const px of [gx0 - 0.1, gx1]) A.box(px, 0, z - 0.12, px + 0.1, 2.4, z + 0.12, col(0x3a3f46, 0x565c66));
+    const r = K.hd(Math.min(2.6, gx1 - gx0), 0.34, (c, ww, h) => art2.plate(c, ww, h, name, bg, fg)), mx2 = (gx0 + gx1) / 2, hw = Math.min(2.6, gx1 - gx0) / 2;
+    A.box(gx0 - 0.1, 2.3, z - 0.05, gx1 + 0.1, 2.4, z + 0.05, col(0x3a3f46, 0x565c66));
+    A.box(mx2 - hw, 2.4, z - 0.04, mx2 + hw, 2.74, z + 0.04, { all: col(0x3a3f46), s: r, top: col(0x565c66) });
     w.pool(K.p, (gx0 + gx1) / 2, z + 1.4, 1.7, 1.5, 0xffe6b0, 0.14);
   }
-  // Noticeboards and extinguishers along the rooms' side of the corridor would face away; what faces you is the floor line.
+  // Along the rooms' wall, between the doors: a machine that sells crisps to millionaires, a bench of kit bags, a water trolley, extinguishers.
+  const free = (x0: number, x1: number) => !w.host.walls.some((q) => q.gate && Math.abs(q.y + 48.5) < 0.05 && q.x < x1 && q.x + q.w > x0) && w.host.walls.some((q) => !q.prop && !q.gate && Math.abs(q.y + 48.5) < 0.05 && q.x <= x0 && q.x + q.w >= x1);
+  const zf = -47.98, rV = [0, 1].map((k) => K.pm(0.9, 1.9, (c, ww, h) => vending(c, ww, h, k)));
+  [-11.2, 10.4].forEach((qx, k) => {
+    const x = w.mx(qx);
+    if (!free(x - 0.5, x + 0.5)) return;
+    A.box(x - 0.45, 0, zf, x + 0.45, 1.9, zf + 0.6, { all: col(0x23252b, 0x3a3d44), s: null, top: col(0x15171a) });
+    U.quad([x - 0.45, 0, zf + 0.6], [x + 0.45, 0, zf + 0.6], [x + 0.45, 1.9, zf + 0.6], [x - 0.45, 1.9, zf + 0.6], rV[k]);
+    w.halo(K.p, [x, 1.2, zf + 0.9], 2.2, k ? 0xff9a8a : 0x9fd0ff, 0.22); w.pool(K.p, x, zf + 1.5, 1.3, 1.1, k ? 0xff9a8a : 0x9fd0ff, 0.14);
+    w.spec.ao.push([x - 0.45, zf, x + 0.45, zf + 0.6, 1.5]);
+  });
+  [-24, 23].forEach((qx, k) => {
+    const x = w.mx(qx);
+    if (!free(x - 1.3, x + 1.3)) return;
+    K.bench(x - 1.2, zf + 0.02, x + 1.2, zf + 0.45);
+    for (let i = 0; i < 3; i++) { const bx = x - 0.95 + i * 0.75, cc = [art2.BLUE, 0xc8102e, 0x15171a, 0x5e3a3c][(i + k * 2) % 4]; A.box(bx, 0.45, zf + 0.06, bx + 0.6, 0.75, zf + 0.4, { all: col(cc), top: col(cc, 0xffffff) }); A.box(bx + 0.2, 0.75, zf + 0.2, bx + 0.4, 0.8, zf + 0.26, col(0x15171a)); }
+  });
+  [-5.5, 5.8].forEach((qx) => {
+    const x = w.mx(qx);
+    if (!free(x - 0.6, x + 0.6)) return;
+    A.box(x - 0.45, 0.12, zf + 0.05, x + 0.45, 0.2, zf + 0.6, col(0x8f959c, 0xc9cdd2)); A.box(x - 0.45, 0.7, zf + 0.05, x + 0.45, 0.76, zf + 0.6, col(0x8f959c, 0xc9cdd2));
+    for (const [dx, dz] of [[-0.42, 0.08], [0.38, 0.08], [-0.42, 0.55], [0.38, 0.55]]) A.box(x + dx, 0, zf + dz - 0.02, x + dx + 0.04, 0.95, zf + dz + 0.02, col(0x8f959c));
+    for (let i = 0; i < 10; i++) A.cyl(x - 0.32 + (i % 5) * 0.16, 0.76, 1.0, zf + 0.2 + Math.floor(i / 5) * 0.2, 0.05, 5, col(0xbfe0f0, 0xe8f6ff), col(0x2f6ab0));
+    A.box(x - 0.35, 0.2, zf + 0.12, x + 0.3, 0.5, zf + 0.5, { all: col(0x2f6ab0, 0x4a8ad0), top: col(0x1c2a3a) });
+  });
+  const rX = K.at.paint(18, 44, (c, ww, h) => art2.clutter(c, ww, h, "ext"), false);
+  for (const qx of [-30, -13.4, 13.4, 21.5]) { const x = w.mx(qx); if (free(x - 0.3, x + 0.3)) K.onS(rX, x, 0.0, 0.56, 1.38, zf + 0.03); }
+  // The way out to the pitch, lettered on the floor.
+  patch(w.spec, -3, -42.6, 6, 3.6, (c) => { const P2 = (q: number) => Math.round(q * PXM); c.save(); c.globalAlpha = 0.6; c.fillStyle = "#f4f4f0"; c.beginPath(); c.moveTo(P2(0), P2(-42.4)); c.lineTo(P2(-0.9), P2(-41.3)); c.lineTo(P2(-0.35), P2(-41.3)); c.lineTo(P2(-0.35), P2(-40.6)); c.lineTo(P2(0.35), P2(-40.6)); c.lineTo(P2(0.35), P2(-41.3)); c.lineTo(P2(0.9), P2(-41.3)); c.closePath(); c.fill(); c.translate(P2(0), P2(-39.7)); c.scale(1, 1.5); pixText(c, "PITCH", 0, 6, 15, "#f4f4f0", { align: "center" }); c.restore(); });
   patch(w.spec, -39, -43.2, 78, 0.5, (c, x0, _y0, x1) => { c.fillStyle = "rgba(217,185,42,0.75)"; for (let x = Math.floor(x0 / 48) * 48; x < x1; x += 48) c.fillRect(x, Math.round(-43.05 * PXM), 30, 4); });
   void U; void v;
 }
@@ -408,6 +453,14 @@ function concourse(K: Kit) {
     K.lampE(xf, 2.95, zc + 7, 0xfff0c8, 2.4); K.lampE(xf, 2.95, zc - 7, 0xfff0c8, 2.4);
   }
 }
+function vending(c: Ctx, w: number, h: number, k: number) {
+  rect(c, 0, 0, w, h, H(k ? 0x8a1a22 : 0x1b3a8a)); rect(c, 0, 0, w, 9, H(0x15171a)); tiny(c, k ? "SNAX" : "FIZZ", w / 2, 2, k ? "#ffd24a" : "#9fe0ff", 1, "center");
+  rect(c, 2, 11, w - 9, Math.round(h * 0.55), H(0xdfeaf0));
+  for (let j = 0; j < 5; j++) { rect(c, 2, 11 + j * 7 + 6, w - 9, 1, H(0x6f757c)); for (let i = 0; i < 4; i++) rect(c, 3 + i * 5, 11 + j * 7 + 1, 4, 5, H([0xd8322a, 0xf2c81e, 0x2f6ab0, 0x3a7a4a, 0xe2661c, 0x8a3a8a][(i + j * 3 + k) % 6])); }
+  rect(c, w - 6, 14, 4, 12, H(0x23252b)); rect(c, w - 5, 16, 2, 2, H(0x7ad07a)); rect(c, w - 5, 28, 2, 4, H(0xc9cdd2));
+  rect(c, 3, h - 14, w - 10, 8, H(0x0c0d10)); rect(c, 4, h - 22, 14, 6, "#f1efe6"); tiny(c, "£4", 6, h - 21, "#b01020");
+  rect(c, 0, h - 3, w, 3, H(0x15171a));
+}
 function counterTop(c: Ctx, w: number, h: number) {
   rect(c, 0, 0, w, h, H(0xc9cdd2)); rect(c, 0, 0, w, 1, "#f4f8fa"); rect(c, 0, h - 2, w, 2, H(0x8f959c));
   const r = rng(5); for (let k = 0; k < w / 14; k++) { rect(c, r.int(w), 3 + r.int(h - 6), 5 + r.int(6), 4, H(r.pick([0xf4f1ea, 0xe8dcc0, 0xd8322a, 0xf2c81e]))); }
@@ -478,7 +531,7 @@ function pubInside(K: Kit, b: BuildingSpec) {
   // Warm light, and the carpet (the boards show round the bar and by the door).
   for (const [fx, fz] of [[0.3, 0.7], [0.62, 0.72], [0.85, 0.45]]) K.pool(x0 + (x1 - x0) * fx, z0 + (z1 - z0) * fz, 3.6, 2.8, 0xffc878, 0.11);
   const cz0 = (barW ? barW.y + barW.h : z0 + 6) + 1.6, cx0 = (toilet ? x0 + 0.5 : x0 + 0.5), cx1 = x1 - 0.5;
-  patch(w.spec, cx0, cz0, cx1 - cx0, z1 - 0.6 - cz0, (c, X0, Y0, X1, Y1) => carpet(c, X0, Y0, X1, Y1, 0x7a2430, 0xb8923a, 0x3a1218, 3));
+  patch(w.spec, cx0, cz0, cx1 - cx0, z1 - 0.6 - cz0, (c, X0, Y0, X1, Y1) => carpet(c, X0, Y0, X1, Y1, 0x5e2029, 0x9a7a34, 0x34141a, 3));
   void U;
 }
 /** Carpet on the world's own grid (so tiles meet): a diamond repeat, worn pale in tracks, stained. */
@@ -528,9 +581,11 @@ function hotelInside(K: Kit, b: BuildingSpec) {
   for (const t of [0.02, 0.24, 0.47, 0.63, 0.8, 0.97]) { const lz = zB + L * t; A.box(xw, 1.95, lz - 0.06, xw + 0.12, 2.0, lz + 0.06, col(art.GOLD)); U.box(xw + 0.04, 2.0, lz - 0.1, xw + 0.2, 2.26, lz + 0.1, col(0xffe2a0)); w.halo(K.p, [xw + 0.4, 2.15, lz], 1.9, 0xffc060, 0.42); w.pool(K.p, xw + 1.8, lz + 0.4, 2.2, 1.6, 0xffc878, 0.13); }
   // Pillars with a brass band, a rope barrier to reception, a bell.
   const desk = v.furniture.find((f) => f.key === "reception" && f.room === "hotel");
+  const rCol = K.pm(0.56, 3.2, (c, ww, h) => { art2.panelling(c, 0, 0, ww, h, 0x5a3a26, 17); rect(c, 0, 0, 1, h, "rgba(255,230,190,0.25)"); });
   for (const [fx, fz] of [[0.36, 0.3], [0.36, 0.72], [0.7, 0.72]]) {
     const px = x0 + (x1 - x0) * (m ? 1 - fx : fx), pz = z0 + (z1 - z0) * fz;
-    A.box(px - 0.3, 0, pz - 0.3, px + 0.3, 3.2, pz + 0.3, { all: { r: w.sw.marble, uv: [0, 0, 0.3, 1] }, top: col(0xe6dcc0) }); A.box(px - 0.33, 1.0, pz - 0.33, px + 0.33, 1.08, pz + 0.33, col(art.GOLD, 0xf6dc8a)); A.box(px - 0.36, 0, pz - 0.36, px + 0.36, 0.2, pz + 0.36, col(0x3a2a1c, 0x5a4028));
+    A.box(px - 0.28, 0, pz - 0.28, px + 0.28, 3.2, pz + 0.28, { all: { r: rCol }, top: col(0x3a2a1c) }); A.box(px - 0.31, 1.0, pz - 0.31, px + 0.31, 1.07, pz + 0.31, col(art.GOLD, 0xf6dc8a)); A.box(px - 0.34, 0, pz - 0.34, px + 0.34, 0.22, pz + 0.34, col(0x2a1c12, 0x4a3420)); A.box(px - 0.34, 2.9, pz - 0.34, px + 0.34, 3.2, pz + 0.34, col(0x4a3420, 0x6a4a30));
+    K.U.box(px - 0.1, 2.0, pz + 0.28, px + 0.1, 2.25, pz + 0.36, col(0xffe2a0)); w.halo(K.p, [px, 2.12, pz + 0.5], 1.6, 0xffc060, 0.4);
     w.spec.ao.push([px - 0.3, pz - 0.3, px + 0.3, pz + 0.3, 3]);
   }
   if (desk) {
@@ -555,12 +610,12 @@ function badArt(c: Ctx, w: number, h: number, k: number) {
   else { c.fillStyle = "#f4f1ea"; c.beginPath(); c.arc(w * 0.7, h * 0.3, 5, 0, 7); c.fill(); rect(c, 4, Math.round(h * 0.7), w - 8, 2, H(0x8fb0c8)); rect(c, Math.round(w * 0.2), Math.round(h * 0.55), 14, 6, H(0x15171a)); rect(c, Math.round(w * 0.2) + 6, Math.round(h * 0.3), 1, 10, H(0x15171a)); } // a boat at night
 }
 function hotelCarpet(c: CanvasRenderingContext2D, X0: number, Y0: number, X1: number, Y1: number) {
-  c.fillStyle = H(0x5a2a4a); c.fillRect(X0, Y0, X1 - X0, Y1 - Y0);
+  c.fillStyle = H(0x4e2740); c.fillRect(X0, Y0, X1 - X0, Y1 - Y0);
   const s = 24;
   for (let j = Math.floor(Y0 / s) - 1; j * s < Y1; j++) for (let i = Math.floor(X0 / s) - 1; i * s < X1; i++) {
     const ox = i * s, oy = j * s, k = (i + j) & 1;
-    c.fillStyle = H(k ? 0x7a3a5a : 0x4a2040); c.beginPath(); c.arc(ox + 12, oy + 12, 9, 0, 7); c.fill();
-    c.strokeStyle = H(0xd8a84a); c.lineWidth = 1; c.beginPath(); c.arc(ox + 12, oy + 12, 6, k ? 0 : Math.PI, k ? Math.PI * 1.5 : Math.PI * 2.5); c.stroke();
+    c.fillStyle = H(k ? 0x643350 : 0x432038); c.beginPath(); c.arc(ox + 12, oy + 12, 9, 0, 7); c.fill();
+    c.strokeStyle = H(0xb08a40); c.lineWidth = 1; c.beginPath(); c.arc(ox + 12, oy + 12, 6, k ? 0 : Math.PI, k ? Math.PI * 1.5 : Math.PI * 2.5); c.stroke();
     c.fillStyle = H(0x2a8a7a); c.fillRect(ox + 11, oy + 11, 2, 2); c.fillStyle = H(0xd8a84a); c.fillRect(ox, oy, 2, 2);
     if (((i * 7 + j * 13) % 19) === 0) { c.fillStyle = "rgba(20,8,16,0.3)"; c.beginPath(); c.ellipse(ox + 9, oy + 14, 12, 6, i, 0, 7); c.fill(); }
   }

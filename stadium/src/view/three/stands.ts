@@ -173,6 +173,17 @@ export function buildStands(w: World3D): Stands {
     w.pool(north, 0, -30.5, 2.0, 3.2, 0xfff1c4, 0.16);
   }
   w.finish(north, false, "stand_n");
+  // While the main stand lies flat, the tunnel keeps its low side walls (the wall list's, which the terrace otherwise replaces).
+  {
+    const flat = w.part("tunnel-low");
+    for (const wl of w.host.walls) {
+      if (standWall(w, wl) !== "skip") continue;
+      const x0 = wl.x, x1 = wl.x + wl.w, z0 = wl.y, z1 = wl.y + wl.h;
+      w.face(flat.A, x0, z1, x1, z1, 0, 1, w.sw.block); w.face(flat.A, x1, z1, x1, z0, 0, 1, w.sw.block);
+      flat.A.quad([x0, 1, z1], [x1, 1, z1], [x1, 1, z0], [x0, 1, z0], col(0xb4b8bc));
+    }
+    w.finish(flat, false, "stand_n_flat", false);
+  }
 
   // ---- Pitchside.
   const { A, U } = bowl;

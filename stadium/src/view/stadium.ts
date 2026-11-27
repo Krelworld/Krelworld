@@ -1569,7 +1569,7 @@ class StadiumScene extends Phaser.Scene {
     if (a.roof) { const r = roofOf(a); return r ? this.roofLift(r, a.y) : roofHeight(a); }
     if (a.bike) return 0.3; // up on the saddle
     if (a.chute) { const c = a.chute, k = Math.min(1, (this.s.tick - c.t0) / (c.t1 - c.t0)); return 8 * (1 - k * k); }
-    return 0;
+    return this.stage?.world?.standLift(a.x, a.y) ?? 0; // up on the 3D world's terracing (0 anywhere else, and in 2D)
   }
   /** How high to draw someone (or something) standing on this roof at depth y. A painted building's
    *  roof is a band partway down its picture (the fronts are drawn much taller than the footprint's
@@ -3158,7 +3158,7 @@ class StadiumScene extends Phaser.Scene {
       for (const c of this.crowdImgs) {
         const im = c.im as any;
         if (Math.abs(im.x - mx) > hw || Math.abs(im.y - my) > hh) continue;
-        if (oy) { im.y += oy; st.sprite(im, { hintY: c.wy, slide: true, lift: 0 }); im.y -= oy; } else st.sprite(im, { hintY: c.wy, slide: true, lift: 0 });
+        const dy = oy - (st.world?.standLift(c.x, c.wy) ?? 0) * this.P.S; im.y += dy; st.sprite(im, { hintY: c.wy, slide: true, lift: 0 }); im.y -= dy; // (up on the 3D world's terracing)
       }
     }
     const dog = this.worldSprites.get("dog-sprite"), dg = stad.dog ? s.actors[stad.dog.id] : null;
@@ -3333,7 +3333,7 @@ class StadiumScene extends Phaser.Scene {
     const roomR = this.roomShown ? this.blds.find((b) => b.id === this.roomShown)?.rect : undefined;
     for (const p of this.placed.list) {
       if (!onScreen(p.x, p.y, 300)) continue;
-      if (p.key === "floodlight") continue;
+      if (p.key === "floodlight" || (three && this.stage!.world?.replaces(p.key, p.x, p.y))) continue; // (or the 3D world has built this one itself)
       // In a room, the street's props aren't drawn (the tall ones would poke into the room's picture).
       if (three && roomR && p.key.startsWith("ladder") && p.x > roomR.x0 - 1.2 && p.x < roomR.x1 + 1.2 && p.y > roomR.y0 - 1.2 && p.y < roomR.y1 + 1.2) continue; // its wall is cut away
       if (roomR && !three && !(p.x > roomR.x0 - 0.2 && p.x < roomR.x1 + 0.2 && p.y > roomR.y0 - 0.2 && p.y < roomR.y1 + 0.2)) continue;

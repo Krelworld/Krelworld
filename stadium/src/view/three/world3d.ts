@@ -25,7 +25,7 @@ export interface WorldHost {
 export interface Part { id: string; A: Builder; U: Builder; GL: Builder; group: THREE.Group }
 /** When a part shows: always; only from outside the ground (it hides with the stadium's shell); only once you are in
  *  the ground; the main stand, which lies flat when the camera goes behind it; or only inside one building. */
-export type When = "always" | "outside" | "inside" | "terrace" | "stand_n" | `room:${string}`;
+export type When = "always" | "outside" | "inside" | "terrace" | "stand_n" | "stand_n_flat" | `room:${string}`;
 const col = (c: number, c2?: number) => ({ c, c2 });
 const SHELL_H = 9;
 
@@ -470,7 +470,7 @@ export class World3D {
   setCut(room: string | null, inside: boolean, openGates: (id: string) => boolean) {
     this.insideNow = inside;
     for (const [id, g] of this.shells) g.visible = id === "stadium" ? !inside : id !== room;
-    for (const q of this.whens) q.g.visible = q.when === "inside" ? inside : q.when === "outside" ? !inside : q.when === "terrace" ? inside && this.liftAsked : q.when === "stand_n" ? inside && this.liftAsked && !this.northCut : q.when === `room:${room}`;
+    for (const q of this.whens) q.g.visible = q.when === "inside" ? inside : q.when === "outside" ? !inside : q.when === "terrace" ? inside && this.liftAsked : q.when === "stand_n" ? inside && this.liftAsked && !this.northCut : q.when === "stand_n_flat" ? inside && (this.northCut || !this.liftAsked) : q.when === `room:${room}`;
     for (const [id, g] of this.gates) g.visible = !openGates(id);
   }
 

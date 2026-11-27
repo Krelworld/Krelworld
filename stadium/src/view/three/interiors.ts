@@ -22,10 +22,7 @@ export function wallPlan(w: World3D, wl: Wall): number | "skip" | undefined {
   if (s !== undefined) return s;
   if (wl.prop || wl.gate) return undefined;
   if (wl.w <= 0.6 && wl.h >= 12 && wl.y <= -60.9 && wl.y + wl.h <= -47.9) return 2.8; // between the rooms under the main stand
-  if (wl.h3 === 1.1 && wl.w > 5) { // bar counters: the two on the concourse, and the pub's when the pub is a building
-    if (wl.y < 50) return "skip";
-    if (w.host.blds.some((b) => b.id === "pub")) return "skip";
-  }
+  if (wl.h3 === 1.1 && wl.w > 5) return "skip"; // bar counters (the concourse's two, the pub's or the fan zone's): built as bars
   return undefined;
 }
 
@@ -110,6 +107,12 @@ export function buildInteriors(w: World3D): void {
   const con = w.part("concourse");
   concourse(new Kit(w, con));
   w.finish(con, false, "inside", false);
+
+  // ---- The fan zone keeps the pub's bar, out in the rain.
+  if (!w.host.blds.some((b) => b.id === "pub")) {
+    const barW = w.host.walls.find((q) => !q.prop && !q.gate && q.h3 === 1.1 && q.w > 5 && q.y > 60);
+    if (barW) { const p = w.part("fanbar"), k = new Kit(w, p); pubBar(k, barW); for (let x = barW.x + 1.2; x < barW.x + barW.w - 1; x += 3.2) pumps(k, x, 1.08, barW.y + 0.3, 3); w.finish(p, false); }
+  }
 
   // ---- The buildings on the street.
   for (const b of w.host.blds) {
@@ -513,7 +516,17 @@ function pubInside(K: Kit, b: BuildingSpec) {
   K.onE(K.hd(1.0, 0.22, (c, ww, h) => art2.plate(c, ww, h, "BARRED · SEE ALSO: FRONT DOOR", 0xf1efe6, 0xb01020)), xw + 0.03, tz + 8.4, 1.14, 1.0, 0.22);
   for (const zc of [tz + 3.3, tz + 9.3]) if (zc < z1 - 1) K.lampE(xw, 2.2, zc, 0xffc878, 2.4);
   // The bar.
-  if (barW) {
+  if (barW) pubBar(K, barW);
+  // Warm light, and the carpet (the boards show round the bar and by the door).
+  for (const [fx, fz] of [[0.3, 0.7], [0.62, 0.72], [0.85, 0.45]]) K.pool(x0 + (x1 - x0) * fx, z0 + (z1 - z0) * fz, 3.6, 2.8, 0xffc878, 0.11);
+  const cz0 = (barW ? barW.y + barW.h : z0 + 6) + 1.6, cx0 = (toilet ? x0 + 0.5 : x0 + 0.5), cx1 = x1 - 0.5;
+  patch(w.spec, cx0, cz0, cx1 - cx0, z1 - 0.6 - cz0, (c, X0, Y0, X1, Y1) => carpet(c, X0, Y0, X1, Y1, 0x5e2029, 0x9a7a34, 0x34141a, 3));
+  void U;
+}
+/** The pub's bar (and the fan zone's, which is the same bar with the pub taken away): panelled front, a brass rail, pumps, stools. */
+function pubBar(K: Kit, barW: Wall) {
+  const { w, A } = K, v = w.host.venue;
+  {
     const bx0 = barW.x, bx1 = barW.x + barW.w, bz0 = barW.y, bz1 = barW.y + barW.h, W = bx1 - bx0;
     A.box(bx0, 0, bz0, bx1, 1.08, bz1, { all: col(0x4a2e1e, 0x6a4630), s: K.pm(W, 1.08, (c, ww, h) => art2.barFront(c, ww, h, 13)), top: K.pm(W, bz1 - bz0, (c, ww, h) => art2.barTop(c, ww, h, 15)) });
     A.box(bx0 - 0.05, 1.08, bz1 - 0.06, bx1 + 0.05, 1.12, bz1 + 0.06, col(art.GOLD, 0xf6dc8a));
@@ -528,11 +541,6 @@ function pubInside(K: Kit, b: BuildingSpec) {
     w.spec.ao.push([bx0, bz0, bx1, bz1, 1.1]);
     for (let x = bx0 + 1.5; x < bx1; x += 3) { K.pool(x, bz1 + 0.9, 1.7, 1.3, 0xffc878, 0.16); K.pool(x, bz0 - 1.0, 1.7, 1.1, 0xffd9a0, 0.12); }
   }
-  // Warm light, and the carpet (the boards show round the bar and by the door).
-  for (const [fx, fz] of [[0.3, 0.7], [0.62, 0.72], [0.85, 0.45]]) K.pool(x0 + (x1 - x0) * fx, z0 + (z1 - z0) * fz, 3.6, 2.8, 0xffc878, 0.11);
-  const cz0 = (barW ? barW.y + barW.h : z0 + 6) + 1.6, cx0 = (toilet ? x0 + 0.5 : x0 + 0.5), cx1 = x1 - 0.5;
-  patch(w.spec, cx0, cz0, cx1 - cx0, z1 - 0.6 - cz0, (c, X0, Y0, X1, Y1) => carpet(c, X0, Y0, X1, Y1, 0x5e2029, 0x9a7a34, 0x34141a, 3));
-  void U;
 }
 /** Carpet on the world's own grid (so tiles meet): a diamond repeat, worn pale in tracks, stained. */
 export function carpet(c: CanvasRenderingContext2D, X0: number, Y0: number, X1: number, Y1: number, a: number, b: number, d: number, seed: number) {

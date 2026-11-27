@@ -77,6 +77,7 @@ export function festoon(w: World3D, p: Part, a: V3, b: V3, sag: number, c = 0xff
     const q = at(k / n), cc = k % 5 === 0 ? 0xff8a5a : k % 7 === 0 ? 0xbfe6ff : c;
     p.U.box(q[0] - 0.06, q[1] - 0.16, q[2] - 0.06, q[0] + 0.06, q[1] - 0.03, q[2] + 0.06, { all: col(cc), bot: col(cc) });
     if (k % 2) w.halo(p, [q[0], q[1] - 0.1, q[2] + 0.1], 0.9, cc, 0.4);
+    if (k % 3 === 1) { w.spec.streaks.push([q[0] - 0.12, q[2] + 0.05, 0.24, 1.5, cc, 0.3]); w.pool(p, q[0], q[2] + 0.3, 0.9, 0.7, cc, 0.07); } // and what it lays on the wet
   }
 }
 /** A plain steel pole with a foot. */
@@ -373,7 +374,7 @@ export function groundPaint(w: World3D): void {
     patch(sp, x - wm / 2, y - hm / 2, wm, hm, (c) => { c.save(); c.globalAlpha = alpha; c.translate(P(x), P(y)); c.scale(1, stretch); pixText(c, text, 0, cap / 2, cap, colr, { align: "center", weight: 800 }); c.restore(); });
   };
   // Names: the ones no sign already says.
-  const SIGNED = new Set(["STAFF ENTRANCE", "THE THREE LIONS", "TICKETS", "MERCHANDISE", "TURNSTILES", "STEWARDS", "SECOND HAND ROSE", "ARMY & NAVY", "BOOKMAKER", "CASH KINGS", "TEAM HOTEL", "FAN ZONE", "BIG SCREEN", "ENGLAND", "AWAY", "OFFICIALS", "KITCHEN", "SECURITY"]);
+  const SIGNED = new Set(["STAFF ENTRANCE", "THE THREE LIONS", "TICKETS", "MERCHANDISE", "TURNSTILES", "STEWARDS", "SECOND HAND ROSE", "ARMY & NAVY", "BOOKMAKER", "CASH KINGS", "TEAM HOTEL", "FAN ZONE", "BIG SCREEN"]);
   for (const [t, x, y, size] of sp.labels) if (!SIGNED.has(t)) word(t, x, y, Math.round((size ?? 11) * 1.25), "#f4f4f0", 0.55);
   // The way in: yellow lanes up to each turnstile, chevrons.
   for (const t of v.spots.turnstiles) patch(sp, t.x - 1.5, 45.1, 3, 5, (c) => {

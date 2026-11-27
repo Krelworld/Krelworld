@@ -1533,3 +1533,107 @@ The creator: "you haven't taken the structural implications of the pdf seriously
 - **The Bag** is collapsed to one slot: what's in your hand (tap to use it, hold for the Bag), or the bag when your hand's empty.
 - **People:** the main action plus at most two alternatives, then "...".
 - **The opening yard:** bricks and bottles were cleared out. What's left is the kegs, the lorry and the burner: three things that matter.
+
+## Round: the living machine (two follow-up reports)
+
+Two more reports arrived: *The Stadium as a Living Comedic Machine* and a *Supplementary Assessment of the Existing Sandbox*. Both say the same thing about my factory plan: the world shouldn't become production lines with a gold-ringed tap at each weak point. It should be ordinary processes obeying a few rules consistent enough that the player can work out interference nobody authored. The handoff said to audit first and to convert what exists before adding anything. I followed that order.
+
+**Audit (what was already there).**
+- **Items** already had `owner`, `home` and `stolenFrom`.
+- **People** had plans that resume their routine when they run out, posts, a `why` for having left one, and `gawk` (which turns their head; sight goes by facing).
+- **Events:** every successful action goes out on the bus.
+- **Chains** were a single running list joined by a time window. That was the gap: causality was inferred from timing.
+
+**The cause graph** (`cause.ts`).
+- **Roots and children:** every change Grozz causes is a root. What follows is a child that knows its parent, its rule family, and how sure the world can be it was him (less with each remove).
+- **Carrying a cause:** people carry the cause they're acting under, and things carry the cause that last moved them, so a steward fetching his flask still knows it began with Grozz's throw.
+- **What it feeds:** the chain count, the strap, the day's best chain for the paper, the edge cue for things off screen, and which rule families a chain used.
+- **Old calls kept:** `chainStart` and `chainLink` remain as a layer over it, so the earlier knock-ons still read as chains.
+
+**The rules** (`machine.ts`). Four, and anybody obeys them.
+- **Custody:** things have an owner and a place.
+  - An owner who's by that place, or sees the thing lying about, goes and fetches it back.
+  - If someone's holding it in plain sight he confronts them and has it off them.
+  - If it's nowhere he searches, gives up, says so, and reports it, and a copper comes to take a statement.
+- **Obligation:** barriers down, sick on the floor, a row or a statement is a problem, and it's somebody's.
+  - The owner takes it, or else the nearest of the right sort.
+  - Each person handles one problem; a second waits.
+- **Attraction:** a spectacle, a smell, something free or a queue pulls in whoever wants that, up to a number, and lets them go again.
+  - The reporter and cameraman run to any spectacle.
+  - A queue grows by social proof: the longer it is, the likelier the next one joins.
+- **Attention:** a scene turns heads nearby for a few seconds, and someone looking at it can't see behind them.
+- **Leaving a post:** one function says what a post left open means, whoever left it and why: a turnstile on free-wheel, the staff door propped, the lorry open, the van unwatched, a gap on the touchline.
+- **No planner:** a rule hands someone a short plan, and their routine resumes when it runs out.
+
+**Converted, with the same visible result** (their tests pass unchanged).
+- **The kegs** are custody.
+- **The fallen barriers** are an obligation.
+- **The burger van** emits a spectacle and a smell.
+- **The newsboard** is a written rumour.
+
+**Because they share rules, they now join up unscripted.** In the sim the fireball brings the reporter and the camera across the forecourt, which leaves his spare press pass on the camera case with nobody near it.
+
+**Ordinary things that are somebody's**, for a player who thinks to try the keg rule elsewhere:
+- each turnstile steward's flask of tea on the wall by his gate;
+- the reporter's spare pass.
+
+Neither is marked.
+
+**Belief** (`belief.ts`).
+- **Starting one:** "Tell him something" on fans, locals, stewards and the press offers three untruths: free pints at the Three Lions, a stewards' pay cut, their No.10's hamstring.
+- **Spreading:** it goes mouth to mouth, at most three removes, each person telling two, losing detail each time.
+- **Acting on it:** whoever it concerns acts.
+- **Found out:** the free pints are discovered to be false at the bar.
+- **Coming back:** if Grozz is standing near the person he told when they return, they point him out. Two of the disappointed come for him, and nearby security take notice.
+
+**The Invisible Queue.** "Queue here, for nothing" is always in the "..." outdoors. One fan joins, then more. At four it sustains itself without Grozz and becomes a spectacle, which brings the reporter.
+
+**The beer line** (`beer.ts`): the creator's sewage idea, built as the lesson in delay and persistence.
+- **The setup:** the cellar line comes up at a standpipe in the pub yard, a hose runs to the kegs for the ground, and there's a drain cover beside it.
+- **The gate is the drayman's attention.** If he's facing it within a few metres he stops you ("Oi! Hands off my line!"). Away after a keg, with his back turned, or looking at something else, he doesn't. Any rule that moves him or turns his head will do.
+- **Nothing happens at first.** After eight seconds the kegs are full. He comes back and puts the hose right, none the wiser.
+- **The kegs travel** to the ground with the lorry (or within 70 seconds).
+- **From then on** supporters inside are sick where they stand, every 5 to 9 seconds, near Grozz for preference.
+  - Each mess is a problem for a cleaner or the nearest steward, so touchline stewards get pulled away.
+  - At six the bar gets the blame and a row starts there.
+  - At ten the tannoy advises against the lager.
+- **Portable sewage:** a pint Grozz buys inside after that is spiked, so it works on whoever he gives it to.
+- **Cutscenes:** one short, skippable scene when the hose goes in, and a look inside at the first casualty if it's out of sight. That's the only cutscene. The plan for one on every contraption is dropped, as both reports ask.
+
+**Cash Kings is circulation, not a drain.**
+- **What you pawn** stays on Lionel's shelf as his.
+- **Its owner** walks in, takes it and walks out.
+- **Lionel** is out of pocket and remembers who sold it. After two, he won't take nicked goods from you.
+- **Tills** hold real money: what you spend goes in, and what he pays out comes from it.
+
+**The director sets things up; it never opens a way.**
+- The steward's fag break (a free gap) is replaced by a steward putting his broken radio down beside him.
+- A row gets a steward only through the obligation rule.
+- Nothing the director starts glows.
+
+**Presentation** (the first report's thresholds).
+- **Chain:** "×N" and the latest link only, under the score, for three seconds.
+- **Camera:** it leans a few metres towards a consequence and never takes over. There's a `kd-nolean` setting.
+- **Off screen:** a link that lands out of view gets an arrow at the screen edge and three words.
+- **Gold rings** are for a contraption you've never set off. After two kinds, there are none.
+- **Rules learned, once each**, when you see them work:
+  - "People go after their own things."
+  - "A scene pulls a crowd. And a camera."
+  - "Say it, and it gets round."
+  - "What goes in comes out. Later."
+- **Instinct** is local now: about 18 m, the nearest two posts, thin lines from things to their owners once you know custody (a stub before), and dots over whoever's heard your rumour.
+- **The held-item slot** sits lower-left above the stick, mirrored for left-handers.
+
+**Detention is a room again** (the second report partly reverses the earlier simplification).
+- **Not the old one:** no march, and the side-on scene is not used.
+- **What happens:** behind a fade you're in the security office in the normal view, free to move, with the score up.
+- **The strip:** it counts down, with a "Sit it out" button that runs time fast.
+- **Fifteen seconds in** the chief is called to the tunnel. For half a minute the locker with your things in it, and the door, are unwatched.
+- **Caught at it:** you're sat back down with more time. You're never thrown out and put back.
+- **Walking out** ends it, with consequences if he saw.
+
+**Not done, and why.**
+- **Betting** stays out. The second report wants it back; the creator dropped it earlier (task 88). That's the creator's call.
+- **Medical room recovery, clothing as identity tags, side jobs from NPC needs** are unchanged this round.
+- **A clean typeface for speech bubbles:** the report is right that body copy shouldn't be in a pixel face. It touches every bubble, so it wants its own pass and a look on a phone.
+- **The playtest gate** still needs five people.

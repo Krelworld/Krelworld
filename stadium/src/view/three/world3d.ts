@@ -62,7 +62,7 @@ export class World3D {
       const p = this.part(b.id);
       if (b.front === "pub") this.pub(p, b); else if (b.front === "hotel") this.hotel(p, b); else if (b.front === "cabin") this.cabin(p, b); else this.shop(p, b);
       const { x0, y0, x1, y1 } = b.rect;
-      this.spec.ao.push([x0, y0, x1, y1, b.height]); this.shaders.push([x0, y0, x1, y1, b.height + 1]);
+      this.shaders.push([x0, y0, x1, y1, b.height + 1]); // (its walls darken the ground at their feet; the floor inside stays clean)
       this.finish(p, true);
       this.backWall(b.id, `w-wall-${b.id}`, x0, x1, y0 + 0.5, false);
     }
@@ -391,6 +391,7 @@ export class World3D {
     const img = this.host.image(key);
     if (!img) return;
     const t = new THREE.Texture(img as HTMLImageElement); t.colorSpace = THREE.SRGBColorSpace; t.magFilter = THREE.NearestFilter; t.minFilter = THREE.LinearFilter; t.generateMipmaps = false; t.needsUpdate = true;
+    z += 0.05; // just proud of the wall it hangs on
     const g = new THREE.BufferGeometry(), y1 = 3 * STRETCH, fl = this.spec.mirror;
     g.setAttribute("position", new THREE.Float32BufferAttribute([x0, 0, z, x1, 0, z, x1, y1, z, x0, y1, z], 3)); g.setAttribute("normal", new THREE.Float32BufferAttribute([0, 0.3, 1, 0, 0.3, 1, 0, 0.3, 1, 0, 0.3, 1], 3));
     g.setAttribute("uv", new THREE.Float32BufferAttribute(fl ? [1, 0, 0, 0, 0, 1, 1, 1] : [0, 0, 1, 0, 1, 1, 0, 1], 2)); g.setIndex([0, 1, 2, 0, 2, 3]);

@@ -3247,6 +3247,7 @@ class StadiumScene extends Phaser.Scene {
       if (!onScreen(p.x, p.y, 300)) continue;
       if (p.key === "floodlight") continue;
       // In a room, the street's props aren't drawn (the tall ones would poke into the room's picture).
+      if (three && roomR && p.key.startsWith("ladder") && p.x > roomR.x0 - 1.2 && p.x < roomR.x1 + 1.2 && p.y > roomR.y0 - 1.2 && p.y < roomR.y1 + 1.2) continue; // its wall is cut away
       if (roomR && !three && !(p.x > roomR.x0 - 0.2 && p.x < roomR.x1 + 0.2 && p.y > roomR.y0 - 0.2 && p.y < roomR.y1 + 0.2)) continue;
       const meta = this.world.base[p.key];
       if (!meta) continue;

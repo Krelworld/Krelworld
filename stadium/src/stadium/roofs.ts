@@ -10,14 +10,22 @@ import { registerVerb } from "../core/verbs";
 import { VENUE } from "./layout";
 import { crime } from "./security";
 
-export interface Roof { id: string; name: string; x0: number; y0: number; x1: number; y1: number; h: number; ladders: { bx: number; by: number; tx: number; ty: number }[] }
+export interface Roof {
+  id: string; name: string; x0: number; y0: number; x1: number; y1: number; h: number; ladders: { bx: number; by: number; tx: number; ty: number }[];
+  /** Where the roof is in the building's painted picture, top to bottom, as fractions of its height
+   *  (the painted fronts are much taller than the footprint's height suggests): the view draws people
+   *  up here inside that band, so they stand on the slates and not in the air behind the ridge. */
+  band?: [number, number];
+  /** A hipped roof: how much narrower it is at the ridge, as a fraction of its width off each side. */
+  hip?: number;
+}
 
 const QF_ROOFS: Roof[] = [
   { id: "stand", name: "The South Stand roof", x0: -48, y0: 40.2, x1: 48, y1: 45.6, h: 5, ladders: [{ bx: -36, by: 46.3, tx: -36, ty: 45.1 }] },
-  { id: "pub", name: "The pub roof", x0: -62.3, y0: 61.7, x1: -34.2, y1: 80.3, h: 3.5, ladders: [{ bx: -38, by: 81.3, tx: -38, ty: 79.6 }] },
-  { id: "charity", name: "The charity shop roof", x0: -18.3, y0: 61.7, x1: -3.7, y1: 72.3, h: 3, ladders: [{ bx: -6, by: 73.3, tx: -6, ty: 71.6 }] },
-  { id: "surplus", name: "The army surplus roof", x0: 7.7, y0: 61.7, x1: 22.3, y1: 72.3, h: 3, ladders: [{ bx: 20.2, by: 73.3, tx: 20.2, ty: 71.6 }] },
-  { id: "hotel", name: "The hotel roof", x0: 73.8, y0: -40.3, x1: 91.8, y1: -14.3, h: 6, ladders: [{ bx: 76.2, by: -13.3, tx: 76.2, ty: -15.2 }] },
+  { id: "pub", name: "The pub roof", band: [0.21, 0.58], hip: 0.22, x0: -62.3, y0: 61.7, x1: -34.2, y1: 80.3, h: 3.5, ladders: [{ bx: -38, by: 81.3, tx: -38, ty: 79.6 }] },
+  { id: "charity", name: "The charity shop roof", band: [0.05, 0.55], x0: -18.3, y0: 61.7, x1: -3.7, y1: 72.3, h: 3, ladders: [{ bx: -6, by: 73.3, tx: -6, ty: 71.6 }] },
+  { id: "surplus", name: "The army surplus roof", band: [0.03, 0.47], x0: 7.7, y0: 61.7, x1: 22.3, y1: 72.3, h: 3, ladders: [{ bx: 20.2, by: 73.3, tx: 20.2, ty: 71.6 }] },
+  { id: "hotel", name: "The hotel roof", band: [0.01, 0.64], x0: 73.8, y0: -40.3, x1: 91.8, y1: -14.3, h: 6, ladders: [{ bx: 76.2, by: -13.3, tx: 76.2, ty: -15.2 }] },
 ];
 
 /** The roofs at this ground (the semi-final ground is the quarter-final's mirror image, and its pub is open-air). */
@@ -41,19 +49,29 @@ export function ladderNear(a: Actor, reach = 1.8): { roof: Roof; l: Roof["ladder
 export function edgeDrop(a: Actor): { x: number; y: number; d: number } | null {
   const r = roofOf(a);
   if (!r) return null;
+  const [xa, xb] = roofSpan(r, a.y);
   const opts = [
-    { d: a.x - r.x0, x: r.x0 - 0.8, y: a.y }, { d: r.x1 - a.x, x: r.x1 + 0.8, y: a.y },
+    { d: a.x - xa, x: r.x0 - 0.8, y: a.y }, { d: xb - a.x, x: r.x1 + 0.8, y: a.y },
     { d: a.y - r.y0, x: a.x, y: r.y0 - 0.8 }, { d: r.y1 - a.y, x: a.x, y: r.y1 + 0.8 },
   ].sort((p, q) => p.d - q.d);
   return opts[0];
+}
+
+/** How far back on the roof (0 at the back edge, 1 at the front). */
+export const roofDepth = (r: Roof, y: number) => Math.max(0, Math.min(1, (y - r.y0 - 0.3) / Math.max(0.1, r.y1 - r.y0 - 0.6)));
+/** The roof's walkable width at this depth: the full footprint at the eaves, narrower up a hipped roof. */
+export function roofSpan(r: Roof, y: number): [number, number] {
+  const cut = (r.hip ?? 0) * (1 - roofDepth(r, y)) * (r.x1 - r.x0);
+  return [r.x0 + 0.5 + cut, r.x1 - 0.5 - cut];
 }
 
 /** Keep someone on a roof on it (walls don't apply up there). */
 export function clampToRoof(a: Actor): boolean {
   const r = roofOf(a);
   if (!a.roof || !r) return false;
-  a.x = Math.max(r.x0 + 0.3, Math.min(r.x1 - 0.3, a.x));
   a.y = Math.max(r.y0 + 0.3, Math.min(r.y1 - 0.3, a.y));
+  const [xa, xb] = roofSpan(r, a.y);
+  a.x = Math.max(xa, Math.min(xb, a.x));
   return true;
 }
 

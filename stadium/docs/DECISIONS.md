@@ -1036,3 +1036,13 @@ An incoming call buzzes the handset in bursts with red and green buttons on the 
 So the lorry's own driver now shoves people out of the way (with Grozz at the wheel, or for Grozz himself, it still flattens), and the tied dog kicks off every few seconds instead of every one.
 
 **Pauses that didn't always hold.** A HUD check reset the speed to normal whenever you weren't seated. It only meant to cancel fast-forward, but on some frames it also undid pauses, which is why the bag occasionally didn't hold still. It now only cancels fast-forward. The menu uses the same pause as the bag and calls, so every way out of it (including Side jobs, then Close) starts the game again.
+
+**Roofs stand where they're drawn.** The roof model assumed each building is mostly roof with a short front wall. The painted fronts are the other way round: on the pub the front wall is about 40% of the picture, and the roof is a band squeezed in above it. People on a roof were lifted by a flat height, so at the back of the roof they hung in the air over the street, and on the hotel they stood on the front windows.
+
+Now:
+- each roof has its band in its building's art (pub 21–58% of the picture height, charity shop 5–55%, army surplus 3–47%, hotel 1–64%);
+- people and things on a roof are drawn inside that band, about 6 m up at the back of the pub and 10 m at the front;
+- the pub's roof is hipped, so the walkable area narrows towards the ridge;
+- every walkable edge is kept half a metre in from the drawn edge.
+
+To make the height read, everything below the roof you're on dims (the street, the other buildings, your own building's front wall), the roof stays lit, and its edge is picked out. The camera follows your full height when you're up there.

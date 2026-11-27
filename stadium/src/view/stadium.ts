@@ -16,7 +16,7 @@ import { Announcer } from "../stadium/announcer";
 import { isNaked } from "../stadium/naked";
 import { Drain } from "./drain";
 import { Detain } from "./detain";
-import { roofHeight, roofs } from "../stadium/roofs";
+import { roofHeight, roofOf, roofs, roofSpan, type Roof } from "../stadium/roofs";
 import { RIFLE_RANGE, rifleOf, windowBroken, windows } from "../stadium/missiles";
 import { FIXES, fixesDone, isHint } from "../stadium/fixes";
 import { BOXER_FEE, burnerOn, knows } from "../stadium/phone";
@@ -1485,11 +1485,37 @@ class StadiumScene extends Phaser.Scene {
   /** How far above the ground someone is drawn, in metres. */
   liftOf(a: Actor): number {
     // Kept within a screen of the ground (the camera follows your feet): the shadow tells the height.
-    if (a.roof) return roofHeight(a);
+    if (a.roof) { const r = roofOf(a); return r ? this.roofLift(r, a.y) : roofHeight(a); }
     if (a.bike) return 0.3; // up on the saddle
     if (a.chute) { const c = a.chute, k = Math.min(1, (this.s.tick - c.t0) / (c.t1 - c.t0)); return 8 * (1 - k * k); }
     return 0;
   }
+  /** How high to draw someone (or something) standing on this roof at depth y. A painted building's
+   *  roof is a band partway down its picture (the fronts are drawn much taller than the footprint's
+   *  height), so the back of the roof maps to the top of that band and the eaves to its bottom: you
+   *  stand on the slates wherever you are, about 6 m up at the back of the pub and 10 at the front. */
+  roofLift(r: Roof, y: number): number {
+    const b = this.blds.find((x) => x.id === r.id);
+    if (!b || !r.band || !this.textures.exists(`bldc-${VENUE.id}-${b.id}`)) return r.h;
+    const T = b.rect.y1 - b.rect.y0 + b.height, t = Math.max(0, Math.min(1, (y - r.y0 - 0.3) / Math.max(0.1, r.y1 - r.y0 - 0.6)));
+    const at = b.rect.y1 - T + (r.band[0] + 0.035 + t * (r.band[1] - r.band[0] - 0.055)) * T;
+    return y - at;
+  }
+  /** Up on a roof: everything below it dimmed (it's a long way down), the roof you're on left clear,
+   *  and its edge picked out, so you can see where the drop is. */
+  roofView(g: Phaser.GameObjects.Graphics, r: Roof, k: number) {
+    const P = this.P, v = this.cameras.main.worldView, pad = 40, V = (ps: { x: number; y: number }[]) => ps.map((q) => new Phaser.Math.Vector2(q.x, q.y));
+    const at = (x: number, y: number) => ({ x: P.sx(x, y), y: P.sy(x, y) - this.roofLift(r, y) * P.S });
+    const yb = r.y0 + 0.3, yf = r.y1 - 0.3, [bx0, bx1] = roofSpan(r, yb), [fx0, fx1] = roofSpan(r, yf);
+    const TL = at(bx0 - 0.5, yb), TR = at(bx1 + 0.5, yb), BL = at(fx0 - 0.5, yf), BR = at(fx1 + 0.5, yf);
+    const L = v.x - pad, R = v.right + pad, T = v.y - pad, B = v.bottom + pad, top = Math.min(TL.y, TR.y) - 6, bot = Math.max(BL.y, BR.y) + 4;
+    g.fillStyle(0x05070c, 0.42 * k);
+    g.fillRect(L, T, R - L, top - T); g.fillRect(L, bot, R - L, B - bot);
+    g.fillPoints(V([{ x: L, y: top }, { x: TL.x, y: top }, { x: BL.x, y: bot }, { x: L, y: bot }]), true);
+    g.fillPoints(V([{ x: TR.x, y: top }, { x: R, y: top }, { x: R, y: bot }, { x: BR.x, y: bot }]), true);
+    g.lineStyle(2, 0xfff1c4, 0.35 * k).strokePoints(V([{ x: TL.x, y: top }, { x: TR.x, y: top }, { x: BR.x, y: bot }, { x: BL.x, y: bot }]), true);
+  }
+  roofDimK = 0;
   choking = new Map<string, number>();
   startCine(ms: number, opts: { focus?: { x: number; y: number }; lead?: { x: number; y: number }; zoomAdd?: number; slow?: number; caption?: string }): void {
     const now = performance.now();
@@ -1846,7 +1872,7 @@ class StadiumScene extends Phaser.Scene {
       const it = s.items[id], l = it.loc;
       if (l.k !== "ground" && l.k !== "air") continue;
       if (it.def === "lorry_cargo" || (sprites && (it.def === "police_box" || it.def === "kitbag"))) continue;
-      const roofH = it.onRoof ? roofs().find((r) => r.id === it.onRoof)?.h ?? 5 : 0;
+      const onR = it.onRoof ? roofs().find((r) => r.id === it.onRoof) : undefined, roofH = onR ? this.roofLift(onR, l.y) : 0;
       const def = defOf(it), x = l.x, y = l.y, z = l.k === "air" ? l.z : roofH;
       if (!onScreen(x, y)) continue;
       if (it.def === "bicycle") {
@@ -1866,7 +1892,7 @@ class StadiumScene extends Phaser.Scene {
       if (sprites && def.size !== "huge" && ICONS.has(it.def) && this.textures.exists(`ico-${it.def}`)) {
         // Its picture, half size (a 48 px icon is 0.75 m across), lying where it fell or flying.
         this.shadowG.fillStyle(0x000000, 0.3).fillEllipse(Math.round(P.sx(x, y)), Math.round(P.sy(x, y)), P.S * 0.6, P.S * 0.22);
-        things.push({ d: roofH ? 1e5 + y : y, draw: () => {}, spr: (dep) => {
+        things.push({ d: onR ? 1e5 + y : y, draw: () => {}, spr: (dep) => {
           let im = this.worldSprites.get(`item-${id}`);
           if (!im) { im = this.add.image(0, 0, `ico-${it.def}`); this.worldSprites.set(`item-${id}`, im); }
           this.worldSeen.add(`item-${id}`);
@@ -2056,7 +2082,7 @@ class StadiumScene extends Phaser.Scene {
       if (st2.ring) sh.lineStyle(3, st2.ring, 1).strokeEllipse(gx, gy, Wd * 2.9, Wd * (P.standing ? 1.25 : 2.9));
       seenSprites.add(a.id);
       // Up on the stand roof, or floating down under a canopy: drawn above everything.
-      things.push({ d: this.liftOf(a) > 0 ? 1e5 + a.y : a.y, draw: () => {}, spr: (depth) => this.placeSprite(a, st2, shiver, moving, depth) });
+      things.push({ d: a.roof || this.liftOf(a) > 0 ? 1e5 + a.y : a.y, draw: () => {}, spr: (depth) => this.placeSprite(a, st2, shiver, moving, depth) });
       // Starkers: the telly's pixelated blur over the crotch (a little mosaic of skin tones that
       // shimmers as he moves), not drawn from behind.
       if (isNaked(a) && !st2.down && !a.seated && dirIndex(a.facing) !== 4) things.push({ d: a.y + 0.0004, draw: () => {
@@ -2105,6 +2131,9 @@ class StadiumScene extends Phaser.Scene {
     things.push({ d: b.y + 0.01, draw: () => drawBall(g, P, b.x, b.y, b.z) });
     for (const sgn of [-1, 1]) things.push({ d: PITCH.goalW / 2, draw: () => drawGoalFrame(g, P, sgn) });
 
+    // Up on a roof: the drop below dimmed, fading in and out.
+    { const r = pc?.roof ? roofOf(pc) : undefined; this.roofDimK = Math.max(0, Math.min(1, this.roofDimK + (r ? 0.08 : -0.12)));
+      if (r && this.roofDimK > 0) { const k = this.roofDimK; things.push({ d: 9e4, draw: () => this.roofView(g, r, k) }); } }
     things.sort((p, q) => p.d - q.d);
     // Paint in order, starting a fresh graphics layer after each sprite.
     let order = 100, li = 0, open = false;
@@ -2437,7 +2466,7 @@ class StadiumScene extends Phaser.Scene {
     // On a phone held upright, frame him a little above centre, clear of the buttons at the bottom.
     if (pc && !pc.seated && !this.roomShown && cam.height > cam.width * 1.2) ty += (cam.height / cam.zoom) * 0.07;
     // Up high: frame both you and your shadow on the ground.
-    if (pc) ty -= (this.liftOf(pc) + (pc.chute ? 3 : 0)) * P.S * 0.75;
+    if (pc) ty -= (this.liftOf(pc) * (pc.roof ? 1 : 0.75) + (pc.chute ? 3 * 0.75 : 0)) * P.S;
     // Indoors (Stardew's and Zelda's rooms): through the door is a fade, then the room on its own,
     // framed in the middle of the screen, with the street blacked out round it.
     const inNow = pc && !pc.roof && !pc.hiddenIn ? this.blds.find((b2) => pc.x > b2.rect.x0 - 0.3 && pc.x < b2.rect.x1 + 0.3 && pc.y > b2.rect.y0 - 0.3 && pc.y < b2.rect.y1 + 0.3) : undefined;

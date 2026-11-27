@@ -26,7 +26,7 @@ export interface PicOpts {
   /** Lies on the ground. */ flat?: boolean;
   /** Stands along a wall (parallel to the world's x axis) rather than turned to face the camera: doors, booths, boards. */ wall?: boolean;
   /** Too far off (or too small on screen) to be worth a real shadow: one draw call saved per sheet. */ noShadow?: boolean;
-  slide?: boolean; ghost?: boolean; dim?: number; lift?: number;
+  slide?: boolean; /** Seen through walls as a faint outline: 1 = you, 2 = someone or something you could act on. */ ghost?: number; dim?: number; lift?: number;
 }
 
 class Batch {
@@ -67,6 +67,15 @@ class Batch {
   }
 }
 
+/** One sheet that many small pictures share, each copied in the first time it is shown (and its place given to another
+ *  once nobody has shown it for a while): every kit and every animation frame on screen is then one texture, one draw call. */
+interface Slot { page: Page; x: number; y: number; w: number; h: number; used: number; key: string | null; img: unknown }
+interface Shelf { y: number; w: number; h: number; cols: number; slots: Slot[] }
+class Page { tex: THREE.FramebufferTexture; shelves: Shelf[] = []; nextY = 1; handle: WebGLTexture | null = null;
+  constructor(public size: number) { const t = new THREE.FramebufferTexture(size, size); t.colorSpace = THREE.SRGBColorSpace; t.magFilter = THREE.NearestFilter; t.minFilter = THREE.NearestFilter; t.generateMipmaps = false; t.flipY = false; this.tex = t; }
+}
+export const PAGE = 2048, MAX_PAGES = 3, CELL_MAX = 136;
+
 const lin = (c: number) => (c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
 
 export class SpriteBridge {
@@ -76,6 +85,13 @@ export class SpriteBridge {
   private sub = new Map<unknown, { t: THREE.Texture; x: number; y: number; W: number; H: number }>();
   private batches = new Map<string, Batch>();
   private hints = new Map<number, number>();
+  /** The shared sheets of small frames (people, the crowd, the dog), and where each frame went. */
+  private pages: Page[] = []; private cells = new Map<string, Slot>(); private imgId = new Map<unknown, number>(); private imgN = 0;
+  private scratch: HTMLCanvasElement | null = null; private sctx: CanvasRenderingContext2D | null = null;
+  /** Set by the stage: the renderer the sheets are uploaded through. Without it every image keeps a texture of its own. */
+  renderer: THREE.WebGLRenderer | null = null;
+  /** Frames copied on to the sheets this frame, and in all (for the readout). */
+  uploads = 0; cellCount = 0;
   private frame = 0;
   /** Phaser's "fill with the tint" mode. */
   fillMode = 1;
@@ -83,7 +99,7 @@ export class SpriteBridge {
   /** A cool wash over every sprite (so the pixel art sits in the overcast light with the painted town). */
   wash = new THREE.Vector4(0.62, 0.68, 0.76, 0.0);
 
-  begin() { this.frame++; this.hints.clear(); this.quads = 0; for (const b of this.batches.values()) b.n = 0; }
+  begin() { this.frame++; this.hints.clear(); this.quads = 0; this.uploads = 0; for (const b of this.batches.values()) b.n = 0; }
   /** The draw order a thing was given this frame, and the world y it sorts by. */
   note(order: number, d: number) { this.hints.set(order, d); }
   hintFor(depth: number): number | undefined { return this.hints.get(Math.floor(depth + 0.6)); }
@@ -118,7 +134,64 @@ export class SpriteBridge {
     return place.length;
   }
   /** A picture the game has repainted (a sign, a recoloured sheet): send it to the card again. */
-  refresh(image: unknown) { const t = this.tex.get(image); if (t) t.needsUpdate = true; }
+  refresh(image: unknown) {
+    const t = this.tex.get(image); if (t) t.needsUpdate = true;
+    for (const [k, sl] of this.cells) if (sl.img === image) { this.cells.delete(k); sl.key = null; sl.img = null; }
+  }
+
+  /** A place on the shared sheets for one frame of an image (copied in now if it is new). Null: no room, or too big. */
+  private cell(image: unknown, cx: number, cy: number, cw: number, ch: number): Slot | null | "wait" {
+    const r = this.renderer;
+    if (!r || cw > CELL_MAX || ch > CELL_MAX || cw < 1 || ch < 1) return null;
+    let id = this.imgId.get(image);
+    if (id === undefined) { id = ++this.imgN; this.imgId.set(image, id); }
+    const key = `${id}:${cx},${cy},${cw},${ch}`;
+    let sl = this.cells.get(key);
+    if (sl) { sl.used = this.frame; return sl; }
+    if (this.uploads >= 200) return "wait"; // a very busy frame: the rest turn up next frame
+    const W = Math.ceil(cw / 8) * 8, Hh = Math.ceil(ch / 8) * 8;
+    let free: Slot | null = null, old: Slot | null = null;
+    for (const pg of this.pages) {
+      for (const sh of pg.shelves) {
+        if (sh.w !== W || sh.h !== Hh) continue;
+        for (const q of sh.slots) { if (!q.key) { free = q; break; } if (q.used < this.frame - 90 && (!old || q.used < old.used)) old = q; }
+        if (!free && sh.slots.length < sh.cols) { free = { page: pg, x: 1 + sh.slots.length * (W + 2), y: sh.y, w: W, h: Hh, used: 0, key: null, img: null }; sh.slots.push(free); }
+        if (free) break;
+      }
+      if (free) break;
+    }
+    if (!free) for (let i = 0; i <= this.pages.length && !free; i++) {
+      // A new shelf on a sheet with room; a new sheet if none has.
+      let pg = this.pages[i];
+      if (!pg) { if (old || this.pages.length >= MAX_PAGES) break; pg = new Page(PAGE); r.initTexture(pg.tex); pg.handle = (r.properties.get(pg.tex) as { __webglTexture?: WebGLTexture }).__webglTexture ?? null; if (!pg.handle) return null; this.pages.push(pg); }
+      if (pg.nextY + Hh + 1 > pg.size) continue;
+      const sh: Shelf = { y: pg.nextY, w: W, h: Hh, cols: Math.floor((pg.size - 2) / (W + 2)), slots: [] };
+      pg.nextY += Hh + 2; pg.shelves.push(sh);
+      free = { page: pg, x: 1, y: sh.y, w: W, h: Hh, used: 0, key: null, img: null }; sh.slots.push(free);
+    }
+    if (!free && old) { this.cells.delete(old.key!); free = old; }
+    if (!free) return null;
+    // Copy the frame in: through a scratch canvas (so only these pixels are sent to the card).
+    if (!this.scratch) { this.scratch = document.createElement("canvas"); this.sctx = this.scratch.getContext("2d", { willReadFrequently: false }); }
+    const sc = this.scratch, sx = this.sctx!;
+    if (sc.width !== W || sc.height !== Hh) { sc.width = W; sc.height = Hh; } else sx.clearRect(0, 0, W, Hh);
+    try { sx.drawImage(image as CanvasImageSource, cx, cy, cw, ch, 0, 0, cw, ch); } catch { return null; }
+    const gl = r.getContext() as WebGL2RenderingContext, st = r.state as unknown as { bindTexture(t: number, h: WebGLTexture | null): void; pixelStorei(n: number, v: number | boolean): void };
+    st.bindTexture(gl.TEXTURE_2D, free.page.handle);
+    st.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false); st.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false); st.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.NONE); st.pixelStorei(gl.UNPACK_ALIGNMENT, 4);
+    gl.texSubImage2D(gl.TEXTURE_2D, 0, free.x, free.y, W, Hh, gl.RGBA, gl.UNSIGNED_BYTE, sc);
+    st.bindTexture(gl.TEXTURE_2D, null);
+    free.key = key; free.img = image; free.used = this.frame; this.cells.set(key, free); this.uploads++; this.cellCount = this.cells.size;
+    return free;
+  }
+  /** The card lost everything (a phone coming back from the background): start the sheets again. */
+  reset(): void {
+    for (const pg of this.pages) pg.tex.dispose();
+    for (const [k, b] of this.batches) if (this.pages.some((pg) => pg.tex === b.tex)) { this.group.remove(b.mesh); b.geo.dispose(); b.mat.dispose(); (b.mesh.customDepthMaterial as THREE.Material | undefined)?.dispose(); this.batches.delete(k); }
+    this.pages = []; this.cells.clear(); this.cellCount = 0;
+  }
+  /** Bytes of texture the bridge holds on the card. */
+  memory(): number { let n = this.pages.length * PAGE * PAGE * 4; for (const t of this.tex.values()) { const im = t.image as { width: number; height: number }; n += im.width * im.height * 4; } const seen = new Set<THREE.Texture>(); for (const q of this.sub.values()) if (!seen.has(q.t)) { seen.add(q.t); n += q.W * q.H * 4; } return n; }
 
   private texUsed = new Map<THREE.Texture, number>();
   private P: number[] = new Array(12).fill(0);
@@ -127,32 +200,48 @@ export class SpriteBridge {
     const key = `${t.id}:${kind}`;
     let b = this.batches.get(key);
     if (!b) {
+      const ghost = kind === "ghost";
       const mat = new THREE.ShaderMaterial({
-        uniforms: { map: { value: t }, cut: { value: kind === "soft" ? 0.02 : 0.5 }, wash: { value: kind === "ghost" ? new THREE.Vector4(0, 0, 0, 0) : this.wash } },
+        uniforms: { map: { value: t }, cut: { value: kind === "soft" ? 0.02 : 0.5 }, wash: { value: ghost ? new THREE.Vector4(0, 0, 0, 0) : this.wash } },
         vertexShader: VERT, fragmentShader: FRAG, side: THREE.DoubleSide,
-        transparent: kind === "soft" || kind === "ghost", depthWrite: kind === "solid" || kind === "plain", depthFunc: kind === "ghost" ? THREE.GreaterDepth : THREE.LessEqualDepth,
+        transparent: kind === "soft", depthWrite: kind === "solid" || kind === "plain", depthFunc: ghost ? THREE.GreaterDepth : THREE.LessEqualDepth,
       });
+      // The outline of someone hidden: drawn after the town and before the people (so it shows through walls and vans
+      // but never through somebody standing in front), blended although it sits among the solid things.
+      if (ghost) { mat.blending = THREE.CustomBlending; mat.blendSrc = THREE.SrcAlphaFactor; mat.blendDst = THREE.OneMinusSrcAlphaFactor; mat.blendEquation = THREE.AddEquation; }
       const dm = kind === "solid" ? new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: t, alphaTest: 0.5, side: THREE.DoubleSide }) : null;
-      b = new Batch(mat, dm, kind === "solid" || kind === "plain" ? 0 : kind === "soft" ? 6 : 7);
+      b = new Batch(mat, dm, ghost ? 1 : kind === "solid" || kind === "plain" ? 2 : 6);
       b.tex = t;
       this.batches.set(key, b); this.group.add(b.mesh);
     }
     return b;
   }
+  private ghostQuad(t: THREE.Texture, P: number[], u0: number, v0: number, u1: number, v1: number, who: number) {
+    if (who === 1) this.batch(t, "ghost").quad(P, u0, v0, u1, v1, 0.5, 0.75, 1, 0.42, 1);
+    else this.batch(t, "ghost").quad(P, u0, v0, u1, v1, 0.82, 0.86, 0.9, 0.24, 1);
+  }
 
   /** Copy one Phaser picture into the world. */
   sprite(o: Pic, opt: PicOpts = {}): void {
-    const fr = o.frame, sub = this.sub.get(fr.source.image), t = sub ? sub.t : this.texture(fr.source.image);
-    if (!t || o.alpha <= 0.01) return;
+    const fr = o.frame, img = fr.source.image, sub = this.sub.get(img);
+    if (o.alpha <= 0.01) return;
     // The part of the image shown, in its own pixels, and where that sits relative to the origin.
     let cx = fr.cutX, cyy = fr.cutY, cw = fr.cutWidth, ch = fr.cutHeight, offX = 0, offY = 0;
     const fw = fr.cutWidth, fh = fr.cutHeight;
+    // People, the crowd, the dog: their frame goes on the shared sheet (unless this image already has a card of its own).
+    const got = !sub && !this.tex.has(img) ? this.cell(img, cx, cyy, cw, ch) : null;
+    if (got === "wait") return;
+    const sl = got;
+    const t = sl ? sl.page.tex : sub ? sub.t : this.texture(img);
+    if (!t) return;
+    if (sl) { cx = sl.x; cyy = sl.y; }
     if (o.isCropped && o._crop) { const c = o._crop; offX = c.x; offY = c.y; cx += c.x; cyy += c.y; cw = c.width; ch = c.height; }
     if (cw <= 0 || ch <= 0) return;
     if (sub) { cx += sub.x; cyy += sub.y; }
-    const W = sub ? sub.W : fr.source.width, H = sub ? sub.H : fr.source.height;
+    const W = sl ? sl.page.size : sub ? sub.W : fr.source.width, H = sl ? sl.page.size : sub ? sub.H : fr.source.height;
     let u0 = cx / W, u1 = (cx + cw) / W;
-    const vT = 1 - cyy / H, vB = 1 - (cyy + ch) / H;
+    // (The shared sheets are stored top row first; ordinary images the other way up.)
+    const vT = sl ? cyy / H : 1 - cyy / H, vB = sl ? (cyy + ch) / H : 1 - (cyy + ch) / H;
     const sxk = o.scaleX, syk = o.scaleY;
     let x0 = (-o.originX * fw + offX) * sxk, x1 = (-o.originX * fw + offX + cw) * sxk;
     if (o.flipX) { [u0, u1] = [u1, u0]; const a = (-o.originX * fw + (fw - offX - cw)) * sxk, b = (-o.originX * fw + (fw - offX)) * sxk; x0 = a; x1 = b; }
@@ -199,7 +288,7 @@ export class SpriteBridge {
       if (low > z) { z = low; w = (vS + z) / SP; }
       cs.forEach((q, i) => up(q[0], q[1], i * 3));
       B.quad(P, u0, vB, u1, vT, r, g, b, a, fl); this.quads++;
-      if (opt.ghost) this.batch(t, "ghost").quad(P, u0, vB, u1, vT, 0.5, 0.75, 1, 0.42, 1);
+      if (opt.ghost) this.ghostQuad(t, P, u0, vB, u1, vT, opt.ghost);
       return;
     }
     // Upright. Whatever hangs below the ground line either slides the picture toward the camera a touch
@@ -209,14 +298,14 @@ export class SpriteBridge {
     if (yB <= z * S + 0.5) {
       up(x0, yB, 0); up(x1, yB, 3); up(x1, yT, 6); up(x0, yT, 9);
       B.quad(P, u0, vB, u1, vT, r, g, b, a, fl); this.quads++;
-      if (opt.ghost) this.batch(t, "ghost").quad(P, u0, vB, u1, vT, 0.5, 0.75, 1, 0.42, 1);
+      if (opt.ghost) this.ghostQuad(t, P, u0, vB, u1, vT, opt.ghost);
       return;
     }
     const vF = vT + ((fold - yT) / (yB - yT)) * (vB - vT);
     if (fold > yT) {
       up(x0, fold, 0); up(x1, fold, 3); up(x1, yT, 6); up(x0, yT, 9);
       B.quad(P, u0, vF, u1, vT, r, g, b, a, fl); this.quads++;
-      if (opt.ghost) this.batch(t, "ghost").quad(P, u0, vF, u1, vT, 0.5, 0.75, 1, 0.42, 1);
+      if (opt.ghost) this.ghostQuad(t, P, u0, vF, u1, vT, opt.ghost);
     }
     const yF = Math.max(fold, yT), vF2 = fold > yT ? vF : vT;
     lie(x0, yB - fold, 0, 0.04, w); lie(x1, yB - fold, 3, 0.04, w); lie(x1, yF - fold, 6, 0.04, w); lie(x0, yF - fold, 9, 0.04, w);

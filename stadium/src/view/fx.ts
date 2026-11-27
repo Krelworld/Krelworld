@@ -3,6 +3,9 @@
 import Phaser from "phaser";
 import type { Projection } from "./projection";
 
+/** In the 3D world the air layer is told where each puff or bird is, so walls hide it properly (a no-op in 2D). */
+const at3 = (g: unknown, x: number, y: number, bias = 0.1): void => { (g as { at?: (x: number, y: number, b: number) => void }).at?.(x, y, bias); };
+
 interface Pigeon { x: number; y: number; z: number; vx: number; vy: number; vz: number; hx: number; hy: number; peck: number; flying: number; dark: boolean }
 
 export class Fx {
@@ -59,6 +62,7 @@ export class Fx {
       const body = b.dark ? 0x4a4e58 : 0x8a909c;
       if (b.flying > 0) {
         const flap = Math.sin(t * 40 + b.peck) > 0 ? -3 : 2;
+        at3(a, b.x, b.y);
         a.fillStyle(body, 1).fillRect(Math.round(sx - 3), Math.round(sy - 2), 7, 4);
         a.fillStyle(body, 1).fillRect(Math.round(sx - 7), Math.round(sy - 2 + flap), 5, 2).fillRect(Math.round(sx + 3), Math.round(sy - 2 + flap), 5, 2);
         g.fillStyle(0x000000, 0.18).fillEllipse(P.sx(b.x, b.y), P.sy(b.x, b.y), 8, 3);
@@ -85,7 +89,7 @@ export class Fx {
     for (const h of heads) if (Math.random() < dt * 0.35) this.breath.push({ x: h.x + 0.15, y: h.y, z: h.h, r: 0.06, a: 0.45 });
     for (const b of this.breath) { b.z += dt * 0.3; b.x += dt * 0.25; b.r += dt * 0.18; b.a -= dt * 0.5; }
     this.breath = this.breath.filter((b) => b.a > 0);
-    for (const b of this.breath) a.fillStyle(0xf0f4f6, b.a).fillCircle(Math.round(P.sx(b.x, b.y)), Math.round(P.sy(b.x, b.y, b.z)), Math.max(1, b.r * S));
+    for (const b of this.breath) { at3(a, b.x, b.y, 0.25); a.fillStyle(0xf0f4f6, b.a).fillCircle(Math.round(P.sx(b.x, b.y)), Math.round(P.sy(b.x, b.y, b.z)), Math.max(1, b.r * S)); }
     // A crisp packet blowing across the approach.
     {
       const k = this.packet;
@@ -101,7 +105,7 @@ export class Fx {
       if (Math.random() < dt * 5) this.puffs.push({ x: vanAt.x + 1.4, y: vanAt.y - 1.2, z: 2.6, r: 0.25, a: 0.55 });
       for (const p of this.puffs) { p.z += dt * 1.2; p.x += dt * 0.5; p.r += dt * 0.35; p.a -= dt * 0.12; }
       this.puffs = this.puffs.filter((p) => p.a > 0);
-      for (const p of this.puffs) a.fillStyle(0xd8d6d0, p.a).fillCircle(Math.round(P.sx(p.x, p.y)), Math.round(P.sy(p.x, p.y, p.z)), p.r * S);
+      for (const p of this.puffs) { at3(a, p.x, p.y, 0.3); a.fillStyle(0xd8d6d0, p.a).fillCircle(Math.round(P.sx(p.x, p.y)), Math.round(P.sy(p.x, p.y, p.z)), p.r * S); }
     }
   }
 }

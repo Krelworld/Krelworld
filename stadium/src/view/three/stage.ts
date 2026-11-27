@@ -4,7 +4,10 @@
 import * as THREE from "three";
 import { SpriteBridge, type Pic, type PicOpts } from "./bridge";
 import { CY, FWD, LIGHT, PITCH, PX_PER_M, RIGHT, SP, STRETCH, SY, UP, VIEW, YAW } from "./cam";
+import { Paint3D, type PaintOpts } from "./gfx";
 import { makeCanvas } from "./paint";
+import { Vehicles } from "./vehicles";
+import { CHUNK_PX } from "./ground";
 import { World3D, type WorldHost } from "./world3d";
 
 const HAZE = 0x9aa5ab, S = PX_PER_M;
@@ -18,7 +21,14 @@ export interface Frame {
 
 export class Stage3D {
   canvas: HTMLCanvasElement; renderer: THREE.WebGLRenderer; scene = new THREE.Scene(); camera: THREE.OrthographicCamera;
-  bridge = new SpriteBridge(); world: World3D | null = null;
+  bridge = new SpriteBridge(); world: World3D | null = null; vehicles: Vehicles;
+  /** The scene's flat-colour marks (rings, pools, hats, smoke), drawn in the world instead of over it. */
+  private paints: { p: Paint3D; auto: boolean }[] = [];
+  /** Frames a second, smoothed; and how many frames have been timed (the first few seconds decide whether this device can afford 3D). */
+  fps = 60; frames = 0; private lastT = 0; private slowMs = 0; private timedMs = 0;
+  private hud: HTMLDivElement | null = null; private hudAt = 0;
+  /** Off while something else has the whole screen (first person, the cab, the drain): nothing is drawn. */
+  active = true;
   private sun: THREE.DirectionalLight; private rain: THREE.Mesh; private rainMat: THREE.ShaderMaterial;
   private blobs: THREE.InstancedMesh; private blobN = 0; private m4 = new THREE.Matrix4();
   private vig: HTMLDivElement; private haze: HTMLDivElement;
@@ -53,6 +63,14 @@ export class Stage3D {
     this.scene.add(this.sun, this.sun.target);
     const lz = LIGHT.clone().negate(); this.lx.crossVectors(FWD, lz).normalize(); this.ly.crossVectors(lz, this.lx).normalize();
     this.scene.add(this.bridge.group);
+    this.bridge.renderer = r;
+    this.vehicles = new Vehicles(r.capabilities.getMaxAnisotropy());
+    this.scene.add(this.vehicles.group);
+    if (new URLSearchParams(location.search).get("hud3d") === "1") {
+      this.hud = document.createElement("div");
+      Object.assign(this.hud.style, { position: "absolute", left: "6px", bottom: "6px", zIndex: "50", font: "10px/1.35 ui-monospace, Menlo, monospace", color: "#d8f0d0", background: "rgba(8,10,14,0.72)", padding: "4px 6px", borderRadius: "4px", pointerEvents: "none", whiteSpace: "pre" });
+      host.appendChild(this.hud);
+    }
 
     // Rain: one full-screen quad, two layers of streaks, sliding.
     const [rainCv, rc] = makeCanvas(256, 256);
@@ -83,7 +101,15 @@ export class Stage3D {
     bb.fillStyle = "#22252a"; bb.fillRect(5, 5, 3, 3); bb.fillRect(2, 3, 2, 2); bb.fillRect(9, 4, 1, 2); bb.fillRect(4, 9, 2, 1); bb.fillStyle = "#ffffff"; bb.fillRect(4, 2, 2, 1);
     this.ballTex = ballCv;
     r.domElement.addEventListener("webglcontextlost", (e) => e.preventDefault());
+    r.domElement.addEventListener("webglcontextrestored", () => { this.bridge.reset(); this.first = true; });
   }
+
+  /** A layer of flat-colour marks in the world. `auto`: wiped at the start of every frame (else its owner clears it). */
+  paint(o: PaintOpts & { auto?: boolean } = {}): Paint3D { const p = new Paint3D(o); this.paints.push({ p, auto: !!o.auto }); this.scene.add(p.mesh); return p; }
+  /** The top of a frame, before the scene draws anything. */
+  startFrame() { this.vehicles.begin(); for (const q of this.paints) if (q.auto) q.p.clear(); }
+  /** Show or hide the whole 3D picture (hidden: nothing is drawn, the card rests). */
+  setActive(on: boolean) { if (on === this.active) return; this.active = on; this.canvas.style.visibility = on ? "visible" : "hidden"; this.vig.style.visibility = this.haze.style.visibility = on ? "visible" : "hidden"; }
 
   /** (Re)build the district: at the start, and whenever the venue changes. */
   build(host: Omit<WorldHost, "maxAniso">) {
@@ -137,8 +163,13 @@ export class Stage3D {
 
   /** Draw the frame: the camera goes where Phaser's is. */
   render(f: Frame) {
+    const now = performance.now();
+    if (this.lastT) { const dt = Math.min(250, now - this.lastT); this.fps += (1000 / Math.max(1, dt) - this.fps) * 0.08; if (this.active && document.visibilityState === "visible") { this.frames++; this.timedMs += dt; if (dt > 50) this.slowMs += dt; } }
+    this.lastT = now;
+    if (!this.active) { this.bridge.end(); this.vehicles.end(); return; }
     this.fit(f);
-    this.bridge.end();
+    this.bridge.end(); this.vehicles.end();
+    for (const q of this.paints) q.p.flush();
     this.blobs.count = this.blobN; this.blobs.instanceMatrix.needsUpdate = true;
     // The ground point in the middle of the screen.
     const u = f.midX / S, w = f.midY / (S * SP), gx = CY * u + SY * w, gz = -SY * u + CY * w;
@@ -162,10 +193,18 @@ export class Stage3D {
     this.rain.visible = f.outdoors; this.rainMat.uniforms.time.value = f.time;
     this.haze.style.opacity = f.outdoors ? "1" : "0"; this.vig.style.opacity = f.room ? "0.6" : "1";
     this.renderer.render(this.scene, cam);
+    if (this.hud && now - this.hudAt > 500) {
+      this.hudAt = now; const i = this.info();
+      this.hud.textContent = `${this.fps.toFixed(0)} fps  dpr ${i.dpr}\ncalls ${i.calls}  tris ${i.triangles}\ntex ${i.textures}  ${i.texMB.toFixed(0)} MB\nsprites ${i.sprites}/${i.spriteBatches}  cells ${i.cells}`;
+    }
   }
   private first = true;
+  /** Average frames a second over everything timed so far, and the share of that time spent in frames slower than 20 a second. */
+  measured(): { fps: number; slow: number; ms: number } { return { fps: this.timedMs ? (this.frames * 1000) / this.timedMs : 60, slow: this.timedMs ? this.slowMs / this.timedMs : 0, ms: this.timedMs }; }
+  /** Megabytes of texture on the card: the sprite sheets, the painted ground, the town's and the vehicles' sheets, the shadow map. */
+  texMB(): number { const MIP = 4 / 3, ch = this.world?.stats.chunks ?? 0; return (this.bridge.memory() + ch * CHUNK_PX * CHUNK_PX * 4 * MIP + 2048 * 2048 * 4 * MIP + 1024 * 1024 * 4 * MIP + 1024 * 1024 * 4 + 256 * 256 * 4) / 1048576; }
 
-  info() { const i = this.renderer.info; return { calls: i.render.calls, triangles: i.render.triangles, textures: i.memory.textures, geometries: i.memory.geometries, sprites: this.bridge.quads, spriteBatches: this.bridge.draws, staticTris: this.world?.stats.tris ?? 0, chunks: this.world?.stats.chunks ?? 0, chunkMs: this.world?.stats.paintMs ?? 0, dpr: this.dpr, viewW: this.viewW, viewH: this.viewH }; }
+  info() { const i = this.renderer.info; return { calls: i.render.calls, triangles: i.render.triangles, textures: i.memory.textures, geometries: i.memory.geometries, sprites: this.bridge.quads, spriteBatches: this.bridge.draws, staticTris: this.world?.stats.tris ?? 0, cells: this.bridge.cellCount, texMB: this.texMB(), paintTris: this.paints.reduce((n, q) => n + q.p.tris, 0), fps: this.fps, chunks: this.world?.stats.chunks ?? 0, chunkMs: this.world?.stats.paintMs ?? 0, dpr: this.dpr, viewW: this.viewW, viewH: this.viewH }; }
 
-  dispose() { this.world?.dispose(); this.renderer.dispose(); this.canvas.remove(); this.vig.remove(); this.haze.remove(); }
+  dispose() { this.world?.dispose(); this.vehicles.dispose(); for (const q of this.paints) q.p.dispose(); this.bridge.reset(); this.renderer.dispose(); this.canvas.remove(); this.vig.remove(); this.haze.remove(); this.hud?.remove(); }
 }

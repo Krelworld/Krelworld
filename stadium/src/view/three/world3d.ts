@@ -171,7 +171,8 @@ export class World3D {
         this.finish(gp, false); this.gates.set(wl.gate, gp.group);
         continue;
       }
-      const mat = this.matOf(wl), r = this.sw[mat], h = wl.h3 <= 1.2 ? wl.h3 : 1.0, cap = CAPS[mat] ?? 0xb4b8bc;
+      // Cut to a metre, except a wall with nothing behind it (the ground's back wall), which can stand.
+      const mat = this.matOf(wl), r = this.sw[mat], h = wl.h3 <= 1.2 ? wl.h3 : z1 <= -60.9 && wl.w > 20 ? 3 : 1.0, cap = CAPS[mat] ?? 0xb4b8bc;
       this.face(p.A, x0, z1, x1, z1, 0, h, r); this.face(p.A, x1, z1, x1, z0, 0, h, r); this.face(p.A, x1, z0, x0, z0, 0, h, r); this.face(p.A, x0, z0, x0, z1, 0, h, r);
       p.A.quad([x0, h, z1], [x1, h, z1], [x1, h, z0], [x0, h, z0], col(cap));
       this.spec.ao.push([x0, z0, x1, z1, h]);
@@ -321,7 +322,7 @@ export class World3D {
     for (const [vx, vz] of [[x0 + 3, z0 + 4], [x1 - 5, z0 + D * 0.5], [x0 + 6, z1 - 6]]) A.box(vx, e, vz, vx + 1.0, e + 0.65, vz + 0.8, { all: this.sw.ac, top: this.sw.acTop });
     A.box(x0 + W * 0.4, e, z0 + D * 0.3, x0 + W * 0.4 + 3, e + 1.9, z0 + D * 0.3 + 3, { all: { r: this.sw.render, c: 0xa8a8a8 }, top: this.sw.felt }); // lift housing
     if (door) {
-      const da = x0 + door[0], db = x0 + door[1], rD = a.paintM(db - da, 2.75, (c, w, h) => { art.litGlass(c, 0, 0, w, h, 77, { heads: 2 }); for (const x of [0, w / 3, (2 * w) / 3, w - 3]) rect(c, Math.round(x), 0, 3, h, H(0x22262c)); rect(c, 0, 0, w, 4, H(0x22262c)); rect(c, 0, h - 5, w, 5, H(0x3a3d42)); });
+      const da = x0 + door[0], db = x0 + door[1], rD = a.paintM(db - da, 2.75, (c, w, h) => { art.litGlass(c, 0, 0, w, h, 77, {}); for (const hx of [0.22, 0.55, 0.8]) { rect(c, Math.round(w * hx), Math.round(h * 0.48), 5, 5, H(0x4a2a1a)); rect(c, Math.round(w * hx) - 2, Math.round(h * 0.48) + 5, 9, 20, H(0x4a2a1a)); } rect(c, 0, Math.round(h * 0.48) + 22, w, 9, H(0x7a5a3c)); for (const x of [0, w / 3, (2 * w) / 3, w - 3]) rect(c, Math.round(x), 0, 3, h, H(0x22262c)); rect(c, 0, 0, w, 4, H(0x22262c)); rect(c, 0, h - 5, w, 5, H(0x3a3d42)); });
       U.quad([da, 0, F + 0.02], [db, 0, F + 0.02], [db, 2.75, F + 0.02], [da, 2.75, F + 0.02], rD);
       A.box(da - 0.6, 2.9, F, db + 0.6, 3.1, F + 1.6, { all: col(0x22262c, 0x34383e), top: col(0x3a3e44) }); // canopy
       A.box(da - 0.4, 3.1, F + 1.45, db + 0.4, 3.75, F + 1.6, { all: col(0x22262c), s: a.paint((db - da + 0.8) * 64, 0.65 * 64, (c, w, h) => art.fasciaSign(c, w, h, b.sign?.text ?? "TEAM HOTEL", 0x22262c, 0xf4f1ea, { font: art.SERIF, edge: 0xb8923a })) });

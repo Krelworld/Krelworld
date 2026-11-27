@@ -2378,7 +2378,7 @@ class StadiumScene extends Phaser.Scene {
       if (st.horse?.rider === a.id) continue; // drawn as the horse
       if (!onScreen(a.x, a.y)) continue;
       // In a room: only the people in it.
-      if (this.roomShown && a !== pc) { const rr = this.blds.find((b) => b.id === this.roomShown)?.rect; if (rr && !(a.x > rr.x0 - 0.3 && a.x < rr.x1 + 0.3 && a.y > rr.y0 - 0.3 && a.y < rr.y1 + 0.3)) continue; }
+      if (this.roomShown && a !== pc && !this.stage) { const rr = this.blds.find((b) => b.id === this.roomShown)?.rect; if (rr && !(a.x > rr.x0 - 0.3 && a.x < rr.x1 + 0.3 && a.y > rr.y0 - 0.3 && a.y < rr.y1 + 0.3)) continue; }
       if (a.dead) things.push({ d: a.y - 0.4, draw: () => g.fillStyle(0x6a0a0a, 0.85).fillEllipse(P.sx(a.x, a.y), P.sy(a.x, a.y), P.S * 2.4, P.S * (P.standing ? 1.1 : 1.8)) });
       if (a.npc?.job === "dog") {
         // His sprite (walking, running, going for someone) when it's loaded; the drawn dog if not.
@@ -2788,7 +2788,7 @@ class StadiumScene extends Phaser.Scene {
         const R2 = (n.job === "pitchsteward" || n.job === "police" ? 16 : 11) * P.S, hot = n.target === pc.id && n.mode !== "routine";
         ui.fillStyle(hot ? 0xff3b3b : 0xffe08a, hot ? 0.22 : 0.13);
         ui.beginPath(); ui.moveTo(ax, ay);
-        for (let k2 = 0; k2 <= 12; k2++) { const an = a.facing - 0.95 + (1.9 * k2) / 12; ui.lineTo(ax + Math.cos(an) * R2, ay + Math.sin(an) * R2 * (P.standing ? P.K : 1)); }
+        for (let k2 = 0; k2 <= 12; k2++) { const an = a.facing - 0.95 + (1.9 * k2) / 12, ex = a.x + (Math.cos(an) * R2) / P.S, ey = a.y + (Math.sin(an) * R2) / P.S; ui.lineTo(P.sx(ex, ey), P.standing ? P.sy(ex, ey) : ay + Math.sin(an) * R2); }
         ui.closePath(); ui.fillPath();
       }
       // A local inspector, not a blueprint: what's round you, and only the relationships you've seen at work.
@@ -3033,7 +3033,8 @@ class StadiumScene extends Phaser.Scene {
   /** Hand this frame's pictures to the 3D world (they are no longer drawn here), put its camera where this one is, and draw it. */
   sync3D(): void {
     const st = this.stage!, cam = this.cameras.main, s = this.s, pc = this.pc, stad = s.stadium!;
-    if (!st.world || this.stageVenue !== VENUE.id) this.build3D();
+    // A new ground, or a hole just blown in a wall: build again.
+    if (!st.world || this.stageVenue !== VENUE.id || stad.breaches.length !== this.breachN) this.build3D();
     st.begin();
     const who = new Map<unknown, Actor>();
     for (const [id, sp] of this.spritePool) { const a = s.actors[id]; if (a) who.set(sp, a); }
@@ -3045,6 +3046,8 @@ class StadiumScene extends Phaser.Scene {
     }
     const wallPic = new Set<unknown>();
     for (const [id, im] of this.worldSprites) if (this.wallish.has(id) || /^(door-|win-|tst|ban|gname|adN|adS)/.test(id)) wallPic.add(im);
+    // Real shadows only for the people near the middle of an ordinary view: each sheet that casts one is another draw call.
+    const mid = this.P.unproject(cam.scrollX + cam.width / 2, cam.scrollY + cam.height / 2), wide = cam.width / (cam.zoom * this.P.S) > 26;
     const hide = (o: object) => { if (!this.ignored.has(o)) { cam.ignore(o as Phaser.GameObjects.GameObject); this.ignored.add(o); } };
     for (const o of this.children.list as any[]) {
       if (!o.visible || (o.type !== "Image" && o.type !== "Sprite")) continue;
@@ -3056,7 +3059,7 @@ class StadiumScene extends Phaser.Scene {
         // People: where they really stand, a touch darker in the shade of a building, a soft blob under the feet.
         const want = st.shaded(a.x, a.y) ? 1 : 0, k = (this.shadeK.get(a.id) ?? want) + (want - (this.shadeK.get(a.id) ?? want)) * 0.15;
         this.shadeK.set(a.id, k);
-        st.sprite(o, { hintY: a.y, ghost: a === pc, dim: 1 - 0.26 * k, lift: 0 });
+        st.sprite(o, { hintY: a.y, ghost: a === pc, dim: 1 - 0.26 * k, lift: 0, noShadow: wide || Math.hypot(a.x - mid.x, a.y - mid.y) > 15 });
         if (!a.seated && !a.roof && !a.chute) st.blob(a.x, a.y, (a.npc?.job === "dog" ? 1.05 : 0.95) * (this.styleOf(a).girth ?? 1), 0.5);
       } else if (d < 100) st.sprite(o, { flat: true });
       else st.sprite(o, wallPic.has(o) ? { wall: true } : undefined);
@@ -3244,7 +3247,7 @@ class StadiumScene extends Phaser.Scene {
       if (!onScreen(p.x, p.y, 300)) continue;
       if (p.key === "floodlight") continue;
       // In a room, the street's props aren't drawn (the tall ones would poke into the room's picture).
-      if (roomR && !(p.x > roomR.x0 - 0.2 && p.x < roomR.x1 + 0.2 && p.y > roomR.y0 - 0.2 && p.y < roomR.y1 + 0.2)) continue;
+      if (roomR && !three && !(p.x > roomR.x0 - 0.2 && p.x < roomR.x1 + 0.2 && p.y > roomR.y0 - 0.2 && p.y < roomR.y1 + 0.2)) continue;
       const meta = this.world.base[p.key];
       if (!meta) continue;
       const key = `k-${p.key}`, tex = this.textures.get(key).getSourceImage() as HTMLCanvasElement;
@@ -3263,7 +3266,7 @@ class StadiumScene extends Phaser.Scene {
 
     // Wayfinding totems at the junctions (a real ground has them; a phone shows twenty metres of a
     // hundred-and-eighty-metre district, so the world has to say what's where, not a map).
-    if (!roomR) for (const [i, tp] of this.totems().entries()) {
+    if (!roomR || three) for (const [i, tp] of this.totems().entries()) {
       if (!onScreen(tp.x, tp.y, 260)) continue;
       const key = `totem-${VENUE.id}-${i}`;
       if (!this.textures.exists(key)) continue;
@@ -4619,6 +4622,14 @@ class StadiumScene extends Phaser.Scene {
   starsHtml = "";
 
   /** The person under a point on the ground (in metres), standing or down. */
+  /** A tap, as far across and up the screen from something at (ox, oy) as it would have been in the flat view.
+   *  (In 3D the ground is foreshortened and turned, so a tap on the top of a picture lands a long way "behind" it.) */
+  tapRel(gx: number, gy: number, ox: number, oy: number): [number, number] {
+    const c = this.P.cam3;
+    if (!c) return [gx, gy];
+    const dx = gx - ox, dy = gy - oy;
+    return [ox + c.cy * dx - c.sy * dy, oy + (c.sy * dx + c.cy * dy) * c.sp];
+  }
   personAt(gx: number, gy: number): Actor | null {
     // On the person, not near them: in a crowd a loose radius meant every tap to walk opened someone's
     // actions instead.
@@ -4626,7 +4637,7 @@ class StadiumScene extends Phaser.Scene {
     for (const id in this.s.actors) {
       const a = this.s.actors[id];
       if (a.id === this.pc.id || a.hiddenIn || a.npc?.job === "dog") continue;
-      const d = Math.hypot(a.x - gx, a.y - gy);
+      const [tx, ty] = this.tapRel(gx, gy, a.x, a.y), d = Math.hypot(a.x - tx, a.y - ty);
       if (d < bd) { bd = d; best = a; }
     }
     return best;
@@ -4881,19 +4892,20 @@ class StadiumScene extends Phaser.Scene {
     for (const id of RIG_IDS) {
       const at = RIGS[id].at();
       // The picture stands up off its foot, so a tap on the top of it lands further up the screen.
-      if (!rigReady(this.w, id) || Math.abs(gx - at.x) > 1.8 || gy < at.y - 3.2 || gy > at.y + 1.2) continue;
+      const [rx, ry] = this.tapRel(gx, gy, at.x, at.y);
+      if (!rigReady(this.w, id) || Math.abs(rx - at.x) > 1.8 || ry < at.y - 3.2 || ry > at.y + 1.2) continue;
       this.setWalk(at.x, at.y + 0.6);
       this.walkTo!.then = { x: at.x, y: at.y, r: RIGS[id].r - 0.3, go: () => { dispatch(this.w, { verb: "rig", actor: pc.id, arg: id }); this.audio.play("tap", 0.5); } };
       return true;
     }
-    if (hasBeerLine() && (s.stadium!.beer?.hose ?? "lorry") === "lorry" && Math.hypot(gx - hoseAt().x, gy - hoseAt().y) < 1.3) {
+    if (hasBeerLine() && (s.stadium!.beer?.hose ?? "lorry") === "lorry" && Math.hypot(this.tapRel(gx, gy, hoseAt().x, hoseAt().y)[0] - hoseAt().x, this.tapRel(gx, gy, hoseAt().x, hoseAt().y)[1] - hoseAt().y) < 1.3) {
       const h = hoseAt();
       this.setWalk(h.x, h.y + 0.5);
       this.walkTo!.then = { x: h.x, y: h.y, r: 2, go: () => { dispatch(this.w, { verb: "hose", actor: pc.id }); } };
       return true;
     }
-    const keg = Object.values(s.items).filter((i) => i.def === "keg" && i.loc.k === "ground" && Math.abs(gx - i.loc.x) < 0.8 && gy > i.loc.y - 1.4 && gy < i.loc.y + 0.6)
-      .sort((p, q) => Math.hypot((p.loc as { x: number }).x - gx, (p.loc as { y: number }).y - 0.4 - gy) - Math.hypot((q.loc as { x: number }).x - gx, (q.loc as { y: number }).y - 0.4 - gy))[0];
+    const kegD = (i: Item): number => { const l = i.loc as { x: number; y: number }, [kx, ky] = this.tapRel(gx, gy, l.x, l.y); return Math.abs(kx - l.x) < 0.8 && ky > l.y - 1.4 && ky < l.y + 0.6 ? Math.hypot(l.x - kx, l.y - 0.4 - ky) : Infinity; };
+    const keg = Object.values(s.items).filter((i) => i.def === "keg" && i.loc.k === "ground" && kegD(i) < Infinity).sort((p, q) => kegD(p) - kegD(q))[0];
     if (keg && keg.loc.k === "ground") {
       const l = keg.loc, dd = Math.hypot(pc.x - l.x, pc.y - l.y) || 1;
       // Up to it from the side you're on (not through the stack).
@@ -5921,8 +5933,8 @@ class StadiumScene extends Phaser.Scene {
         // Tap someone to aim at them.
         const cam = this.cameras.main, P = this.P;
         const wx = cam.worldView.x + (x * DPR) / cam.zoom, wy = cam.worldView.y + (y * DPR) / cam.zoom;
-        const gx = wx / P.S, gy = (wy + 0.9 * P.KZ * P.S) / (P.K * P.S);
-        const best = this.personAt(gx, gy);
+        const gp = P.unproject(wx, wy + 0.9 * P.KZ * P.S);
+        const best = this.personAt(gp.x, gp.y);
         if (this.useMode) { const g = this.groundAt(e.clientX, e.clientY); this.useAt(g.x, g.y, best); return; }
         this.picked = best ? best.id : null;
         if (best) this.openPerson(best.id);
@@ -5941,7 +5953,8 @@ class StadiumScene extends Phaser.Scene {
       if (t && !t.far && performance.now() - t.at < 350 && e.type === "pointerup") {
         const rect = canvas.getBoundingClientRect(), cam = this.cameras.main, P = this.P;
         const wx = cam.worldView.x + ((t.x - rect.left) * DPR) / cam.zoom, wy = cam.worldView.y + ((t.y - rect.top) * DPR) / cam.zoom;
-        const who = this.personAt(wx / P.S, (wy + 0.9 * P.KZ * P.S) / (P.K * P.S));
+        const gp = P.unproject(wx, wy + 0.9 * P.KZ * P.S);
+        const who = this.personAt(gp.x, gp.y);
         if (this.useMode) { const g = this.groundAt(t.x, t.y); this.useAt(g.x, g.y, who); }
         else if (who) { this.picked = who.id; this.openPerson(who.id); }
         else { if (t.hadRing) this.closeRing(); const g = this.groundAt(t.x, t.y); if (!this.tapThing(g.x, g.y)) this.setWalk(g.x, g.y); }

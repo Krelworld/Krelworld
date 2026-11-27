@@ -98,8 +98,8 @@ function paintFloor(c: Ctx, kind: Floor, x0: number, y0: number, w: number, h: n
       break;
     }
     case "boards": {
-      const b = hex(0x7a5a3c), bw = 6;
-      fill(c, x0, y0, w, h, css(shade(b, 0.55)));
+      const b = hex(0x9a7248), bw = 6;
+      fill(c, x0, y0, w, h, css(shade(b, 0.6)));
       for (let j = Math.floor(y0 / bw); j * bw < y1; j++) {
         const len = 64, off = Math.floor(h2(j, 0, 34) * len);
         for (let i = Math.floor((x0 - off) / len) - 1; i * len + off < x1; i++) {

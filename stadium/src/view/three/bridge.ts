@@ -25,11 +25,12 @@ export interface PicOpts {
   /** The world y it stands at (else the scene's draw-order hint). */ hintY?: number;
   /** Lies on the ground. */ flat?: boolean;
   /** Stands along a wall (parallel to the world's x axis) rather than turned to face the camera: doors, booths, boards. */ wall?: boolean;
+  /** Too far off (or too small on screen) to be worth a real shadow: one draw call saved per sheet. */ noShadow?: boolean;
   slide?: boolean; ghost?: boolean; dim?: number; lift?: number;
 }
 
 class Batch {
-  geo = new THREE.BufferGeometry(); mesh: THREE.Mesh; n = 0; cap = 0; used = 0;
+  geo = new THREE.BufferGeometry(); mesh: THREE.Mesh; n = 0; cap = 0; used = 0; tex: THREE.Texture | null = null;
   pos!: Float32Array; uv!: Float32Array; col!: Float32Array; fill!: Float32Array;
   constructor(public mat: THREE.ShaderMaterial, depthMat: THREE.Material | null, order: number) {
     this.mesh = new THREE.Mesh(this.geo, mat); this.mesh.frustumCulled = false; this.mesh.matrixAutoUpdate = false; this.mesh.renderOrder = order;
@@ -53,8 +54,9 @@ class Batch {
     if (this.n === this.cap) this.grow(this.cap * 2);
     const i = this.n++;
     this.pos.set(p, i * 12);
-    this.uv.set([u0, v0, u1, v0, u1, v1, u0, v1], i * 8);
-    for (let k = 0; k < 4; k++) { this.col.set([r, g, b, a], i * 16 + k * 4); this.fill[i * 4 + k] = fill; }
+    const uv = this.uv, col = this.col, j = i * 8;
+    uv[j] = u0; uv[j + 1] = v0; uv[j + 2] = u1; uv[j + 3] = v0; uv[j + 4] = u1; uv[j + 5] = v1; uv[j + 6] = u0; uv[j + 7] = v1;
+    for (let k = 0, q = i * 16; k < 4; k++, q += 4) { col[q] = r; col[q + 1] = g; col[q + 2] = b; col[q + 3] = a; this.fill[i * 4 + k] = fill; }
   }
   flush(frame: number) {
     this.mesh.visible = this.n > 0;
@@ -118,17 +120,21 @@ export class SpriteBridge {
   /** A picture the game has repainted (a sign, a recoloured sheet): send it to the card again. */
   refresh(image: unknown) { const t = this.tex.get(image); if (t) t.needsUpdate = true; }
 
-  private batch(t: THREE.Texture, kind: "solid" | "soft" | "ghost"): Batch {
+  private texUsed = new Map<THREE.Texture, number>();
+  private P: number[] = new Array(12).fill(0);
+  private batch(t: THREE.Texture, kind: "solid" | "plain" | "soft" | "ghost"): Batch {
+    this.texUsed.set(t, this.frame);
     const key = `${t.id}:${kind}`;
     let b = this.batches.get(key);
     if (!b) {
       const mat = new THREE.ShaderMaterial({
         uniforms: { map: { value: t }, cut: { value: kind === "soft" ? 0.02 : 0.5 }, wash: { value: kind === "ghost" ? new THREE.Vector4(0, 0, 0, 0) : this.wash } },
         vertexShader: VERT, fragmentShader: FRAG, side: THREE.DoubleSide,
-        transparent: kind !== "solid", depthWrite: kind === "solid", depthFunc: kind === "ghost" ? THREE.GreaterDepth : THREE.LessEqualDepth,
+        transparent: kind === "soft" || kind === "ghost", depthWrite: kind === "solid" || kind === "plain", depthFunc: kind === "ghost" ? THREE.GreaterDepth : THREE.LessEqualDepth,
       });
       const dm = kind === "solid" ? new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: t, alphaTest: 0.5, side: THREE.DoubleSide }) : null;
-      b = new Batch(mat, dm, kind === "solid" ? 0 : kind === "soft" ? 6 : 7);
+      b = new Batch(mat, dm, kind === "solid" || kind === "plain" ? 0 : kind === "soft" ? 6 : 7);
+      b.tex = t;
       this.batches.set(key, b); this.group.add(b.mesh);
     }
     return b;
@@ -156,7 +162,7 @@ export class SpriteBridge {
     const tc = o.tintTopLeft ?? 0xffffff, dim = opt.dim ?? 1;
     const r = lin(((tc >> 16) & 255) / 255) * (fillTint ? 1 : dim), g = lin(((tc >> 8) & 255) / 255) * (fillTint ? 1 : dim), b = lin((tc & 255) / 255) * (fillTint ? 1 : dim);
     const soft = o.alpha < 0.98;
-    const B = this.batch(t, soft ? "soft" : "solid");
+    const B = this.batch(t, soft ? "soft" : opt.noShadow || opt.flat ? "plain" : "solid");
     // Where it stands: a point on the ray through its screen position, fixed by the world y it sorts at.
     const u = o.x / S, vS = o.y / S;
     const hint = opt.hintY ?? this.hintFor(o.depth);
@@ -166,7 +172,7 @@ export class SpriteBridge {
     const bias = opt.lift ?? (o.depth - Math.round(o.depth));
     if (!opt.flat && bias) { w += bias; z += SP * bias; }
     const rot = o.rotation, lying = Math.abs(Math.sin(rot)) > 0.62;
-    const P: number[] = new Array(12);
+    const P = this.P;
     const up = (dx: number, dy: number, k: number) => { P[k] = CY * (u + dx / S) + SY * w; P[k + 1] = (z - dy / S) * STRETCH; P[k + 2] = -SY * (u + dx / S) + CY * w; };
     const lie = (dx: number, dy: number, k: number, y: number, w0: number) => { const uu = u + dx / S, ww = w0 + dy / S / SP; P[k] = CY * uu + SY * ww; P[k + 1] = y; P[k + 2] = -SY * uu + CY * ww; };
     const a = soft ? o.alpha : 1, fl = fillTint ? 1 : 0;
@@ -229,7 +235,12 @@ export class SpriteBridge {
     for (const [k, b] of this.batches) {
       b.flush(this.frame);
       // Sheets nobody has shown for a while give their memory back.
-      if (this.frame - b.used > 900 && this.batches.size > 40) { this.group.remove(b.mesh); b.geo.dispose(); b.mat.dispose(); this.batches.delete(k); }
+      if (this.frame - b.used > 900 && this.batches.size > 40) { this.group.remove(b.mesh); b.geo.dispose(); b.mat.dispose(); (b.mesh.customDepthMaterial as THREE.Material | undefined)?.dispose(); this.batches.delete(k); }
+    }
+    if (this.frame % 600 === 0 && this.tex.size > 60) for (const [img, t] of this.tex) {
+      if (this.frame - (this.texUsed.get(t) ?? 0) < 1800) continue;
+      for (const [k, b] of this.batches) if (b.tex === t) { this.group.remove(b.mesh); b.geo.dispose(); b.mat.dispose(); (b.mesh.customDepthMaterial as THREE.Material | undefined)?.dispose(); this.batches.delete(k); }
+      t.dispose(); this.tex.delete(img); this.texUsed.delete(t);
     }
   }
   get draws(): number { let n = 0; for (const b of this.batches.values()) if (b.n) n++; return n; }

@@ -70,14 +70,16 @@ import { playOpening } from "./opening";
 import { assetURL, loadPacks } from "./packs";
 import { ROOM_WALLS } from "./world";
 import { Stage3D } from "./three/stage";
-import { PITCH as PITCH3, YAW as YAW3, want3D } from "./three/cam";
+import type { Paint3D } from "./three/gfx";
+import { PITCH as PITCH3, YAW as YAW3, forced3D, proven3D, remember3D, want3D } from "./three/cam";
 import { CAP, ensureFloor, setQuietFloors, ensureMaterials, facade, floodlight, matOf, adBoard, banner, pixelText as pixelTextOn, PPM, roof, TILE_FILES, type BuildingSpec } from "./build";
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 /** The canvas draws at the screen's real pixels (sharp text, and each art pixel a whole number of them). */
 const DPR = Math.max(1, Math.min(3, window.devicePixelRatio || 1));
-/** The world drawn as a 3D miniature (?3d=1, or kd-3d in storage), if this browser can: decided before the canvas is made, because Phaser's has to be see-through over it. */
-const USE3D = want3D() && (() => { try { return !!document.createElement("canvas").getContext("webgl2"); } catch { return false; } })();
+/** The world drawn as a 3D miniature (unless ?3d=0, or this device was found too slow for it), if this browser can: decided
+ *  before the canvas is made, because Phaser's has to be see-through over it. */
+const USE3D = want3D() && (() => { try { const c = document.createElement("canvas"), gl = c.getContext("webgl2"); gl?.getExtension("WEBGL_lose_context")?.loseContext(); return !!gl; } catch { return false; } })();
 /** The game's faces: a pixel font for things in the world, the condensed face for captions. */
 const FONT_POP = '"Silkscreen", "Pixelify Sans", monospace';
 const FONT_TALK = '"Pixelify Sans", "Silkscreen", monospace';
@@ -218,12 +220,9 @@ class StadiumScene extends Phaser.Scene {
     this.crowdG = this.add.graphics().setDepth(0.4);
     this.shadowG = this.add.graphics().setDepth(50);
     if (this.stage) {
-      // In 3D the shadows are real: this layer keeps its rings and marks and drops its black blobs.
-      const sg = this.shadowG as any, fs = sg.fillStyle.bind(sg), fe = sg.fillEllipse.bind(sg), fr = sg.fillRect.bind(sg);
-      let black = false;
-      sg.fillStyle = (c: number, a?: number) => { black = c === 0; return fs(c, a); };
-      sg.fillEllipse = (...q: number[]) => (black ? sg : fe(...q));
-      sg.fillRect = (...q: number[]) => (black ? sg : fr(...q));
+      // In 3D the shadows are real, and what is left of this layer (rings, marks, pools) is painted on the ground itself, under everyone's feet.
+      this.shadowG.destroy();
+      this.shadowG = this.stage.paint({ mode: "flat", dropBlack: true, order: 3 }) as unknown as Phaser.GameObjects.Graphics;
     }
     // Quiet ground (the report's background tier): the floor textures lose their speckle and some
     // contrast as they're built, keeping their colour. ?loud for the old look.
@@ -237,6 +236,18 @@ class StadiumScene extends Phaser.Scene {
     this.ui = this.add.graphics().setDepth(1e7);
     this.d3 = new Drive3D(this);
     this.fx = new Fx(this, this.P);
+    if (this.stage) {
+      // Marks that belong to the world are drawn in it (so walls and people hide them): the blood that stays, whatever
+      // each thing draws on itself, rings on the ground, the pigeons and the smoke. See three/gfx.ts.
+      const st = this.stage, G = (p: Paint3D) => p as unknown as Phaser.GameObjects.Graphics;
+      this.decalG.destroy(); this.decalG = G(st.paint({ mode: "flat", persistent: true, order: 2.6 }));
+      this.pg = st.paint({ mode: "up", auto: true, order: 5 });
+      this.pgAir = st.paint({ mode: "up", auto: true, order: 5.4 });
+      this.ringG = st.paint({ mode: "flat", auto: true, order: 3.2 });
+      const fx = this.fx as unknown as { ground: Phaser.GameObjects.Graphics; air: Phaser.GameObjects.Graphics };
+      fx.ground.destroy(); fx.air.destroy();
+      fx.ground = G(st.paint({ mode: "flat", order: 3.1 })); fx.air = G(st.paint({ mode: "up", order: 5.5 }));
+    }
     this.fp = new FirstPerson($("game"));
     this.stall = new Stall({
       act: (arg) => { if (this.pc) dispatch(this.w, { verb: "hole", actor: this.pc.id, arg }); },
@@ -1307,7 +1318,7 @@ class StadiumScene extends Phaser.Scene {
 
   // ---------- Frame ----------
   update(_t: number, dms: number) {
-    if (!this.started) { this.draw(dms); return; }
+    if (!this.started) { this.draw(dms); if (this.stage && this.probe !== 3) this.probe3D(); return; }
     if (this.pt) { this.pt.frame(this.speed === 0 || !!this.callOn); if (this.s.tick % 600 === 0) this.pt.save(); }
     if (this.s.tick % 20 === 0) this.progressiveUI();
     if (this.s.tick % 10 === 0) this.cokeFx();
@@ -1330,6 +1341,7 @@ class StadiumScene extends Phaser.Scene {
     if (st.ending && $("ending").hidden && !this.endingShown) { this.endingShown = true; this.showEnding(); }
     if (!st.ending) this.endingShown = false;
     this.draw(dms);
+    if (this.stage && this.probe !== 3) this.probe3D();
     const driving = st.vehicles.bus?.drivenBy === this.pc?.id;
     ($("viewBtn") as HTMLElement).hidden = !driving;
     ($("hornBtn") as HTMLElement).hidden = !driving;
@@ -1700,11 +1712,13 @@ class StadiumScene extends Phaser.Scene {
    *  the jaw, eye holes with Grozz's own eyes a long way back in them, held on with a bootlace round the
    *  back of his head, still wet at the edges. Nobody in the game ever mentions it. */
   drawFaces(): void {
-    if (!this.faceG) this.faceG = this.add.graphics().setDepth(9.2e6);
+    if (!this.faceG) this.faceG = this.stage ? (this.stage.paint({ mode: "up", order: 5.2 }) as unknown as Phaser.GameObjects.Graphics) : this.add.graphics().setDepth(9.2e6);
     const g = this.faceG.clear(), s = this.s, P = this.P, u = P.S / 32, now = performance.now();
+    const p3 = this.stage ? (g as unknown as Paint3D) : null;
     for (const id in s.actors) {
       const a = s.actors[id], f = a.worn.face ? s.items[a.worn.face] : undefined;
       if (!f || f.def !== "face" || a.hiddenIn || a.dead || a.downUntil > s.tick) continue;
+      p3?.at(a.x, a.y, 0.09); // on his head: hidden by whatever hides him
       const x = P.sx(a.x, a.y), y = headTop(P, a.x, a.y, a.id === s.stadium!.pc ? 1.75 : 1.7) + 9.5 * u - this.liftOf(a) * P.S;
       const skin = SKIN[Math.abs(hash(f.of ?? "x")) % SKIN.length], dull = Phaser.Display.Color.IntegerToColor(skin).darken(18).desaturate(35).color;
       // Which way he's looking, as the screen sees it: toward us, sideways, or away.
@@ -1743,6 +1757,7 @@ class StadiumScene extends Phaser.Scene {
     if (this.peel && this.pc) {
       const k = Math.min(1, (now - this.peel.t0) / Math.max(300, this.peel.ms)), pc = this.pc;
       const px = this.peel.x0 + (pc.x - this.peel.x0) * k, py = this.peel.y0 + (pc.y - this.peel.y0) * k, z = 0.25 + Math.sin(k * Math.PI) * 0.9 + k * 0.9;
+      p3?.at(px, py, 0.3);
       const x = P.sx(px, py), y = P.sy(px, py, z), wob = Math.sin(now / 70) * 1.5 * u;
       g.fillStyle(0x2a0606, 1).fillEllipse(x, y, 13 * u, 10 * u + wob);
       g.fillStyle(0xd9a58a, 1).fillEllipse(x, y, 11 * u, 8 * u + wob);
@@ -2147,12 +2162,15 @@ class StadiumScene extends Phaser.Scene {
     const P = this.P, s = this.s, tick = s.tick, pc = this.pc, st = s.stadium!, m = s.match!;
     let g = this.g;
     for (const l of this.layers) l.clear().setVisible(false);
+    const st3 = this.stage, V3 = st3?.vehicles ?? null;
+    st3?.startFrame();
     this.shadowG.clear();
     const sprites = this.useSprites && this.bank.ready();
     const seenSprites = new Set<string>();
     this.rimSeen.clear(); this.relevantNow();
     this.pcHidden = false;
-    type Thing = { d: number; draw: () => void; spr?: (depth: number) => void };
+    /** `flat`: (3D) painted on the ground; `x`: (3D) where across the world it stands, so it is hidden exactly as its owner is. */
+    type Thing = { d: number; draw: () => void; spr?: (depth: number) => void; flat?: boolean; x?: number; y?: number };
     const things: Thing[] = [];
     const cam = this.cameras.main;
     const view = cam.worldView;
@@ -2232,11 +2250,11 @@ class StadiumScene extends Phaser.Scene {
     // Rubble where a wall used to be.
     for (const b of st.breaches) {
       if (!onScreen(b.x, b.y, 120)) continue;
-      things.push({ d: b.y - 1.5, draw: () => g.fillStyle(0x2a2622, 0.55).fillEllipse(P.sx(b.x, b.y), P.sy(b.x, b.y), b.r * 2.6 * P.S, b.r * 1.6 * P.S * (P.standing ? P.K : 1)) });
+      things.push({ d: b.y - 1.5, flat: true, draw: () => g.fillStyle(0x2a2622, 0.55).fillEllipse(P.sx(b.x, b.y), P.sy(b.x, b.y), b.r * 2.6 * P.S, b.r * 1.6 * P.S * (P.standing ? P.K : 1)) });
       for (let i = 0; i < 14; i++) {
         const a = i * 2.39996 + b.t, rr = b.r * (0.25 + ((i * 37) % 11) / 11 * 0.9);
         const x = b.x + Math.cos(a) * rr, y = b.y + Math.sin(a) * rr * 0.8, sz = 0.25 + ((i * 13) % 7) / 7 * 0.45;
-        things.push({ d: y, draw: () => {
+        things.push({ d: y, x, draw: () => {
           const sx = P.sx(x, y), sy = P.sy(x, y, P.standing ? sz * 0.5 : 0);
           g.fillStyle(i % 3 ? 0x8a8f96 : 0xb4b9bf, 1).fillRect(sx - sz * P.S / 2, sy - sz * P.S / 2, sz * P.S, sz * P.S * 0.7);
         } });
@@ -2248,7 +2266,7 @@ class StadiumScene extends Phaser.Scene {
       if (!onScreen(p.x, p.y)) return;
       const used = !!st.flags[`alarmUsed${i}`], ringing = (st.flags.alarmUntil ?? 0) > tick;
       const near = pc && Math.hypot(pc.x - p.x, pc.y - p.y) < 1.6;
-      things.push({ d: p.y + 0.05, draw: () => {
+      things.push({ d: p.y + 0.05, x: p.x, draw: () => {
         const sx = P.sx(p.x, p.y), sy = P.sy(p.x, p.y, P.standing ? 1.3 : 0), z = P.S * 0.42;
         g.fillStyle(0xd7263d, 1).fillRect(sx - z / 2, sy - z / 2, z, z);
         g.fillStyle(used ? 0x333333 : 0xf1f4f1, 1).fillRect(sx - z / 4, sy - z / 4, z / 2, z / 2);
@@ -2279,15 +2297,16 @@ class StadiumScene extends Phaser.Scene {
       if (!onScreen(x, y)) continue;
       if (it.def === "bicycle") {
         // Ridden: drawn with its rider. Parked (or dropped on its side): its picture.
-        if (Object.values(s.actors).some((a) => a.bike === id) || !this.textures.exists("w-bike8")) continue;
+        if (Object.values(s.actors).some((a) => a.bike === id) || (!V3 && !this.textures.exists("w-bike8"))) continue;
         const nearB = pc && Math.hypot(pc.x - x, pc.y - y) < 2.6;
-        things.push({ d: y, draw: () => {}, spr: (dep) => {
+        if (V3) V3.bikeAt(id, x, y, it.facing ?? 0, !!it.fallen);
+        else things.push({ d: y, draw: () => {}, spr: (dep) => {
           let im = this.worldSprites.get(`item-${id}`);
           if (!im) { im = this.add.image(0, 0, "w-bike8", 0).setOrigin(0.5, 0.72); this.worldSprites.set(`item-${id}`, im); }
           this.worldSeen.add(`item-${id}`);
           (im as Phaser.GameObjects.Image).setFrame(dirIndex(it.facing ?? 0)).setPosition(Math.round(P.sx(x, y)), Math.round(P.sy(x, y))).setDepth(dep).setVisible(true).setAlpha(1).setAngle(it.fallen ? 75 : 0).setScale(P.standing && P.S === PPM ? 1 : (P.S / PPM) * (P.standing ? 1 : 0.85));
         } });
-        if (nearB) things.push({ d: y + 1e-4, draw: () => g.lineStyle(3, 0xf2c94c, 0.5 + 0.4 * Math.sin(tick * 0.15)).strokeCircle(P.sx(x, y), P.sy(x, y) - P.S * 0.3, P.S * 0.9) });
+        if (nearB) things.push({ d: y + 1e-4, x, draw: () => g.lineStyle(3, 0xf2c94c, 0.5 + 0.4 * Math.sin(tick * 0.15)).strokeCircle(P.sx(x, y), P.sy(x, y) - P.S * 0.3, P.S * 0.9) });
         continue;
       }
       const near = pc && Math.hypot(pc.x - x, pc.y - y) < 2.6 && this.focusItem === id;
@@ -2305,7 +2324,7 @@ class StadiumScene extends Phaser.Scene {
           im.setTexture(ik).setOrigin(0.5, 0.9).setScale(it.def === "keg" ? 0.75 : 0.5).setPosition(Math.round(P.sx(x, y)), Math.round(P.sy(x, y, z))).setDepth(dep).setVisible(true).setAlpha(1).setAngle(l.k === "air" ? (tick * 12) % 360 : rolling ? Math.sin(tick * 0.9) * 14 : teeter ? (tick % 120 < 50 ? Math.sin(tick * 0.5) * 9 : 0) : 0);
           if (this.relevant.has(`item-${id}`) || teeter) this.rim(`item-${id}`, im, dep);
         } });
-        if (near && l.k === "ground") things.push({ d: y + 1e-4, draw: () => g.lineStyle(3, 0xf2c94c, 0.5 + 0.4 * Math.sin(tick * 0.15)).strokeCircle(P.sx(x, y), P.sy(x, y) - P.S * 0.2, P.S * 0.55) });
+        if (near && l.k === "ground") things.push({ d: y + 1e-4, x, draw: () => g.lineStyle(3, 0xf2c94c, 0.5 + 0.4 * Math.sin(tick * 0.15)).strokeCircle(P.sx(x, y), P.sy(x, y) - P.S * 0.2, P.S * 0.55) });
         continue;
       }
       // Hampers get the hamper picture.
@@ -2317,10 +2336,10 @@ class StadiumScene extends Phaser.Scene {
           this.worldSeen.add(`item-${id}`);
           im.setPosition(Math.round(P.sx(x, y)), Math.round(P.sy(x, y))).setDepth(dep).setVisible(true).setAlpha(1);
         } });
-        if (near) things.push({ d: y + 1e-4, draw: () => g.lineStyle(3, 0xf2c94c, 0.5 + 0.4 * Math.sin(tick * 0.15)).strokeCircle(P.sx(x, y), P.sy(x, y) - P.S * 0.3, P.S * 0.9) });
+        if (near) things.push({ d: y + 1e-4, x, draw: () => g.lineStyle(3, 0xf2c94c, 0.5 + 0.4 * Math.sin(tick * 0.15)).strokeCircle(P.sx(x, y), P.sy(x, y) - P.S * 0.3, P.S * 0.9) });
         continue;
       }
-      things.push({ d: y, draw: () => {
+      things.push({ d: y, x, draw: () => {
         const sx = P.sx(x, y), sy = P.sy(x, y, z);
         if (def.size === "huge") {
           const h = (it.def === "locker" ? 1.9 : 1) * P.KZ * P.S, wdt = P.S * (it.def === "locker" ? 1.4 : 0.8);
@@ -2356,6 +2375,18 @@ class StadiumScene extends Phaser.Scene {
       const len = isBus ? BUS_LEN : LORRY_LEN, wid = isBus ? BUS_WID : LORRY_WID, h = isBus ? 3.2 : 3;
       const team = isBus ? m.teams[1] : null;
       const depth = v.y + Math.abs(Math.sin(v.facing)) * len / 2 + Math.abs(Math.cos(v.facing)) * wid / 2;
+      if (V3) {
+        // In 3D it is a model: the coach in its team's colours with the hold up when it's open; the dray with its tailboard down and the kegs coming off.
+        const open = isBus ? holdOpen(v) : v.state === "loading" || v.state === "unloading";
+        if (isBus) { V3.team(team!.colour, team!.colour2, team!.name, team!.short); V3.coachAt(v.id, v.x, v.y, v.facing, open, !!v.crashed); }
+        else {
+          const R = VENUE.delivery.route, toBay = v.route.length >= 2 && v.route[v.route.length - 2] === R[R.length - 2] && v.route[v.route.length - 1] === R[R.length - 1];
+          const left = Math.max(0, v.until - tick) / 60;
+          const load = v.state === "loading" ? 1 - 0.4 * Math.min(1, left / 50) : v.state === "unloading" ? 0.2 + 0.8 * Math.min(1, left / 40) : toBay ? 1 : 0.2;
+          V3.lorryAt(v.id, v.x, v.y, v.facing, open, load, VENUE.delivery.name);
+        }
+        continue;
+      }
       const key8 = isBus ? "w-coach8" : "w-lorry8";
       if (sprites && this.textures.exists(key8)) {
         // An eight-way PixelLab picture: the coach painted in the team's colour.
@@ -2405,6 +2436,8 @@ class StadiumScene extends Phaser.Scene {
     for (const c of st.traffic ?? []) {
       if (!onScreen(c.x, c.y, 260)) continue;
       const key = `w-${c.kind}8`;
+      if (V3) V3.carAt(c.id, c.kind, c.x, c.y, c.dir === 1 ? 0 : Math.PI);
+      else {
       if (!sprites || !this.textures.exists(key)) continue;
       this.shadowG.fillStyle(0x000000, 0.3).fillEllipse(Math.round(P.sx(c.x + 0.2, 0)), Math.round(P.sy(0, c.y + 0.3)), 4.4 * P.S, 1.6 * P.S);
       things.push({ d: c.y + 0.9, draw: () => {}, spr: (dep) => {
@@ -2413,7 +2446,8 @@ class StadiumScene extends Phaser.Scene {
         this.worldSeen.add(c.id);
         im.setTexture(key, dirIndex(c.dir === 1 ? 0 : Math.PI)).setOrigin(0.5, 0.68).setScale(1).setPosition(Math.round(P.sx(c.x, c.y)), Math.round(P.sy(c.x, c.y))).setDepth(dep).setVisible(true).setAlpha(1).setAngle(0).clearTint();
       } });
-      if (c.kind === "policecar" && (st.flags.armedAt || st.policeCalled)) things.push({ d: c.y + 0.91, draw: () => {
+      }
+      if (c.kind === "policecar" && (st.flags.armedAt || st.policeCalled)) things.push({ d: c.y + 0.91, x: c.x, draw: () => {
         const on = Math.floor(tick / 8) % 2, x = P.sx(c.x, c.y), y = P.sy(c.x, c.y, 1.55);
         g.fillStyle(on ? 0x2a6cff : 0xff2a2a, 1).fillRect(Math.round(x - 8), Math.round(y), 6, 4).fillStyle(on ? 0xff2a2a : 0x2a6cff, 1).fillRect(Math.round(x + 2), Math.round(y), 6, 4);
         g.fillStyle(on ? 0x2a6cff : 0xff2a2a, 0.18).fillCircle(x, y, P.S * 1.6);
@@ -2422,7 +2456,8 @@ class StadiumScene extends Phaser.Scene {
 
     // The car you've nicked: driven or left where you got out (flashing its lights if it's a police car).
     const mc = st.myCar;
-    if (mc && sprites && this.textures.exists(`w-${mc.kind}8`) && onScreen(mc.x, mc.y, 260)) {
+    if (mc && V3) { if (onScreen(mc.x, mc.y, 260)) V3.carAt("mycar", mc.kind, mc.x, mc.y, mc.facing, mc.damage); }
+    else if (mc && sprites && this.textures.exists(`w-${mc.kind}8`) && onScreen(mc.x, mc.y, 260)) {
       const key = `w-${mc.kind}8`;
       this.shadowG.fillStyle(0x000000, 0.3).fillEllipse(Math.round(P.sx(mc.x + 0.2, 0)), Math.round(P.sy(0, mc.y + 0.3)), 4.4 * P.S, 1.6 * P.S);
       things.push({ d: mc.y + 0.9, draw: () => {}, spr: (dep) => {
@@ -2436,7 +2471,7 @@ class StadiumScene extends Phaser.Scene {
     // A parked car going off: its indicators flashing.
     if ((st.flags.carAlarmUntil ?? 0) > tick && Math.floor(tick / 10) % 2 === 0) {
       const ax = st.flags.carAlarmX ?? 0, ay = st.flags.carAlarmY ?? 0;
-      things.push({ d: ay + 1, draw: () => { g.fillStyle(0xffa21a, 0.9).fillCircle(P.sx(ax - 1.9, ay), P.sy(ax, ay, 0.7), 3).fillCircle(P.sx(ax + 1.9, ay), P.sy(ax, ay, 0.7), 3); g.fillStyle(0xffa21a, 0.15).fillCircle(P.sx(ax, ay), P.sy(ax, ay, 0.6), P.S * 2.2); } });
+      things.push({ d: ay + 1, x: ax, draw: () => { g.fillStyle(0xffa21a, 0.9).fillCircle(P.sx(ax - 1.9, ay), P.sy(ax, ay, 0.7), 3).fillCircle(P.sx(ax + 1.9, ay), P.sy(ax, ay, 0.7), 3); g.fillStyle(0xffa21a, 0.15).fillCircle(P.sx(ax, ay), P.sy(ax, ay, 0.6), P.S * 2.2); } });
     }
 
     // The police horse on its own (riderless, or with you up top).
@@ -2466,7 +2501,7 @@ class StadiumScene extends Phaser.Scene {
       if (!onScreen(a.x, a.y)) continue;
       // In a room: only the people in it.
       if (this.roomShown && a !== pc && !this.stage) { const rr = this.blds.find((b) => b.id === this.roomShown)?.rect; if (rr && !(a.x > rr.x0 - 0.3 && a.x < rr.x1 + 0.3 && a.y > rr.y0 - 0.3 && a.y < rr.y1 + 0.3)) continue; }
-      if (a.dead) things.push({ d: a.y - 0.4, draw: () => g.fillStyle(0x6a0a0a, 0.85).fillEllipse(P.sx(a.x, a.y), P.sy(a.x, a.y), P.S * 2.4, P.S * (P.standing ? 1.1 : 1.8)) });
+      if (a.dead) things.push({ d: a.y - 0.4, flat: true, draw: () => g.fillStyle(0x6a0a0a, 0.85).fillEllipse(P.sx(a.x, a.y), P.sy(a.x, a.y), P.S * 2.4, P.S * (P.standing ? 1.1 : 1.8)) });
       if (a.npc?.job === "dog") {
         // His sprite (walking, running, going for someone) when it's loaded; the drawn dog if not.
         if (this.textures.exists("ronson-walk")) {
@@ -2498,26 +2533,26 @@ class StadiumScene extends Phaser.Scene {
       things.push({ d: a.roof || this.liftOf(a) > 0 ? 1e5 + a.y : a.y, draw: () => {}, spr: (depth) => this.placeSprite(a, st2, shiver, moving, depth) });
       // Starkers: the telly's pixelated blur over the crotch (a little mosaic of skin tones that
       // shimmers as he moves), not drawn from behind.
-      if (isNaked(a) && !st2.down && !a.seated && dirIndex(a.facing) !== 4) things.push({ d: a.y + 0.0004, draw: () => {
+      if (isNaked(a) && !st2.down && !a.seated && dirIndex(a.facing) !== 4) things.push({ d: a.y + 0.0004, x: a.x, y: a.y, draw: () => {
         const di = dirIndex(a.facing), side = di === 2 ? 1 : di === 6 ? -1 : di === 1 || di === 3 ? 0.5 : di === 7 || di === 5 ? -0.5 : 0;
         const cx = Math.round(P.sx(a.x + shiver, a.y) + side * P.S * 0.06), cy = Math.round(P.sy(a.x, a.y, this.liftOf(a) + 0.47));
         this.mosaic(g, cx, cy, Math.max(2, Math.round(P.S * 0.045)), Math.abs(side) === 1 ? 2 : 3, 3, Math.floor(tick / 6));
       } });
       // Out cold: little stars going round; the dead lie still in their own blood.
-      if (knockedOut(this.w, a) && !a.dead) things.push({ d: a.y + 0.0003, draw: () => {
+      if (knockedOut(this.w, a) && !a.dead) things.push({ d: a.y + 0.0003, x: a.x, y: a.y, draw: () => {
         const cx = P.sx(a.x, a.y), cy = P.sy(a.x, a.y, 0.7), t = tick * 0.08 + Math.abs(hash(a.id)) % 7;
         for (let i = 0; i < 3; i++) { const an = t + (i * Math.PI * 2) / 3; g.fillStyle(0xf2e94c, 1).fillRect(Math.round(cx + Math.cos(an) * 11) - 1, Math.round(cy + Math.sin(an) * 4) - 1, 3, 3); }
       } });
       // Phones held up to film a fight, with the odd flash.
       const gk = a.npc?.gawk;
-      if (gk?.filming && gk.until > tick && !a.seated && a.downUntil <= tick) things.push({ d: a.y + 0.0002, draw: () => {
+      if (gk?.filming && gk.until > tick && !a.seated && a.downUntil <= tick) things.push({ d: a.y + 0.0002, x: a.x, y: a.y, draw: () => {
         const d = P.dir(gk.x - a.x, gk.y - a.y), px = Math.round(P.sx(a.x, a.y) + d.x * 9), py = Math.round(P.sy(a.x, a.y, 1.5) + Math.max(0, d.y) * 4);
         g.fillStyle(0x15171a, 1).fillRect(px - 3, py - 5, 6, 10);
         g.fillStyle(0xbfe3ff, 1).fillRect(px - 2, py - 4, 4, 7);
         if ((tick + Math.abs(hash(a.id))) % 150 < 3) g.fillStyle(0xffffff, 0.9).fillCircle(px, py - 4, 6);
       } });
       if (st2.hat || st2.face || (a.effects.bloody ?? 0) > tick || a.npc?.job === "police" || a.npc?.job === "armed")
-        things.push({ d: a.y + 0.0001, draw: () => this.drawHeadwear(g, a, st2) });
+        things.push({ d: a.y + 0.0001, x: a.x, y: a.y, draw: () => this.drawHeadwear(g, a, st2) });
     }
     // Photographers crouched behind each goal; their flashes go off when someone shoots.
     if (sprites && this.bank.has("lad")) {
@@ -2532,7 +2567,7 @@ class StadiumScene extends Phaser.Scene {
           this.worldSeen.add(id);
           im.setTexture(`${key}-rot`, sx < 0 ? 2 : 6).setOrigin(0.5, FEET / CELL).setCrop(0, 0, CELL, 60).setPosition(Math.round(P.sx(x, y)), Math.round(P.sy(x, y)) + 14).setDepth(dep).setVisible(true).setAlpha(1).setAngle(0).clearTint();
         } });
-        if (flashing && (i + Math.floor(performance.now() / 90)) % 3 === 0) things.push({ d: y + 0.01, draw: () => {
+        if (flashing && (i + Math.floor(performance.now() / 90)) % 3 === 0) things.push({ d: y + 0.01, x, draw: () => {
           const fx = P.sx(x + sx * 0.4, y), fy = P.sy(x, y, 1.1);
           g.fillStyle(0xffffff, 0.95).fillCircle(fx, fy, 5).fillStyle(0xffffff, 0.25).fillCircle(fx, fy, P.S * 0.9);
         } });
@@ -2550,7 +2585,7 @@ class StadiumScene extends Phaser.Scene {
     // (No grey veil over the ground any more: the floors themselves are quieter; see ensureFloor.)
     // Up on a roof: the drop below dimmed, fading in and out.
     { const r = pc?.roof ? roofOf(pc) : undefined; this.roofDimK = Math.max(0, Math.min(1, this.roofDimK + (r ? 0.08 : -0.12)));
-      if (r && this.roofDimK > 0) { const k = this.roofDimK; things.push({ d: 9e4, draw: () => this.roofView(g, r, k) }); } }
+      if (r && this.roofDimK > 0 && !this.stage) { const k = this.roofDimK; things.push({ d: 9e4, draw: () => this.roofView(g, r, k) }); } }
     things.sort((p, q) => p.d - q.d);
     // Paint in order, starting a fresh graphics layer after each sprite.
     let order = 100, li = 0, open = false;
@@ -2561,12 +2596,16 @@ class StadiumScene extends Phaser.Scene {
       l.setVisible(true).setDepth(order++);
       return l;
     };
+    const pg = this.pg as unknown as Phaser.GameObjects.Graphics | null;
     for (const t of things) {
       if (t.spr) { this.stage?.bridge.note(order, t.d); t.spr(order++); open = false; continue; }
+      // In 3D what a thing draws on itself goes into the world at its own depth (the roof dimmer, which covers the screen, stays on top).
+      if (pg && t.d < 9e4) { g = pg; if (t.flat) this.pg!.flat(0.045); else this.pg!.at(t.x, t.y ?? t.d, t.y === undefined ? 0.05 : 0.06); t.draw(); open = false; continue; }
       if (!open) { g = nextLayer(); this.lastLayer = g; open = true; }
       t.draw();
     }
     g = nextLayer();
+    const air = this.pgAir, airG = (air as unknown as Phaser.GameObjects.Graphics | null) ?? g;
     for (const [id, sp] of this.spritePool) if (!seenSprites.has(id)) sp.setVisible(false);
     for (const [id, r] of this.rimPool) if (!this.rimSeen.has(id)) r.setVisible(false);
     if (this.canopy && !this.pc?.chute) this.canopy.setVisible(false);
@@ -2584,48 +2623,52 @@ class StadiumScene extends Phaser.Scene {
     for (const [id, ts] of this.shellSprites) if (!this.shellSeen.has(id)) ts.setVisible(false);
     for (const c of st.smoke) {
       if (c.until < tick) continue;
+      air?.at(c.x, c.y + c.r * 0.4, 0.1);
       const left = (c.until - tick) / (60 * (c.kind === "stench" ? 20 : 25));
       const stink = c.kind === "stench";
       for (let i = 0; i < 9; i++) {
         const a = i * 0.7 + tick * (stink ? 0.008 : 0.004), rr = c.r * (0.45 + 0.35 * Math.sin(i * 1.7 + tick * 0.01));
         const x = c.x + Math.cos(a) * rr * 0.7, y = c.y + Math.sin(a) * rr * 0.5;
         const col = stink ? (i % 2 ? 0x9bbf3a : 0x6f8f2a) : i % 2 ? 0xd9d9d4 : 0xbfc0bb;
-        g.fillStyle(col, (stink ? 0.28 : 0.55) * Math.min(1, left * 3)).fillEllipse(P.sx(x, y), P.sy(x, y, stink ? 0.6 : 1.2), c.r * P.S * 0.9, c.r * P.S * 0.6 * (P.standing ? P.K : 1));
+        airG.fillStyle(col, (stink ? 0.28 : 0.55) * Math.min(1, left * 3)).fillEllipse(P.sx(x, y), P.sy(x, y, stink ? 0.6 : 1.2), c.r * P.S * 0.9, c.r * P.S * 0.6 * (P.standing ? P.K : 1));
       }
       // Stink lines wobbling up off it.
       if (stink) for (let i = 0; i < 5; i++) {
         const sx = c.x + Math.cos(i * 1.3) * c.r * 0.5, sy = c.y + Math.sin(i * 1.3) * c.r * 0.35, ph = (tick * 0.05 + i) % 2;
-        g.lineStyle(2, 0x7a9a2a, 0.7 * Math.min(1, left * 3));
-        g.beginPath(); g.moveTo(P.sx(sx, sy), P.sy(sx, sy, 0.6 + ph));
-        for (let k = 1; k <= 4; k++) g.lineTo(P.sx(sx + Math.sin(k * 1.8 + tick * 0.1) * 0.25, sy), P.sy(sx, sy, 0.6 + ph + k * 0.25));
-        g.strokePath();
+        airG.lineStyle(2, 0x7a9a2a, 0.7 * Math.min(1, left * 3));
+        airG.beginPath(); airG.moveTo(P.sx(sx, sy), P.sy(sx, sy, 0.6 + ph));
+        for (let k = 1; k <= 4; k++) airG.lineTo(P.sx(sx + Math.sin(k * 1.8 + tick * 0.1) * 0.25, sy), P.sy(sx, sy, 0.6 + ph + k * 0.25));
+        airG.strokePath();
       }
-      else g.fillStyle(0xff5a36, 0.8).fillCircle(P.sx(c.x, c.y), P.sy(c.x, c.y), 3);
+      else airG.fillStyle(0xff5a36, 0.8).fillCircle(P.sx(c.x, c.y), P.sy(c.x, c.y), 3);
     }
 
     // Blood in the air and spreading pools; the white burst where a blow lands.
     this.stepGore(dms);
     for (const d of this.drops) {
+      air?.at(d.x, d.y, 0.08);
       const r = Math.max(2, Math.round(d.r * P.S));
-      g.fillStyle(0x9a1010, 1).fillRect(Math.round(P.sx(d.x, d.y)), Math.round(P.sy(d.x, d.y, d.z)), r, r);
+      airG.fillStyle(0x9a1010, 1).fillRect(Math.round(P.sx(d.x, d.y)), Math.round(P.sy(d.x, d.y, d.z)), r, r);
     }
     for (const p of this.pools) this.shadowG.fillStyle(0x5a0808, 0.85).fillEllipse(P.sx(p.x, p.y), P.sy(p.x, p.y), p.r * 2 * P.S, p.r * 1.5 * P.S);
     if (this.burst) {
       const age = (performance.now() - this.burst.at) / 110;
       if (age >= 1) this.burst = null;
       else {
+        air?.at(this.burst.x, this.burst.y, 0.3);
         const bx = P.sx(this.burst.x, this.burst.y), by2 = P.sy(this.burst.x, this.burst.y, 1.45), R = P.S * (0.35 + age * 0.5) * this.burst.k;
-        g.fillStyle(0xffffff, 1 - age).fillCircle(bx, by2, R * 0.55);
-        g.lineStyle(3, 0xfff3c4, 1 - age);
-        for (let i = 0; i < 8; i++) { const an = i * Math.PI / 4 + 0.3; g.lineBetween(bx + Math.cos(an) * R * 0.6, by2 + Math.sin(an) * R * 0.6, bx + Math.cos(an) * R * 1.3, by2 + Math.sin(an) * R * 1.3); }
+        airG.fillStyle(0xffffff, 1 - age).fillCircle(bx, by2, R * 0.55);
+        airG.lineStyle(3, 0xfff3c4, 1 - age);
+        for (let i = 0; i < 8; i++) { const an = i * Math.PI / 4 + 0.3; airG.lineBetween(bx + Math.cos(an) * R * 0.6, by2 + Math.sin(an) * R * 0.6, bx + Math.cos(an) * R * 1.3, by2 + Math.sin(an) * R * 1.3); }
       }
     }
 
     // Muzzle flash.
     if (this.flash && this.flash.until > tick) {
+      air?.at(this.flash.x, this.flash.y, 0.3);
       const fx = P.sx(this.flash.x, this.flash.y), fy = P.sy(this.flash.x, this.flash.y, P.standing ? 1.3 : 0);
-      g.fillStyle(0xfff2a0, 0.95).fillCircle(fx, fy, P.S * 0.35);
-      if (pc) g.lineStyle(1.5, 0xfff2a0, 0.6).lineBetween(fx, fy, P.sx(pc.x, pc.y), P.sy(pc.x, pc.y, P.standing ? 1.1 : 0));
+      airG.fillStyle(0xfff2a0, 0.95).fillCircle(fx, fy, P.S * 0.35);
+      if (pc) airG.lineStyle(1.5, 0xfff2a0, 0.6).lineBetween(fx, fy, P.sx(pc.x, pc.y), P.sy(pc.x, pc.y, P.standing ? 1.1 : 0));
     }
 
     this.stirCrowd();
@@ -2675,6 +2718,8 @@ class StadiumScene extends Phaser.Scene {
     // Aim marker and the player's own marker.
     const ui = this.ui, u = P.S / 16;
     ui.clear();
+    /** Rings that lie on the ground: in 3D they are painted on it, under feet and behind walls. */
+    const gr = (this.ringG as unknown as Phaser.GameObjects.Graphics | null) ?? ui;
     if (pc && !pc.hiddenIn) {
       const tgt = (pc.hand && hasProp(s.items[pc.hand], "throwable") || (pc.hand && defOf(s.items[pc.hand]).size === "small")) && (this.picked || this.fightOn()) ? throwTarget(this.w, pc, this.picked) : null;
       (this as any).throwAt = tgt;
@@ -2689,13 +2734,13 @@ class StadiumScene extends Phaser.Scene {
           ui.fillStyle(0xf2c94c, 0.35 + 0.5 * (1 - Math.abs(t2 - 0.5))).fillCircle(dx2, dy2, P.S * 0.09);
         }
       }
-      const hx = P.sx(pc.x, pc.y), hy = headTop(P, pc.x, pc.y, 1.75) - 4 * u;
+      const hx = P.sx(pc.x, pc.y), hy = headTop(P, pc.x, pc.y, 1.75) - 4 * u - (this.stage ? this.liftOf(pc) * P.S : 0);
       ui.fillStyle(0xd7263d, 1).fillTriangle(hx - 5 * u, hy - 8 * u, hx + 5 * u, hy - 8 * u, hx, hy);
       // What the red button would act on.
       const at = this.primaryAt;
       if (at) {
         const pulse = 0.6 + 0.4 * Math.sin(tick * 0.18);
-        ui.lineStyle(2.5 * u, 0xd7263d, pulse).strokeEllipse(P.sx(at.x, at.y), P.sy(at.x, at.y), P.S * 1.6, P.S * (P.standing ? 0.75 : 1.6));
+        gr.lineStyle(2.5 * u, 0xd7263d, pulse).strokeEllipse(P.sx(at.x, at.y), P.sy(at.x, at.y), P.S * 1.6, P.S * (P.standing ? 0.75 : 1.6));
       }
       // Gold coins over anyone selling something; red marks over anyone coming for you.
       for (const id in s.actors) {
@@ -2740,8 +2785,8 @@ class StadiumScene extends Phaser.Scene {
     if (this.walkTo && pc) {
       const wt = this.walkTo, k = 0.6 + 0.4 * Math.sin(tick * 0.2), u3 = DPR / cam.zoom;
       const col = wt.blocked ? 0xff3b3b : 0xffffff;
-      ui.lineStyle(2.5 * u3, 0x000000, 0.6).strokeEllipse(P.sx(wt.x, wt.y), P.sy(wt.x, wt.y), P.S * 1.25, P.S * (P.standing ? 0.55 : 1.25));
-      ui.lineStyle(1.8 * u3, col, k).strokeEllipse(P.sx(wt.x, wt.y), P.sy(wt.x, wt.y), P.S * 1.1, P.S * (P.standing ? 0.48 : 1.1));
+      gr.lineStyle(2.5 * u3, 0x000000, 0.6).strokeEllipse(P.sx(wt.x, wt.y), P.sy(wt.x, wt.y), P.S * 1.25, P.S * (P.standing ? 0.55 : 1.25));
+      gr.lineStyle(1.8 * u3, col, k).strokeEllipse(P.sx(wt.x, wt.y), P.sy(wt.x, wt.y), P.S * 1.1, P.S * (P.standing ? 0.48 : 1.1));
     }
 
     // Who's after you, and arrows at the screen's edge for those you can't see (and the dog).
@@ -2828,8 +2873,8 @@ class StadiumScene extends Phaser.Scene {
       const ja = s.actors[this.job.target];
       if (ja && !ja.dead && ja.fb?.status !== "gone" && onScreen(ja.x, ja.y)) {
         const k = 0.5 + 0.5 * Math.sin(tick * 0.12), u6 = DPR / cam.zoom, jx = P.sx(ja.x, ja.y), jy = P.sy(ja.x, ja.y);
-        ui.lineStyle(5 * u6, 0x000000, 0.45).strokeEllipse(jx, jy, P.S * (1.3 + 0.3 * k) + 12 * u6, (P.S * (1.3 + 0.3 * k) + 12 * u6) * 0.45);
-        ui.lineStyle(3 * u6, 0xffd75a, 0.6 + 0.4 * k).strokeEllipse(jx, jy, P.S * (1.3 + 0.3 * k) + 12 * u6, (P.S * (1.3 + 0.3 * k) + 12 * u6) * 0.45);
+        gr.lineStyle(5 * u6, 0x000000, 0.45).strokeEllipse(jx, jy, P.S * (1.3 + 0.3 * k) + 12 * u6, (P.S * (1.3 + 0.3 * k) + 12 * u6) * 0.45);
+        gr.lineStyle(3 * u6, 0xffd75a, 0.6 + 0.4 * k).strokeEllipse(jx, jy, P.S * (1.3 + 0.3 * k) + 12 * u6, (P.S * (1.3 + 0.3 * k) + 12 * u6) * 0.45);
       }
     }
     // Half-time: the referee's tea urn pulses for the break (that's where his cuppa comes from).
@@ -3094,9 +3139,54 @@ class StadiumScene extends Phaser.Scene {
     if (this.stage) this.sync3D();
   }
 
-  // ---------- The 3D miniature (?3d=1) ----------
+  // ---------- The 3D miniature (the default; ?3d=0 for the flat picture) ----------
+  /** Timing the 3D world on this device: 0 not begun, 1 warming up, 2 measuring, 3 settled. */
+  probe = 0; probeAt = 0;
+  /** The first seconds decide whether this device can afford the miniature. Too slow (under about twenty frames a second,
+   *  typically) and the game goes back to the flat picture there and then, and remembers, so it never flip-flops. */
+  probe3D(): void {
+    const st = this.stage;
+    if (!st || this.probe === 3) return;
+    if (forced3D() || proven3D()) { this.probe = 3; this.bank.holdGL(false); return; }
+    const now = performance.now();
+    if (!this.bank.ready() || document.visibilityState !== "visible") { this.probe = 0; return; }
+    if (this.probe === 0) { this.probe = 1; this.probeAt = now; return; }
+    if (this.probe === 1) { if (now - this.probeAt > 1500) { this.probe = 2; this.probeAt = now; st.resetTiming(); } return; } // (sheets and tiles are still being made)
+    const m = st.measured();
+    if (m.ms < 4000 || m.frames < 12) { if (now - this.probeAt > 20000) this.probe = 0; return; }
+    this.probe = 3;
+    if (m.fps < 20) { remember3D(false); console.warn(`3D world: about ${m.fps.toFixed(0)} frames a second here; drawing in 2D from now on (?3d=1 to try again)`); this.drop3D(); }
+    else { remember3D(true); this.bank.holdGL(false); }
+  }
+  /** Give up the 3D world mid-game and carry on in the flat picture, as if it had never been asked for. */
+  drop3D(): void {
+    const st = this.stage;
+    if (!st) return;
+    this.stage = null; this.pg = this.pgAir = this.ringG = null;
+    this.bank.holdGL(true);
+    try { st.dispose(); } catch (e) { console.warn(e); }
+    delete (window as any).__stage;
+    this.P.cam3 = null; this.P.mode = "tilted"; setDirYaw(0);
+    $("game").style.background = "#101412";
+    // Everything the miniature had taken over is this canvas's again.
+    for (const o of this.children.list as any[]) if (o.cameraFilter) o.cameraFilter = 0;
+    this.ignored = new WeakSet<object>();
+    this.shadowG = this.add.graphics().setDepth(50);
+    this.decalG = this.add.graphics().setDepth(0.36); this.decals = 0;
+    this.beerG = this.faceG = this.rigG = undefined;
+    const fx = this.fx as unknown as { ground: Phaser.GameObjects.Graphics; air: Phaser.GameObjects.Graphics };
+    fx.ground = this.add.graphics().setDepth(0.38); fx.air = this.add.graphics().setDepth(9.7e6);
+    try { const fl = this.cameras.main.filters.external, cm = fl.addColorMatrix(); cm.colorMatrix.saturate(-0.14); cm.colorMatrix.contrast(0.06, true); fl.addVignette(0.5, 0.5, 1.1, 0.12); } catch { /* no filters on this renderer */ }
+    this.stageVenue = ""; this.placed = { venue: "", list: [] }; this.wallishFor = null;
+    for (const [, im] of this.worldSprites) im.destroy();
+    this.worldSprites.clear();
+    this.drawStatic();
+    this.roomSnap = true; this.setZoom();
+  }
   /** The Three world under this canvas, when the switch is on and the browser can do it. */
   stage: Stage3D | null = null;
+  /** In 3D: where things draw the marks they wear (hats, stars, rubble), what floats in the air, and rings on the ground. */
+  pg: Paint3D | null = null; pgAir: Paint3D | null = null; ringG: Paint3D | null = null;
   stageVenue = "";
   insNow = false;
   outdoorsNow = true;
@@ -3123,6 +3213,8 @@ class StadiumScene extends Phaser.Scene {
     const st = this.stage!, cam = this.cameras.main, s = this.s, pc = this.pc, stad = s.stadium!;
     // A new ground, or a hole just blown in a wall: build again.
     if (!st.world || this.stageVenue !== VENUE.id || stad.breaches.length !== this.breachN) this.build3D();
+    // Something else has the whole screen (first person and the scope, the cab, the drain, the office): the miniature rests.
+    st.setActive(!(this.fp.on || this.inCab() || !!this.drain?.open || !!this.detain?.open));
     st.begin();
     const who = new Map<unknown, Actor>();
     for (const [id, sp] of this.spritePool) { const a = s.actors[id]; if (a) who.set(sp, a); }
@@ -3137,6 +3229,16 @@ class StadiumScene extends Phaser.Scene {
     // Real shadows only for the people near the middle of an ordinary view: each sheet that casts one is another draw call.
     const mid = this.P.unproject(cam.scrollX + cam.width / 2, cam.scrollY + cam.height / 2), wide = cam.width / (cam.zoom * this.P.S) > 26;
     const hide = (o: object) => { if (!this.ignored.has(o)) { cam.ignore(o as Phaser.GameObjects.GameObject); this.ignored.add(o); } };
+    // Hidden behind something: you, and whoever or whatever you could act on within a dozen metres, show through as a faint outline
+    // (never through a closed building you are not in, nor through each other).
+    const inB = (x: number, y: number) => this.blds.find((b2) => x > b2.rect.x0 - 0.3 && x < b2.rect.x1 + 0.3 && y > b2.rect.y0 - 0.3 && y < b2.rect.y1 + 0.3)?.id ?? null;
+    const free = !!pc && !pc.hiddenIn && !pc.seated && !this.cine, myB = pc ? (pc.roof ? "#roof" : inB(pc.x, pc.y)) : null;
+    const item3 = new Map<unknown, { x: number; y: number }>();
+    if (free) for (const [id, im] of this.worldSprites) {
+      if (!id.startsWith("item-") || !im.visible) continue;
+      const it = s.items[id.slice(5)], l = it?.loc;
+      if (l && l.k === "ground" && Math.hypot(l.x - pc.x, l.y - pc.y) < 12 && (this.focusItem === it.id || this.relevant.has(id))) item3.set(im, l);
+    }
     for (const o of this.children.list as any[]) {
       if (!o.visible || (o.type !== "Image" && o.type !== "Sprite")) continue;
       const d = o.depth as number;
@@ -3147,26 +3249,33 @@ class StadiumScene extends Phaser.Scene {
         // People: where they really stand, a touch darker in the shade of a building, a soft blob under the feet.
         const want = st.shaded(a.x, a.y) ? 1 : 0, k = (this.shadeK.get(a.id) ?? want) + (want - (this.shadeK.get(a.id) ?? want)) * 0.15;
         this.shadeK.set(a.id, k);
-        st.sprite(o, { hintY: a.y, ghost: a === pc, dim: 1 - 0.26 * k, lift: 0, noShadow: wide || Math.hypot(a.x - mid.x, a.y - mid.y) > 15 });
+        const gh = a === pc ? 1 : free && !a.seated && !a.roof && !(a.fb && a.fb.status === "playing") && Math.hypot(a.x - pc.x, a.y - pc.y) < 12 && inB(a.x, a.y) === myB ? 2 : 0;
+        st.sprite(o, { hintY: a.y, ghost: gh, dim: 1 - 0.26 * k, lift: 0, noShadow: wide || Math.hypot(a.x - mid.x, a.y - mid.y) > 15 });
         if (!a.seated && !a.roof && !a.chute) st.blob(a.x, a.y, (a.npc?.job === "dog" ? 1.05 : 0.95) * (this.styleOf(a).girth ?? 1), 0.5);
       } else if (d < 100) st.sprite(o, { flat: true });
-      else st.sprite(o, wallPic.has(o) ? { wall: true } : undefined);
+      else { const it = item3.get(o); st.sprite(o, wallPic.has(o) ? { wall: true } : it ? { ghost: inB(it.x, it.y) === myB ? 2 : 0 } : undefined); }
     }
     if (this.crowdBlit) {
       hide(this.crowdBlit);
       const mx = cam.scrollX + cam.width / 2, my = cam.scrollY + cam.height / 2, hw = cam.width / cam.zoom / 2 + 60, hh = cam.height / cam.zoom / 2 + 90, oy = this.crowdBlit.y;
+      let sheet: unknown = null;
       for (const c of this.crowdImgs) {
         const im = c.im as any;
         if (Math.abs(im.x - mx) > hw || Math.abs(im.y - my) > hh) continue;
-        if (oy) { im.y += oy; st.sprite(im, { hintY: c.wy, slide: true, lift: 0 }); im.y -= oy; } else st.sprite(im, { hintY: c.wy, slide: true, lift: 0 });
+        // (The stand's sheet goes to the card whole: nearly all of it is on screen at once.)
+        if (im.frame.source.image !== sheet) { sheet = im.frame.source.image; st.bridge.whole(sheet); }
+        if (oy) { im.y += oy; st.sprite(im, { hintY: c.wy, slide: true, lift: 0, noShadow: true }); im.y -= oy; } else st.sprite(im, { hintY: c.wy, slide: true, lift: 0, noShadow: true });
       }
     }
     const dog = this.worldSprites.get("dog-sprite"), dg = stad.dog ? s.actors[stad.dog.id] : null;
     if (dog?.visible && dg) st.blob(dg.x, dg.y, 1.05, 0.6);
     const b = s.match!.ball;
     st.ball(b.x, b.y, b.z);
+    // Rain where the picture is, not where he is: a cut to a room indoors is dry.
+    const cf = this.cine?.focus, ch = cf ? areaAt(cf.x, cf.y) : null;
+    const wet = cf ? !!(ch?.outside || ch?.seats || ch?.pitch) && !inB(cf.x, cf.y) : this.outdoorsNow && !this.roomShown;
     st.render({ midX: cam.scrollX + cam.width / 2, midY: cam.scrollY + cam.height / 2, width: cam.width, height: cam.height, zoom: cam.zoom,
-      room: this.roomShown, inside: this.insNow, outdoors: this.outdoorsNow && !this.roomShown, time: performance.now() / 1000,
+      room: this.roomShown, inside: this.insNow, outdoors: wet, time: performance.now() / 1000,
       gateOpen: (id) => !!stad.gates[id] && stad.gates[id].until > s.tick });
   }
 
@@ -3337,6 +3446,16 @@ class StadiumScene extends Phaser.Scene {
       // In a room, the street's props aren't drawn (the tall ones would poke into the room's picture).
       if (three && roomR && p.key.startsWith("ladder") && p.x > roomR.x0 - 1.2 && p.x < roomR.x1 + 1.2 && p.y > roomR.y0 - 1.2 && p.y < roomR.y1 + 1.2) continue; // its wall is cut away
       if (roomR && !three && !(p.x > roomR.x0 - 0.2 && p.x < roomR.x1 + 0.2 && p.y > roomR.y0 - 0.2 && p.y < roomR.y1 + 0.2)) continue;
+      if (three && (p.key === "parkedcar" || p.key === "policevan" || p.key === "horsebox" || p.key === "obtruck")) {
+        // Models, not pictures: the police van side-on by the turnstiles, the horse box and the television truck, the cars
+        // along the kerb (which way each of those points is its own business).
+        const n = Math.abs(Math.round(p.x * 7 + p.y * 3)), V = this.stage!.vehicles, turned = VENUE.id === "sf" ? Math.PI : 0;
+        if (p.key === "policevan") V.carAt(p.id, "policevan", p.x, p.y - 0.95, turned);
+        else if (p.key === "horsebox") V.lorryAt(p.id, p.x, p.y - 1.2, Math.PI - turned, false, 0, "police horse box");
+        else if (p.key === "obtruck") V.lorryAt(p.id, p.x, p.y - 1.3, turned, false, 0, "outside broadcast truck");
+        else V.carAt(p.id, `parked${n % 3}`, p.x, p.y - 0.9, n % 2 ? Math.PI : 0);
+        continue;
+      }
       const meta = this.world.base[p.key];
       if (!meta) continue;
       const key = `k-${p.key}`, tex = this.textures.get(key).getSourceImage() as HTMLCanvasElement;
@@ -3618,7 +3737,8 @@ class StadiumScene extends Phaser.Scene {
     const lift = this.liftOf(a);
     const x = Math.round(P.sx(a.x + shiver, a.y)), y = Math.round(P.sy(a.x, a.y, lift));
     // On a bike: the bike under him, pointing his way.
-    if (a.bike && this.textures.exists("w-bike8")) {
+    if (a.bike && this.stage) this.stage.vehicles.bikeAt(`ride-${a.id}`, a.x, a.y, a.facing, false);
+    else if (a.bike && this.textures.exists("w-bike8")) {
       let bk = this.worldSprites.get(`bike-${a.id}`) as Phaser.GameObjects.Image | undefined;
       if (!bk) { bk = this.add.image(0, 0, "w-bike8", 0).setOrigin(0.5, 0.72); this.worldSprites.set(`bike-${a.id}`, bk); }
       this.worldSeen.add(`bike-${a.id}`);
@@ -3941,8 +4061,9 @@ class StadiumScene extends Phaser.Scene {
     }
   }
   drawBeer(): void {
-    if (!this.beerG) this.beerG = this.add.graphics().setDepth(0.62);
+    if (!this.beerG) this.beerG = this.stage ? (this.stage.paint({ mode: "flat", order: 3.3 }) as unknown as Phaser.GameObjects.Graphics) : this.add.graphics().setDepth(0.62);
     const g = this.beerG.clear(), P = this.P, now = performance.now(), px = DPR / this.cameras.main.zoom, pc = this.pc;
+    const p3 = this.stage ? (g as unknown as Paint3D) : null;
     // What's been brought back up, where it landed.
     this.spews = this.spews.filter((q) => now - q.t0 < 50000);
     for (const q of this.spews) {
@@ -3953,6 +4074,7 @@ class StadiumScene extends Phaser.Scene {
     }
     for (const l of this.s.stadium!.loos ?? []) {
       if (!l.shut) continue;
+      p3?.at(l.qx, l.qy);
       const x = P.sx(l.qx, l.qy), y = P.sy(l.qx, l.qy, 1.1), u = P.S / 32;
       g.fillStyle(0x15171a, 1).fillRect(x - 15 * u, y - 9 * u, 30 * u, 18 * u); g.fillStyle(0xf2c94c, 1).fillRect(x - 13 * u, y - 7 * u, 26 * u, 14 * u);
       g.fillStyle(0x15171a, 1).fillRect(x - 10 * u, y - 4 * u, 20 * u, 2.5 * u).fillRect(x - 10 * u, y + 1 * u, 14 * u, 2.5 * u);
@@ -3962,16 +4084,19 @@ class StadiumScene extends Phaser.Scene {
     const b = this.s.stadium!.beer, h = hoseAt(), m = VENUE.id === "sf" ? -1 : 1, sewer = b?.hose === "sewer";
     const tap = { x: h.x - 0.5 * m, y: h.y - 0.45 }, drain = { x: h.x + 0.55 * m, y: h.y + 0.55 }, kegs = { x: -30.7 * m, y: 69.3 };
     // The drain cover, and the standpipe the cellar line comes up at.
+    p3?.flat(0.04);
     const dx = P.sx(drain.x, drain.y), dy = P.sy(drain.x, drain.y);
     g.fillStyle(0x15171a, 0.9).fillEllipse(dx, dy, P.S * 0.78, P.S * 0.36); g.fillStyle(sewer ? 0x0a0a0a : 0x4a4d52, 1).fillEllipse(dx, dy, P.S * 0.66, P.S * 0.29);
     if (!sewer) { g.lineStyle(1.5 * px, 0x2a2c30, 1); for (let i = -2; i <= 2; i++) g.lineBetween(dx + i * P.S * 0.1, dy - P.S * 0.1, dx + i * P.S * 0.1, dy + P.S * 0.1); }
     const tx = P.sx(tap.x, tap.y), ty0 = P.sy(tap.x, tap.y), ty1 = P.sy(tap.x, tap.y, 1.05);
     g.fillStyle(0x000000, 0.3).fillEllipse(tx, ty0, P.S * 0.3, P.S * 0.12);
     const u = P.S / 32;
+    p3?.at(tap.x, tap.y);
     g.fillStyle(0x15171a, 1).fillRect(tx - 5 * u, ty1 - u, 10 * u, ty0 - ty1 + 2 * u); g.fillStyle(0x8a9098, 1).fillRect(tx - 3.5 * u, ty1, 7 * u, ty0 - ty1); g.fillStyle(0xb8bec6, 1).fillRect(tx - 3.5 * u, ty1, 2 * u, ty0 - ty1);
     g.fillStyle(0x15171a, 1).fillCircle(tx, ty1, 7 * u); g.fillStyle(0xd7263d, 1).fillCircle(tx, ty1, 5.2 * u); g.fillStyle(0x15171a, 1).fillCircle(tx, ty1, 1.6 * u);
     g.fillStyle(0xf2c94c, 1).fillRect(tx - 6 * u, ty0 - 13 * u, 12 * u, 6 * u); g.fillStyle(0x15171a, 1).fillRect(tx - 4.5 * u, ty0 - 11.5 * u, 9 * u, 3 * u);
     // The hose: from the standpipe to the kegs, or from the drain.
+    p3?.flat(0.05);
     const src = sewer ? drain : tap, sx = sewer ? dx : tx, sy = sewer ? dy : ty0 - 3 * px, kx2 = P.sx(kegs.x, kegs.y), ky2 = P.sy(kegs.x, kegs.y);
     const midx = (sx + kx2) / 2, midy = Math.max(sy, ky2) + P.S * 0.28;
     const pts: [number, number][] = []; for (let i = 0; i <= 10; i++) { const t = i / 10, u = 1 - t; pts.push([u * u * sx + 2 * u * t * midx + t * t * kx2, u * u * sy + 2 * u * t * midy + t * t * ky2]); }
@@ -3984,6 +4109,7 @@ class StadiumScene extends Phaser.Scene {
     } else if (pc && !pc.hiddenIn && Math.hypot(pc.x - h.x, pc.y - h.y) < 6 && !hoseWatched(this.w)) {
       // Nobody's looking at it: the coupling catches the light.
       const k = 0.5 + 0.5 * Math.sin(now / 280);
+      p3?.at(tap.x, tap.y, 0.08);
       g.lineStyle(2 * px, 0xffd75a, 0.35 + 0.4 * k).strokeCircle(tx, ty1, (7 + k * 2) * px);
     }
   }
@@ -4061,8 +4187,9 @@ class StadiumScene extends Phaser.Scene {
   }
   drawRigs(): void {
     const P = this.P, now = performance.now();
-    if (!this.rigG) this.rigG = this.add.graphics().setDepth(9.7e6);
+    if (!this.rigG) this.rigG = this.stage ? (this.stage.paint({ mode: "up", order: 5.6 }) as unknown as Phaser.GameObjects.Graphics) : this.add.graphics().setDepth(9.7e6);
     const g = this.rigG.clear(), zz = this.cameras.main.zoom, px = DPR / zz;
+    const p3 = this.stage ? (g as unknown as Paint3D) : null;
     if (!this.rigChalkSeen && this.rigChalk) this.rigChalk.setVisible(false);
     this.rigChalkSeen = false;
     // Pigeons: up, over and away, flapping.
@@ -4073,7 +4200,9 @@ class StadiumScene extends Phaser.Scene {
         const x = f.from.x + (f.to.x - f.from.x) * k + b.dx * (0.4 + k), y = f.from.y + (f.to.y - f.from.y) * k + b.dy * (0.4 + k);
         const z = Math.sin(Math.min(1, k) * Math.PI * 0.5) * 3.2 + (k > 1 ? (k - 1) * 6 : 0) + 0.3;
         const sx = P.sx(x, y), sy = P.sy(x, y, z), flap = Math.sin(now / 45 + b.ph) > 0 ? -1 : 1, s = 7 * px;
+        p3?.flat(0.05);
         g.fillStyle(0x000000, 0.2).fillEllipse(P.sx(x, y), P.sy(x, y), 10 * px, 4 * px);
+        p3?.at(x, y, 0.1);
         g.lineStyle(4 * px, 0x15181c, 1).lineBetween(sx - s, sy + flap * s * 0.7, sx, sy).lineBetween(sx, sy, sx + s, sy + flap * s * 0.7);
         g.lineStyle(2.4 * px, 0x7d8590, 1).lineBetween(sx - s, sy + flap * s * 0.7, sx, sy).lineBetween(sx, sy, sx + s, sy + flap * s * 0.7);
         g.fillStyle(0x15181c, 1).fillCircle(sx, sy, 3.4 * px); g.fillStyle(0xa8b0ba, 1).fillCircle(sx, sy, 2.4 * px);
@@ -4083,6 +4212,7 @@ class StadiumScene extends Phaser.Scene {
     this.rigBooms = this.rigBooms.filter((b) => now - b.t0 < (b.hiss ? 2000 : 5200));
     for (const b of this.rigBooms) {
       const t = (now - b.t0) / 1000, sx = P.sx(b.x, b.y), sy = P.sy(b.x, b.y, 1.8);
+      p3?.at(b.x, b.y, 0.6);
       if (b.hiss) { for (let i = 0; i < 4; i++) { const k = ((t * 1.6 + i / 4) % 1); g.fillStyle(0xffffff, 0.25 * (1 - k)).fillCircle(sx + Math.sin(i * 2 + t * 5) * 4 * px, sy - k * 22 * px, (3 + k * 4) * px); } continue; }
       if (t < 0.15) g.fillStyle(0xffffff, 0.35 * (1 - t / 0.15)).fillRect(this.cameras.main.worldView.x, this.cameras.main.worldView.y, this.cameras.main.worldView.width, this.cameras.main.worldView.height);
       // Flames licking off the roof for a few seconds after.
@@ -5004,6 +5134,46 @@ class StadiumScene extends Phaser.Scene {
     }
     return false;
   }
+  /** (3D) What a tap on the picture is on. Everyone and everything tappable there is measured the same way, as the
+   *  picture shows it (a body standing up from its feet, a keg sitting on its base), and the nearest wins; between two
+   *  about as near, the one in front. So a tap on a keg is the keg, even with a man stood just this side of it. */
+  pickAt(wx: number, wy: number): { who: Actor | null; act: (() => void) | null } {
+    const P = this.P, S = P.S, tx = wx / S, ty = wy / S, pc = this.pc, s = this.s;
+    let best = 1, depth = -Infinity, who: Actor | null = null, act: (() => void) | null = null;
+    const offer = (x: number, y: number, h0: number, h1: number, R: number, w: Actor | null, a: (() => void) | null) => {
+      const sx = P.sx(x, y) / S, sy = P.sy(x, y) / S, cy = Math.max(sy - h1, Math.min(sy - h0, ty)), sc = Math.hypot(tx - sx, ty - cy) / R, d = P.depth(x, y);
+      if (sc >= 1) return;
+      if (sc < best - 0.15 || (sc < best + 0.15 && d > depth)) { best = Math.min(best, sc); depth = d; who = w; act = a; }
+    };
+    for (const id in s.actors) {
+      const a = s.actors[id];
+      if (a.id === pc.id || a.hiddenIn || a.npc?.job === "dog") continue;
+      if (Math.abs(a.x - pc.x) > 40 || Math.abs(a.y - pc.y) > 60) continue;
+      const lift = this.liftOf(a), down = a.dead || a.downUntil > s.tick;
+      if (down) offer(a.x, a.y, lift, lift + 0.45, 0.8, a, null); else offer(a.x, a.y, lift + 0.3, lift + (a.seated ? 1.1 : 1.5), 0.6, a, null);
+    }
+    if (!pc.heldBy && !pc.hiddenIn && !pc.seated && !this.inCab()) {
+      for (const id of RIG_IDS) {
+        const at = RIGS[id].at();
+        if (!rigReady(this.w, id)) continue;
+        offer(at.x, at.y, 0.2, 2.2, 1.5, null, () => { this.setWalk(at.x, at.y + 0.6); this.walkTo!.then = { x: at.x, y: at.y, r: RIGS[id].r - 0.3, go: () => { dispatch(this.w, { verb: "rig", actor: pc.id, arg: id }); this.audio.play("tap", 0.5); } }; });
+      }
+      if (hasBeerLine() && (s.stadium!.beer?.hose ?? "lorry") === "lorry") {
+        const h = hoseAt();
+        offer(h.x, h.y, 0, 1.0, 1.1, null, () => { this.setWalk(h.x, h.y + 0.5); this.walkTo!.then = { x: h.x, y: h.y, r: 2, go: () => { dispatch(this.w, { verb: "hose", actor: pc.id }); } }; });
+      }
+      for (const id in s.items) {
+        const keg = s.items[id], l = keg.loc;
+        if (keg.def !== "keg" || l.k !== "ground" || Math.abs(l.x - pc.x) > 30 || Math.abs(l.y - pc.y) > 40) continue;
+        offer(l.x, l.y, 0.1, 0.75, 0.62, null, () => {
+          const dd = Math.hypot(pc.x - l.x, pc.y - l.y) || 1;
+          this.setWalk(l.x + ((pc.x - l.x) / dd) * 1.1, l.y + ((pc.y - l.y) / dd) * 1.1);
+          this.walkTo!.then = { x: l.x, y: l.y, r: 1.7, go: () => { pc.facing = Math.atan2(l.y - pc.y, l.x - pc.x); dispatch(this.w, { verb: "shove", actor: pc.id, item: keg.id }); } };
+        });
+      }
+    }
+    return { who, act };
+  }
   setWalk(gx: number, gy: number) {
     if (!this.pc || this.inCab() || this.pc.heldBy) return;
     this.pursue = null; this.nextPursue = null;
@@ -5727,8 +5897,15 @@ class StadiumScene extends Phaser.Scene {
   async frontPage(headline: string, title: string) {
     const host = $("frontPage");
     host.innerHTML = "";
-    const shot = await new Promise<HTMLImageElement | null>((r) => { try { this.game.renderer.snapshot((im) => r(im instanceof HTMLImageElement ? im : null)); } catch { r(null); } });
-    if (shot && !shot.complete) await new Promise((r) => (shot.onload = r));
+    let shot = await new Promise<HTMLImageElement | null>((r) => { try { this.game.renderer.snapshot((im) => r(im instanceof HTMLImageElement ? im : null)); } catch { r(null); } });
+    if (shot && !shot.complete) await new Promise((r) => (shot!.onload = r));
+    // In 3D this canvas holds only what floats over the world: the photograph is the world with that laid over it.
+    const under = this.stage?.active ? this.stage.snapshot() : null;
+    if (under && shot) {
+      const both = document.createElement("canvas"); both.width = shot.width; both.height = shot.height;
+      const bc = both.getContext("2d")!; bc.drawImage(under, 0, 0, both.width, both.height); bc.drawImage(shot, 0, 0);
+      shot = both as unknown as HTMLImageElement;
+    }
     const W2 = 540, H2 = 720, cv = document.createElement("canvas"); cv.width = W2; cv.height = H2;
     const c = cv.getContext("2d")!, m = this.s.match!, st = this.s.stadium!;
     c.fillStyle = "#f3efe4"; c.fillRect(0, 0, W2, H2);
@@ -6023,11 +6200,12 @@ class StadiumScene extends Phaser.Scene {
         const cam = this.cameras.main, P = this.P;
         const wx = cam.worldView.x + (x * DPR) / cam.zoom, wy = cam.worldView.y + (y * DPR) / cam.zoom;
         const gp = P.unproject(wx, wy + 0.9 * P.KZ * P.S);
-        const best = this.personAt(gp.x, gp.y);
+        const hit = this.stage && this.pc ? this.pickAt(wx, wy) : null;
+        const best = hit ? hit.who : this.personAt(gp.x, gp.y);
         if (this.useMode) { const g = this.groundAt(e.clientX, e.clientY); this.useAt(g.x, g.y, best); return; }
         this.picked = best ? best.id : null;
         if (best) this.openPerson(best.id);
-        else { if (hadRing) this.closeRing(); const g = this.groundAt(e.clientX, e.clientY); if (!this.tapThing(g.x, g.y)) this.setWalk(g.x, g.y); }
+        else { if (hadRing) this.closeRing(); const g = this.groundAt(e.clientX, e.clientY); if (hit ? !hit.act : !this.tapThing(g.x, g.y)) this.setWalk(g.x, g.y); else hit?.act?.(); }
       }
     });
     function move(this: void, e: PointerEvent): void { scene.joyMove(e, knob); }
@@ -6043,10 +6221,11 @@ class StadiumScene extends Phaser.Scene {
         const rect = canvas.getBoundingClientRect(), cam = this.cameras.main, P = this.P;
         const wx = cam.worldView.x + ((t.x - rect.left) * DPR) / cam.zoom, wy = cam.worldView.y + ((t.y - rect.top) * DPR) / cam.zoom;
         const gp = P.unproject(wx, wy + 0.9 * P.KZ * P.S);
-        const who = this.personAt(gp.x, gp.y);
+        const hit = this.stage && this.pc ? this.pickAt(wx, wy) : null;
+        const who = hit ? hit.who : this.personAt(gp.x, gp.y);
         if (this.useMode) { const g = this.groundAt(t.x, t.y); this.useAt(g.x, g.y, who); }
         else if (who) { this.picked = who.id; this.openPerson(who.id); }
-        else { if (t.hadRing) this.closeRing(); const g = this.groundAt(t.x, t.y); if (!this.tapThing(g.x, g.y)) this.setWalk(g.x, g.y); }
+        else { if (t.hadRing) this.closeRing(); const g = this.groundAt(t.x, t.y); if (hit ? !hit.act : !this.tapThing(g.x, g.y)) this.setWalk(g.x, g.y); else hit?.act?.(); }
       }
     };
     canvas.addEventListener("pointermove", move);

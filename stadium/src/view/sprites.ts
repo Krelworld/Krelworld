@@ -224,6 +224,29 @@ const REF: Record<Base, Partial<Record<keyof Recolour, number>>> = {
 export class SpriteBank {
   constructor(private scene: Phaser.Scene) {}
 
+  /** In the 3D world these sheets are drawn by Three, a frame at a time, straight from their canvases: this canvas's own
+   *  copy of each on the graphics card is never looked at, and a phone has better uses for the memory. While this is set,
+   *  a sheet's copy is let go as soon as it is made (and can be had back: see `holdGL`). */
+  static noGL = false;
+  private static dropGL(scene: Phaser.Scene, key: string): void {
+    if (!scene.textures.exists(key)) return;
+    for (const src of scene.textures.get(key).source as unknown as { glTexture: unknown; renderer: { deleteTexture?: (t: unknown) => void } | null }[]) {
+      if (!src.glTexture || !src.renderer?.deleteTexture) continue;
+      try { src.renderer.deleteTexture(src.glTexture); src.glTexture = null; } catch { /* leave it be */ }
+    }
+  }
+  /** Let go of (or take back) the card's copies of every sheet made so far. */
+  holdGL(hold: boolean): void {
+    SpriteBank.noGL = !hold;
+    const keys = [...this.painted.keys()];
+    for (const k of this.vmade.keys()) keys.push(`${k}-rot`, `${k}-walk`);
+    for (const k of keys) {
+      if (!hold) { SpriteBank.dropGL(this.scene, k); continue; }
+      if (!this.scene.textures.exists(k)) continue;
+      for (const src of this.scene.textures.get(k).source as unknown as { glTexture: unknown; init: (g: Phaser.Game) => void }[]) if (!src.glTexture) { try { src.init(this.scene.game); } catch { /* it will be drawn blank */ } }
+    }
+  }
+
   /** Sheets fetched up front: standing, walking, and the cheer the crowd atlas needs. The other
    *  animation sheets are big (8 directions of frames each) and most are never seen in a given match,
    *  so they're fetched and recoloured only when someone first does that thing. Loading and
@@ -288,6 +311,7 @@ export class SpriteBank {
     this.budget.left--;
     const cv = this.paint(inf.base, sheet, inf.rc, src);
     this.scene.textures.addSpriteSheet(tkey, cv as unknown as HTMLImageElement, { frameWidth: cellOf(inf.base), frameHeight: cellOf(inf.base) });
+    if (SpriteBank.noGL) SpriteBank.dropGL(this.scene, tkey);
     this.painted.set(tkey, { cv, bytes, used: now, rot: `${key}-rot` });
     this.paintedBytes += bytes;
     return true;
@@ -380,6 +404,7 @@ export class SpriteBank {
       const cv = this.paint(base, sheet, rc, src);
       cvs.push(cv); bytes += cv.width * cv.height * 4;
       this.scene.textures.addSpriteSheet(tkey, cv as unknown as HTMLImageElement, { frameWidth: cellOf(base), frameHeight: cellOf(base) });
+      if (SpriteBank.noGL) SpriteBank.dropGL(this.scene, tkey);
     }
     this.vmade.set(key, { used: now, bytes, cvs });
     this.variantBytes += bytes;

@@ -1,0 +1,12 @@
+{
+  "name": "yard-look",
+  "seed": "qa-look",
+  "about": "A short look round the opening: the yard, a rolled keg, across to Cash Kings, the turnstiles.",
+  "everyMs": 6000,
+  "steps": [
+    { "do": "wait", "s": 8 }, { "do": "shot", "name": "opening" },
+    { "do": "walk", "x": -29.6, "y": 69.9, "r": 0.8, "max": 25 }, { "do": "option", "match": "Roll the keg" }, { "do": "wait", "s": 6 },
+    { "do": "walk", "x": 30, "y": 68, "r": 1.6, "max": 60 }, { "do": "wait", "s": 4 }, { "do": "shot", "name": "cashkings" },
+    { "do": "walk", "x": 0, "y": 50, "r": 1.6, "max": 60 }, { "do": "wait", "s": 4 }, { "do": "shot", "name": "turnstiles" }
+  ]
+}

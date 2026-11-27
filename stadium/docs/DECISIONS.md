@@ -1105,3 +1105,7 @@ Following the research report and the audit (`docs/option-b-audit.md`): make one
 **Failing outside is cheaper.** Before you've ever been inside, a minor ejection walks you back to the coach drop-off with your ticket, your gear and your face intact ("Off you go, big man. Sober up."). Getting thrown out of the ground itself, or for anything serious, is as before.
 
 **Orientation:** both are supported, with landscape tuned first. In portrait the chain strap stacks its label above the links.
+
+**The kick-off swoop is gone** (the creator's call). The match starts the moment you tap Play.
+
+**Art: a quieter-surfaces test, not a restyle.** The report recommends keeping the pixel art and simplifying the hierarchy before regenerating anything: quiet background surfaces, strong silhouettes, contrast saved for what matters. It suggests proving that on one slice first. `?quiet` lays a soft flat veil over the ground layer only (depth 0.9, under every building, prop and person), so pavement and yard texture recede and people, kegs, the dog and shopfronts stand out. Side-by-side shots outside the Three Lions suggest it reads better. Whether it becomes the default, and whether any art gets regenerated, waits on the creator looking at it on a phone, then on first-time players.

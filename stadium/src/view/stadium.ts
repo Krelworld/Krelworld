@@ -183,6 +183,9 @@ class StadiumScene extends Phaser.Scene {
     this.detailG = this.add.graphics().setDepth(0.3);
     this.crowdG = this.add.graphics().setDepth(0.4);
     this.shadowG = this.add.graphics().setDepth(50);
+    // Art test (the report's quieter-surfaces slice): a soft flat veil over the ground layer only, so
+    // floor texture recedes and buildings, props and people keep their contrast. ?quiet to try it.
+    this.quietG = this.add.graphics().setDepth(0.9);
     this.decalG = this.add.graphics().setDepth(0.36);
     this.g = this.add.graphics();
     this.layers = [this.g];
@@ -866,88 +869,6 @@ class StadiumScene extends Phaser.Scene {
     setTimeout(() => { this.roomSnap = true; this.roomShown = this.roomId; }, 120);
     setTimeout(() => { f.classList.remove("on"); setTimeout(() => f.classList.remove("door"), 250); }, 170);
   }
-  // ---------- The swoop: the match opens with a fly-in over the ground ----------
-  capture: { x: number; y: number; zoom: number } | null = null;
-  /** The whole ground, photographed in tiles from straight above, as one picture. */
-  async captureMap(): Promise<{ img: HTMLCanvasElement; wx0: number; wy0: number; k: number } | null> {
-    // Each tile is copied straight off the game's canvas just after it's drawn (no PNG encoding, which
-    // stalls a phone for seconds a time), into one picture kept under 2048 px a side (iOS Safari
-    // quietly draws nothing on a canvas bigger than its limit).
-    const P = this.P, cam = this.cameras.main;
-    const wx0 = P.sx(BOUNDS.x, 0), wx1 = P.sx(BOUNDS.x + BOUNDS.w, 0), wy0 = P.sy(0, BOUNDS.y) - 8 * P.S, wy1 = P.sy(0, BOUNDS.y + BOUNDS.h);
-    const Wd = wx1 - wx0, Hd = wy1 - wy0, cols = 2, z = cam.width / (Wd / cols), rows = Math.ceil((Hd * z) / cam.height);
-    const fullW = cam.width * cols, fullH = cam.height * rows, sc = Math.min(1, 2048 / fullW, 2048 / fullH);
-    const tw = cam.width * sc, th = cam.height * sc, out = document.createElement("canvas");
-    out.width = Math.round(fullW * sc); out.height = Math.round(fullH * sc);
-    const cx = out.getContext("2d");
-    if (!cx) return null;
-    const t0 = performance.now();
-    for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) {
-      this.capture = { x: wx0 + (i + 0.5) * (Wd / cols), y: wy0 + (j + 0.5) * (cam.height / z), zoom: z };
-      // The next frame lays the world out for the camera at the new spot and draws it: grab it then.
-      await new Promise<void>((r) => this.game.events.once("postrender", () => { try { cx.drawImage(this.game.canvas, Math.round(i * tw), Math.round(j * th), Math.ceil(tw), Math.ceil(th)); } catch { /* */ } r(); }));
-      if (performance.now() - t0 > 7000) { this.capture = null; this.roomSnap = true; return null; }
-    }
-    this.capture = null; this.roomSnap = true;
-    // Came out blank (some phones won't let you read the canvas back): no swoop, just play.
-    try {
-      const d = cx.getImageData(Math.floor(out.width / 2), Math.floor(out.height / 2), 4, 4).data;
-      if (![...d].some((v, k) => k % 4 !== 3 && v > 8)) return null;
-    } catch { return null; }
-    return { img: out, wx0, wy0, k: z * sc };
-  }
-  /** Over the ground and down to him: the whole place laid out, tilted to the horizon like a model,
-   *  swung round, then down onto Grozz at the camera's own height, so the cut to the game doesn't show
-   *  (Krelworld's flyover, done with a CSS 3D plane over a photo of the map). Tap to skip. */
-  async swoop(): Promise<void> {
-    if (location.search.includes("noswoop")) return;
-    const host = document.createElement("div"); host.id = "swoop";
-    host.innerHTML = `<div class="sky"></div><div class="stage"><div class="map"></div></div><div class="fog"></div><div class="cap"><b>${esc(VENUE.ground.toUpperCase())}</b><span>ENGLAND v ${esc(this.s.match!.teams[1].name.toUpperCase())} · ${esc(["QUARTER-FINAL", "SEMI-FINAL", "THE FINAL"][Math.min(2, (this as any).campaign?.fixture ?? 0)] ?? "")}</span></div><button class="skipsw">Skip ▸</button>`;
-    document.body.appendChild(host);
-    // The sky and the name up straight away, so the moment it takes to photograph the ground
-    // doesn't look like a hang.
-    host.classList.add("go");
-    (host.querySelector(".cap") as HTMLElement).style.opacity = "1";
-    let got: Awaited<ReturnType<StadiumScene["captureMap"]>> = null;
-    try { got = await this.captureMap(); } catch { got = null; }
-    if (!got) { host.remove(); return; }
-    const shot = got;
-    // The picture itself is the plane (a canvas, not an encoded image: nothing to decode).
-    const stage = host.querySelector(".stage") as HTMLDivElement, old = host.querySelector(".map") as HTMLDivElement;
-    const map = shot.img as unknown as HTMLDivElement; map.className = "map";
-    map.style.width = `${shot.img.width}px`; map.style.height = `${shot.img.height}px`;
-    old.replaceWith(map);
-    host.classList.add("go");
-    this.audio.play("whoosh" as Clip, 0.6);
-    const P = this.P, cam = this.cameras.main, rect = this.game.canvas.getBoundingClientRect(), css = rect.width / cam.width;
-    const pc = this.pc, endW = { x: P.sx(pc.x, pc.y), y: P.sy(pc.x, pc.y) - P.S + (cam.height > cam.width * 1.2 ? (cam.height / this.targetZoom()) * 0.07 : 0) }, mid = { x: P.sx(0, 0), y: P.sy(0, 0) };
-    const toMap = (p: { x: number; y: number }) => ({ x: (p.x - shot.wx0) * shot.k, y: (p.y - shot.wy0) * shot.k });
-    const A = toMap(mid), B = toMap({ x: P.sx(-30, 30), y: P.sy(-30, 30) }), C = toMap(endW);
-    const sEnd = (this.targetZoom() * css) / shot.k, sStart = Math.min(window.innerWidth / shot.img.width, window.innerHeight / shot.img.height) * 1.1;
-    const T = 7000, t0 = performance.now(), ease = (u: number) => 0.5 - 0.5 * Math.cos(Math.PI * Math.min(1, Math.max(0, u)));
-    let skip = false;
-    host.querySelector(".skipsw")!.addEventListener("click", () => { skip = true; });
-    host.addEventListener("pointerdown", (e) => { if ((e.target as HTMLElement).tagName !== "BUTTON") skip = true; });
-    await new Promise<void>((done) => {
-      const step = () => {
-        const t = skip ? 1 : (performance.now() - t0) / T;
-        // Two legs: high and wide over the pitch, swinging round; then down the approach onto him.
-        const u1 = ease(t / 0.55), u2 = ease((t - 0.45) / 0.55);
-        const p = t < 0.45 ? { x: A.x + (B.x - A.x) * u1 * 0.8, y: A.y + (B.y - A.y) * u1 * 0.8 } : { x: B.x * (1 - u2) + C.x * u2, y: B.y * (1 - u2) + C.y * u2 };
-        const tilt = 62 - 62 * u2, spin = -38 + 30 * u1 + 8 * u2, sc = sStart * Math.pow(sEnd / sStart, ease(t)) * (1 + 0.6 * Math.sin(Math.PI * Math.min(1, t)) * (1 - u2));
-        map.style.transform = `translate(${window.innerWidth / 2}px, ${window.innerHeight * (0.5 + 0.12 * (1 - u2))}px) rotateX(${tilt}deg) rotateZ(${spin * (1 - u2)}deg) scale(${sc}) translate(${-p.x}px, ${-p.y}px)`;
-        (host.querySelector(".fog") as HTMLElement).style.opacity = String(0.85 * (1 - u2));
-        (host.querySelector(".cap") as HTMLElement).style.opacity = String(t < 0.12 ? t / 0.12 : t > 0.7 ? Math.max(0, 1 - (t - 0.7) / 0.15) : 1);
-        if (t >= 1) { done(); return; }
-        requestAnimationFrame(step);
-      };
-      step();
-    });
-    host.classList.add("out");
-    setTimeout(() => host.remove(), 450);
-    void stage;
-  }
-
   /** The lead or fix you've chosen to follow (Hitman's tracked mission story). Optional, one at a time. */
   tracked: Tracked | null = null;
   trackT: ReturnType<typeof trackTarget> = null;
@@ -1545,6 +1466,8 @@ class StadiumScene extends Phaser.Scene {
     g.lineStyle(2, 0xfff1c4, 0.35 * k).strokePoints(V([{ x: TL.x, y: top }, { x: TR.x, y: top }, { x: BR.x, y: bot }, { x: BL.x, y: bot }]), true);
   }
   roofDimK = 0;
+  quietG!: Phaser.GameObjects.Graphics;
+  quiet = location.search.includes("quiet");
   whyIcons = new Map<string, Phaser.GameObjects.Image>();
   /** A chain Grozz set off, named like a TV graphic as it grows ("KEG → DRAYMAN GOES AFTER IT → …"). */
   chainTimer = 0;
@@ -2212,6 +2135,8 @@ class StadiumScene extends Phaser.Scene {
     things.push({ d: b.y + 0.01, draw: () => drawBall(g, P, b.x, b.y, b.z) });
     for (const sgn of [-1, 1]) things.push({ d: PITCH.goalW / 2, draw: () => drawGoalFrame(g, P, sgn) });
 
+    this.quietG.clear();
+    if (this.quiet) { const v = this.cameras.main.worldView; this.quietG.fillStyle(0x5f6166, 0.42).fillRect(v.x - 40, v.y - 40, v.width + 80, v.height + 80); }
     // Up on a roof: the drop below dimmed, fading in and out.
     { const r = pc?.roof ? roofOf(pc) : undefined; this.roofDimK = Math.max(0, Math.min(1, this.roofDimK + (r ? 0.08 : -0.12)));
       if (r && this.roofDimK > 0) { const k = this.roofDimK; things.push({ d: 9e4, draw: () => this.roofView(g, r, k) }); } }
@@ -2615,7 +2540,6 @@ class StadiumScene extends Phaser.Scene {
     this.camX += (tx - this.camX) * k; this.camY += (ty - this.camY) * k;
     const zt = this.targetZoom();
     if (Math.abs(cam.zoom - zt) > 0.001) cam.setZoom(cam.zoom + (zt - cam.zoom) * Math.min(1, k * 1.5));
-    if (this.capture) { cam.setZoom(this.capture.zoom); cam.centerOn(this.capture.x, this.capture.y); this.drawRoomMask(undefined); return; }
     cam.centerOn(this.camX, this.camY);
     this.drawRoomMask(room);
     if (this.trauma > 0 || this.kick.x || this.kick.y) {
@@ -4560,7 +4484,7 @@ class StadiumScene extends Phaser.Scene {
 
   // ---------- Wiring ----------
   wireHud() {
-    $("start").addEventListener("click", () => { $("intro").hidden = true; void this.audio.unlock(); void this.swoop().then(() => { this.started = true; if (this.s.stadium!.dog?.state === "tied" && !VENUE.features.fanZone) setTimeout(() => this.hint("Kev's tied Ronson up outside the Three Lions."), 2500); }); });
+    $("start").addEventListener("click", () => { $("intro").hidden = true; void this.audio.unlock(); this.started = true; if (this.s.stadium!.dog?.state === "tied" && !VENUE.features.fanZone) setTimeout(() => this.hint("Kev's tied Ronson up outside the Three Lions."), 2500); });
     $("prepGo").addEventListener("click", () => {
       if (!this.pendingCampaign) return;
       $("prep").hidden = true;

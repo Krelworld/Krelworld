@@ -71,14 +71,15 @@ import { assetURL, loadPacks } from "./packs";
 import { ROOM_WALLS } from "./world";
 import { Stage3D } from "./three/stage";
 import type { Paint3D } from "./three/gfx";
-import { PITCH as PITCH3, YAW as YAW3, want3D } from "./three/cam";
+import { PITCH as PITCH3, YAW as YAW3, forced3D, proven3D, remember3D, want3D } from "./three/cam";
 import { CAP, ensureFloor, setQuietFloors, ensureMaterials, facade, floodlight, matOf, adBoard, banner, pixelText as pixelTextOn, PPM, roof, TILE_FILES, type BuildingSpec } from "./build";
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 /** The canvas draws at the screen's real pixels (sharp text, and each art pixel a whole number of them). */
 const DPR = Math.max(1, Math.min(3, window.devicePixelRatio || 1));
-/** The world drawn as a 3D miniature (?3d=1, or kd-3d in storage), if this browser can: decided before the canvas is made, because Phaser's has to be see-through over it. */
-const USE3D = want3D() && (() => { try { return !!document.createElement("canvas").getContext("webgl2"); } catch { return false; } })();
+/** The world drawn as a 3D miniature (unless ?3d=0, or this device was found too slow for it), if this browser can: decided
+ *  before the canvas is made, because Phaser's has to be see-through over it. */
+const USE3D = want3D() && (() => { try { const c = document.createElement("canvas"), gl = c.getContext("webgl2"); gl?.getExtension("WEBGL_lose_context")?.loseContext(); return !!gl; } catch { return false; } })();
 /** The game's faces: a pixel font for things in the world, the condensed face for captions. */
 const FONT_POP = '"Silkscreen", "Pixelify Sans", monospace';
 const FONT_TALK = '"Pixelify Sans", "Silkscreen", monospace';
@@ -1317,7 +1318,7 @@ class StadiumScene extends Phaser.Scene {
 
   // ---------- Frame ----------
   update(_t: number, dms: number) {
-    if (!this.started) { this.draw(dms); return; }
+    if (!this.started) { this.draw(dms); if (this.stage && this.probe !== 3) this.probe3D(); return; }
     if (this.pt) { this.pt.frame(this.speed === 0 || !!this.callOn); if (this.s.tick % 600 === 0) this.pt.save(); }
     if (this.s.tick % 20 === 0) this.progressiveUI();
     if (this.s.tick % 10 === 0) this.cokeFx();
@@ -1340,6 +1341,7 @@ class StadiumScene extends Phaser.Scene {
     if (st.ending && $("ending").hidden && !this.endingShown) { this.endingShown = true; this.showEnding(); }
     if (!st.ending) this.endingShown = false;
     this.draw(dms);
+    if (this.stage && this.probe !== 3) this.probe3D();
     const driving = st.vehicles.bus?.drivenBy === this.pc?.id;
     ($("viewBtn") as HTMLElement).hidden = !driving;
     ($("hornBtn") as HTMLElement).hidden = !driving;
@@ -2583,7 +2585,7 @@ class StadiumScene extends Phaser.Scene {
     // (No grey veil over the ground any more: the floors themselves are quieter; see ensureFloor.)
     // Up on a roof: the drop below dimmed, fading in and out.
     { const r = pc?.roof ? roofOf(pc) : undefined; this.roofDimK = Math.max(0, Math.min(1, this.roofDimK + (r ? 0.08 : -0.12)));
-      if (r && this.roofDimK > 0) { const k = this.roofDimK; things.push({ d: 9e4, draw: () => this.roofView(g, r, k) }); } }
+      if (r && this.roofDimK > 0 && !this.stage) { const k = this.roofDimK; things.push({ d: 9e4, draw: () => this.roofView(g, r, k) }); } }
     things.sort((p, q) => p.d - q.d);
     // Paint in order, starting a fresh graphics layer after each sprite.
     let order = 100, li = 0, open = false;
@@ -2732,7 +2734,7 @@ class StadiumScene extends Phaser.Scene {
           ui.fillStyle(0xf2c94c, 0.35 + 0.5 * (1 - Math.abs(t2 - 0.5))).fillCircle(dx2, dy2, P.S * 0.09);
         }
       }
-      const hx = P.sx(pc.x, pc.y), hy = headTop(P, pc.x, pc.y, 1.75) - 4 * u;
+      const hx = P.sx(pc.x, pc.y), hy = headTop(P, pc.x, pc.y, 1.75) - 4 * u - (this.stage ? this.liftOf(pc) * P.S : 0);
       ui.fillStyle(0xd7263d, 1).fillTriangle(hx - 5 * u, hy - 8 * u, hx + 5 * u, hy - 8 * u, hx, hy);
       // What the red button would act on.
       const at = this.primaryAt;
@@ -3137,7 +3139,49 @@ class StadiumScene extends Phaser.Scene {
     if (this.stage) this.sync3D();
   }
 
-  // ---------- The 3D miniature (?3d=1) ----------
+  // ---------- The 3D miniature (the default; ?3d=0 for the flat picture) ----------
+  /** Timing the 3D world on this device: 0 not begun, 1 warming up, 2 measuring, 3 settled. */
+  probe = 0; probeAt = 0;
+  /** The first seconds decide whether this device can afford the miniature. Too slow (under about twenty frames a second,
+   *  typically) and the game goes back to the flat picture there and then, and remembers, so it never flip-flops. */
+  probe3D(): void {
+    const st = this.stage;
+    if (!st || this.probe === 3) return;
+    if (forced3D() || proven3D()) { this.probe = 3; return; }
+    const now = performance.now();
+    if (!this.bank.ready() || document.visibilityState !== "visible") { this.probe = 0; return; }
+    if (this.probe === 0) { this.probe = 1; this.probeAt = now; return; }
+    if (this.probe === 1) { if (now - this.probeAt > 1500) { this.probe = 2; this.probeAt = now; st.resetTiming(); } return; } // (sheets and tiles are still being made)
+    const m = st.measured();
+    if (m.ms < 4000 || m.frames < 12) { if (now - this.probeAt > 20000) this.probe = 0; return; }
+    this.probe = 3;
+    if (m.fps < 20) { remember3D(false); console.warn(`3D world: about ${m.fps.toFixed(0)} frames a second here; drawing in 2D from now on (?3d=1 to try again)`); this.drop3D(); }
+    else remember3D(true);
+  }
+  /** Give up the 3D world mid-game and carry on in the flat picture, as if it had never been asked for. */
+  drop3D(): void {
+    const st = this.stage;
+    if (!st) return;
+    this.stage = null; this.pg = this.pgAir = this.ringG = null;
+    try { st.dispose(); } catch (e) { console.warn(e); }
+    delete (window as any).__stage;
+    this.P.cam3 = null; this.P.mode = "tilted"; setDirYaw(0);
+    $("game").style.background = "#101412";
+    // Everything the miniature had taken over is this canvas's again.
+    for (const o of this.children.list as any[]) if (o.cameraFilter) o.cameraFilter = 0;
+    this.ignored = new WeakSet<object>();
+    this.shadowG = this.add.graphics().setDepth(50);
+    this.decalG = this.add.graphics().setDepth(0.36); this.decals = 0;
+    this.beerG = this.faceG = this.rigG = undefined;
+    const fx = this.fx as unknown as { ground: Phaser.GameObjects.Graphics; air: Phaser.GameObjects.Graphics };
+    fx.ground = this.add.graphics().setDepth(0.38); fx.air = this.add.graphics().setDepth(9.7e6);
+    try { const fl = this.cameras.main.filters.external, cm = fl.addColorMatrix(); cm.colorMatrix.saturate(-0.14); cm.colorMatrix.contrast(0.06, true); fl.addVignette(0.5, 0.5, 1.1, 0.12); } catch { /* no filters on this renderer */ }
+    this.stageVenue = ""; this.placed = { venue: "", list: [] }; this.wallishFor = null;
+    for (const [, im] of this.worldSprites) im.destroy();
+    this.worldSprites.clear();
+    this.drawStatic();
+    this.roomSnap = true; this.setZoom();
+  }
   /** The Three world under this canvas, when the switch is on and the browser can do it. */
   stage: Stage3D | null = null;
   /** In 3D: where things draw the marks they wear (hats, stars, rubble), what floats in the air, and rings on the ground. */
@@ -3168,6 +3212,8 @@ class StadiumScene extends Phaser.Scene {
     const st = this.stage!, cam = this.cameras.main, s = this.s, pc = this.pc, stad = s.stadium!;
     // A new ground, or a hole just blown in a wall: build again.
     if (!st.world || this.stageVenue !== VENUE.id || stad.breaches.length !== this.breachN) this.build3D();
+    // Something else has the whole screen (first person and the scope, the cab, the drain, the office): the miniature rests.
+    st.setActive(!(this.fp.on || this.inCab() || !!this.drain?.open || !!this.detain?.open));
     st.begin();
     const who = new Map<unknown, Actor>();
     for (const [id, sp] of this.spritePool) { const a = s.actors[id]; if (a) who.set(sp, a); }
@@ -3185,7 +3231,7 @@ class StadiumScene extends Phaser.Scene {
     // Hidden behind something: you, and whoever or whatever you could act on within a dozen metres, show through as a faint outline
     // (never through a closed building you are not in, nor through each other).
     const inB = (x: number, y: number) => this.blds.find((b2) => x > b2.rect.x0 - 0.3 && x < b2.rect.x1 + 0.3 && y > b2.rect.y0 - 0.3 && y < b2.rect.y1 + 0.3)?.id ?? null;
-    const free = !!pc && !pc.hiddenIn && !pc.seated && !this.cine, myB = pc ? inB(pc.x, pc.y) : null;
+    const free = !!pc && !pc.hiddenIn && !pc.seated && !this.cine, myB = pc ? (pc.roof ? "#roof" : inB(pc.x, pc.y)) : null;
     const item3 = new Map<unknown, { x: number; y: number }>();
     if (free) for (const [id, im] of this.worldSprites) {
       if (!id.startsWith("item-") || !im.visible) continue;
@@ -3224,8 +3270,11 @@ class StadiumScene extends Phaser.Scene {
     if (dog?.visible && dg) st.blob(dg.x, dg.y, 1.05, 0.6);
     const b = s.match!.ball;
     st.ball(b.x, b.y, b.z);
+    // Rain where the picture is, not where he is: a cut to a room indoors is dry.
+    const cf = this.cine?.focus, ch = cf ? areaAt(cf.x, cf.y) : null;
+    const wet = cf ? !!(ch?.outside || ch?.seats || ch?.pitch) && !inB(cf.x, cf.y) : this.outdoorsNow && !this.roomShown;
     st.render({ midX: cam.scrollX + cam.width / 2, midY: cam.scrollY + cam.height / 2, width: cam.width, height: cam.height, zoom: cam.zoom,
-      room: this.roomShown, inside: this.insNow, outdoors: this.outdoorsNow && !this.roomShown, time: performance.now() / 1000,
+      room: this.roomShown, inside: this.insNow, outdoors: wet, time: performance.now() / 1000,
       gateOpen: (id) => !!stad.gates[id] && stad.gates[id].until > s.tick });
   }
 

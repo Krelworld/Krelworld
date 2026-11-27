@@ -25,7 +25,7 @@ export class Stage3D {
   /** The scene's flat-colour marks (rings, pools, hats, smoke), drawn in the world instead of over it. */
   private paints: { p: Paint3D; auto: boolean }[] = [];
   /** Frames a second, smoothed; and how many frames have been timed (the first few seconds decide whether this device can afford 3D). */
-  fps = 60; frames = 0; private lastT = 0; private slowMs = 0; private timedMs = 0;
+  fps = 60; frames = 0; private lastT = 0; private timedMs = 0; private dts: number[] = [];
   private hud: HTMLDivElement | null = null; private hudAt = 0;
   /** The ground from a long way up (sat watching the match, or the whole-pitch view): its tiles at a half or a quarter of
    *  the size on one sheet, one draw call, instead of forty to a hundred full-size tiles. */
@@ -168,7 +168,7 @@ export class Stage3D {
   /** Draw the frame: the camera goes where Phaser's is. */
   render(f: Frame) {
     const now = performance.now();
-    if (this.lastT) { const dt = Math.min(250, now - this.lastT); this.fps += (1000 / Math.max(1, dt) - this.fps) * 0.08; if (this.active && document.visibilityState === "visible") { this.frames++; this.timedMs += dt; if (dt > 50) this.slowMs += dt; } }
+    if (this.lastT) { const dt = Math.min(500, now - this.lastT); this.fps += (1000 / Math.max(1, dt) - this.fps) * 0.08; if (this.active && document.visibilityState === "visible" && now - this.lastT < 1000) { this.frames++; this.timedMs += dt; if (this.dts.length < 600) this.dts.push(dt); } }
     this.lastT = now;
     if (!this.active) { this.bridge.end(); this.vehicles.end(); return; }
     this.fit(f);
@@ -275,8 +275,10 @@ export class Stage3D {
     if (f && !on && performance.now() - f.used > 30000) this.farDrop();
   }
   private farDrop(): void { const f = this.far; if (!f) return; this.scene.remove(f.mesh); f.mesh.geometry.dispose(); f.mat.dispose(); f.tex.dispose(); this.far = null; }
-  /** Average frames a second over everything timed so far, and the share of that time spent in frames slower than 20 a second. */
-  measured(): { fps: number; slow: number; ms: number } { return { fps: this.timedMs ? (this.frames * 1000) / this.timedMs : 60, slow: this.timedMs ? this.slowMs / this.timedMs : 0, ms: this.timedMs }; }
+  /** How it has been running since timing began (or was last reset): the time covered, and the typical frame rate
+   *  (from the middle frame time, so one hitch while a sheet loads counts for nothing). */
+  measured(): { fps: number; ms: number; frames: number } { const d = this.dts.slice().sort((a, b) => a - b); return { fps: d.length ? 1000 / d[d.length >> 1] : 60, ms: this.timedMs, frames: d.length }; }
+  resetTiming(): void { this.dts.length = 0; this.timedMs = 0; this.frames = 0; }
   /** Megabytes of texture on the card: the sprite sheets, the painted ground, the town's and the vehicles' sheets, the shadow map. */
   texMB(): number { const MIP = 4 / 3, ch = this.world?.stats.chunks ?? 0; return (this.bridge.memory() + (this.far ? Stage3D.FAR_SIZE * Stage3D.FAR_SIZE * 4 : 0) + ch * CHUNK_PX * CHUNK_PX * 4 * MIP + 2048 * 2048 * 4 * MIP + 1024 * 1024 * 4 * MIP + 1024 * 1024 * 4 + 256 * 256 * 4) / 1048576; }
 

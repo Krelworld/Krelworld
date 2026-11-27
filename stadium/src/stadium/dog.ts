@@ -180,7 +180,8 @@ export function stepDog(w: World): void {
         const reach = phase < 0.35 ? 1.8 : 1.1;
         move(p.x + Math.cos(ang) * reach, p.y + Math.sin(ang) * reach, phase < 0.35 ? 9 : 3, 0.05);
         dog.facing = ang;
-        noise(w, dog, phase < 0.35 ? "gnash" : "bark", 55);
+        // Tied outside a busy pub it would never stop; it kicks off now and then, not every second.
+        noise(w, dog, phase < 0.35 ? "gnash" : "bark", near(t, dog, 3) ? 120 : 260);
       } else {
         move(p.x + Math.sin(tick * 0.02) * 0.6, p.y, 1);
         if (pc && near(pc, dog, 9)) noise(w, dog, "growl", 150);

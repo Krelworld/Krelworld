@@ -1009,3 +1009,30 @@ The research pass (Hitman's guidance, the Goose's to-do list, Chinatown Wars' to
 - a Grozz rating out of five.
 
 Share it from your phone's share menu, or save it as a picture.
+
+## Round: calls, the notepad, the hotel flicker, a calmer street
+
+**Calls look like his phone, not a radio.** The Metal Gear codec look was too close a copy. A call now:
+- pauses the game, the way the bag does;
+- dims the screen and tips up Grozz's own cheap phone, with a crack across the glass, 3% battery, and the contact as he's saved them ("The Wife", "Ricky (DONT SAVE)", "Kev Coach");
+- shows a call timer once it's answered;
+- puts the words in comic speech bubbles: theirs point at the phone, his come with his face.
+
+An incoming call buzzes the handset in bursts with red and green buttons on the screen.
+
+**Shezleigh can't have seen him live.** Her calls are now about what's turned up on social media: "You're all over fucking Facebook!", and "Why's our Tracey just sent me a photo of you in a fucking DRESS?!" (re-voiced).
+
+**The notepad folds away.** It opens out for about 9 seconds whenever what's on it changes (start, a fix you've learned about, one sorted), then folds to a small "TO DO · 2" tab. Tap the tab to open it; tap "Side jobs" while it's open for the jobs sheet.
+
+**The alert/evasion flicker.** Cover that blinks the line of sight on and off (the hotel lobby's sofas, plants and luggage) made the heat jump between alert and evasion every fraction of a second, restarting the countdown each time. Now:
+- once they've got eyes on you, it takes 1.5 s fully out of sight to drop to evasion;
+- a glimpse mid-evasion resumes the countdown from what was left, plus 3 s;
+- only a proper sighting (over 5 s) restarts the full count.
+
+**Less noise in the street.** A census of two minutes with no input found:
+- the delivery lorry knocking down 10 pedestrians on its own;
+- Ronson, tied outside the pub, barking or growling 111 times.
+
+So the lorry's own driver now shoves people out of the way (with Grozz at the wheel, or for Grozz himself, it still flattens), and the tied dog kicks off every few seconds instead of every one.
+
+**Pauses that didn't always hold.** A HUD check reset the speed to normal whenever you weren't seated. It only meant to cancel fast-forward, but on some frames it also undid pauses, which is why the bag occasionally didn't hold still. It now only cancels fast-forward. The menu uses the same pause as the bag and calls, so every way out of it (including Side jobs, then Close) starts the game again.

@@ -948,6 +948,8 @@ class StadiumScene extends Phaser.Scene {
   tracked: Tracked | null = null;
   trackT: ReturnType<typeof trackTarget> = null;
   todoAt = 0;
+  todoKey = "";
+  todoOpenUntil = 0;
   /** Holding Instinct: what you can use, who matters, where they're looking. */
   instinct = false;
   instLabels: Phaser.GameObjects.Text[] = [];
@@ -976,11 +978,18 @@ class StadiumScene extends Phaser.Scene {
     if (known.length) for (const fx of known) must.push(`Sort out ${fx.title(this.w).replace(/^Their/, "their").replace(/^The/, "the")}`);
     else if (fixesDone(this.w) < FIXES.length) must.push("Find out what could stop England winning. Listen to people.");
     const nEl = $("todo");
-    const html = `<b>TO DO</b>${must.length ? must.slice(0, 3).map((t) => `<p>☐ ${esc(t)}</p>`).join("") : "<p>Watch England win.</p>"}<p class="side">Side jobs ▸</p>`;
+    // It opens out when something on it changes, then folds away to a tab after a few seconds (tap the
+    // tab to look again), so it isn't sat over the game the whole time.
+    const key = must.join("|");
+    if (key !== this.todoKey) { this.todoKey = key; this.todoOpenUntil = now + 9000; }
+    const open = now < this.todoOpenUntil;
+    nEl.classList.toggle("shut", !open);
+    const html = open ? `<b>TO DO</b>${must.length ? must.slice(0, 3).map((t) => `<p>☐ ${esc(t)}</p>`).join("") : "<p>Watch England win.</p>"}<p class="side">Side jobs ▸</p>`
+      : `<b>TO DO${must.length ? ` · ${Math.min(3, must.length)}` : " ✓"}</b>`;
     // Pointing you at the side jobs once you're into it (and a dot on the menu till you've looked).
     if (!this.flags.jobsHint && this.s.tick > 60 * 25 && !pc.heldBy) { this.flags.jobsHint = 1; this.hint("There's money in mayhem. Tap Side jobs on your notes (or the menu) to see what pays."); $("menuBtn").classList.add("dot"); }
     if (nEl.innerHTML !== html) nEl.innerHTML = html;
-    nEl.hidden = !this.started || !!this.fp?.on || this.inCab();
+    nEl.hidden = !this.started || !!this.fp?.on || this.inCab() || this.callOn;
   }
   /** One-off view hints. */
   flags: Record<string, number> = {};
@@ -3194,7 +3203,7 @@ class StadiumScene extends Phaser.Scene {
       // Fast-forward only while you're sat watching, bottom left, out of the way.
       const canFast = !!pc.seated;
       $("speed").hidden = !canFast; $("speed").classList.toggle("seated", canFast);
-      if (!canFast && this.speed !== 1) this.setSpeed(1);
+      if (!canFast && this.speed > 1) this.setSpeed(1); // (fast-forward only; a pause for the bag or a call stays a pause)
       if (this.sheetKind === "more") this.openMore();
     }
   }
@@ -3333,7 +3342,7 @@ class StadiumScene extends Phaser.Scene {
 
   // ---------- Sheets ----------
   /** Rummaging in the bag, changing, on the phone: the world waits (the speed it was going at comes back after). */
-  static readonly PAUSING = new Set(["bag", "wardrobe", "phone", "jobs"]);
+  static readonly PAUSING = new Set(["menu", "bag", "wardrobe", "phone", "jobs"]);
   pausedFrom: number | null = null;
   sheet(kind: string, html: string) {
     this.closeRing();
@@ -3345,7 +3354,7 @@ class StadiumScene extends Phaser.Scene {
     el.hidden = false;
   }
   closeSheet() { $("sheet").hidden = true; this.sheetKind = null; this.unpauseSheet(); }
-  unpauseSheet() { if (this.pausedFrom !== null) { const sp = this.pausedFrom; this.pausedFrom = null; this.setSpeed(sp); } }
+  unpauseSheet() { if (this.callOn) return; if (this.pausedFrom !== null) { const sp = this.pausedFrom; this.pausedFrom = null; this.setSpeed(sp); } }
 
   /** How you get into the stands, made obvious (real grounds: big block letters at every vomitory,
    *  a colour per stand, light from the pitch at the end of the tunnel). Each gangway gets a pool of
@@ -4019,19 +4028,35 @@ class StadiumScene extends Phaser.Scene {
     await this.callCard(name, lines, burner ? "Burner" : "Your phone");
   }
   callOn = false;
-  /** A phone call, codec style (Metal Gear's radio): his face on the left, theirs on the right, a
-   *  frequency between, scanlines, whoever's talking lit up and moving, the words underneath. */
+  /** A phone call on Grozz's own phone: the game holds still and dims, his cracked handset tips up
+   *  with the contact as he's saved them, a call timer and 3% battery; what's said comes up in comic
+   *  speech bubbles, theirs from the phone and his from his own big face. */
+  static readonly CONTACT: Record<string, string> = { Shezleigh: "The Wife", Kev: "Kev Coach", "Spliff Ricky": "Ricky (DONT SAVE)", "Bare-Knuckle Brendan": "Brendan Fights", "999": "999" };
   codec(name: string, face: string, via = ""): HTMLDivElement {
-    const el = document.createElement("div"); el.className = "call codec";
-    const freq = (140 + (Math.abs(hash(name)) % 100) / 100).toFixed(2), img = (k: string) => `<img src="${assetURL(`scenes/codec_${k}.png`)}" alt="">`;
-    el.innerHTML = `<div class="row"><div class="pane l">${img("grozz")}<i>GROZZ</i></div><div class="mid"><b class="fq">${freq}</b><div class="bars">${"<span></span>".repeat(8)}</div><div class="st">CALLING… <small>${esc(via)}</small></div></div><div class="pane r">${img(face)}<i>${esc(name.toUpperCase())}</i></div></div><div class="ln"></div>`;
+    const el = document.createElement("div"); el.className = "call mob";
+    const img = (k: string) => `<img src="${assetURL(`scenes/codec_${k}.png`)}" alt="">`, d = new Date();
+    const crack = `<svg class="crack" viewBox="0 0 90 170" preserveAspectRatio="none"><g fill="none" stroke="rgba(255,255,255,.5)" stroke-width=".7"><polyline points="74,0 66,21 73,37 61,60 67,81 63,104"/><polyline points="66,21 51,29 39,26 21,41 0,44"/><polyline points="73,37 90,45"/><polyline points="61,60 45,69 41,92"/><polyline points="67,81 82,97 90,95"/><polyline points="51,29 49,12"/></g></svg>`;
+    el.innerHTML = `<div class="hand"><div class="scr"><div class="sb"><span>${d.getHours()}:${String(d.getMinutes()).padStart(2, "0")}</span><span class="bat">▂▄ 3%</span></div><div class="pic">${img(face)}</div><b class="who">${esc(StadiumScene.CONTACT[name] ?? name)}</b><div class="st">Calling… <small>${esc(via)}</small></div><div class="wave">${"<span></span>".repeat(9)}</div><i class="hang"><svg viewBox="0 0 24 24"><path d="M3 15c5-5 13-5 18 0l-2.4 2.4-3.3-1.6v-2.4c-2.1-.7-4.5-.7-6.6 0v2.4L5.4 17.4z" fill="#fff"/></svg></i>${crack}</div></div><div class="talk"><div class="ln"></div><div class="me">${img("grozz")}</div></div>`;
     $("app").appendChild(el); this.callOn = true;
+    // The world holds still while he's on the phone (as it does in the bag), and starts again after.
+    if (this.pausedFrom === null && this.speed !== 0) { this.pausedFrom = this.speed; this.setSpeed(0); }
+    const tm = window.setInterval(() => {
+      if (!el.isConnected) { clearInterval(tm); return; }
+      const t0 = Number(el.dataset.t0 || 0);
+      if (t0 && !el.classList.contains("off")) { const sec = Math.floor((performance.now() - t0) / 1000); el.querySelector(".st")!.textContent = `${String(Math.floor(sec / 60)).padStart(2, "0")}:${String(sec % 60).padStart(2, "0")}`; }
+    }, 250);
     return el;
   }
-  /** Who's talking on the codec: that face lit and moving, the other dimmed (null: nobody). */
+  /** Picked up: the clock starts. */
+  connected(el: HTMLElement) { el.dataset.t0 = String(performance.now()); el.querySelector(".st")!.textContent = "00:00"; }
+  /** Hung up: the phone goes away and the world carries on (unless the bag's still open). */
+  endCall(el: HTMLElement) {
+    el.remove(); this.callOn = false;
+    if (!(this.sheetKind && StadiumScene.PAUSING.has(this.sheetKind))) this.unpauseSheet();
+  }
+  /** Who's talking: their photo pulses and the bubble points at the phone, or his face pops up. */
   codecTalk(el: HTMLElement, who: "l" | "r" | null) {
-    for (const side of ["l", "r"] as const) el.querySelector(`.pane.${side}`)!.classList.toggle("talk", who === side);
-    el.querySelector(".bars")!.classList.toggle("on", !!who);
+    el.classList.toggle("them", who === "r"); el.classList.toggle("me", who === "l");
   }
   faceFor(name: string): string { return /ricky/i.test(name) ? "ricky" : /brendan/i.test(name) ? "brendan" : /shez/i.test(name) ? "shez" : "police"; }
   async callCard(name: string, lines: [string, string, string][], via: string) {
@@ -4039,7 +4064,7 @@ class StadiumScene extends Phaser.Scene {
     const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
     const ring = await this.audio.playCut("v_ph_ring", 0.5);
     await wait(1300); ring.stop();
-    el.querySelector(".st")!.textContent = "CONNECTED";
+    this.connected(el);
     for (const [who, text, clip] of lines) {
       const ln = el.querySelector(".ln")!; ln.innerHTML = `<b>${who === "g" ? "Grozz" : esc(name)}</b> ${esc(text)}`;
       this.codecTalk(el, who === "g" ? "l" : "r");
@@ -4049,21 +4074,21 @@ class StadiumScene extends Phaser.Scene {
     if (this.pendingCallText) { this.codecTalk(el, "r"); el.querySelector(".ln")!.innerHTML = `<b>${esc(name)}</b> ${esc(this.pendingCallText.replace(/^"|"$/g, ""))}`; this.pendingCallText = ""; await wait(2200); }
     this.codecTalk(el, null);
     this.audio.play("v_ph_hangup" as Clip, 0.5);
-    el.querySelector(".st")!.textContent = "CALL ENDED";
+    el.querySelector(".st")!.textContent = "Call ended";
     el.classList.add("off");
-    await wait(700); el.remove(); this.callOn = false;
+    await wait(700); this.endCall(el);
   }
   pendingCallText = "";
-  /** Somebody rings him (MGS's codec calls in): it buzzes, you answer or let it ring off. */
+  /** Somebody rings him: the phone buzzes up, you answer or let it ring off. */
   incoming: Record<string, number> = {};
   async incomingCall(key: string, name: string, face: string, lines: [string, string, string][], tip = "") {
     if (this.incoming[key] || this.callOn || !this.started || this.s.stadium!.ending || this.s.stadium!.detainedUntil) return;
     this.incoming[key] = performance.now();
     const el = this.codec(name, face, "incoming");
-    el.querySelector(".st")!.textContent = "INCOMING CALL";
+    el.querySelector(".st")!.textContent = "is calling…";
     const btns = document.createElement("div"); btns.className = "ans";
-    btns.innerHTML = `<button class="yes">Answer</button><button class="no">Ignore</button>`;
-    el.appendChild(btns);
+    btns.innerHTML = `<button class="no" aria-label="Ignore">Ignore</button><button class="yes" aria-label="Answer">Answer</button>`;
+    el.querySelector(".scr")!.appendChild(btns); el.classList.add("ringing");
     this.buzz([60, 80, 60]);
     const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
     const ring = await this.audio.playCut("v_ph_ring", 0.45);
@@ -4072,9 +4097,9 @@ class StadiumScene extends Phaser.Scene {
       btns.querySelector(".yes")!.addEventListener("click", () => { clearTimeout(t); res(true); });
       btns.querySelector(".no")!.addEventListener("click", () => { clearTimeout(t); res(false); });
     });
-    ring.stop(); btns.remove();
-    if (!answered) { el.querySelector(".st")!.textContent = "MISSED CALL"; el.classList.add("off"); await wait(600); el.remove(); this.callOn = false; return; }
-    el.querySelector(".st")!.textContent = "CONNECTED";
+    ring.stop(); btns.remove(); el.classList.remove("ringing");
+    if (!answered) { el.querySelector(".st")!.textContent = "Missed call"; el.classList.add("off"); await wait(600); this.endCall(el); return; }
+    this.connected(el);
     if (tip) dispatch(this.w, { verb: "callin", actor: this.pc.id, arg: `${key.startsWith("ricky") ? "ricky" : key}|${tip}` });
     for (const [who, text, clip] of lines) {
       el.querySelector(".ln")!.innerHTML = `<b>${who === "g" ? "Grozz" : esc(name)}</b> ${esc(text)}`;
@@ -4083,8 +4108,8 @@ class StadiumScene extends Phaser.Scene {
       await wait(Math.max(1200, p.dur * 1000 + 250));
     }
     this.codecTalk(el, null); this.audio.play("v_ph_hangup" as Clip, 0.5);
-    el.querySelector(".st")!.textContent = "CALL ENDED"; el.classList.add("off");
-    await wait(600); el.remove(); this.callOn = false;
+    el.querySelector(".st")!.textContent = "Call ended"; el.classList.add("off");
+    await wait(600); this.endCall(el);
   }
   /** Who rings when: Shezleigh once you've been seen doing something big, Kev at half-time with a
    *  whisper about a fix you haven't heard of, Ricky early on with his number. */
@@ -4094,7 +4119,7 @@ class StadiumScene extends Phaser.Scene {
     if (e.type === "incident" && e.by === pcId && e.severity >= 2 && e.seen >= 3 && !this.incoming.shez) {
       const frock = inDragSim(this.w, this.pc);
       later(9000, () => void this.incomingCall("shez", "Shezleigh", "shez", [
-        ["r", frock ? "Why are you on the news in a fucking DRESS?! Is that MY dress?! You fat—" : "Grozz! You're on the fucking telly! Me mum's seen it! The whole street's seen it! You fat embarrassing—", frock ? "v_in_shez_dress" : "v_in_shez_tv"],
+        ["r", frock ? "Why's our Tracey just sent me a photo of you in a fucking DRESS?! Is that MY dress?! You fat—" : "Grozz! You're all over fucking Facebook! Me mum's seen it! The whole street's seen it! You fat embarrassing—", frock ? "v_in_shez_dress" : "v_in_shez_tv"],
         ["g", "Can't talk. Busy saving England.", "v_ph_gbusy"],
       ]));
     }
@@ -4118,7 +4143,7 @@ class StadiumScene extends Phaser.Scene {
     const wait = (ms: number) => new Promise((r) => setTimeout(r, ms)), n = (this.s.stadium!.flags.wifeCalls ?? 1) - 1;
     const ln = el.querySelector(".ln")!, st = el.querySelector(".st")!;
     const ring = await this.audio.playCut("v_ph_ring", 0.5); await wait(1700); ring.stop();
-    st.textContent = "CONNECTED";
+    this.connected(el);
     const hello = n % 2 ? "v_ph_shez_hello2" : "v_ph_shez_hello1";
     ln.innerHTML = `<b>Shezleigh</b> ${n % 2 ? "Yeah, hello? Who's this?" : "Hello?"}`;
     this.codecTalk(el, "r");
@@ -4132,8 +4157,8 @@ class StadiumScene extends Phaser.Scene {
     // Click. Mid-sentence.
     await wait(Math.min(1500, sh.dur * 1000 * 0.45 + 300)); sh.stop();
     this.audio.play("v_ph_hangup" as Clip, 0.5);
-    st.textContent = "YOU HUNG UP"; ln.innerHTML = ""; this.codecTalk(el, null); el.classList.add("off");
-    await wait(900); el.remove(); this.callOn = false;
+    st.textContent = "You hung up"; ln.innerHTML = ""; this.codecTalk(el, null); el.classList.add("off");
+    await wait(900); this.endCall(el);
   }
 
   openBag() {
@@ -4262,7 +4287,6 @@ class StadiumScene extends Phaser.Scene {
       <h2>Side jobs (${this.mayhemDone.size}/${StadiumScene.MAYHEM.length})</h2><div class="list"><button data-jobs="1" class="primary">Side jobs: what pays ▸</button></div>
       <h2>Ways in you've heard about</h2><div class="log">${LEADS.filter((l) => this.s.stadium!.flags[`lead_${l.id}`]).map((l) => `<p><b>${esc(l.title)}</b> ${esc(l.how)} ${this.s.stadium!.admitted ? "" : `<button class="trk${this.tracked?.kind === "lead" && this.tracked.id === l.id ? " on" : ""}" data-track="lead:${l.id}">${this.tracked?.kind === "lead" && this.tracked.id === l.id ? "Tracking" : "Track"}</button>`}</p>`).join("") || "<p>Nothing yet. Talk to people: locals, staff, the man at the shed.</p>"}</div>
       <h2>What you've heard</h2><div class="log">${this.log.slice(-12).reverse().map((l) => `<p><b>${esc(l.src)}</b> ${esc(l.text)}</p>`).join("") || "<p>Nothing yet.</p>"}</div>`);
-    this.setSpeed(0);
   }
 
   /** The fixes you've heard about, the ways in you know, and what's done. Nothing you haven't heard. */
@@ -4389,7 +4413,14 @@ class StadiumScene extends Phaser.Scene {
     for (const ev of ["pointerup", "pointercancel", "pointerleave"]) $("instBtn").addEventListener(ev, instOff);
     window.addEventListener("keydown", (e) => { if (e.key.toLowerCase() === "i" && this.started) instOn(); });
     window.addEventListener("keyup", (e) => { if (e.key.toLowerCase() === "i") instOff(); });
-    $("todo").addEventListener("click", () => this.openJobs());
+    // Folded: open it out. Open: Side jobs opens the jobs sheet, anywhere else folds it again.
+    $("todo").addEventListener("click", (e) => {
+      const now = performance.now();
+      if (now >= this.todoOpenUntil) this.todoOpenUntil = now + 9000;
+      else if ((e.target as HTMLElement).closest(".side")) this.openJobs();
+      else this.todoOpenUntil = 0;
+      this.todoAt = 0; this.updateGuides();
+    });
     try { if (localStorage.getItem("kd-lefty") === "1") document.body.classList.add("lefty"); } catch { /* */ }
     $("bagBtn").addEventListener("click", () => (this.sheetKind === "bag" ? this.closeSheet() : this.openBag()));
     $("phoneBtn").addEventListener("click", () => (this.sheetKind === "phone" ? this.closeSheet() : this.openPhone()));

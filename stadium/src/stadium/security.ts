@@ -536,16 +536,28 @@ export function stepHeat(w: World): void {
   const after = Object.values(s.actors).filter((a) => isSecurity(a) && a.npc!.target === pc.id && a.downUntil <= tick);
   const hunting = after.filter((a) => ["approach", "chase", "search"].includes(a.npc!.mode) && a.npc!.crime >= 1);
   const holding = after.some((a) => a.npc!.mode === "escort") || !!pc.heldBy || !!st.detainedUntil;
-  const seen = hunting.some((a) => a.npc!.mode !== "search" && a.npc!.lastSeen && tick - a.npc!.lastSeen.t < 20);
+  // Hysteresis: getting spotted is instant, but once they've got eyes on him it takes a second and a
+  // half fully out of sight to drop to evasion. Without it, cover that blinks the line of sight on and
+  // off (the hotel lobby's sofas and luggage) flickers alert/evasion and keeps restarting the countdown.
+  const grace = st.flags.heatMode === 4 ? 90 : 20;
+  const seen = hunting.some((a) => a.npc!.mode !== "search" && a.npc!.lastSeen && tick - a.npc!.lastSeen.t < grace);
   const worst = Math.max(0, ...after.map((a) => a.npc!.crime));
   const police = after.some((a) => a.npc!.job === "police" && a.npc!.mode !== "routine") || worst >= 3;
   let mode = 0;
-  if (holding) { mode = 4; st.flags.evadeUntil = 0; }
-  else if (hunting.length && seen) { mode = 4; st.flags.evadeUntil = 0; }
+  if (holding) { mode = 4; st.flags.evadeUntil = 0; st.flags.evadeLeft = 0; }
+  else if (hunting.length && seen) {
+    // Glimpsed again mid-evasion: remember what was left on the clock. A glimpse shouldn't hand them
+    // the full countdown again; a proper sighting (five seconds and more) does.
+    if (st.flags.heatMode !== 4) { st.flags.alertSince = tick; if ((st.flags.evadeUntil ?? 0) > tick) st.flags.evadeLeft = st.flags.evadeUntil! - tick; }
+    if (tick - (st.flags.alertSince ?? tick) > 60 * 5) st.flags.evadeLeft = 0;
+    mode = 4; st.flags.evadeUntil = 0;
+  }
   else if (hunting.length) {
     // Out of sight: they've got this long to find him.
     if (!st.flags.evadeUntil) {
-      st.flags.evadeUntil = tick + 60 * (10 + 3 * Math.min(4, worst));
+      const full = 60 * (10 + 3 * Math.min(4, worst)), left = st.flags.evadeLeft ?? 0;
+      st.flags.evadeUntil = tick + (left ? Math.min(full, Math.max(60 * 6, left + 60 * 3)) : full);
+      st.flags.evadeLeft = 0;
       w.bus.emit({ type: "evasion", t: tick });
     }
     mode = 3;
@@ -564,7 +576,7 @@ export function stepHeat(w: World): void {
       mode = 2;
     }
   } else {
-    st.flags.evadeUntil = 0;
+    st.flags.evadeUntil = 0; st.flags.evadeLeft = 0;
     if ((st.flags.cautionUntil ?? 0) > tick) mode = 2;
     else if (after.some((a) => a.npc!.mode !== "routine")) mode = 1;
   }

@@ -150,6 +150,10 @@ export function lorryHits(w: World, v: Vehicle): Actor[] {
     const dx = a.x - v.x, dy = a.y - v.y;
     const along = dx * c + dy * sn, across = -dx * sn + dy * c;
     if (Math.abs(along) < LORRY_LEN / 2 + 0.3 && Math.abs(across) < LORRY_WID / 2 + 0.3 && a.downUntil < s.tick) {
+      // Its own driver isn't out to kill anybody: people who wander into the side of it get shoved out
+      // of the way, not flattened (a lorry mowing fans down on its own every few seconds was just noise).
+      // With Grozz at the wheel, or for Grozz himself, it's the real thing.
+      if (!v.drivenBy && a.id !== s.stadium!.pc) { const k = Math.sign(across || 1) * 0.15; a.x += -sn * k; a.y += c * k; continue; }
       a.downUntil = s.tick + 150; a.x += -sn * 1.6 * Math.sign(across || 1); a.y += c * 1.6 * Math.sign(across || 1);
       out.push(a);
     }

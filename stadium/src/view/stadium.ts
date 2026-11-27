@@ -346,7 +346,7 @@ class StadiumScene extends Phaser.Scene {
       if (e.type === "killed" && e.by === this.s.stadium!.pc && !e.stamp) this.hint("He's dead. You're covered in his blood: change your top or everyone will see it.");
       if (e.type === "armed_called") this.hint("Someone's called the armed police. You've got about forty seconds.");
       if (e.type === "armed_challenge") this.hint("Drop the knife and stand still, or run for it.");
-      if (e.type === "flayed") this.hint(e.part === "face" ? "In your pocket. Wear it and you'll pass for him, from a distance." : "In your pocket. Some doors have palm readers.");
+      if (e.type === "flayed") this.hint(e.part === "face" ? "In your pocket. Wear it and you're him." : "In your pocket. Some doors have palm readers.");
       if (e.type === "service_dog") this.hint(e.ok ? "He bought it. The dog's coming in with you." : "He didn't buy it. Try another turnstile, or another approach.");
       if (e.type === "breach") this.hint("Through the wall. Your ears are ringing. Get moving before the police get here.");
       if (e.type === "kickoff_delayed" && (e.n === 1 || e.n === 4)) this.hint(e.n === 1 ? "Kick-off delayed. The stewards will be keener now." : "The referee won't wait much longer.");
@@ -565,7 +565,9 @@ class StadiumScene extends Phaser.Scene {
         setTimeout(() => { a.play("radio_squelch", 0.8); setTimeout(() => a.play("stw_copy", 0.9), 300); }, 5200);
         break;
       }
-      case "mauled": case "flayed": {
+      case "flayed": if (e.by === pcId && e.secs > 2.5) { this.flayScene(e); break; }
+      // falls through
+      case "mauled": {
         const who = s.actors[e.who];
         if (who) { this.spray(who.x, who.y, 1.3, Math.random() * 2 - 1, Math.random() * 2 - 1, 22, 1.4); this.pools.push({ x: who.x, y: who.y + 0.1, r: 0.1, max: 0.9, grow: 0.35 }); }
         break;
@@ -1628,6 +1630,91 @@ class StadiumScene extends Phaser.Scene {
       t.setText(p.text).setOrigin(left ? 0 : 1, 0.5).setScale(px).setPosition(x + (left ? 15 : -15) * px, y).setVisible(true);
     });
   }
+  /** Taking a man's face off, at the length it deserves: close in, the wrong knife, six goes at it, a pool
+   *  that keeps spreading, the thing coming away like a wet sock, and Grozz pleased with it. Grim on
+   *  purpose, and played completely straight. */
+  flayScene(e: any): void {
+    const who = this.s.actors[e.who], pc = this.pc, a = this.audio;
+    if (!who || !pc) return;
+    const ms = e.secs * 1000, face = e.part === "face", strokes = face ? 6 : 4, cutMs = ms * (face ? 0.62 : 0.8);
+    if (this.speed > 1) this.setSpeed(1);
+    this.startCine(ms + 500, { focus: { x: (who.x + pc.x) / 2, y: (who.y + pc.y) / 2 }, zoomAdd: 1, caption: "" });
+    this.pools.push({ x: who.x, y: who.y + 0.1, r: 0.15, max: face ? 1.7 : 1.1, grow: 0.3 });
+    const dx = Math.sign(pc.x - who.x) || 1;
+    for (let i = 0; i < strokes; i++) setTimeout(() => {
+      a.play("saw_flesh" as Clip, 0.9, { rate: 0.85 + (i % 3) * 0.12 });
+      this.spray(who.x, who.y, 0.35, (i % 2 ? -1 : 1) * dx, -0.4 + Math.random() * 0.8, 9 + i * 3, 0.9 + i * 0.12);
+      this.cameras.main.shake(140, 0.0025 + i * 0.0006);
+      this.buzz(18);
+    }, 250 + i * (cutMs / strokes));
+    if (face) {
+      setTimeout(() => { this.pcLine = { text: "Hold still. Well. You know.", until: performance.now() + 1700 }; }, cutMs * 0.45);
+      // It comes away.
+      setTimeout(() => {
+        a.play("peel_face" as Clip, 1);
+        this.spray(who.x, who.y, 0.4, dx, -0.2, 34, 1.6);
+        this.cameras.main.shake(320, 0.005);
+        this.peel = { x0: who.x, y0: who.y, t0: performance.now(), ms: ms - cutMs - 250 };
+      }, cutMs + 200);
+      setTimeout(() => { this.pcLine = { text: pick2(["Lovely bit of face, that.", "Came off like a sock.", "Bit of a shave and that's a keeper."]), until: performance.now() + 2600 }; this.peel = null; }, ms + 150);
+    } else setTimeout(() => { this.pcLine = { text: "Hands. Always handy.", until: performance.now() + 2400 }; }, ms + 150);
+  }
+  peel: { x0: number; y0: number; t0: number; ms: number } | null = null;
+  faceG?: Phaser.GameObjects.Graphics;
+  /** A worn face, as it would really look: somebody else's, a size too big, the wrong colour, sagging off
+   *  the jaw, eye holes with Grozz's own eyes a long way back in them, held on with a bootlace round the
+   *  back of his head, still wet at the edges. Nobody in the game ever mentions it. */
+  drawFaces(): void {
+    if (!this.faceG) this.faceG = this.add.graphics().setDepth(9.2e6);
+    const g = this.faceG.clear(), s = this.s, P = this.P, u = P.S / 32, now = performance.now();
+    for (const id in s.actors) {
+      const a = s.actors[id], f = a.worn.face ? s.items[a.worn.face] : undefined;
+      if (!f || f.def !== "face" || a.hiddenIn || a.dead || a.downUntil > s.tick) continue;
+      const x = P.sx(a.x, a.y), y = headTop(P, a.x, a.y, a.id === s.stadium!.pc ? 1.75 : 1.7) + 9.5 * u - this.liftOf(a) * P.S;
+      const skin = SKIN[Math.abs(hash(f.of ?? "x")) % SKIN.length], dull = Phaser.Display.Color.IntegerToColor(skin).darken(18).desaturate(35).color;
+      // Which way he's looking, as the screen sees it: toward us, sideways, or away.
+      const fy = Math.sin(a.facing), fx = Math.cos(a.facing), away = fy < -0.55, side = !away && Math.abs(fx) > 0.75 ? Math.sign(fx) : 0;
+      const sag = Math.sin(now / 900 + x) * 0.5 * u;
+      if (away) {
+        // From behind: the bootlace, and the edges of it flapping past his ears.
+        g.fillStyle(dull, 1).fillRect(x - 8.5 * u, y - 4 * u, 2.5 * u, 8 * u).fillRect(x + 6 * u, y - 4 * u, 2.5 * u, 8 * u);
+        g.lineStyle(1.6 * u, 0x1a1208, 1).lineBetween(x - 7 * u, y - 2 * u, x + 7 * u, y - 2 * u).lineBetween(x - 7 * u, y + 2 * u, x + 7 * u, y + 2 * u);
+        g.lineBetween(x - 1 * u, y - 2 * u, x + 2.5 * u, y + 5 * u).lineBetween(x + 1 * u, y - 2 * u, x - 2.5 * u, y + 5 * u);
+        g.fillStyle(0x8a0a0a, 1).fillCircle(x - 7.5 * u, y + 5 * u, 1.2 * u).fillCircle(x + 7.5 * u, y + 5.5 * u, 1 * u);
+        continue;
+      }
+      const ox = side * 2.5 * u, w2 = (side ? 6 : 7.5) * u;
+      // The skin: too wide, slipped down and to one side, with a flap hanging under the chin.
+      g.fillStyle(0x2a0606, 1).fillRoundedRect(x + ox - w2 - 1.2 * u, y - 7.2 * u, w2 * 2 + 2.4 * u, 16.5 * u + sag, 3 * u);
+      g.fillStyle(dull, 1).fillRoundedRect(x + ox - w2, y - 6 * u, w2 * 2, 14 * u + sag, 3 * u);
+      g.fillStyle(dull, 1).fillTriangle(x + ox - w2 * 0.7, y + 7 * u, x + ox + w2 * 0.5, y + 7 * u, x + ox - w2 * 0.2, y + 12.5 * u + sag * 2);
+      // Wet at the edges, and a drip.
+      g.fillStyle(0x8a0a0a, 0.95).fillRect(x + ox - w2, y - 6 * u, w2 * 2, 1.4 * u).fillRect(x + ox - w2, y - 5 * u, 1.3 * u, 12 * u).fillRect(x + ox + w2 - 1.3 * u, y - 5 * u, 1.3 * u, 11 * u);
+      const drip = ((now / 1400 + x * 0.01) % 1);
+      g.fillStyle(0x8a0a0a, 1 - drip).fillRect(x + ox - w2 * 0.2 - 0.6 * u, y + 12 * u + drip * 9 * u, 1.3 * u, 2.4 * u);
+      // Eye holes cut too big, his own eyes small and far back; the mouth pulled into a long slack hole.
+      const e1 = x + ox - w2 * 0.45 + side * u, e2 = x + ox + w2 * 0.45 + side * u;
+      g.fillStyle(0x120406, 1).fillEllipse(e1, y - 1.2 * u, 4.2 * u, 3.6 * u);
+      if (!side || side < 0 || true) g.fillEllipse(e2, y - 0.6 * u + sag, 4.4 * u, 4 * u);
+      g.fillStyle(0xf4f1ea, 1).fillRect(e1 - 0.6 * u, y - 1.6 * u, 1.3 * u, 1.3 * u).fillRect(e2 - 0.6 * u, y - 1.1 * u + sag, 1.3 * u, 1.3 * u);
+      g.fillStyle(0x120406, 1).fillEllipse(x + ox + side * u, y + 5 * u + sag, 6.5 * u, 2.6 * u);
+      g.fillStyle(0xe8dcc0, 1).fillRect(x + ox - 2 * u + side * u, y + 4.4 * u + sag, 4 * u, 1 * u);
+      // Stitches: he's had a go at making it fit.
+      g.lineStyle(1.1 * u, 0x120406, 1);
+      for (let k = 0; k < 4; k++) { const sx2 = x + ox - w2 + 1.2 * u, sy2 = y - 3.5 * u + k * 3 * u; g.lineBetween(sx2 - 1.3 * u, sy2 - 1 * u, sx2 + 1.3 * u, sy2 + 1 * u).lineBetween(sx2 - 1.3 * u, sy2 + 1 * u, sx2 + 1.3 * u, sy2 - 1 * u); }
+      for (let k = 0; k < 3; k++) { const sx2 = x + ox - w2 * 0.5 + k * w2 * 0.5, sy2 = y - 5.2 * u; g.lineBetween(sx2 - 1 * u, sy2 - 1.2 * u, sx2 + 1 * u, sy2 + 1.2 * u); }
+    }
+    // The moment it comes away: a pale wet rag going from his head up to Grozz's hand.
+    if (this.peel && this.pc) {
+      const k = Math.min(1, (now - this.peel.t0) / Math.max(300, this.peel.ms)), pc = this.pc;
+      const px = this.peel.x0 + (pc.x - this.peel.x0) * k, py = this.peel.y0 + (pc.y - this.peel.y0) * k, z = 0.25 + Math.sin(k * Math.PI) * 0.9 + k * 0.9;
+      const x = P.sx(px, py), y = P.sy(px, py, z), wob = Math.sin(now / 70) * 1.5 * u;
+      g.fillStyle(0x2a0606, 1).fillEllipse(x, y, 13 * u, 10 * u + wob);
+      g.fillStyle(0xd9a58a, 1).fillEllipse(x, y, 11 * u, 8 * u + wob);
+      g.fillStyle(0x120406, 1).fillEllipse(x - 2.6 * u, y - 1 * u, 2.6 * u, 2 * u).fillEllipse(x + 2.6 * u, y - 1 * u, 2.6 * u, 2 * u).fillEllipse(x, y + 2.4 * u, 4 * u, 1.4 * u);
+      g.fillStyle(0x8a0a0a, 1).fillRect(x - 0.7 * u, y + 5 * u, 1.4 * u, (4 + (now % 300) / 60) * u);
+    }
+  }
   /** One line under the score, where the chain count goes. */
   stripLine(mark: string, text: string, ms = 3600): void {
     if (this.sceneOn) { setTimeout(() => this.stripLine(mark, text, ms), 2500); return; }
@@ -1976,7 +2063,7 @@ class StadiumScene extends Phaser.Scene {
   styleOf(a: Actor): FigureStyle {
     const s = this.s, tick = s.tick, m = s.match!;
     const skin = SKIN[Math.abs(hash(a.id)) % SKIN.length];
-    const down = !!a.dead || a.downUntil > tick || (a.fb ? a.fb.stunUntil > tick + 20 : false);
+    const down = !!a.dead || (a.downUntil > tick && !((a.effects.carving ?? 0) > tick)) || (a.fb ? a.fb.stunUntil > tick + 20 : false);
     if (a.fb && a.fb.controlled) {
       // Him, in the kit: same belly, new colours.
       const team = m.teams[a.fb.team];
@@ -2514,6 +2601,7 @@ class StadiumScene extends Phaser.Scene {
       const here = pc ? areaAt(pc.x, pc.y) : null;
       this.drawRigs();
       this.drawBeer();
+      this.drawFaces();
       this.drawBoards();
       this.drawEdgePips();
       { const rc = this.s.stadium!.recover, cd = rc ? document.querySelector("#custody .cd") : null; if (rc && cd) { const sec = Math.max(0, Math.ceil((rc.until - this.s.tick) / 60)); cd.textContent = `0:${String(sec).padStart(2, "0")}`; } }
@@ -3484,7 +3572,7 @@ class StadiumScene extends Phaser.Scene {
       // Loop the bent-over half of the cycle; the first half is him straightening up.
       const n = this.frames(`${key}-drag`), h0 = Math.floor(n / 2), f = h0 + (moving ? Math.floor((tick + Math.abs(hash(a.id)) % 50) * 0.12) % (n - h0) : 0);
       sp.setTexture(`${key}-drag`, dirIndex(Math.atan2(dragged.y - a.y, dragged.x - a.x)) * n + f);
-    } else if (a.id === this.s.stadium!.pc && this.sheetKind === "loot" && has("search")) {
+    } else if (a.id === this.s.stadium!.pc && (this.sheetKind === "loot" || (a.effects.carving ?? 0) > tick) && has("search")) {
       const n = this.frames(`${key}-search`);
       const h0 = Math.floor(n / 2);
       sp.setTexture(`${key}-search`, di * n + h0 + Math.floor(tick * 0.1) % (n - h0));

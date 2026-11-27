@@ -2,6 +2,10 @@ import { defOf, hasProp } from "./items";
 import type { Access, Actor, Id, Role, WorldState, Zone } from "./types";
 
 /** What an onlooker would take this actor to be. Clothing can lie; the face cannot. */
+/** The game's joke about a worn face: it looks like a butcher's window and nobody says a word. When this is
+ *  on, a borrowed face doesn't make anyone suspicious (carrying a pair of hands about still does). */
+export const DEADPAN = { on: false };
+
 export interface Appearance {
   team: string | null;
   role: Role;
@@ -62,7 +66,7 @@ export function appearance(s: WorldState, a: Actor): Appearance {
     faceId: borrowed ?? a.faceId,
     faceHidden: faceCover >= 1,
     alarming: (!!held && hasProp(held, "weapon")) || bloody,
-    grisly: !!borrowed || (!!held && held.def === "hands"),
+    grisly: (!!borrowed && !DEADPAN.on) || (!!held && held.def === "hands"),
   };
 }
 

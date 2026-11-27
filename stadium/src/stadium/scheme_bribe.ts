@@ -215,7 +215,8 @@ const DEF: SchemeDef = {
     // Every payoff but the last leaves the others still for sale.
     if (sc.done) { sc.variant = undefined; sc.done = false; sc.beat = undefined; sc.vars.offer = 0; }
     // Where each of them is before kick-off, on his own, and what he says to himself there.
-    const early = m.phase === "pre" && (m.phaseUntil - tick) / 60 > 80;
+    if (m.phase !== "pre" || (m.phaseUntil - tick) / 60 <= 80) sc.vars.out = 1; // once they've gone to line up they don't come back, however late it kicks off
+    const early = !sc.vars.out;
     if (up(w, k) && m.phase === "pre" && bus?.state === "parked" && !st.flags.busArrived && !st.flags.awayOnFoot) { post(w, k, CORNER(), -Math.PI / 2); aside(w, sc, "gk", k, [["Next week. On my mother's life. Next week!", "keeper"]]); }
     if (up(w, ref) && early) { post(w, ref, FAG(), Math.PI / 2); aside(w, sc, "ref", ref, [["Boat wants a new engine. Boats always do.", "ref"]]); }
     if (up(w, fo) && early) { post(w, fo, GENTS(), -Math.PI / 2); aside(w, sc, "fo", fo, [["Forty quid a match. Forty. To hold a board up.", "fourth"]]); }

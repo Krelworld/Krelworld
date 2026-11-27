@@ -75,8 +75,10 @@ function pin(w: World, a: Actor | undefined, p: P, secs: number, face?: P): void
   a.hiddenIn = undefined; a.x = p.x; a.y = p.y; a.vx = a.vy = 0; a.moveX = a.moveY = 0;
   if (face) a.facing = Math.atan2(face.y - p.y, face.x - p.x);
   if (a.fb) { a.fb.tx = p.x; a.fb.ty = p.y; }
-  if (a.npc) { a.npc.staged = w.state.tick + Math.round(60 * secs); a.npc.plan = [{ k: "wait", s: secs }]; a.npc.goal = null; a.npc.path = []; }
+  if (a.npc) { a.npc.staged = w.state.tick + Math.round(60 * secs); a.npc.plan = [{ k: "wait", s: secs }]; a.npc.waitUntil = 0; a.npc.goal = null; a.npc.path = []; }
 }
+/** Sent somewhere, and told to stay there. */
+const send = (a: Actor, p: P, run = false) => { const n = a.npc!, t = n.plan[0]; if (t?.k !== "go" || t.x !== p.x || t.y !== p.y) { n.plan = [{ k: "go", x: p.x, y: p.y, run }, { k: "wait", s: 60 }]; n.waitUntil = 0; } };
 const here: Beat["at"] = (_w, sc) => ({ x: sc.vars.x, y: sc.vars.y });
 const touch: Beat["at"] = (w, sc) => (sc.vars.pitch ? { x: SPOTS.tunnelTop.x + 0.9, y: SPOTS.tunnelTop.y + 1.5 } : here(w, sc));
 const me: Beat["at"] = (w) => pcOf(w) ?? { x: 0, y: 0 };
@@ -94,7 +96,7 @@ function begin(w: World, sc: SchemeState, cop: Actor, man: Actor): void {
   if (!m.halted) matchfx.halt(w, "police");
   say(w, cop, "Hold the game. Police business.", 4);
   if (man.off?.job === "referee") say(w, man, "(blows his own whistle) ...Yes, officer?", 4);
-  cop.npc!.plan = [{ k: "go", x: at.x - 1.3, y: at.y, run: true }, { k: "wait", s: 60 }];
+  send(cop, { x: at.x - 1.3, y: at.y }, true);
   news(w, "PLAY IS SUSPENDED. PLEASE REMAIN IN YOUR SEATS.", "tannoy_teamnews");
 }
 /** Everybody on their marks, and the cut. */
@@ -132,7 +134,7 @@ const ARREST: Beat[] = [
     say(w, ms[0], tongue(sc, "Bravo, craque. Bravo.", "Bravo, crack. Bravo.", "Well done, mate. No, really. Well done."), 2.6); say(w, ms[1], "(slow clap)", 2.6);
     if (!sc.vars.pitch || !man || !cop?.npc) return;
     const d = dist(man, t) || 1; man.moveX = ((t.x - man.x) / d) * 0.7; man.moveY = ((t.y - man.y) / d) * 0.7;
-    cop.npc.staged = 0; cop.npc.plan = [{ k: "go", x: t.x - 1, y: t.y - 0.6 }, { k: "wait", s: 20 }];
+    cop.npc.staged = 0; send(cop, { x: t.x - 1, y: t.y - 0.6 });
   }, { link: "LED OFF IN HIS BOOTS, TO A SLOW HANDCLAP" }),
   B(2.4, touch, search),
   { secs: 3, at: me, go: (w, sc) => {
@@ -224,8 +226,9 @@ const DEF: SchemeDef = {
       if (e.type === "planted" && e.by === st.pc) sc.vars.placed = 1;
       const t = s.actors[e.who ?? e.on];
       if ((e.type === "tipoff_arrest" || e.type === "false_arrest") && (t?.fb || t?.off)) { sc.vars.arrested = 1; if (t.off) sc.vars.arrestedOfficial = 1; if (t.fb?.team === 0) sc.vars.arrestedOurs = 1; }
-      // No referee: the match goes on the way it does without one (matchfx.standDown is that path; it says so on the bus).
-      if (e.type === "tipoff_arrest" && t?.off?.job === "referee") matchfx.standDown(w);
+      // No referee: the match goes on the way it does without one (matchfx.standDown is that path, and says so on
+      // the bus). The two-referees scheme does the same for itself when it's on; once is enough.
+      if (e.type === "tipoff_arrest" && t?.off?.job === "referee" && !schemeState(w, "referee")) matchfx.standDown(w);
       // A name, for a man on the team sheet: the search waits for the scene.
       if (e.type === "tipoff" && !sc.vars.tip && !sc.variant && (t?.fb || t?.off)) { sc.vars.tip = st.tipoffs.length; sc.vars.phone = e.phone ? 1 : 0; st.flags.searchHold = s.tick + 120; learn(w, DEF, sc, "tip", true); }
     });
@@ -268,10 +271,11 @@ const DEF: SchemeDef = {
           }
         } else if (!sc.variant) {
           if (sc.vars.pitch && !m.halted) matchfx.halt(w, "police");
-          const at = man.fb ? here(w, sc) : { x: man.x, y: man.y }, d = dist(man, at);
-          if (!man.fb) { sc.vars.x = at.x; sc.vars.y = at.y; if (sc.vars.pitch) cop.npc.plan = [{ k: "go", x: at.x - 1.3, y: at.y, run: true }, { k: "wait", s: 60 }]; }
+          const at = man.fb ? here(w, sc) : { x: man.x, y: man.y }, cp = { x: at.x - 1.3, y: at.y }, d = dist(man, at);
+          if (!man.fb) { sc.vars.x = at.x; sc.vars.y = at.y; }
           else if (sc.vars.pitch) { man.moveX = d > 0.8 ? ((at.x - man.x) / d) * 0.8 : 0; man.moveY = d > 0.8 ? ((at.y - man.y) / d) * 0.8 : 0; }
-          if ((dist(cop, at) < 3 && d < 1.3) || tick > sc.vars.go + 60 * 26) action(w, sc, cop, man);
+          if (sc.vars.pitch && dist(cop, cp) > 1.2) send(cop, cp, true);
+          if ((dist(cop, cp) < 2 && d < 1.3) || tick > sc.vars.go + 60 * 26) action(w, sc, cop, man);
         } else if (sc.vars.pitch && !m.halted && !sc.vars.over) matchfx.halt(w, "police");
       }
     }

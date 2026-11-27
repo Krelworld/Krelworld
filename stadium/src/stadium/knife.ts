@@ -8,7 +8,7 @@ import { registerVerb } from "../core/verbs";
 import type { World } from "../core/world";
 import { removePlayer } from "../football/api";
 import { raiseSecurity } from "./kickoff";
-import { SPOTS, VENUE } from "./layout";
+import { PACE, SPOTS, VENUE } from "./layout";
 import { follow, goTo, say, spawnStaff } from "./npc";
 import { alert, canSee, crime, finishArrest, isSecurity } from "./security";
 
@@ -220,13 +220,35 @@ export function installKnife(): void {
       it.label = `${t.name}'s ${act.arg}`;
       // Straight into a pocket if there's room, otherwise the other hand's full.
       if (actor.pockets.length < 3) moveItem(s, it.id, { k: "pocket", a: actor.id });
-      actor.downUntil = s.tick + 60 * 2;
+      // In the game it takes as long as it would: five seconds of hard, wet work with the wrong sort of knife.
+      const secs = PACE.calm ? (act.arg === "face" ? 5.4 : 3.6) : 2;
+      actor.downUntil = s.tick + Math.round(60 * secs);
+      // (Busy, not flat on his back: the view shows him bent over it, working.)
+      if (PACE.calm) actor.effects.carving = s.tick + Math.round(60 * secs);
       actor.effects.bloody = s.tick + 60 * 240;
       st.flags.bloodyOuter = actor.worn.outer ? Number(actor.worn.outer.slice(1)) : -1;
       st.flags.trophies = (st.flags.trophies ?? 0) + 1;
-      w.bus.emit({ type: "flayed", t: s.tick, by: actor.id, who: t.id, part: act.arg });
+      w.bus.emit({ type: "flayed", t: s.tick, by: actor.id, who: t.id, part: act.arg, secs, name: t.name });
       const seen = crime(w, actor, "mutilating a body", 4, undefined);
       if (seen) callArmed(w, actor.x, actor.y);
     },
   });
+}
+
+/** Wearing a man's face: it's on crooked, it's the wrong colour and it's stitched on with a bootlace, and
+ *  everybody he meets is perfectly nice about it. Now and then whoever's nearest says so. */
+const NICE = ["Morning, {n}. You look well.", "Alright, {n}? New moisturiser?", "You've caught the sun, {n}.", "Have you lost weight, {n}?", "Lovely to see you, {n}. You look tired.", "Had your hair done, {n}?", "{n}! Didn't recognise you. No, I did.", "You want to get some sleep, {n}."];
+export function stepDeadpan(w: World): void {
+  const s = w.state, st = s.stadium!, tick = s.tick;
+  if (!PACE.calm || tick % 60 !== 0 || tick < (st.flags.niceAt ?? 0)) return;
+  const pc = s.actors[st.pc], f = pc?.worn.face ? s.items[pc.worn.face] : undefined;
+  if (!pc || !f || f.def !== "face" || pc.hiddenIn || pc.heldBy) return;
+  const owner = f.of ? s.actors[f.of] : undefined, n = (owner?.name ?? "mate").split(" ").pop()!;
+  const near = Object.values(s.actors).filter((a) => a.npc && !a.dead && !a.hiddenIn && a.downUntil <= tick && a.npc.mode === "routine" && a.npc.job !== "player" && !a.npc.bubble && Math.hypot(a.x - pc.x, a.y - pc.y) < 3.6)
+    .sort((p, q) => Math.hypot(p.x - pc.x, p.y - pc.y) - Math.hypot(q.x - pc.x, q.y - pc.y))[0];
+  if (!near) return;
+  const k = (st.flags.niceN = (st.flags.niceN ?? 0) + 1);
+  say(w, near, NICE[(k * 3) % NICE.length].replace("{n}", n), 3.2);
+  near.npc!.told = tick + 190; near.facing = Math.atan2(pc.y - near.y, pc.x - near.x);
+  st.flags.niceAt = tick + 60 * 11;
 }

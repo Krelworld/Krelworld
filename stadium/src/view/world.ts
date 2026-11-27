@@ -74,7 +74,7 @@ export class WorldArt {
       if (this.scene.textures.exists(`k-${k}`)) continue;
       const src = this.img(k);
       if (!src) continue;
-      const cv = k === "turnstile" ? repaintSign(src, { x: 61, y: 24, w: 74, h: 21 }, "TURNSTILE", "#3fcf5c", "#0f2a14") : k === "turnstile_shut" || k === "turnstile_open" ? repaintSign(src, { x: 42, y: 20, w: 108, h: 19 }, "TICKETS", "#f2ecd0", "#1b2a6b") : k === "toiletsign" ? repaintSign(src, { x: 6, y: 4, w: 52, h: 17 }, "TOILETS", "#1c5c3c", "#f4f1ea") : (() => {
+      const cv = k === "turnstile" ? repaintSign(src, { x: 61, y: 24, w: 74, h: 21 }, "TURNSTILE", "#3fcf5c", "#0f2a14") : k === "turnstile_shut" || k === "turnstile_open" ? repaintSign(src, { x: 42, y: 20, w: 108, h: 19 }, "ENTRANCE", "#f2ecd0", "#1b2a6b") : k === "toiletsign" ? repaintSign(src, { x: 6, y: 4, w: 52, h: 17 }, "TOILETS", "#1c5c3c", "#f4f1ea") : (() => {
         const c = document.createElement("canvas"); c.width = src.width; c.height = src.height; c.getContext("2d")!.drawImage(src, 0, 0); return c;
       })();
       const d = cv.getContext("2d", { willReadFrequently: true })!.getImageData(0, 0, cv.width, cv.height).data;

@@ -1637,3 +1637,51 @@ Neither is marked.
 - **Medical room recovery, clothing as identity tags, side jobs from NPC needs** are unchanged this round.
 - **A clean typeface for speech bubbles:** the report is right that body copy shouldn't be in a pixel face. It touches every bubble, so it wants its own pass and a look on a phone.
 - **The playtest gate** still needs five people.
+
+## Round: the overworld reviewed against the two reports (layout, size, signposting)
+
+The creator asked for a review of how the overworld is laid out, sized and signposted, against the latest briefs. I measured it, looked at it wide, and changed what didn't need new art or a new map.
+
+**Measurements.**
+- **The district:** about 184 × 158 m.
+- **Grozz:** walks 5.2 m/s and runs 7.3.
+- **An iPhone 13 upright** showed 18 × 31 m with Grozz 38 points tall.
+- **An iPhone 13 on its side** shows 23 × 11 m with Grozz 58 points tall.
+
+Walking distance from where he's dropped (the old phone view shows roughly the first 15 m):
+
+| Group | Places | Distance |
+|---|---|---|
+| Pub yard | kegs and hose | 6 m |
+| West forecourt | pigeons, Del, charity shop, newsboard | 16–19 m |
+| Pub and gates | pub door, Ronson, turnstiles | 26–33 m |
+| East forecourt | ticket office, Cash Kings, police van, burger van, scaffold, staff door | 51–90 m |
+| Far side | coach park, hotel, service gate | 156–176 m |
+
+**What's right, and stays.** The second report says the exterior is "already close to the right shape", and the measurements agree.
+- **Two dense clusters:** the pub yard with the west forecourt, and the east forecourt (van, burger van, staff door, scaffold, ticket office, Cash Kings within 30 m of each other). Each has several processes crossing.
+- **The long legs carry processes.** The east road is the lorry's and the coach's route, and you can ride both. A bike stands at each end.
+- **No new map.** Moving buildings would break the painted art and seventy-odd tests for no gain the reports ask for.
+
+**What was wrong, and is changed.**
+- **Signs that said the wrong thing.**
+  - The three turnstile portals read "TICKETS", twenty metres from a booth reading "TICKET OFFICE". The creator had already found getting in unintuitive. They now read "ENTRANCE".
+  - The ground label over Cash Kings still said "BOOKMAKER". It now says "CASH KINGS".
+  - The concourse kiosk still said "BETS". It now says "SNACKS".
+- **Nothing said what was where.** With twenty metres of a 180-metre district on screen and no map (rightly), the world has to do the signposting. There are now six wayfinding totems at the junctions, painted like the ground's own signage, each with three lines and an arrow per line:
+  - "ENTRANCE / PUB / SHOPS" by the yard;
+  - "ENTRANCE / TICKETS / STAFF";
+  - "STAFF DOOR / HOTEL 3 MIN / CAR PARK";
+  - one on the service road;
+  - one at the alley mouth;
+  - one by the hotel.
+- **Grozz was too small upright.** At 38 points, the reaction animations (the first report's highest-value art) barely read. Portrait now uses the same scale as landscape: 58 points, with 12 × 21 m on screen. The zoom button still steps out to the old view. The orientations now differ in composition, not size, as the report asks.
+- **Upright framing.** He stood at 47% down the screen; the report asks for 55–60%, to leave more of the world ahead and room for speech. He's now at 56%.
+- **Roofs weren't thinking spaces.** The second report wants a roof to be where several processes are visible at once. On a roof the view now steps one zoom level wider.
+- **The opening frame didn't hold the opening's machinery.** Ronson was tied 30 m away round the front of the pub. In the game build he's now tied in the pub yard, 8 m from where Grozz is dropped. The first frame has the kegs, the hose, the lorry, the drayman and the dog: the "one overlapping ecosystem" both reports ask for. Tests keep the old post.
+- **The standpipe** the beer hose runs from was seven pixels wide. It's bigger, with a plate.
+
+**Found and left, with reasons.**
+- **The service road and the west alley are long and empty on foot** (the hotel is half a minute's walk past nothing). The honest fix is things happening on them (a late delivery, a steward's fag corner, Lenny's walk), not moving the hotel. That's content, and the reports say to freeze content until rule reuse is proven.
+- **A 35 m strip of trees west of the alley and a dark void east of the hotel** are map edge. They're harmless, and a later art pass could close them in.
+- **From outside, the pitch shows through the stand roof** at very wide zoom. It's not visible at playable zooms.

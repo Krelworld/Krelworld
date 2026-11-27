@@ -271,6 +271,9 @@ export const PACE = { calm: false };
 export function setPace(o: { kickoffAt: number; calm: boolean }): void { KICKOFF_AT = o.kickoffAt; PACE.calm = o.calm; }
 /** Where the coach drops Grozz. In the game, the top of the pub yard (the drayman, his lorry and his
  *  kegs in view, the first thing to mess with); the tests keep the old spot on the approach. */
+/** Where Ronson's tied up. In the game he's in the pub yard with the kegs, the lorry and the hose, so the
+ *  first frame holds the whole of the opening's machinery (the reports' opening teaching space). */
+export const dogPost = () => (PACE.calm && VENUE.id === "qf" ? { x: -22.2, y: 72.2 } : SPOTS.dogPost);
 export const arrivalSpot = () => (PACE.calm ? { x: VENUE.id === "sf" ? 26.6 : -26.6, y: 65.6 } : SPOTS.arrival);
 /** When the fans rush the gates: the last three minutes. */
 export const rushAt = () => KICKOFF_AT - 180;
@@ -404,7 +407,7 @@ const QF_LABELS: Venue["labels"] = [
   ["THE THREE LIONS", -48, 72, 13], ["TICKETS", 21, 50.6], ["MERCHANDISE", -21, 50.6], ["TURNSTILES", 0, 46.2],
   ["STAFF ENTRANCE", 59.5, 52.4], ["STEWARDS", 82, 54], ["SERVICE GATE", 66, -48], ["LOADING BAY", 50, -54],
   ["SECURITY", 34, -51], ["ENGLAND", -17, -50], ["AWAY", 17, -50], ["OFFICIALS", 0, -50.5], ["KITCHEN", -34, -50],
-  ["SECOND HAND ROSE", -11, 64.5], ["ARMY & NAVY", 15, 64.5], ["BOOKMAKER", 36, 69.5], ["BETS", 30, 40.4],
+  ["SECOND HAND ROSE", -11, 64.5], ["ARMY & NAVY", 15, 64.5], ["CASH KINGS", 36, 69.5], ["SNACKS", 30, 40.4],
   ["BAR", -13, 40.6], ["GENTS", 10, 39.6], ["CAR PARK", 43, 72], ["TOILETS", -58, 67], ["TEAM HOTEL", 83, -30, 12],
 ];
 

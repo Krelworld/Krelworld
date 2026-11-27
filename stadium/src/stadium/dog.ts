@@ -8,7 +8,7 @@ import { DT, type Actor } from "../core/types";
 import { registerVerb } from "../core/verbs";
 import type { World } from "../core/world";
 import { haltPlay, intruderKick, removePlayer, resumePlay } from "../football/api";
-import { areaAt, SPOTS, VENUE } from "./layout";
+import { areaAt, SPOTS, VENUE, dogPost } from "./layout";
 import { follow, goTo, newNpc, say } from "./npc";
 import { lineOfSight } from "./nav";
 import { canSee, crime, isSecurity } from "./security";
@@ -16,7 +16,7 @@ import { canSee, crime, isSecurity } from "./security";
 export function createDog(w: World): void {
   const s = w.state, st = s.stadium!;
   const id = "dog";
-  const p = SPOTS.dogPost;
+  const p = dogPost();
   const dog: Actor = {
     id, kind: "npc", name: "Ronson", faceId: id, x: p.x, y: p.y, vx: 0, vy: 0, facing: Math.PI / 2, radius: 0.4, speed: 2,
     moveX: 0, moveY: 0, hand: null, pockets: [], worn: {}, money: 0, downUntil: 0, effects: {},
@@ -187,7 +187,7 @@ export function stepDog(w: World): void {
   switch (d.state) {
     case "tied": {
       // Straining at the end of its rope at anyone who comes close: lunge, choke, back, lunge.
-      const p = SPOTS.dogPost, t = nearestVictim(w, dog, p, 6);
+      const p = dogPost(), t = nearestVictim(w, dog, p, 6);
       if (t) {
         const ang = Math.atan2(t.y - p.y, t.x - p.x), phase = (tick % 50) / 50;
         const reach = phase < 0.35 ? 1.8 : 1.1;

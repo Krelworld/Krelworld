@@ -23,7 +23,7 @@ import { BOXER_FEE, burnerOn, knows } from "../stadium/phone";
 import { isSecurity } from "../stadium/security";
 import { aimThrow, bribeWhy, itemName, itemOptions, looksOutOfPlace, options, personName, primary, throwTarget, type Option } from "../stadium/context";
 import { createGame, loadCheckpoint, saveCheckpoint, stepGame, type Game } from "../stadium/game";
-import { AREAS, areaAt, BOUNDS, KICKOFF_AT, rushAt, setBreaches, setPace, SOLID, SPOTS, VENUE } from "../stadium/layout";
+import { AREAS, areaAt, BOUNDS, dogPost, KICKOFF_AT, rushAt, setBreaches, setPace, SOLID, SPOTS, VENUE } from "../stadium/layout";
 import { afterMatch, describeDef, FIXTURES, loadoutProblem, newCampaign, notorietyText, type Campaign } from "../stadium/campaign";
 import { TEAMS } from "../football/setup";
 import { canBetHere, prices } from "../stadium/betting";
@@ -83,7 +83,10 @@ function zoomSteps(): number[] {
   const small = Math.min(window.innerWidth, window.innerHeight) < 520;
   // Portrait phones keep the wider view (60 points would leave only about 12 m across).
   const portrait = small && window.innerHeight > window.innerWidth;
-  const z = Math.max(1, Math.round(((GZ ? (GZ * 32) / 60 : portrait ? 22 : 32) * DPR) / 32));
+  // Portrait shows Grozz the same size as landscape (about 60 points): characters and their reactions have
+  // to read, and upright the screen still gives about 12 m across by 21 deep. The zoom button steps out.
+  void portrait;
+  const z = Math.max(1, Math.round(((GZ ? (GZ * 32) / 60 : 32) * DPR) / 32));
   return [...new Set([z, z + 1, Math.max(1, z - 1)])];
 }
 const ZOOMS = [0, 1, 2];
@@ -789,7 +792,7 @@ class StadiumScene extends Phaser.Scene {
       this.labels.push(this.add.text(P.sx(x, y), P.sy(x, y), text.toUpperCase(), { fontFamily: '"Silkscreen", "Pixelify Sans", monospace', fontSize: `${size + 2}px`, fontStyle: "800", color: "#ffffff", letterSpacing: 1.5 } as Phaser.Types.GameObjects.Text.TextStyle)
         .setOrigin(0.5).setAlpha(0.55).setResolution(Math.ceil(DPR * 2)).setDepth(1));
     };
-    const SIGNED = new Set(["STAFF ENTRANCE", "THE THREE LIONS", "TICKETS", "MERCHANDISE", "TURNSTILES", "STEWARDS", "SECOND HAND ROSE", "ARMY & NAVY", "BOOKMAKER", "TEAM HOTEL", "FAN ZONE", "BIG SCREEN"]);
+    const SIGNED = new Set(["STAFF ENTRANCE", "THE THREE LIONS", "TICKETS", "MERCHANDISE", "TURNSTILES", "STEWARDS", "SECOND HAND ROSE", "ARMY & NAVY", "BOOKMAKER", "CASH KINGS", "TEAM HOTEL", "FAN ZONE", "BIG SCREEN"]);
     for (const [t, x, y, size] of VENUE.labels) if (!this.useSprites || !SIGNED.has(t)) label(t, x, y, size ?? 11);
     // A fan zone has a big screen; a known face has posters at the turnstiles.
     if (VENUE.features.fanZone) {
@@ -1232,6 +1235,8 @@ class StadiumScene extends Phaser.Scene {
     // Whole screen pixels per art pixel, so every pixel of the art is the same size; a bigger screen shows more.
     const steps = zoomSteps();
     if (this.cine && !this.pc?.seated) return steps[Math.min(this.zoomLevel, steps.length - 1)] + this.cine.zoomAdd;
+    // Up on a roof you see more (the reports: a roof is where the district makes sense): one step wider.
+    if (this.pc?.roof && !this.pc.seated && !this.cine) return Math.max(1, steps[Math.min(this.zoomLevel, steps.length - 1)] - 1);
     // Indoors: step in as far as the room still fits the screen (small shops fill it; the pub doesn't need to).
     if (this.roomShown && !this.cine) {
       const b = this.blds.find((x) => x.id === this.roomShown);
@@ -2801,7 +2806,9 @@ class StadiumScene extends Phaser.Scene {
     }
     else { tx = 0; ty = 0; }
     // On a phone held upright, frame him a little above centre, clear of the buttons at the bottom.
-    if (pc && !pc.seated && !this.roomShown && cam.height > cam.width * 1.2) ty += (cam.height / cam.zoom) * 0.07;
+    // Upright, he stands a little below the middle (about 56% down): more of the world ahead and above,
+    // where speech sits, and still clear of the buttons.
+    if (pc && !pc.seated && !this.roomShown && cam.height > cam.width * 1.2) ty -= (cam.height / cam.zoom) * 0.012;
     // Up high: frame both you and your shadow on the ground.
     if (pc) ty -= (this.liftOf(pc) * (pc.roof ? 1 : 0.75) + (pc.chute ? 3 * 0.75 : 0)) * P.S;
     // Indoors (Stardew's and Zelda's rooms): through the door is a fade, then the room on its own,
@@ -2840,6 +2847,50 @@ class StadiumScene extends Phaser.Scene {
   wallSprites = new Map<string, Phaser.GameObjects.TileSprite>();
   shellSprites = new Map<string, Phaser.GameObjects.TileSprite>();
 
+  /** Where the wayfinding totems stand and what they say: an arrow and a name per line (n, e, s, w). */
+  totemList: { x: number; y: number; rows: [string, string][] }[] | null = null;
+  totemVenue = "";
+  totems(): { x: number; y: number; rows: [string, string][] }[] {
+    if (this.totemList && this.totemVenue === VENUE.id) return this.totemList;
+    const m = VENUE.id === "sf" ? -1 : 1, flip = (d: string) => (m === 1 ? d : d === "e" ? "w" : d === "w" ? "e" : d);
+    const pub = VENUE.features.fanZone ? "FAN ZONE" : "PUB";
+    const raw: { x: number; y: number; rows: [string, string][] }[] = VENUE.id === "final" ? [] : [
+      { x: -20.5, y: 60.2, rows: [["n", "ENTRANCE"], ["w", pub], ["e", "SHOPS"]] },
+      { x: 24.5, y: 60.2, rows: [["w", "ENTRANCE"], ["n", "TICKETS"], ["e", "STAFF"]] },
+      { x: 57, y: 60.4, rows: [["n", "STAFF DOOR"], ["e", "HOTEL 3 MIN"], ["s", "CAR PARK"]] },
+      { x: 73.4, y: 47, rows: [["n", "TEAM HOTEL"], ["n", "LOADING BAY"], ["w", "ENTRANCE"]] },
+      { x: -59.6, y: 60.6, rows: [["n", "SERVICE"], ["n", "ALLEY"], ["e", "ENTRANCE"]] },
+      { x: 73.4, y: -10, rows: [["e", "TEAM HOTEL"], ["n", "DELIVERIES"], ["s", "ENTRANCE"]] },
+    ];
+    this.totemList = raw.map((tp) => ({ x: tp.x * m, y: tp.y, rows: tp.rows.map(([d, s2]) => [flip(d), s2] as [string, string]) }));
+    this.totemVenue = VENUE.id;
+    // Painted once: a post, a cap in the club's blue, and a board per line with an arrow.
+    this.totemList.forEach((tp, i) => {
+      const key = `totem-${VENUE.id}-${i}`;
+      if (this.textures.exists(key)) return;
+      const rowH = 20, w = Math.max(...tp.rows.map((r) => r[1].length)) * 12 + 34, h = tp.rows.length * rowH + 44;
+      const cv = document.createElement("canvas"); cv.width = w; cv.height = h;
+      const cx = cv.getContext("2d")!; cx.imageSmoothingEnabled = false;
+      cx.fillStyle = "#15171a"; cx.fillRect(w / 2 - 4, 6, 8, h - 6); cx.fillStyle = "#5d6470"; cx.fillRect(w / 2 - 2, 8, 4, h - 9);
+      cx.fillStyle = "#15171a"; cx.fillRect(0, 0, w, tp.rows.length * rowH + 8);
+      cx.fillStyle = "#c8102e"; cx.fillRect(2, 2, w - 4, 3);
+      tp.rows.forEach(([d, text], k) => {
+        const y = 7 + k * rowH;
+        cx.fillStyle = k % 2 ? "#1b2a6b" : "#22347f"; cx.fillRect(2, y, w - 4, rowH - 2);
+        // The arrow, in yellow, on the side it points to (up and down sit on the left).
+        const ax = d === "e" ? w - 14 : 14, ay = y + (rowH - 2) / 2;
+        cx.fillStyle = "#f2c94c"; cx.beginPath();
+        if (d === "n") { cx.moveTo(ax, ay - 6); cx.lineTo(ax + 6, ay + 4); cx.lineTo(ax - 6, ay + 4); }
+        else if (d === "s") { cx.moveTo(ax, ay + 6); cx.lineTo(ax + 6, ay - 4); cx.lineTo(ax - 6, ay - 4); }
+        else if (d === "e") { cx.moveTo(ax + 6, ay); cx.lineTo(ax - 4, ay - 6); cx.lineTo(ax - 4, ay + 6); }
+        else { cx.moveTo(ax - 6, ay); cx.lineTo(ax + 4, ay - 6); cx.lineTo(ax + 4, ay + 6); }
+        cx.closePath(); cx.fill();
+        pixelTextOn(cx, text, d === "e" ? 6 : 26, y + 1, w - 34, rowH - 4, "#f4f1ea", 2, "rgba(0,0,0,0.5)");
+      });
+      this.textures.addCanvas(key, cv);
+    });
+    return this.totemList;
+  }
   /** Queue the world's pictures for this frame; says which layout walls they stand in for. */
   worldThings(things: { d: number; draw: () => void; spr?: (depth: number) => void }[], onScreen: (x: number, y: number, pad?: number) => boolean) {
     const P = this.P, pc = this.pc, S = P.S;
@@ -2968,6 +3019,17 @@ class StadiumScene extends Phaser.Scene {
       const fade = free && hM > 1.4 && pc.y < p.y && pc.y > p.y - hM * 1.1 && Math.abs(pc.x - p.x) < wM / 2 + 0.4;
       if (fade) this.pcHidden = true;
       things.push({ d: p.y, draw: () => {}, spr: (dep) => this.rigDecor(p, place(image(p.id, key)).setDepth(dep).setAlpha(fade ? 0.4 : 1), dep) });
+    }
+
+    // Wayfinding totems at the junctions (a real ground has them; a phone shows twenty metres of a
+    // hundred-and-eighty-metre district, so the world has to say what's where, not a map).
+    if (!roomR) for (const [i, tp] of this.totems().entries()) {
+      if (!onScreen(tp.x, tp.y, 260)) continue;
+      const key = `totem-${VENUE.id}-${i}`;
+      if (!this.textures.exists(key)) continue;
+      this.shadowG.fillStyle(0x000000, 0.28).fillEllipse(Math.round(P.sx(tp.x + 0.1, 0)), Math.round(P.sy(0, tp.y)) - 1, S * 1.5, S * 0.3);
+      const fadeT = free && pc.y < tp.y && pc.y > tp.y - 3.2 && Math.abs(pc.x - tp.x) < 2.2;
+      things.push({ d: tp.y, draw: () => {}, spr: (dep) => image(`totem${i}`, key).setOrigin(0.5, 1).setPosition(Math.round(P.sx(tp.x, tp.y)), Math.round(P.sy(tp.x, tp.y))).setDepth(dep).setAlpha(fadeT ? 0.4 : 1) });
     }
 
     // The ground from outside: a roofed ring of stands behind a clad facade, the turnstiles let into it.
@@ -3549,10 +3611,12 @@ class StadiumScene extends Phaser.Scene {
     const dx = P.sx(drain.x, drain.y), dy = P.sy(drain.x, drain.y);
     g.fillStyle(0x15171a, 0.9).fillEllipse(dx, dy, P.S * 0.78, P.S * 0.36); g.fillStyle(sewer ? 0x0a0a0a : 0x4a4d52, 1).fillEllipse(dx, dy, P.S * 0.66, P.S * 0.29);
     if (!sewer) { g.lineStyle(1.5 * px, 0x2a2c30, 1); for (let i = -2; i <= 2; i++) g.lineBetween(dx + i * P.S * 0.1, dy - P.S * 0.1, dx + i * P.S * 0.1, dy + P.S * 0.1); }
-    const tx = P.sx(tap.x, tap.y), ty0 = P.sy(tap.x, tap.y), ty1 = P.sy(tap.x, tap.y, 0.75);
+    const tx = P.sx(tap.x, tap.y), ty0 = P.sy(tap.x, tap.y), ty1 = P.sy(tap.x, tap.y, 1.05);
     g.fillStyle(0x000000, 0.3).fillEllipse(tx, ty0, P.S * 0.3, P.S * 0.12);
-    g.fillStyle(0x15171a, 1).fillRect(tx - 3.5 * px, ty1 - px, 7 * px, ty0 - ty1 + 2 * px); g.fillStyle(0x8a9098, 1).fillRect(tx - 2.5 * px, ty1, 5 * px, ty0 - ty1);
-    g.fillStyle(0x15171a, 1).fillCircle(tx, ty1, 4.5 * px); g.fillStyle(0xd7263d, 1).fillCircle(tx, ty1, 3.2 * px);
+    const u = P.S / 32;
+    g.fillStyle(0x15171a, 1).fillRect(tx - 5 * u, ty1 - u, 10 * u, ty0 - ty1 + 2 * u); g.fillStyle(0x8a9098, 1).fillRect(tx - 3.5 * u, ty1, 7 * u, ty0 - ty1); g.fillStyle(0xb8bec6, 1).fillRect(tx - 3.5 * u, ty1, 2 * u, ty0 - ty1);
+    g.fillStyle(0x15171a, 1).fillCircle(tx, ty1, 7 * u); g.fillStyle(0xd7263d, 1).fillCircle(tx, ty1, 5.2 * u); g.fillStyle(0x15171a, 1).fillCircle(tx, ty1, 1.6 * u);
+    g.fillStyle(0xf2c94c, 1).fillRect(tx - 6 * u, ty0 - 13 * u, 12 * u, 6 * u); g.fillStyle(0x15171a, 1).fillRect(tx - 4.5 * u, ty0 - 11.5 * u, 9 * u, 3 * u);
     // The hose: from the standpipe to the kegs, or from the drain.
     const src = sewer ? drain : tap, sx = sewer ? dx : tx, sy = sewer ? dy : ty0 - 3 * px, kx2 = P.sx(kegs.x, kegs.y), ky2 = P.sy(kegs.x, kegs.y);
     const midx = (sx + kx2) / 2, midy = Math.max(sy, ky2) + P.S * 0.28;
@@ -3814,7 +3878,7 @@ class StadiumScene extends Phaser.Scene {
       for (let i = 0; i < 5; i++) { const bx = x - S * 0.2 + i * S * 0.12; g.lineBetween(bx, y - h * 1.02, bx - dir * S * 0.03, y - h * 1.18); }
     }
     if (dg && pc && (dg.state === "led" || dg.state === "tied")) {
-      const to = dg.state === "led" ? { x: P.sx(pc.x, pc.y), y: P.sy(pc.x, pc.y) - S * 0.7 } : { x: P.sx(SPOTS.dogPost.x, SPOTS.dogPost.y - 0.6), y: P.sy(SPOTS.dogPost.x, SPOTS.dogPost.y - 0.6, 0.8) };
+      const to = dg.state === "led" ? { x: P.sx(pc.x, pc.y), y: P.sy(pc.x, pc.y) - S * 0.7 } : { x: P.sx(dogPost().x, dogPost().y - 0.6), y: P.sy(dogPost().x, dogPost().y - 0.6, 0.8) };
       // A lead pulled tight when it's lunging, slack when it isn't.
       const taut = speed > 5;
       const midx = (hx + to.x) / 2, midy = (hy + to.y) / 2 + (taut ? 0 : S * 0.25);
@@ -5656,7 +5720,7 @@ class StadiumScene extends Phaser.Scene {
       ["Wear England kit", () => { spawnItem(this.s, "kit_eng", { k: "worn", a: this.pc.id, slot: "outer" }); }],
       ["Wear police uniform", () => { spawnItem(this.s, "police_uniform", { k: "worn", a: this.pc.id, slot: "outer" }); }],
       ["Go to the hotel", tp(SPOTS.busPark.x - 3, SPOTS.busPark.y + 4)],
-      ["Go to the dog", tp(SPOTS.dogPost.x + 1.5, SPOTS.dogPost.y)],
+      ["Go to the dog", tp(dogPost().x + 1.5, dogPost().y)],
       ["Wear referee's kit", () => { spawnItem(this.s, "ref_kit", { k: "worn", a: this.pc.id, slot: "outer" }); spawnItem(this.s, "whistle", { k: "pocket", a: this.pc.id }); }],
       ["Go to concourse", tp(0, 41)],
       ["Go to the stands", tp(-10, 32)],

@@ -3,7 +3,7 @@
 // is rewarded with a plan, not a waypoint. Read-only: positions come from the sim, nothing changes.
 import type { World } from "../core/world";
 import type { Actor } from "../core/types";
-import { SPOTS, VENUE } from "../stadium/layout";
+import { dogPost, SPOTS, VENUE } from "../stadium/layout";
 import { roofs } from "../stadium/roofs";
 
 export interface Curio { id: string; r: number; text: string; short: string; at: (w: World) => { x: number; y: number } | null | undefined }
@@ -13,7 +13,7 @@ const who = (w: World, f: (a: Actor) => boolean) => Object.values(w.state.actors
 const hasDef = (w: World, def: string) => { const pc = w.state.actors[w.state.stadium!.pc]; return !!pc && [pc.hand, ...pc.pockets].some((id) => id && w.state.items[id]?.def === def); };
 
 export const CURIOS: Curio[] = [
-  { id: "dog", short: "Ronson. He'd go through anyone for a pie.", r: 5, at: () => SPOTS.dogPost, text: "Ronson, tied up and dying to have a go at someone. Untie him and point him at whoever you like." },
+  { id: "dog", short: "Ronson. He'd go through anyone for a pie.", r: 5, at: () => dogPost(), text: "Ronson, tied up and dying to have a go at someone. Untie him and point him at whoever you like." },
   { id: "cellar", short: "Cellar hatch. Needs a wrench…", r: 4, at: () => (SPOTS as any).cellar, text: "The pub's cellar hatch. Locked. A big wrench would have it open, and the drains run under the ground." },
   { id: "publadder", short: "Ladder. Up top, nobody looks.", r: 4, at: () => { const r = roofs().find((q) => q.id === "pub"); return r ? { x: r.ladders[0].bx, y: r.ladders[0].by } : null; }, text: "A ladder up onto the pub roof. Nobody looks up. Handy for lobbing things." },
   { id: "kegs", short: "Shame if one of them kegs rolled off…", r: 11, at: () => ({ x: X(-31.2), y: 68.7 }), text: "The drayman's kegs, stacked by his lorry. One's right on the edge. Give it a roll and see what he does." },

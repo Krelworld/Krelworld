@@ -1,4 +1,5 @@
 // Planting things on people, tipping off the police, and playing at being the police.
+import { knockOn } from "./kegs";
 import { appearance } from "../core/identity";
 import { canPocket, defOf, hasProp, moveItem } from "../core/items";
 import { chance, pick } from "../core/rng";
@@ -151,6 +152,19 @@ export function stepTipoffs(w: World): void {
     // The search.
     tip.stage = "done";
     const found = illicitOn(w, t);
+    // A copper turning out someone's pockets draws a crowd: the stewards and coppers nearby leave what
+    // they're doing to come and watch (people leave their post for a problem; a show counts).
+    if (!t.fb && t.npc && t.id !== st.pc) {
+      const watchers = Object.values(s.actors).filter((a) => a !== cop && a !== t && a.npc && isSecurity(a) && a.npc.mode === "routine" && !a.dead && a.downUntil <= tick && Math.hypot(a.x - t.x, a.y - t.y) < 16)
+        .sort((p, q) => Math.hypot(p.x - t.x, p.y - t.y) - Math.hypot(q.x - t.x, q.y - t.y)).slice(0, 3);
+      watchers.forEach((a, i) => {
+        const ang = (i / 3) * Math.PI * 2, back = a.npc!.post ?? { x: a.x, y: a.y };
+        a.npc!.plan = [{ k: "go", x: t.x + Math.cos(ang) * 2.4, y: t.y + Math.sin(ang) * 2.4 }, { k: "wait", s: 14 }, { k: "go", x: back.x, y: back.y }];
+        a.npc!.gawk = { x: t.x, y: t.y, until: tick + 60 * 20, filming: false };
+      });
+      if (by?.id === st.pc) knockOn(w, watchers[0] ?? cop, "search", 20, "GRASSED UP TO THE OLD BILL", "COPPER TURNS HIS POCKETS OUT", ...(watchers.length ? [watchers.length > 1 ? "THE STEWARDS COME TO WATCH" : "A STEWARD COMES TO WATCH"] : []), ...(found?.plantedBy ? ["NICKED FOR SOMETHING HE NEVER HAD"] : []));
+      for (const a of watchers.slice(1)) { a.npc!.why = "search"; a.npc!.whyUntil = tick + 60 * 20; w.bus.emit({ type: "post_left", t: tick, by: a.id, why: "search", x: a.x, y: a.y }); }
+    }
     if (found) {
       say(w, cop, `And what's this, then? You're coming with me.`, 4);
       moveItem(s, found.id, { k: "gone" });

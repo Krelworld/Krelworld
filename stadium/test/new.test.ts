@@ -439,3 +439,26 @@ test("the boot bag: move their star's boots and he goes looking instead of board
   assert.ok(star.fb!.shooting < shot0, "and it shows in his shooting");
   assert.ok(ev.some((e) => e.type === "chain" && e.links.some((l: string) => /BORROWED BOOTS/.test(l))), "named on the strap");
 });
+test("gear: a bag of lines makes Grozz faster and nastier, and a grab is often shrugged off", async () => {
+  const { shrugOff } = await import("../src/stadium/coke");
+  const g = createGame("coke1"), s = g.w.state, pc = pcOf(g);
+  const bag = spawnItem(s, "powder", { k: "pocket", a: pc.id });
+  pc.pockets.push(bag.id);
+  assert.equal(dispatch(g.w, { verb: "line", actor: pc.id }).ok, true);
+  assert.equal(bag.uses, 3, "one line gone");
+  assert.ok((pc.effects.wired ?? 0) > s.tick);
+  // Hits land twice as hard.
+  const fan = find(g, (a) => a.npc?.job === "fan" && !a.dead);
+  fan.x = pc.x + 1; fan.y = pc.y; fan.facing = Math.PI; fan.hurt = 0;
+  const { land } = await import("../src/stadium/combat");
+  land(g.w, pc, fan, false);
+  assert.equal(fan.hurt, 2);
+  // Grabbed: thrown off at least sometimes over a few tries.
+  const stw = find(g, (a) => a.npc?.job === "turnstile" && !a.dead);
+  let off = 0; for (let i = 0; i < 20; i++) if (shrugOff(g.w, stw, pc)) off++;
+  assert.ok(off >= 3 && off <= 17, `shrugged off ${off}/20`);
+  // Use it up.
+  for (let i = 0; i < 3; i++) dispatch(g.w, { verb: "line", actor: pc.id });
+  assert.equal(s.items[bag.id].loc.k, "gone", "bag done");
+  assert.equal(dispatch(g.w, { verb: "line", actor: pc.id }).ok, false);
+});

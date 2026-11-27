@@ -1378,3 +1378,24 @@ I did these:
 - the playtest gate, which needs people.
 
 **The police get the same three reactions** (double-take, point, shrug), from the same generator, on the police character. The game's reactions already treat police as security, so they play automatically: a copper who catches you at something does the double-take at you, one telling you off points, and one who loses you shrugs.
+
+## Round: gear, and bigger footballers
+
+**The footballers were too small.** Sat watching, the camera fitted 60 m of pitch on screen, so on a phone each player was about ten points tall. Now it's a TV camera on the ball, 34 m across, so the players are about 1.75× bigger. It follows the ball up and down as well as across. The zoom button steps in closer (26 m) or out to the whole pitch (60 m).
+
+**Gear** (the creator: Coke should make you faster and more effectively violent, with on-screen effects, a button when it's wearing off, a set number of goes per bag, and planting it on people should distract the security nearby).
+- **A bag holds four lines.** "Do a line (N left)" is in the ring and on the item, and the bag's gone when it's empty.
+- **Each line lasts 75 seconds**, and lines stack:
+  - Grozz moves 30% faster;
+  - his punches count double, so fans and stewards go down in half the hits, and they knock people nearly half as far again;
+  - what comes back barely registers (0.4 of a hit, a shorter stagger), and a line takes two hits off what he's already taken;
+  - a steward or copper who grabs him gets thrown off 45% of the time ("GET OFF ME!"), knocked back and down;
+  - if one does get a grip, struggling free is five times as likely.
+- **On screen:**
+  - a white flash, a sniff and a camera kick when he does one;
+  - while it lasts, the picture goes too saturated and too sharp, the edges pulse with a racing heartbeat (a new sound), and Grozz says something unwise ("I can see through time.").
+- **Wearing off:** in the last 15 seconds, and through the 20-second comedown (grey, 15% slower, "Need another. Need another."), a pulsing ANOTHER LINE button pops up with how many are left.
+- **Risk:** doing one where security can see is an offence of its own.
+- **Planting and grassing:**
+  - **The existing part:** plant it on someone and report them to a copper, and the copper goes and turns their pockets out. A footballer is taken off at the next stoppage, a steward is taken aside to the van, and a random is marched off.
+  - **New:** the turning-out draws a crowd. Up to three stewards and coppers nearby leave their posts to come and watch for about fifteen seconds. The chain reads "GRASSED UP TO THE OLD BILL → COPPER TURNS HIS POCKETS OUT → THE STEWARDS COME TO WATCH (→ NICKED FOR SOMETHING HE NEVER HAD)". It's the same rule as everything else: give them a show, and they leave their post.

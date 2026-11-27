@@ -30,6 +30,7 @@ import { installMissiles, spawnBricks, stepStench } from "./missiles";
 import { installChainHooks, installKegs, spawnKegs, stepKegs, stepPawnSeek } from "./kegs";
 import { installBallOut, installBallWatch, stepBallOut } from "./ballout";
 import { spawnBootBag, stepBootBag } from "./bootbag";
+import { installCoke, stepCoke } from "./coke";
 import { installFixes, stepFixes } from "./fixes";
 import { installWitness, stepSnitches } from "./witness";
 import { installPhone, stepPhone } from "./phone";
@@ -60,7 +61,7 @@ export const HALF_SECONDS = 450;
 export const HALFTIME_SECONDS = 150;
 
 export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: Campaign = newCampaign()): Game {
-  if (!rulesInstalled) { installRules(); installBetting(); installPolice(); installBus(); installDog(); installKickoff(); installKnife(); installGloryHole(); installCombat(); installHorse(); installRoutes(); installEntries(); installDetector(); installCoverup(); installBike(); installLech(); installCars(); installWitness(); installPhone(); installNaked(); installRoofs(); installKegs(); installBallOut(); rulesInstalled = true; }
+  if (!rulesInstalled) { installRules(); installBetting(); installPolice(); installBus(); installDog(); installKickoff(); installKnife(); installGloryHole(); installCombat(); installHorse(); installRoutes(); installEntries(); installDetector(); installCoverup(); installBike(); installLech(); installCars(); installWitness(); installPhone(); installNaked(); installRoofs(); installKegs(); installBallOut(); installCoke(); rulesInstalled = true; }
   setVenue(venueId);
   const oppKey = VENUE.opp;
   const opp = TEAMS[oppKey];
@@ -354,7 +355,8 @@ export function stepGame(g: Game): void {
     void wired;
     if (f.stamina <= 0.02 && !f.winded) { f.winded = 1; g.w.bus.emit({ type: "winded", t: s.tick, who: pc.id }); }
     if (f.winded && f.stamina > 0.35) f.winded = 0;
-    pc.speed = (run ? 7.3 : 5.2) * (wired ? 1.15 : 1) * (drunk ? 0.92 : 1) * (f.winded ? 0.75 : 1) * (pc.dragging ? 0.45 : 1);
+    const comedown = (pc.effects.comedown ?? 0) > s.tick && !wired;
+    pc.speed = (run ? 7.3 : 5.2) * (wired ? 1.3 : comedown ? 0.85 : 1) * (drunk ? 0.92 : 1) * (f.winded ? 0.75 : 1) * (pc.dragging ? 0.45 : 1);
     if (pc.bike) pc.speed = (wantRun ? BIKE_SPRINT : BIKE_SPEED) * (drunk ? 0.85 : 1);
   }
   const reins = takeReins(w);
@@ -391,6 +393,7 @@ export function stepGame(g: Game): void {
   stepPawnSeek(w);
   stepBallOut(w);
   stepBootBag(w);
+  stepCoke(w);
   stepOpening(w);
   stepEntries(w);
   stepCoverups(w);

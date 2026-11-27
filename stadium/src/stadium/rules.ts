@@ -412,7 +412,7 @@ export function installRules(): void {
         w.bus.emit({ type: "smashed", t: tick, by: actor.id, who: t.id, what: held.def, x: t.x, y: t.y });
       }
       // The blow sends them back: a fist about a metre and a half, anything heavy further.
-      const dx = t.x - actor.x, dy = t.y - actor.y, dl = Math.hypot(dx, dy) || 1, sp = weapon ? 17 : heavy || counter ? 19 : 14;
+      const dx = t.x - actor.x, dy = t.y - actor.y, dl = Math.hypot(dx, dy) || 1, sp = (weapon ? 17 : heavy || counter ? 19 : 14) * ((actor.effects.wired ?? 0) > w.state.tick ? 1.45 : 1);
       // A choke from behind doesn't throw anyone; a knockout sends them less far than a stagger.
       if (result !== "takedown") { const k = result === "ko" ? 0.55 : 1; t.knock = { vx: (dx / dl) * sp * k, vy: (dy / dl) * sp * k, from: w.state.tick, until: w.state.tick + 26 }; }
       w.bus.emit({ type: "struck", t: w.state.tick, by: actor.id, who: t.id, weapon, heavy: heavy || counter, dx: dx / dl, dy: dy / dl });

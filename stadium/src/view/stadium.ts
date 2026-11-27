@@ -83,6 +83,7 @@ function zoomSteps(): number[] {
 }
 const ZOOMS = [0, 1, 2];
 const SKIN = [0xf1c7a5, 0xd9a47e, 0xb07a52, 0x8a5a3b, 0x5e3b26, 0xe8b896];
+const pick2 = <T,>(a: T[]): T => a[Math.floor(Math.random() * a.length)];
 const hash = (s: string) => [...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 7);
 const fmtTime = (sec: number) => `${Math.floor(sec / 60)}:${String(Math.floor(sec % 60)).padStart(2, "0")}`;
 const esc = (t: string) => t.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
@@ -470,6 +471,14 @@ class StadiumScene extends Phaser.Scene {
       case "car_in": case "car_out": a.play("car_door", 0.7); if (e.type === "car_out") this.audio.engineOn(false); break;
       case "car_crash": a.play("car_crash", e.hard ? 1 : 0.6, { minGap: 0.3 }); this.trauma = Math.min(1, this.trauma + (e.hard ? 0.6 : 0.3)); break;
       case "car_hit": { a.play("bodyfall", 0.9); a.play("punch", 0.7, { rate: 0.6 }); const who = s.actors[e.who]; if (who) { this.spray(who.x, who.y, 1, Math.random() - 0.5, Math.random() - 0.5, e.hard ? 30 : 14, 1.6); this.trauma = Math.min(1, this.trauma + 0.35); } break; }
+      case "line": if (e.by === pcId) {
+        a.play("sniff", 1); this.cameras.main.shake(220, 0.006);
+        const fx = $("cokeFx"); fx.classList.remove("rush"); void fx.offsetWidth; fx.classList.add("rush"); setTimeout(() => fx.classList.remove("rush"), 750);
+        this.pcLine = { text: pick2(["Ohhhh. YES.", "Right. Who's first?", "COME ON THEN!", "I can see through time."]), until: performance.now() + 2600 };
+        if (e.left <= 0) setTimeout(() => this.hint("That's the bag done."), 1400);
+      } break;
+      case "shrugged_off": a.play("haymaker", 0.9); this.cameras.main.shake(160, 0.006); break;
+      case "comedown": if (e.by === pcId) this.pcLine = { text: pick2(["Oh no. Oh, I feel awful.", "Why is everyone so loud.", "Need another. Need another."]), until: performance.now() + 2800 }; break;
       case "keg_slip": a.play("keg_slip", 1); this.cameras.main.shake(160, 0.0025); break;
       case "keg_rolled": a.play("keg_roll", 0.9); break;
       case "spotted": {
@@ -1180,7 +1189,9 @@ class StadiumScene extends Phaser.Scene {
   /** Exploring: about 40 metres across. Sitting: the whole width of the pitch, like the telly. */
   targetZoom() {
     const w = this.scale.width, h = this.scale.height;
-    if (this.pc?.seated) return Math.min(w / (60 * this.P.S), h / (44 * this.P.S * this.P.K));
+    // Sat watching: a TV camera on the ball, close enough to read the players (34 m across); the zoom
+    // button steps in closer (26 m) or out to the whole pitch (60 m).
+    if (this.pc?.seated) { const span = [34, 26, 60][Math.min(this.zoomLevel, 2)]; return Math.min(w / (span * this.P.S), h / (span * 0.72 * this.P.S * this.P.K)); }
     // Whole screen pixels per art pixel, so every pixel of the art is the same size; a bigger screen shows more.
     const steps = zoomSteps();
     if (this.cine && !this.pc?.seated) return steps[Math.min(this.zoomLevel, steps.length - 1)] + this.cine.zoomAdd;
@@ -1212,6 +1223,7 @@ class StadiumScene extends Phaser.Scene {
     if (!this.started) { this.draw(dms); return; }
     if (this.pt) { this.pt.frame(this.speed === 0 || !!this.callOn); if (this.s.tick % 600 === 0) this.pt.save(); }
     if (this.s.tick % 20 === 0) this.progressiveUI();
+    if (this.s.tick % 10 === 0) this.cokeFx();
     if (this.s.tick % 30 === 0) this.directJob();
     // In the gate-rush crush for the first time: Grozz clocks it.
     if (!this.flags.crushSaid && (this.s.stadium!.flags.crowdCover ?? 0) > this.s.tick) { this.flags.crushSaid = 1; this.pcLine = { text: "Packed in like this, they can't see a thing. Heh.", until: performance.now() + 3200 }; }
@@ -2643,7 +2655,8 @@ class StadiumScene extends Phaser.Scene {
     // Camera: follow the player; sitting down gives the TV view of the pitch.
     let tx: number, ty: number;
     if (pc?.seated) {
-      tx = clamp(P.sx(b.x, b.y), P.sx(-HL + 18, 0), P.sx(HL - 18, 0)); ty = P.sy(0, clamp(b.y, -HW + 8, HW - 8) * 0.6);
+      const span = [34, 26, 60][Math.min(this.zoomLevel, 2)], edge = Math.max(0, HL + 4 - span / 2);
+      tx = clamp(P.sx(b.x, b.y), P.sx(-edge, 0), P.sx(edge, 0)); ty = P.sy(0, clamp(b.y, -HW + 6, HW - 6) * (span > 50 ? 0.6 : 0.85));
     } else if (pc) {
       // Lead where you're going, and lean toward anyone chasing you, so they're on screen sooner.
       let lx = pc.vx * 0.55, ly = pc.vy * 0.55;
@@ -3257,6 +3270,22 @@ class StadiumScene extends Phaser.Scene {
     el.hidden = false; el.classList.remove("in"); void el.offsetWidth; el.classList.add("in");
     this.audio.play("chime", 0.45, { rate: job.urgent ? 1.2 : 0.85 });
     clearTimeout(this.chainTimer); this.chainTimer = window.setTimeout(() => { el.hidden = true; }, 6000);
+  }
+  /** On the gear: the screen too bright and pulsing with a racing heart; grey on the comedown; and as it
+   *  wears off, a button for another line while there's any left. */
+  heartAt = 0;
+  cokeFx(): void {
+    const pc = this.pc, tick = this.s.tick;
+    if (!pc) return;
+    const left = (pc.effects.wired ?? 0) - tick, on = left > 0, down = !on && (pc.effects.comedown ?? 0) > tick;
+    document.body.classList.toggle("coked", on);
+    document.body.classList.toggle("comedown", down);
+    if (on && performance.now() - this.heartAt > 3800) { this.heartAt = performance.now(); this.audio.play("heartbeat", left < 60 * 15 ? 0.75 : 0.45); }
+    const gear = [pc.hand, ...pc.pockets].map((id) => (id ? this.s.items[id] : undefined)).find((i) => i?.def === "powder" && (i.uses ?? 4) > 0);
+    const btn = $("lineBtn");
+    const want = !!gear && ((on && left < 60 * 15) || down) && !pc.heldBy && !this.callOn && !this.sheetKind;
+    if (want && btn.hidden) { btn.querySelector("i")!.textContent = String(gear!.uses ?? 4); }
+    btn.hidden = !want;
   }
   /** The observer's strip (playtest only): one tap per laugh, and what caused it. */
   ptBar(): void {
@@ -4950,6 +4979,7 @@ class StadiumScene extends Phaser.Scene {
       this.todoAt = 0; this.updateGuides();
     });
     try { if (localStorage.getItem("kd-lefty") === "1") document.body.classList.add("lefty"); } catch { /* */ }
+    $("lineBtn").addEventListener("click", (ev) => { ev.stopPropagation(); const r = dispatch(this.w, { verb: "line", actor: this.pc.id }); if (!r.ok) this.hint(r.reason ?? ""); $("lineBtn").hidden = true; });
     $("bagBtn").addEventListener("click", () => (this.sheetKind === "bag" ? this.closeSheet() : this.openBag()));
     $("phoneBtn").addEventListener("click", () => (this.sheetKind === "phone" ? this.closeSheet() : this.openPhone()));
     $("scopeFire").addEventListener("pointerdown", (e) => { e.stopPropagation(); this.fire(); });

@@ -1,4 +1,5 @@
 // What stewards and police notice, how suspicious they get, and what they do about it.
+import { shrugOff } from "./coke";
 import { maybeSnitch } from "./witness";
 import { climb, ladderNear, roofOf, roofs } from "./roofs";
 import { appearance, looksPermitted } from "../core/identity";
@@ -354,6 +355,8 @@ export function stepSecurity(w: World, g: Actor): void {
 
 function apprehend(w: World, g: Actor, t: Actor): void {
   const n = g.npc!, st = w.state.stadium!;
+  // On the gear he's as likely to throw them off as be held.
+  if (t.id === st.pc && shrugOff(w, g, t)) { n.crime = Math.max(n.crime, 1); setMode(w, g, "chase"); return; }
   n.intent = decideIntent(w, g, t);
   t.heldBy = g.id; t.seated = false;
   t.moveX = t.moveY = 0;
@@ -485,8 +488,9 @@ export function struggle(w: World, t: Actor): boolean {
   // One proper heave a second; frantic tapping does nothing extra.
   if (s.tick - (st.flags.lastStruggle ?? -999) < 50) return false;
   st.flags.lastStruggle = s.tick;
-  let p = 0.1 + (t.effects.wired > s.tick ? 0.1 : 0) - (t.effects.drunk > s.tick ? 0.04 : 0);
-  p *= Math.pow(0.55, n0.grip ?? 0);
+  const coked = t.effects.wired > s.tick;
+  let p = 0.1 + (coked ? 0.4 : 0) - (t.effects.drunk > s.tick ? 0.04 : 0);
+  p *= Math.pow(coked ? 0.8 : 0.55, n0.grip ?? 0);
   // A second steward close by makes it harder still.
   for (const id in s.actors) { const o = s.actors[id]; if (o !== g && isSecurity(o) && Math.hypot(o.x - t.x, o.y - t.y) < 4) { p *= 0.4; break; } }
   if (!chance(s.rng.world, p)) {

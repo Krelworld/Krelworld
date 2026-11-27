@@ -76,6 +76,8 @@ export interface Item {
   ammo?: number;
   /** Lying on a roof (only reachable from up there). */
   onRoof?: string;
+  /** Doses left (a bag of gear). */
+  uses?: number;
   /** Who it was nicked from (pickpocketed or taken off them while they were out). */
   stolenFrom?: Id;
   /** Where it belongs (the drayman's kegs): somebody goes and fetches it back. */

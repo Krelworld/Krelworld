@@ -55,7 +55,8 @@ export function land(w: World, by: Actor, t: Actor, weapon: boolean, heavy = fal
   // From behind, bare-handed: the choke. If you went for one, a target who has half turned still counts.
   const behind = fromBehind(by, t) || (sneak && Math.cos(Math.atan2(by.y - t.y, by.x - t.x) - t.facing) < 0.2);
   if (behind && !weapon && !t.fb) { knockOut(w, t, by, true); return "takedown"; }
-  t.hurt = (t.hurt ?? 0) + (weapon || heavy ? 3 : 1);
+  // On the gear, everything lands twice as hard.
+  t.hurt = (t.hurt ?? 0) + (weapon || heavy ? 3 : 1) * ((by.effects.wired ?? 0) > s.tick ? 2 : 1);
   if (t.hurt >= toughness(t)) { knockOut(w, t, by, false); return "ko"; }
   t.downUntil = Math.max(t.downUntil, s.tick + STAGGER_TICKS);
   // Some hit back: a big lad nearly always, an ordinary fan sometimes. Security grab you instead.
@@ -219,13 +220,15 @@ function hitPlayerBack(w: World, a: Actor, t: Actor): void {
   const dx = t.x - a.x, dy = t.y - a.y, dl = Math.hypot(dx, dy) || 1;
   t.knock = { vx: (dx / dl) * 11, vy: (dy / dl) * 11, from: s.tick, until: s.tick + 22 };
   w.bus.emit({ type: "struck", t: s.tick, by: a.id, who: t.id, weapon: false, dx: dx / dl, dy: dy / dl });
-  t.hurt = (t.hurt ?? 0) + 1;
+  // Wired, he barely feels it.
+  const numb = (t.effects.wired ?? 0) > s.tick;
+  t.hurt = (t.hurt ?? 0) + (numb ? 0.4 : 1);
   if (t.id === s.stadium!.pc && t.hurt >= 5) {
     // Knocked out yourself: you come round with lighter pockets.
     t.effects.ko = s.tick + 8 * 60; t.downUntil = s.tick + 8 * 60; t.hurt = 0;
     const lost = Math.floor(t.money / 2); t.money -= lost;
     w.bus.emit({ type: "knockout", t: s.tick, who: t.id, by: a.id, quiet: false, lost });
     stretcher(w, t);
-  } else t.downUntil = Math.max(t.downUntil, s.tick + 24);
+  } else t.downUntil = Math.max(t.downUntil, s.tick + (numb ? 8 : 24));
   if (t.id === s.stadium!.pc) crime(w, a, "brawling", 1, t);
 }

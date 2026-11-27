@@ -85,6 +85,7 @@ export const VERBS: Record<VerbId, VerbDef> = {
   consume: {
     check: (w, a, actor, item) => {
       if (!holds(actor, item)) return "not carrying it";
+      if (item!.def === "powder") return "do a line instead";
       return hasProp(item!, "consumable") || hasProp(item!, "substance") ? null : "not edible";
     },
     perform: (w, a, actor, item) => {

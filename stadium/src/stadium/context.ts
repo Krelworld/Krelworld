@@ -88,6 +88,9 @@ export function options(w: World, pc: Actor, picked?: string | null): Option[] {
   if (!pc.seated && fruitNear(pc)) push("Play the fruit machine (£1)", 60, { verb: "fruit", ...base });
   if (!pc.seated && ladderNear(pc)) push(`Climb the ladder: ${ladderNear(pc)!.roof.name.replace(/^The /, "the ")}`, 70, { verb: "ladder", ...base });
   if (pc.seated) out.push({ label: "Stand up", priority: 90, action: { verb: "stand", ...base } });
+  // Gear on you: a line, there and then (it's in the ring; the view also offers one as it wears off).
+  { const g = [pc.hand, ...pc.pockets].map((id) => (id ? s.items[id] : undefined)).find((i) => i?.def === "powder" && (i.uses ?? 4) > 0);
+    if (g) push(`Do a line (${g.uses ?? 4} left)`, 0, { verb: "line", ...base }); }
   // Sat watching with a pint: a sup of it, right there on the main button's second row.
   if (pc.seated && hand0 && hasProp(hand0, "liquid")) push(`Sup your ${lc(itemName(hand0)).replace(/^pint of /, "")}`, 50, { verb: "consume", ...base, item: hand0.id });
 
@@ -298,6 +301,7 @@ export function itemOptions(w: World, pc: Actor, it: Item): Option[] {
   add(def.slot ? `Put on` : "Wear", "wear");
   if (it.loc.k === "worn") add("Take off", "remove");
   add(def.props.includes("food") ? "Eat" : def.props.includes("liquid") ? "Drink" : "Take", "consume");
+  if (it.def === "powder" && possibleVerbs(w, { actor: pc.id }).includes("line")) out.unshift({ label: `Do a line (${it.uses ?? 4} left)`, priority: 1, action: { verb: "line", actor: pc.id } });
   add("Drop", "drop");
   // The walkie, from the bag: call in a body near you, or send the stewards somewhere else.
   if (it.def === "radio" && it.loc.k !== "ground") {

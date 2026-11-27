@@ -97,7 +97,7 @@ function zoomSteps(): number[] {
   const z = Math.max(1, Math.round(((GZ ? (GZ * 32) / 60 : 32) * DPR) / 32));
   // On a phone the default is one step closer than it was (about 9 m across, Grozz about 77 points): the
   // creator, playing it, wanted to be nearer him. The zoom button still steps out to the wider views.
-  return small ? [...new Set([z + 1, z, Math.max(1, z - 1)])] : [...new Set([z, z + 1, Math.max(1, z - 1)])];
+  return small ? [...new Set([z + 1, z, Math.max(1, z - 1), z + 2])] : [...new Set([z, z + 1, Math.max(1, z - 1)])];
 }
 const ZOOMS = [0, 1, 2];
 const SKIN = [0xf1c7a5, 0xd9a47e, 0xb07a52, 0x8a5a3b, 0x5e3b26, 0xe8b896];
@@ -127,7 +127,7 @@ function shortLabel(o: Option): string {
   if (o.sheet?.kind === "loot") return "Search";
   const map: Record<string, string> = { talk: "Talk", show: "Show ticket", drive: "Drive the bus", getout: "Get out", hide: "Hide inside", unhide: "Climb out", sit: "Sit down", stand: "Stand up",
     untie: "Untie Ronson", release: "Let Ronson go", leash: "Grab Ronson", sic: "Set Ronson on him", servicedog: "\"Service dog\"", alarm: "Pull the fire alarm", vault: "Climb over",
-    struggle: "Struggle", take: "Pick up", takeout: "Take it", horn: "Beep", arrest: "Arrest", pickpocket: "Pickpocket", tamper: "Tamper with it" };
+    struggle: "Struggle", wear: "Put it on", take: "Pick up", takeout: "Take it", horn: "Beep", arrest: "Arrest", pickpocket: "Pickpocket", tamper: "Tamper with it" };
   if (v && map[v]) return map[v];
   return L.split(" ").slice(0, 4).join(" ");
 }
@@ -1316,7 +1316,17 @@ class StadiumScene extends Phaser.Scene {
     $("zoomBtn").textContent = this.zoomLabel();
     try { localStorage.setItem("kd-zoom3", String(this.zoomLevel)); } catch { /* ignore */ }
   }
-  zoomLabel(): string { const st = zoomSteps(), z = st[Math.min(this.zoomLevel, st.length - 1)] / st[0]; return z === 1 ? "1×" : z > 1 ? `${+z.toFixed(1)}×` : "½×"; }
+  /** One step in or out, by size (pinch, the wheel). */
+  pinchAt = 0;
+  zoomBy(dir: 1 | -1) {
+    const st = zoomSteps(), sorted = [...st].sort((a, b) => a - b), cur = st[Math.min(this.zoomLevel, st.length - 1)];
+    const n = sorted[Math.max(0, Math.min(sorted.length - 1, sorted.indexOf(cur) + dir))];
+    if (n === cur) return;
+    this.zoomLevel = st.indexOf(n);
+    $("zoomBtn").textContent = this.zoomLabel();
+    try { localStorage.setItem("kd-zoom3", String(this.zoomLevel)); } catch { /* ignore */ }
+  }
+  zoomLabel(): string { const st = zoomSteps(), z = st[Math.min(this.zoomLevel, st.length - 1)] / st[0]; return `${+z.toFixed(2)}×`; }
   setZoom() { this.cameras.main.setZoom(this.targetZoom()); }
 
   // ---------- Frame ----------
@@ -4890,6 +4900,7 @@ class StadiumScene extends Phaser.Scene {
    *  takedown, any weapon in your pockets. Down people get pockets, drag, stamp, radio, knife work. */
   ring: { id: string; items: RingItem[]; sub: boolean } | null = null;
   openPerson(id: string, sub = false, all = false) {
+    if (performance.now() - this.pinchAt < 400) return;
     const s = this.s, pc = this.pc, a = s.actors[id];
     if (!a || !pc || !this.started) return;
     // Watching from the stands: a footballer's card, not a menu.
@@ -5107,9 +5118,14 @@ class StadiumScene extends Phaser.Scene {
     if (can(it, "throw")) row("Throw it", "Then tap where.", { kind: "aim" });
     const opts = itemOptions(this.w, pc, it);
     (this as any)[`bag_${it.id}`] = opts;
-    opts.forEach((o, i) => row(o.label, whatItDoes(this.w, pc, o), { kind: "opt", i, id: it.id }));
+    opts.forEach((o, i) => {
+      const wear = o.action?.verb === "wear";
+      row(wear ? `Put it on` : o.label, whatItDoes(this.w, pc, o), { kind: "opt", i, id: it.id }, wear ? "primary" : "");
+      // (Clothes go on before anything else you might do with them.)
+      if (wear) { rows.unshift(rows.pop()!); this.itemActs.unshift(this.itemActs.pop()!); rows.forEach((r, k) => { rows[k] = r.replace(/data-itemact="\d+"/, `data-itemact="${k}"`); }); }
+    });
     for (const pid of pc.pockets) { const p2 = s.items[pid]; if (p2 && defOf(p2).size !== "large") row(`Swap for the ${itemName(p2).toLowerCase()}`, "", { kind: "swap", id: pid }); }
-    this.sheet("item", `<h2>${esc(itemName(it))}</h2>${ITEM_TIPS[it.def] ? `<p>${esc(ITEM_TIPS[it.def])}</p>` : ""}<div class="list">${rows.join("")}</div><div class="row"><button data-openbag="1">Everything you're carrying</button></div>`);
+    this.sheet("item", `<h2>${esc(itemName(it))}</h2>${ITEM_TIPS[it.def] ? `<p>${esc(ITEM_TIPS[it.def])}</p>` : ""}<div class="list">${rows.join("")}</div><div class="row"><button data-wd="look">What you're wearing</button><button data-openbag="1">Everything you're carrying</button></div>`);
   }
   itemNear: { x: number; y: number; who?: string }[] = [];
   doItemAct(n: number) {
@@ -5235,6 +5251,7 @@ class StadiumScene extends Phaser.Scene {
     return { who, act };
   }
   setWalk(gx: number, gy: number) {
+    if (performance.now() - this.pinchAt < 400) return;
     if (!this.pc || this.inCab() || this.pc.heldBy) return;
     this.pursue = null; this.nextPursue = null;
     this.walkTo = { x: gx, y: gy, path: [], pathAt: 0, until: performance.now() + 20000 };
@@ -6103,6 +6120,21 @@ class StadiumScene extends Phaser.Scene {
     try { const saved = localStorage.getItem("kd-zoom3"); const z = saved ? +saved : 0; if (ZOOMS.includes(z)) this.zoomLevel = z; } catch { /* ignore */ }
     $("zoomBtn").textContent = this.zoomLabel();
     $("zoomBtn").addEventListener("click", () => this.cycleZoom());
+    $("zoomBtn").hidden = false;
+    // Pinch to zoom (two fingers on the world, above the thumb controls), and the wheel on a desktop.
+    {
+      let pd = 0;
+      const span = (e: TouchEvent) => Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+      const onWorld = (e: TouchEvent) => e.touches.length === 2 && !this.sheetKind && [0, 1].every((i) => e.touches[i].clientY < window.innerHeight * 0.66 && !(e.touches[i].target as HTMLElement)?.closest?.("button, .sheet, #hud"));
+      window.addEventListener("touchstart", (e) => { pd = onWorld(e) ? span(e) : 0; if (pd) this.pinchAt = performance.now(); }, { passive: true });
+      window.addEventListener("touchmove", (e) => {
+        if (!pd || e.touches.length !== 2) return;
+        const d = span(e); this.pinchAt = performance.now();
+        if (d > pd * 1.22) { this.zoomBy(1); pd = d; } else if (d < pd * 0.82) { this.zoomBy(-1); pd = d; }
+      }, { passive: true });
+      window.addEventListener("touchend", () => { pd = 0; }, { passive: true });
+      window.addEventListener("wheel", (e) => { if (this.sheetKind || !this.started) return; const now = performance.now(); if (now - this.pinchAt < 180) return; this.pinchAt = now; this.zoomBy(e.deltaY < 0 ? 1 : -1); }, { passive: true });
+    }
     $("fpBtn").addEventListener("click", () => this.toggleFirstPerson());
     $("viewBtn").textContent = this.driveView === "chase" ? "Chase" : this.driveView === "cab" ? "Cab" : "Map";
     $("viewBtn").addEventListener("click", () => this.cycleDriveView());

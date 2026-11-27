@@ -112,6 +112,8 @@ export function options(w: World, pc: Actor, picked?: string | null): Option[] {
   // The forecourt contraptions: one tap, and off it goes.
   { const rg = !pc.seated && !pc.roof ? rigNear(w, pc) : undefined; if (rg) push(RIGS[rg].label, 78, { verb: "rig", ...base, arg: rg }); }
 
+  // Clothes in his hand: putting them on is the obvious thing, so it's on the button.
+  if (hand0 && !pc.seated && can(hand0, "wear") && hand0.loc.k !== "worn") push(`Put on the ${lc(itemName(hand0))}`, 64, { verb: "wear", ...base, item: hand0.id });
   // What an authored scheme adds, just here.
   if (!pc.seated) for (const o of schemeOptions(w, pc)) push(o.label, o.priority, { verb: "scheme", ...base, arg: o.arg });
   // The drayman's filling hose, and the drain beside it.

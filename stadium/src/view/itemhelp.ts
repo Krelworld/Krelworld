@@ -31,6 +31,7 @@ export const ITEM_TIPS: Record<string, string> = {
   hammer: "Hit things. Or do their bus.",
   flare: "Smoke. Cover to slip through, or just chaos.",
   wrench: "Prises open the pub's cellar hatch. There's a drain down there.",
+  match_ball: "The actual match ball. A souvenir, or worth a few quid to Lionel.",
   bottle: "Hit someone with it, or throw it.", pint_glass: "Hit someone with it, or throw it.", chair: "Hit someone with it.",
   pool_cue: "Hit someone with it. Long reach.", corner_flag: "Hit someone with it.",
   parachute: "Off the top of the stand, onto the pitch.",
@@ -66,6 +67,8 @@ export function itemTargets(w: World, pc: Actor, it: Item): ItemTarget[] {
   if (def === "fart_can" || def === "flare") { add(SPOTS.pubBar, "A packed pub"); for (const p of SPOTS.turnstiles.slice(0, 1)) add(p, "The queue"); }
   // Food and a dog: by a steward at his post, Ronson does the rest.
   if (hasProp(it, "food") && st.dog && st.dog.state !== "caught") for (const a of Object.values(s.actors)) if (a.npc?.post && (a.npc.job === "turnstile" || a.npc.job === "doorguard" || a.npc.job === "pitchsteward") && !a.dead) add(a, "A steward, for Ronson");
+  // Anything nicked: the pawn shop. And whoever it was nicked from will come looking for it there.
+  if (it.stolenFrom) for (const a of Object.values(s.actors)) if (a.npc?.shop === "pawn" && !a.dead) add(a, "Pawn it. He'll come for it");
   if (def === "parachute") for (const r of roofs()) if (r.id === "stand") for (const l of r.ladders) add({ x: l.bx, y: l.by }, "The stand roof");
   void VENUE;
   return out.map((t) => ({ t, d: Math.hypot(t.x - pc.x, t.y - pc.y) })).filter((o) => o.d < 70).sort((a, b) => a.d - b.d).slice(0, 4).map((o) => o.t);

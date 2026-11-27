@@ -1184,3 +1184,45 @@ The creator: "the keg thing doesn't read too clearly; there's so much visual noi
 - **Grozz arrives three metres from the kegs**, facing the pub yard, with the stack, the drayman and his lorry in the first frame.
 - **Cards are shorter:** the rule card is one line ("Learned: People leave their post to fix a problem."), the item card drops its second line, and both go sooner.
 - **The quieter ground is the default** (`?loud` for the old look): pavement texture recedes, and people, props and shopfronts carry the contrast.
+
+## Round: items by touch, the action replay, half-time, the pawnbroker, the ball
+
+The creator asked for, in order: touch item use, the action replay and tabloid credit, half-time as a phase, an optional half-time save; then a third contraption and "the ball comes to Grozz".
+
+**Using things by touch** (the report: "item use isn't intuitive"). Using an item is now two taps: what, then where.
+- **The quick slot:** whatever's in your hand shows on a button by the fight row. Tap it and a banner says "Tap where to use the brick" (✕ to cancel). Every item in the bag has "Use…" too.
+- **Tapping where:**
+  - **A person:** Grozz walks over and does whatever fits that item (lace his pint, give it, plant it).
+  - **Food near the dog's way:** he puts it down at their feet.
+  - **Something throwable:** he throws it at them, from up to 11 m.
+  - **The ground:** he walks there and does what fits on arrival (a brick through the window, the wrench on the hatch), or else drops it.
+- **Steering cancels it.** Touching the stick cancels the walk-over, so you're never stuck in a plan.
+
+**The action replay.** When a chain reaches three links, the game slows for a beat and the pundit's telestrator draws arrows from link to link over the world (each link remembers where it happened). It's the payoff for a contraption, drawn on the thing you caused rather than written in a box.
+
+**The tabloid takes the credit.** The front page leads with the day's longest chain: the headline spun from it, then "'It was all part of the plan,' says local man, 48." and the chain itself underneath.
+
+**Half-time is a phase.** A "HALF-TIME" strap; the ref's tea urn pulses during the break (that's when it's unattended). Nothing waits on you; it's just a moment the world opens up.
+
+**The half-time save is optional.** It's in the menu during the break ("Keep this: half-time"), not automatic, in the game build. Tests keep the old automatic one.
+
+**The third contraption: the pawnbroker** (from the original brief's pawn shop and pickpocketing).
+- **What happens:** nick something off someone, and pawn it with Lionel. About eight seconds later, its owner hears ("Someone's pawned my walkie-talkie!"), storms over to the shop ("Oi! That's MY walkie-talkie in your window!"), waits, then goes back.
+- **Same rule as the kegs:** people leave their post to fix a problem. The chain reads "WALKIE-TALKIE IN THE PAWN SHOP WINDOW → DENNIS GOES TO GET IT BACK → POST LEFT EMPTY".
+- **Turnstile, door and gate stewards carry radios** in the game, so there's a reason to dip one: the turnstile goes unmanned while he's at the pawn shop.
+- **Busy owners go later.** If the owner is chasing you, flat out or hiding, he goes once he's free; he gives up after two minutes.
+- **Discoverable:**
+  - anything nicked lights up Lionel as "Pawn it. He'll come for it";
+  - walking past the shop, Grozz mutters "Lionel. Nicked or not, he'll take it.";
+  - after pawning something nicked, Grozz says "In the window. He'll see that. Heh."
+- **Why the pawnbroker** over the other two candidates: it reuses two systems that were already there (pickpocketing and the pawn shop) and joins them with the rule the player already knows. Queue migration and the wrong kit bag needed new systems for a weaker joke.
+
+**The ball comes to Grozz** (brief: the match is the clock, the crowd is the world).
+- **When it comes:** when the ball goes out within about 13 m of him (sometimes up to 30 m) while he's in the stand, it flies to him. At most once every two and a half minutes.
+- **The match waits:** the restart holds while he has it. The main button is "Throw it back", and the ring has "Hoof it into row Z" and "Keep it".
+- **While he holds it:** the fans round him egg him on ("Don't you dare give it back!"). The taker shouts for it ("Ball, mate!", then "Give us the ball, you fat ****!"), the ref asks nicely, and the chain gets "THE WHOLE MATCH WAITS ON GROZZ".
+- **Throw it back:** the taker says "Cheers". If it's their throw, our end boo him ("Waste some time, you mug!").
+- **Hoof it:** the ball sails 24 m into the crowd and bonks whoever it lands on. A ballboy takes seven seconds to fetch it. A touchline steward comes over to warn him, and the touchline is left empty. The chain reads "THE BALL COMES TO GROZZ → INTO ROW Z (→ TIME WASTED if it was theirs) → BONKS … → STEWARD COMES OVER → TOUCHLINE LEFT EMPTY".
+- **Keep it:** the match ball goes up his jumper (an item; Lionel gives £25 for it). They get another ball out, and a steward comes for it.
+- **Ignore it:** after 14 seconds the ballboy brings another, and he's kept it anyway.
+- **The point:** hoofing or keeping the ball is the touchline contraption. It's a reason to sit in the front row, and a way to pull the steward off his post when you want to get on the pitch.

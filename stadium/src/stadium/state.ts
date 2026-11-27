@@ -158,6 +158,13 @@ export interface StadiumState {
   rolling?: import("./kegs").Roll[];
   kegCarry?: Record<Id, Id>;
   chain?: import("./kegs").Chain;
+  /** The ball's come to Grozz (out of play, into the stand). */
+  ballOut?: import("./ballout").BallOut;
+  ballOutCool?: number;
+  /** Where the ball was last tick while in play (where it went out). */
+  lastBall?: { x: number; y: number };
+  /** People coming to the pawn shop for something of theirs that's turned up in the window. */
+  pawnSeek?: { who: Id; def: string; at: number }[];
   /** The longest chain of the day (for the front page). */
   chainBest?: import("./kegs").Chain;
   incidents: Incident[];

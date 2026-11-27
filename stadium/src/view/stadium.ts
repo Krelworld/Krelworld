@@ -84,7 +84,7 @@ const esc = (t: string) => t.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&l
 interface TickerLine { text: string; src: string; big: boolean }
 
 /** A PixelLab picture of an item, if there is one. */
-const ICONS = new Set(["keg", "brick", "fart_can", "rifle", "burner", "warrant_card", "pint", "pie", "knife", "whistle", "ticket", "wallet", "laxative", "powder", "shirt_eng", "shirt_por", "shirt_bra", "shirt_arg", "police_uniform", "kit_eng", "kit_opp",
+const ICONS = new Set(["keg", "match_ball", "brick", "fart_can", "rifle", "burner", "warrant_card", "pint", "pie", "knife", "whistle", "ticket", "wallet", "laxative", "powder", "shirt_eng", "shirt_por", "shirt_bra", "shirt_arg", "police_uniform", "kit_eng", "kit_opp",
   "staff_pass", "radio", "hivis", "ref_kit", "police_hat", "mask", "flat_cap", "sunglasses", "moustache", "tracksuit", "chef_whites", "overalls", "balaclava", "hammer", "flare", "betslip", "face", "hands", "censored_bar", "wrench", "kit_card", "parachute", "mascot_suit", "press_pass", "bottle", "pint_glass", "chair", "corner_flag", "wig", "long_wig", "dress", "pool_cue", "bicycle"]);
 interface RingItem { label: string; icon: string; kind: string; item?: string; arg?: string; main?: boolean; glyph?: string; opt?: Option }
 const icon = (def: string) => (ICONS.has(def) ? `<img class="ico" src="${assetURL(`icons/${def}.png`)}" alt="" onerror="this.remove()">` : `<span class="ico none"></span>`);
@@ -265,7 +265,8 @@ class StadiumScene extends Phaser.Scene {
       if (e.type === "fb_goal" || e.type === "caught" || e.type === "fb_foul" && e.penalty) this.setSpeed(1);
       // Watching sped up: anything worth seeing brings it back to normal (a shot, the woodwork, a card,
       // a change, the ref going down), so you never miss the moment.
-      if (this.speed > 1 && ["fb_shot", "fb_woodwork", "fb_sub", "fb_ref_down", "fb_removed", "fb_save"].includes(e.type)) this.setSpeed(1);
+      if (this.speed > 1 && ["fb_shot", "fb_woodwork", "fb_sub", "fb_ref_down", "fb_removed", "fb_save", "ball_to_pc"].includes(e.type)) this.setSpeed(1);
+      if (e.type === "ball_to_pc") { this.audio.play("pickup", 1); this.cameras.main.shake(120, 0.004); }
       // Sat watching when they score: that's your cue.
       if (e.type === "fb_goal" && e.team === 1 && this.pc?.seated && e.legit !== false) {
         const [eng, opp] = e.score as number[];
@@ -4760,7 +4761,9 @@ class StadiumScene extends Phaser.Scene {
         return;
       }
       if (d.pawn) {
+        const nicked = !!this.w.state.items[d.pawn]?.stolenFrom && !!this.w.state.actors[this.w.state.items[d.pawn].stolenFrom!]?.npc;
         const r = dispatch(this.w, { verb: "pawn", actor: this.pc.id, target: { k: "actor", id: d.who! }, item: d.pawn });
+        if (r.ok && nicked) setTimeout(() => { this.pcLine = { text: "In the window. He'll see that. Heh.", until: performance.now() + 2800 }; }, 600);
         if (r.ok) { this.audio.play("kaching", 1); const money = $("money"); money.classList.remove("spent"); void money.offsetWidth; money.classList.add("spent"); }
         else { this.audio.play("nope", 0.8); this.hint(r.reason === "he won't take that" ? "\"I'm not touching that.\"" : r.reason ?? ""); }
         setTimeout(() => this.sheetKind === "shop" && this.openShop(d.who!), 300);

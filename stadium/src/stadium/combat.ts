@@ -112,6 +112,7 @@ export function installCombat(): void {
     perform: (w, act, actor) => {
       const s = w.state, t = s.actors[(act.target as { id: string }).id];
       const take = (it: Item) => {
+        it.stolenFrom = t.id;
         if (canPocket(actor, it)) moveItem(s, it.id, { k: "pocket", a: actor.id });
         else if (!actor.hand) moveItem(s, it.id, { k: "hand", a: actor.id });
         else moveItem(s, it.id, { k: "ground", x: actor.x, y: actor.y });

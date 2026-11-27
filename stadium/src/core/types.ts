@@ -76,6 +76,8 @@ export interface Item {
   ammo?: number;
   /** Lying on a roof (only reachable from up there). */
   onRoof?: string;
+  /** Who it was nicked from (pickpocketed or taken off them while they were out). */
+  stolenFrom?: Id;
   /** Where it belongs (the drayman's kegs): somebody goes and fetches it back. */
   home?: { x: number; y: number };
   /** Which way it points (a bike), and whether it's lying on its side. */

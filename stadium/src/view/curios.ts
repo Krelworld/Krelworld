@@ -24,6 +24,7 @@ export const CURIOS: Curio[] = [
   { id: "bus", short: "Their coach. Tyres look… fragile.", r: 7, at: (w) => w.state.stadium!.vehicles.bus, text: "Their team coach. Be a shame if the tyres went. Or if somebody drove it off." },
   { id: "lenny", short: "Lenny. Head off. Who's in that suit?", r: 5, at: (w) => who(w, (a) => a.npc?.job === "mascot"), text: "Lenny the Lion, head off, having a fag. Nobody knows who's inside that costume." },
   { id: "del", short: "Del. Tickets. Or pockets.", r: 4, at: (w) => who(w, (a) => a.name === "Dodgy Del"), text: "Dodgy Del, touting tickets. Pricey. Or he's got pockets." },
+  { id: "pawn", short: "Lionel. Nicked or not, he'll take it.", r: 5, at: (w) => who(w, (a) => a.npc?.shop === "pawn"), text: "Lionel's pawn shop. He'll take anything, no questions. Pawn something nicked off a steward and he'll see it in the window, and come for it." },
   { id: "hotel", short: "Their water's in there…", r: 6, at: () => SPOTS.hotelLobby, text: "The team hotel. Their players are in there, and so is their water." },
 ];
 

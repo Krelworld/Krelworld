@@ -6,6 +6,7 @@ export const POCKET_SLOTS = 3;
 export const ITEM_DEFS: Record<string, ItemDef> = Object.fromEntries(
   ([
     { id: "pint", name: "Pint of lager", props: ["liquid", "consumable", "alcohol", "throwable", "spikable"], size: "large", price: 6, colour: 0xe8b84a },
+    { id: "match_ball", name: "The match ball", props: ["throwable"], size: "large", colour: 0xf4f4f4 },
     { id: "pie", name: "Meat pie", props: ["food", "consumable", "throwable", "spikable"], size: "small", price: 4, colour: 0xc58a3e },
     { id: "knife", name: "Kitchen knife", props: ["sharp", "weapon", "metal", "throwable"], size: "small", colour: 0xc9d1d9 },
     { id: "whistle", name: "Referee's whistle", props: ["noisy", "metal"], size: "small", authority: 1, colour: 0x222222 },

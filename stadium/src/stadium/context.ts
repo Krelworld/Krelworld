@@ -50,6 +50,12 @@ export function options(w: World, pc: Actor, picked?: string | null): Option[] {
   }
   const bus = s.stadium!.vehicles.bus;
   if (bus?.drivenBy === pc.id) return [{ label: "Get out of the bus", priority: 100, action: { verb: "getout", ...base } }];
+  // The ball's come to you: the whole match is waiting.
+  if (s.stadium!.ballOut?.phase === "held") return [
+    { label: "Throw it back", priority: 100, action: { verb: "ballback", ...base } },
+    { label: "Hoof it into row Z", priority: 99, action: { verb: "ballhoof", ...base } },
+    { label: "Keep it", priority: 98, action: { verb: "ballkeep", ...base } },
+  ];
   if (pc.hiddenIn) return [{ label: "Climb out", priority: 100, action: { verb: "unhide", ...base } }];
   if (pc.chute) return [];
   // At the penis detector.

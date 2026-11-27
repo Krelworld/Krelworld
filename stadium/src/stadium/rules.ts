@@ -54,7 +54,7 @@ export const REWARDS: Record<string, number> = {
 
 /** What the pawnbroker gives for a thing (0: he won't have it). Stolen goods go for about half. */
 const PAWN: Record<string, number> = {
-  wallet: 15, radio: 15, burner: 12, ticket: 30, press_pass: 20, staff_pass: 15, warrant_card: 35, police_hat: 10, police_uniform: 25,
+  wallet: 15, radio: 15, match_ball: 25, burner: 12, ticket: 30, press_pass: 20, staff_pass: 15, warrant_card: 35, police_hat: 10, police_uniform: 25,
   kit_card: 10, whistle: 5, ref_kit: 20, kit_eng: 40, kit_opp: 25, mascot_suit: 30, rifle: 120, bicycle: 12, knife: 6, hammer: 6, wrench: 8,
   shirt_eng: 15, shirt_opp: 10, shirt_por: 10, shirt_bra: 10, shirt_arg: 10, hivis: 8, parachute: 30, sunglasses: 2, flare: 6, powder: 0,
 };
@@ -133,6 +133,8 @@ export function installRules(): void {
       const seller = targetActor(w, act)!, it = w.state.items[act.item!], price = pawnOffer(it.def);
       moveItem(w.state, it.id, { k: "gone" });
       actor.money += price;
+      // Something nicked, in the pawn shop window: whoever it was nicked from will hear, and come for it.
+      if (it.stolenFrom && w.state.actors[it.stolenFrom]?.npc) (w.state.stadium!.pawnSeek ??= []).push({ who: it.stolenFrom, def: it.def, at: w.state.tick + 60 * 8 });
       say(w, seller, pick(w.state.rng.world, ["Pleasure doing business.", "I'll not ask where it's from.", "Lovely. Next.", "Cash. Don't spend it all at once."]));
       w.bus.emit({ type: "pawned", t: w.state.tick, by: actor.id, def: it.def, price });
     },
@@ -233,12 +235,13 @@ export function installRules(): void {
         crime(w, actor, "pickpocketing", 1, t);
         return;
       }
-      const tickets = t.pockets.filter((id) => s.items[id].def === "ticket" || s.items[id].def === "staff_pass" || s.items[id].def === "warrant_card");
+      const tickets = t.pockets.filter((id) => s.items[id].def === "ticket" || s.items[id].def === "staff_pass" || s.items[id].def === "warrant_card" || s.items[id].def === "radio");
       if (tickets.length && (!t.money || chance(r, 0.6))) {
         const it = s.items[tickets[0]];
         if (canPocket(actor, it)) moveItem(s, it.id, { k: "pocket", a: actor.id }); else moveItem(s, it.id, { k: "hand", a: actor.id });
-        if (t.npc) t.npc.hasTicket = false;
-        w.bus.emit({ type: "stole", t: s.tick, by: actor.id, from: t.id, what: it.def === "staff_pass" ? "staff pass" : it.def === "warrant_card" ? "warrant card" : "ticket" });
+        it.stolenFrom = t.id;
+        if (t.npc && it.def === "ticket") t.npc.hasTicket = false;
+        w.bus.emit({ type: "stole", t: s.tick, by: actor.id, from: t.id, what: it.def === "staff_pass" ? "staff pass" : it.def === "warrant_card" ? "warrant card" : it.def === "radio" ? "radio" : "ticket" });
       } else {
         const cash = Math.max(5, Math.round(t.money * rndRange(r, 0.5, 1)));
         t.money = Math.max(0, t.money - cash); actor.money += cash;

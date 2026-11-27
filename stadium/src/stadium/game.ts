@@ -27,7 +27,8 @@ import { installLech } from "./lech";
 import { stepChat } from "./chatter";
 import { clampToRoof, installRoofs } from "./roofs";
 import { installMissiles, spawnBricks, stepStench } from "./missiles";
-import { installChainHooks, installKegs, spawnKegs, stepKegs } from "./kegs";
+import { installChainHooks, installKegs, spawnKegs, stepKegs, stepPawnSeek } from "./kegs";
+import { installBallOut, installBallWatch, stepBallOut } from "./ballout";
 import { installFixes, stepFixes } from "./fixes";
 import { installWitness, stepSnitches } from "./witness";
 import { installPhone, stepPhone } from "./phone";
@@ -58,7 +59,7 @@ export const HALF_SECONDS = 450;
 export const HALFTIME_SECONDS = 150;
 
 export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: Campaign = newCampaign()): Game {
-  if (!rulesInstalled) { installRules(); installBetting(); installPolice(); installBus(); installDog(); installKickoff(); installKnife(); installGloryHole(); installCombat(); installHorse(); installRoutes(); installEntries(); installDetector(); installCoverup(); installBike(); installLech(); installCars(); installWitness(); installPhone(); installNaked(); installRoofs(); installKegs(); rulesInstalled = true; }
+  if (!rulesInstalled) { installRules(); installBetting(); installPolice(); installBus(); installDog(); installKickoff(); installKnife(); installGloryHole(); installCombat(); installHorse(); installRoutes(); installEntries(); installDetector(); installCoverup(); installBike(); installLech(); installCars(); installWitness(); installPhone(); installNaked(); installRoofs(); installKegs(); installBallOut(); rulesInstalled = true; }
   setVenue(venueId);
   const oppKey = VENUE.opp;
   const opp = TEAMS[oppKey];
@@ -160,6 +161,8 @@ export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: 
   spawnScenarios(w);
   spawnBricks(w);
   spawnKegs(w);
+  // The gate and door stewards carry their own radios in the game (worth nicking, worth pawning).
+  if (PACE.calm) for (const id in s.actors) { const a = s.actors[id]; if (a.npc && ["turnstile", "doorguard", "gateguard"].includes(a.npc.job)) spawnItem(s, "radio", { k: "pocket", a: a.id }); }
   // Things to hit people with: empties on the pub tables and round the bins, chairs in the pub,
   // pint glasses on the concourse bar, and the corner flags.
   const mx = (x: number) => (VENUE.id === "sf" ? -x : x);
@@ -219,6 +222,7 @@ export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: 
   createDog(w);
   installReactions(w);
   installChainHooks(w);
+  installBallWatch(w);
   installMissiles(w);
   installFixes(w);
   // A change of clothes out of sight shakes off whoever was after you.
@@ -382,6 +386,8 @@ export function stepGame(g: Game): void {
   stepCombat(w);
   stepCreeps(w);
   stepKegs(w);
+  stepPawnSeek(w);
+  stepBallOut(w);
   stepEntries(w);
   stepCoverups(w);
   stepChat(w);

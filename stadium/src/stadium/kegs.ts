@@ -7,7 +7,7 @@
 // the view names it on screen ("KEG → DRAYMAN GOES AFTER IT → LORRY LEFT OPEN").
 import type { World } from "../core/world";
 import type { Actor, Item } from "../core/types";
-import { spawnItem, moveItem } from "../core/items";
+import { ITEM_DEFS, spawnItem, moveItem } from "../core/items";
 import { registerVerb } from "../core/verbs";
 import { SOLID, VENUE } from "./layout";
 import { say } from "./npc";
@@ -58,7 +58,7 @@ export function installChainHooks(w: World): void {
 
 /** A knock-on somewhere else (Steve's chute, Lenny, Wally's card, the press pass): name it as a chain
  *  (joining one already running), badge whoever's broken off, and count it as someone leaving their post. */
-export function knockOn(w: World, who: Actor | At | undefined, why: "search" | "report", secs: number, first: string, ...links: string[]): void {
+export function knockOn(w: World, who: Actor | At | undefined, why: "search" | "report" | "angry", secs: number, first: string, ...links: string[]): void {
   const s = w.state, st = s.stadium!, tick = s.tick, c = st.chain;
   if (!c || tick - c.t0 > 60 * 14) chainStart(w, st.pc, first, who); else chainLink(w, first, who);
   for (const l of links) chainLink(w, l, who);
@@ -165,6 +165,27 @@ export function stepKegs(w: World): void {
   chainLink(w, "DRAYMAN GOES AFTER IT", dray);
   const lorry = Object.values(st.vehicles).find((v) => v.kind === "lorry");
   if (lorry && (lorry.state === "loading" || lorry.state === "unloading") && Math.hypot(lorry.x - dray.x, lorry.y - dray.y) < 15) chainLink(w, "LORRY LEFT OPEN", lorry);
+}
+
+/** The pawn shop: whoever's stolen thing turned up in the window storms over to get it back, leaving
+ *  his post (the same rule as the keg: give people a problem and they go). */
+export function stepPawnSeek(w: World): void {
+  const s = w.state, st = s.stadium!, tick = s.tick;
+  if (!st.pawnSeek?.length || tick % 15 !== 0) return;
+  const shop = Object.values(s.actors).find((a) => a.npc?.shop === "pawn" && !a.dead);
+  const done = new Set<typeof st.pawnSeek[number]>();
+  for (const p of st.pawnSeek.filter((q) => q.at <= tick)) {
+    const a = s.actors[p.who], n = a?.npc;
+    // Gone, or it's been ages: he's given up on it. Busy (after you, down, hiding): later.
+    if (!a || !n || a.dead || !shop || tick - p.at > 60 * 120) { done.add(p); continue; }
+    if (a.downUntil > tick || a.hiddenIn || n.mode !== "routine") continue;
+    done.add(p);
+    const thing = ITEM_DEFS[p.def]?.name.toLowerCase().replace(/^the /, "") ?? "stuff";
+    n.plan = [{ k: "go", x: shop.x + 1.6, y: shop.y + 1.6 }, { k: "say", text: `Oi! That's MY ${thing} in your window!` }, { k: "wait", s: 15 }, ...(n.post ? [{ k: "go" as const, ...n.post }] : [])];
+    say(w, a, pick(s.rng.world, [`Someone's pawned my ${thing}!`, `My ${thing}'s in the pawn shop?!`, `Right. Where's that pawn shop.`]), 3);
+    knockOn(w, a, "angry", 30, `${thing.toUpperCase()} IN THE PAWN SHOP WINDOW`, `${a.name.split(" ").pop()!.toUpperCase()} GOES TO GET IT BACK`, ...(n.post ? ["POST LEFT EMPTY"] : []));
+  }
+  st.pawnSeek = st.pawnSeek.filter((q) => !done.has(q));
 }
 
 /** While he's off after a keg the lorry doesn't go without him: the back stays open. */

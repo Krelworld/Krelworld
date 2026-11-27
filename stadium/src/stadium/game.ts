@@ -6,7 +6,7 @@ import { createWorld, spawnActor, stepWorld, type World } from "../core/world";
 import { createMatch, TEAMS } from "../football/setup";
 import { arrivalSpot, BOUNDS, KICKOFF_AT, PACE, rushAt, setBreaches, setVenue, SOLID, SPOTS, VENUE, type Venue } from "./layout";
 import { newCampaign, type Campaign } from "./campaign";
-import { mayPass, newNpc, resetPathBudget, secs, spawnFan, spawnStaff, stepNpc } from "./npc";
+import { mayPass, newNpc, resetPathBudget, say, secs, spawnFan, spawnStaff, stepNpc } from "./npc";
 import { installBetting, installSettlement } from "./betting";
 import { installPolice, stepTipoffs } from "./police";
 import { createDog, installDog, stepDog } from "./dog";
@@ -19,7 +19,7 @@ import { stepTraffic } from "./traffic";
 import { installCombat, stepCombat } from "./combat";
 import { installHorse, stepHorse, takeReins } from "./horse";
 import { installRoutes } from "./routes";
-import { installEntries, spawnEntries, stepEntries } from "./entries";
+import { hearLead, installEntries, spawnEntries, stepEntries } from "./entries";
 import { installDetector } from "./detector";
 import { installCoverup, stepCoverups } from "./coverup";
 import { FEMALE_LOCALS } from "./npc";
@@ -388,6 +388,7 @@ export function stepGame(g: Game): void {
   stepKegs(w);
   stepPawnSeek(w);
   stepBallOut(w);
+  stepOpening(w);
   stepEntries(w);
   stepCoverups(w);
   stepChat(w);
@@ -406,6 +407,39 @@ export function stepGame(g: Game): void {
   stepDetention(w);
   checkpoints(g);
   endings(g);
+}
+
+/** The report's first five minutes, after the keg: a lead overheard, a warning in the world before the
+ *  gate rush, and the rush itself as cover ("crowds cover trouble"). Game build only. */
+function stepOpening(w: World): void {
+  if (!PACE.calm) return;
+  const s = w.state, st = s.stadium!, tick = s.tick, t = tick / 60, pc = s.actors[st.pc];
+  if (!pc) return;
+  // 2:30: someone near you tells their mate the turnstiles get rammed later (a lead, not a marker).
+  if (!st.flags.gossipRush && t >= 150 && tick % 30 === 0) {
+    const fan = Object.values(s.actors).filter((a) => a.npc && (a.npc.job === "fan" || a.npc.job === "local") && !a.hiddenIn && !a.dead && a.downUntil <= tick && !a.npc.bubble)
+      .sort((p, q) => Math.hypot(p.x - pc.x, p.y - pc.y) - Math.hypot(q.x - pc.x, q.y - pc.y))[0];
+    if (fan && Math.hypot(fan.x - pc.x, fan.y - pc.y) < 10) {
+      st.flags.gossipRush = tick;
+      const line = "Wait for the rush at the turnstiles. Gets rammed just before kick-off. Stewards can't see a thing in that crush.";
+      say(w, fan, line, 6);
+      hearLead(w, line);
+    } else if (t > 240) st.flags.gossipRush = tick;
+  }
+  // Two minutes before the rush: the turnstile stewards brace themselves, out loud.
+  if (!st.flags.rushWarn && t >= rushAt() - 120) {
+    st.flags.rushWarn = tick;
+    const stw = Object.values(s.actors).filter((a) => a.npc?.job === "turnstile" && !a.dead);
+    stw.forEach((a, i) => { if (i === 0) say(w, a, "Two minutes, lads. Then the whole lot come at once.", 5); else if (i === 1) say(w, a, "Christ. Here we go.", 4); });
+    w.bus.emit({ type: "rush_soon", t: tick });
+  }
+  // In the crush: packed in with four or more around you during the rush, stewards beyond arm's reach
+  // can't pick you out (security.ts reads this).
+  if (tick % 10 === 0 && t >= rushAt() && t < KICKOFF_AT + 30) {
+    let n = 0;
+    for (const id in s.actors) { const a = s.actors[id]; if (a.npc && a.id !== pc.id && !a.hiddenIn && Math.hypot(a.x - pc.x, a.y - pc.y) < 2.5) n++; }
+    if (n >= 4) st.flags.crowdCover = tick + 12;
+  }
 }
 
 function checkpoints(g: Game): void {

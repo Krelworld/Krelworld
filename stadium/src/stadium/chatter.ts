@@ -184,6 +184,7 @@ const TIPS: string[] = [
   "The steward on the staff door nips out for a fag every twenty minutes. Props it open and all.",
   "Got knocked spark out in there once. Woke up next to the dressing rooms. True story.",
   "Dodgy Del outside the pub. Tickets, tickets. Cheap and real, mostly.",
+  "Turnstiles get rammed just before kick-off. Stewards can't see a thing in that crush.",
   "Stick a hi-vis on and the stewards think you're one of them. Just don't do nothing stupid in it.",
   "Old Bill don't care about nothing unless you're daft enough to do it in front of them.",
   "Turnstile lads take a twenty if you fold it right.",

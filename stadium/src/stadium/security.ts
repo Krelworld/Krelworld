@@ -36,6 +36,8 @@ export function canSee(w: World, v: Actor, t: Actor, range = 14): boolean {
     if (r && v.x > r.x0 && v.x < r.x1 && v.y > r.y0 && v.y < r.y1) return false;
   }
   if (d > range) return false;
+  // Lost in the gate rush (game.ts): packed in, a steward more than a few metres off can't pick you out.
+  if (PACE.calm && t.id === w.state.stadium!.pc && (w.state.stadium!.flags.crowdCover ?? 0) > w.state.tick && isSecurity(v) && d > 4) return false;
   if (d > (isSecurity(v) ? 4.5 : 2.5)) {
     const ang = Math.atan2(dy, dx) - v.facing;
     const c = Math.cos(ang);

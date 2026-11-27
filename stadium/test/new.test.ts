@@ -386,3 +386,20 @@ test("the ball comes to Grozz: out by him, the match waits; hoof it and it's row
   run(g, 10);
   assert.notEqual(s.match!.phase as string, "restart", "they got another ball out");
 });
+test("the gate rush: packed in a crowd, a steward a few metres off can't pick Grozz out (game build)", async () => {
+  const { setPace, KICKOFF_AT } = await import("../src/stadium/layout");
+  const { canSee } = await import("../src/stadium/security");
+  const before = KICKOFF_AT;
+  setPace({ kickoffAt: 540, calm: true });
+  try {
+    const g = createGame("crush1"), s = g.w.state, pc = pcOf(g);
+    const stw = find(g, (a) => a.npc?.job === "turnstile" && !a.dead);
+    pc.x = stw.x + Math.cos(stw.facing) * 6; pc.y = stw.y + Math.sin(stw.facing) * 6;
+    const seen = canSee(g.w, stw, pc);
+    s.stadium!.flags.crowdCover = s.tick + 12;
+    assert.equal(canSee(g.w, stw, pc), false, "lost in the crush");
+    pc.x = stw.x + Math.cos(stw.facing) * 2; pc.y = stw.y + Math.sin(stw.facing) * 2;
+    assert.equal(canSee(g.w, stw, pc), true, "but not right under his nose");
+    void seen;
+  } finally { setPace({ kickoffAt: before, calm: false }); }
+});

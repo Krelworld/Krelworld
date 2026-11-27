@@ -40,6 +40,7 @@ export const LEADS: { id: string; title: string; how: string; hint: RegExp }[] =
   { id: "lorry", title: "The beer lorry", how: "The beer lorry goes straight into the loading bay. Nobody checks the back.", hint: /beer lorry/i },
   { id: "smoker", title: "The staff door", how: "The steward on the staff door nips out for a smoke and props it open.", hint: /having a fag|nips out/i },
   { id: "stretcher", title: "The stretcher", how: "Get knocked out inside the ground and the first-aiders take you to the medical room, next to the dressing rooms.", hint: /woke up next to the dressing rooms/i },
+  { id: "rush", title: "The gate rush", how: "Just before kick-off the whole crowd piles into the turnstiles at once. In the middle of that crush the stewards can't see past their noses.", hint: /rammed|in that crush/i },
   { id: "tout", title: "Dodgy Del", how: "Del sells real tickets cheap, and keeps the cash in his pocket.", hint: /tickets, tickets/i },
 ];
 

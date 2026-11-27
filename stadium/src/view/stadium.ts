@@ -41,6 +41,7 @@ import { playMini, type MiniKind } from "./minigame";
 import { instinctMarks, itemAt, todoSpot, trackTarget, type Tracked } from "./guide";
 import { ITEM_TIPS, itemTargets, type ItemTarget } from "./itemhelp";
 import { curioHere, CURIOS } from "./curios";
+import { PlayTest } from "./playtest";
 import { inDrag as inDragSim } from "../stadium/drag";
 import STW_JSON from "../../assets/audio/stwlines.json";
 const STW_VOICE = STW_JSON as Record<string, string>;
@@ -261,6 +262,7 @@ class StadiumScene extends Phaser.Scene {
     w.bus.on((e) => this.sounds(e));
     w.bus.on((e) => {
       this.reactTo(e);
+      if (this.pt) { const sa = e.type === "say" ? this.s.actors[e.by] : null; this.pt.event(e, this.s.stadium!.pc, !sa || !this.pc || Math.hypot(sa.x - this.pc.x, sa.y - this.pc.y) < 8); }
       if (e.type === "say" && e.by !== this.s.stadium!.pc) {
         // Only what is said close by, and only once.
         const a = this.s.actors[e.by];
@@ -1206,6 +1208,10 @@ class StadiumScene extends Phaser.Scene {
   // ---------- Frame ----------
   update(_t: number, dms: number) {
     if (!this.started) { this.draw(dms); return; }
+    if (this.pt) { this.pt.frame(this.speed === 0 || !!this.callOn); if (this.s.tick % 600 === 0) this.pt.save(); }
+    if (this.s.tick % 20 === 0) this.progressiveUI();
+    // In the gate-rush crush for the first time: Grozz clocks it.
+    if (!this.flags.crushSaid && (this.s.stadium!.flags.crowdCover ?? 0) > this.s.tick) { this.flags.crushSaid = 1; this.pcLine = { text: "Packed in like this, they can't see a thing. Heh.", until: performance.now() + 3200 }; }
     const st = this.s.stadium!;
     if (!st.ending) {
       this.applyInput();
@@ -1524,11 +1530,14 @@ class StadiumScene extends Phaser.Scene {
     clearTimeout(this.chainTimer); this.chainTimer = window.setTimeout(() => { el.hidden = true; }, 5200);
   }
   /** A rule of the world, said once when you first make it happen (then it's in the notes). */
-  rules: Set<string> = (() => { try { return new Set<string>(JSON.parse(localStorage.getItem("kd-rules") ?? "[]")); } catch { return new Set<string>(); } })();
+  /** ?playtest: the recorder (and every tester starts knowing nothing). */
+  pt: PlayTest | null = location.search.includes("playtest") ? new PlayTest() : null;
+  rules: Set<string> = (() => { if (location.search.includes("playtest")) return new Set<string>(); try { return new Set<string>(JSON.parse(localStorage.getItem("kd-rules") ?? "[]")); } catch { return new Set<string>(); } })();
   ruleCard(id: string, rule: string, more: string) {
     if (this.rules.has(id)) { this.flags[`rule_${id}`] = 1; return; }
     this.rules.add(id); this.flags[`rule_${id}`] = 1;
-    try { localStorage.setItem("kd-rules", JSON.stringify([...this.rules])); } catch { /* ignore */ }
+    this.pt?.rule(rule);
+    if (!this.pt) try { localStorage.setItem("kd-rules", JSON.stringify([...this.rules])); } catch { /* ignore */ }
     this.say(`${rule} ${more}`, "Rule", false, false);
     const el = $("itemCard");
     el.innerHTML = `<i class="bulb rule">✓</i><div><b>Learned</b><span>${esc(rule)}</span></div>`;
@@ -1714,6 +1723,7 @@ class StadiumScene extends Phaser.Scene {
     let y = (k.S.isDown || k.DOWN.isDown ? 1 : 0) - (k.W.isDown || k.UP.isDown ? 1 : 0);
     let run = k.SHIFT.isDown;
     if (this.joyId !== -1) { x = this.jx; y = this.jy; run = Math.hypot(x, y) > 0.85; }
+    if (this.pt && (Math.hypot(x, y) > 0.3 || this.walkTo)) this.pt.active(true);
     if (this.scoped) {
       // Through the scope: the stick nudges the aim (slowly), you can't walk, and it sways unless you steady it.
       const now = performance.now(), steady = this.steadyFrom && now - this.steadyFrom < 3000;
@@ -3196,6 +3206,64 @@ class StadiumScene extends Phaser.Scene {
     const pc = this.pc;
     return !pc || Math.hypot(a.x - pc.x, a.y - pc.y) > 6;
   }
+  /** New UI when there's a reason for it (the report's first five minutes: "Phone and Bag become available
+   *  because the player now has a reason to use them"). The Bag appears once you're carrying something you
+   *  picked up; the Phone once it rings or someone gives you a number; both after four minutes regardless.
+   *  Anyone who's played before (they know a rule) gets everything from the start. */
+  bag0 = -1;
+  uiShown = { bag: false, phone: false };
+  progressiveUI(): void {
+    const pc = this.pc;
+    if (!pc) return;
+    const held = [pc.hand, ...pc.pockets].filter(Boolean).length;
+    if (this.bag0 < 0) this.bag0 = held;
+    const veteran = this.rules.size > 0 && !this.pt, late = this.s.tick > 60 * 240 || !!this.s.match && this.s.match.phase !== "pre";
+    const show = (id: "bag" | "phone", on: boolean) => {
+      const el = $(id === "bag" ? "bagBtn" : "phoneBtn");
+      if (on && !this.uiShown[id]) { this.uiShown[id] = true; el.hidden = false; if (!veteran && this.s.tick > 120) { el.classList.remove("bump"); void el.offsetWidth; el.classList.add("bump"); } }
+      else if (!on && !this.uiShown[id]) el.hidden = true;
+    };
+    show("bag", veteran || late || held > this.bag0 || this.sheetKind === "bag");
+    show("phone", veteran || late || !!this.callOn || Object.keys(this.incoming).length > 0);
+  }
+  /** The observer's strip (playtest only): one tap per laugh, and what caused it. */
+  ptBar(): void {
+    if (!this.pt || document.getElementById("ptBar")) return;
+    const bar = document.createElement("div");
+    bar.id = "ptBar";
+    bar.innerHTML = `<button data-l="open" title="They laughed">😂</button><span hidden><button data-l="line">A line</button><button data-l="animation">Animation</button><button data-l="plan">Their plan</button><button data-l="accident">Accident</button></span>`;
+    document.body.appendChild(bar);
+    const opts = bar.querySelector("span") as HTMLElement;
+    bar.addEventListener("pointerdown", (ev) => {
+      ev.stopPropagation(); ev.preventDefault();
+      const b = (ev.target as HTMLElement).closest("button") as HTMLElement | null, k = b?.dataset.l;
+      if (!k) return;
+      if (k === "open") { opts.hidden = !opts.hidden; return; }
+      this.pt!.laugh(k); opts.hidden = true;
+      const n = document.createElement("i"); n.textContent = "+1"; bar.appendChild(n); setTimeout(() => n.remove(), 700);
+    });
+  }
+  ptReport(): void {
+    if (!this.pt) return;
+    const all = this.pt.save(), prev = this.speed;
+    this.setSpeed(0);
+    const box = document.createElement("div");
+    box.id = "ptReport";
+    box.innerHTML = `<div><h3>Playtest report</h3><textarea placeholder="Notes on this tester (what they said, where they got stuck)">${this.pt.s.notes}</textarea><pre></pre>
+      <p><button data-a="copy" class="primary">Copy all</button><button data-a="next">Next tester (fresh start)</button><button data-a="clear">Clear all</button><button data-a="close">Back to the game</button></p></div>`;
+    document.body.appendChild(box);
+    const pre = box.querySelector("pre")!, ta = box.querySelector("textarea")!;
+    const render = () => { pre.textContent = PlayTest.text(PlayTest.all()); };
+    render();
+    ta.addEventListener("input", () => { this.pt!.s.notes = ta.value; this.pt!.save(); render(); });
+    box.addEventListener("click", (ev) => {
+      const a = ((ev.target as HTMLElement).closest("button") as HTMLElement | null)?.dataset.a;
+      if (a === "copy") { const t = pre.textContent ?? ""; navigator.clipboard?.writeText(t).then(() => this.hint("Copied."), () => { const r = document.createRange(); r.selectNodeContents(pre); getSelection()?.removeAllRanges(); getSelection()?.addRange(r); }); }
+      if (a === "clear") { PlayTest.clear(); render(); }
+      if (a === "next") { this.pt!.save(); location.reload(); }
+      if (a === "close") { box.remove(); this.setSpeed(prev || 1); }
+    });
+  }
   /** The report's third tier, "currently relevant": a soft warm rim that breathes, on what matters right
    *  now and nothing else. The loose keg before you've learned what it does; whatever and whoever the
    *  thing in your hand is for; and the people you haven't had an idea about yet, once you're near. */
@@ -4544,6 +4612,7 @@ class StadiumScene extends Phaser.Scene {
   }
 
   openBag() {
+    this.pt?.bag();
     const s = this.s, pc = this.pc;
     const where = (it: Item) => (it.loc.k === "hand" ? "In your hand" : it.loc.k === "pocket" ? "In a pocket" : it.loc.k === "worn" ? "Wearing" : "");
     const items = [pc.hand, ...pc.pockets, ...Object.values(pc.worn)].filter((x): x is string => !!x).map((id) => s.items[id]);
@@ -4679,7 +4748,7 @@ class StadiumScene extends Phaser.Scene {
   openMenu() {
     const cps = this.game2.checkpoints;
     this.sheet("menu", `<h2>Paused</h2><p>Go back to a checkpoint. Everything since then is undone, and the match will not play out the same way.</p>
-      <div class="list">${cps.map((c) => `<button data-cp="${c.id}">${esc(c.label)}</button>`).join("")}${this.s.match!.phase === "break" && this.s.match!.period === 1 && !cps.some((c) => c.id === "halftime") ? `<button data-keepht="1" class="primary">Keep a save here (half-time)</button>` : ""}<button data-new="1">Start a new match day</button><button data-mute="1">${this.audio.muted ? "Sound: off" : "Sound: on"}</button><button data-mini="1">Mini-games: ${this.miniOn ? "on" : "off"}</button><button data-buzz="1">Vibration: ${this.buzzOn ? "on" : "off"}</button><button data-lefty="1">Buttons: ${document.body.classList.contains("lefty") ? "left hand" : "right hand"}</button><button data-zoom="1">Zoom: ${esc(this.zoomLabel())}</button><button data-fp="1">${this.fp.on ? "Back to the overhead view" : "First-person view"}</button></div>
+      <div class="list">${cps.map((c) => `<button data-cp="${c.id}">${esc(c.label)}</button>`).join("")}${this.s.match!.phase === "break" && this.s.match!.period === 1 && !cps.some((c) => c.id === "halftime") ? `<button data-keepht="1" class="primary">Keep a save here (half-time)</button>` : ""}${this.pt ? `<button data-pt="1" class="primary">Playtest report</button>` : ""}<button data-new="1">Start a new match day</button><button data-mute="1">${this.audio.muted ? "Sound: off" : "Sound: on"}</button><button data-mini="1">Mini-games: ${this.miniOn ? "on" : "off"}</button><button data-buzz="1">Vibration: ${this.buzzOn ? "on" : "off"}</button><button data-lefty="1">Buttons: ${document.body.classList.contains("lefty") ? "left hand" : "right hand"}</button><button data-zoom="1">Zoom: ${esc(this.zoomLabel())}</button><button data-fp="1">${this.fp.on ? "Back to the overhead view" : "First-person view"}</button></div>
       <h2>Your notes</h2><div class="log">${[...this.rules].map((r) => `<p><b>Rule</b> ${esc(r === "post" ? "People leave their post to fix a problem." : r === "food" ? "Ronson goes for food." : r)}</p>`).join("")}${CURIOS.filter((c) => this.curios.has(c.id)).map((c) => `<p><b>Idea</b> ${esc(c.text)}</p>`).join("") || (this.rules.size ? "" : "<p>Nothing yet. Have a look round.</p>")}</div>
       <h2>Fixes (${fixesDone(this.w)}/${FIXES.length})</h2><div class="log">${this.fixesHtml()}</div>
       <h2>Side jobs (${this.mayhemDone.size}/${StadiumScene.MAYHEM.length})</h2><div class="list"><button data-jobs="1" class="primary">Side jobs: what pays ▸</button></div>
@@ -4800,7 +4869,7 @@ class StadiumScene extends Phaser.Scene {
 
   // ---------- Wiring ----------
   wireHud() {
-    $("start").addEventListener("click", () => { $("intro").hidden = true; void this.audio.unlock(); this.started = true; });
+    $("start").addEventListener("click", () => { $("intro").hidden = true; void this.audio.unlock(); this.started = true; if (this.pt && !this.pt.running) { this.pt.begin(); this.ptBar(); } });
     $("prepGo").addEventListener("click", () => {
       if (!this.pendingCampaign) return;
       $("prep").hidden = true;
@@ -4809,7 +4878,7 @@ class StadiumScene extends Phaser.Scene {
       this.setSpeed(1);
     });
     // Phones may suspend audio; any tap brings it back.
-    window.addEventListener("pointerdown", () => { if (this.started) void this.audio.unlock(); });
+    window.addEventListener("pointerdown", () => { if (this.started) void this.audio.unlock(); this.pt?.active(false); });
     // Hold the button to wind up a haymaker (on a punch); a tap is an ordinary swing.
     const holdable = (el: HTMLElement, get: () => Option | null) => {
       let t0 = 0, timer = 0;
@@ -4936,6 +5005,7 @@ class StadiumScene extends Phaser.Scene {
       }
       if (d.cp) { loadCheckpoint(this.game2, d.cp as any); this.closeSheet(); $("ending").hidden = true; this.setSpeed(1); this.hint("Back to the checkpoint."); this.setZoom(); return; }
       if (d.useit) { this.closeSheet(); this.startUse(d.useit); return; }
+      if (d.pt) { this.closeSheet(); this.ptReport(); return; }
       if (d.keepht) { saveCheckpoint(this.game2, "halftime", "Half-time"); this.hint("Saved. Half-time's in the menu now if it all goes wrong."); this.openMenu(); return; }
       if (d.new) { this.newGame(); this.closeSheet(); this.setSpeed(1); $("ending").hidden = true; return; }
       if (d.next) { this.continueTournament(); return; }

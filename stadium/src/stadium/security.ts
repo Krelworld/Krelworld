@@ -210,8 +210,20 @@ export function stepRadio(w: World): void {
   st.pendingRadio = st.pendingRadio.filter((r) => r.at >= 0);
 }
 
+/** The game build, and it's Grozz: stewards are slower to twig and slower to act (the creator, on his phone:
+ *  "you're caught too easily and too quickly"). Tests and other people keep the stricter numbers. */
+const soft = (w: World, t: Actor | undefined) => PACE.calm && !!t && t.id === w.state.stadium!.pc;
+
 export function alert(w: World, g: Actor, by: Actor, severity: number, sus: number): void {
   const n = g.npc!;
+  // Something minor, seen once: he clocks it and watches. Seen at it again, he comes over.
+  if (soft(w, by) && severity < 2 && (n.mode === "routine" || n.mode === "watch")) {
+    n.sus[by.id] = Math.min(2, Math.max(n.sus[by.id] ?? 0, 0.8) + 0.45);
+    n.crime = Math.max(n.target === by.id ? n.crime : 0, severity);
+    n.target = by.id; n.lastSeen = { x: by.x, y: by.y, t: w.state.tick };
+    if (n.mode === "routine") { setMode(w, g, "watch"); say(w, g, "Oi. I saw that.", 2); }
+    return;
+  }
   // Spotted doing something: the moment to react (the view slows time for it).
   if (severity >= 1 && (n.mode === "routine" || n.mode === "watch" || n.mode === "search") && by.id === w.state.stadium!.pc && canSee(w, g, by, 26))
     w.bus.emit({ type: "spotted", t: w.state.tick, by: g.id, who: by.id });
@@ -238,7 +250,8 @@ function decideIntent(w: World, g: Actor, t: Actor): Npc["intent"] {
   if (n.crime >= 3) return n.job === "police" ? "arrest" : "detain";
   if (n.crime >= 2) return "detain";
   if (area.pitch && !looksPermitted(w.state, t, area as any)) return "detain";
-  if (n.crime >= 1) return "eject";
+  // In the game a first minor offence gets a talking-to, not the door.
+  if (n.crime >= 1) return soft(w, t) && n.crime < 2 && st.warnings < 2 ? "warn" : "eject";
   if (st.banned.includes(appearance(w.state, t).faceId) && area.access !== "public") return "eject";
   if (st.warnings >= 2) return "eject";
   return "warn";
@@ -273,7 +286,8 @@ export function stepSecurity(w: World, g: Actor): void {
   if ((tick + g.id.length * 7 + g.id.charCodeAt(g.id.length - 1)) % 6 === 0) {
     for (const t of suspects(w)) {
       if (t.heldBy || st.ending || (st.flags.graceUntil ?? 0) > tick) continue;
-      const range = (n.job === "pitchsteward" || n.job === "police" ? 22 : 14) + Math.min(5, st.flags.securityLevel ?? 0) * 0.8;
+      const easy = soft(w, t);
+      const range = (n.job === "pitchsteward" || n.job === "police" ? (easy ? 16 : 22) : easy ? 10.5 : 14) + Math.min(5, st.flags.securityLevel ?? 0) * 0.8;
       const sees = canSee(w, g, t, range);
       let sus = n.sus[t.id] ?? 0;
       if (sees) {
@@ -291,7 +305,9 @@ export function stepSecurity(w: World, g: Actor): void {
         if ((st.flags.alarmUntil ?? 0) > tick && n.job !== "police") rate *= 0.45;
         // A steward who has been paid looks the other way, unless it is serious.
         if (n.paidUntil > tick && n.crime < 2) rate = 0;
-        if (tr >= 3 && n.job === "pitchsteward") { sus = 2; n.crime = Math.max(n.crime, 1); }
+        if (tr >= 3 && n.job === "pitchsteward" && !easy) { sus = 2; n.crime = Math.max(n.crime, 1); }
+        // (On the pitch in the game: a second or two before the man in the bib believes his eyes.)
+        if (easy) rate *= tr >= 3 ? 0.35 : 0.55;
         sus = Math.min(2, sus + rate * DT * 6);
         if (rate === 0) sus = Math.max(0, sus - 0.12 * DT * 6);
         n.lastSeen = { x: t.x, y: t.y, t: tick };
@@ -306,13 +322,13 @@ export function stepSecurity(w: World, g: Actor): void {
 
   switch (n.mode) {
     case "routine":
-      if (t && sus >= 0.45) { setMode(w, g, "watch"); say(w, g, "?", 1.5); }
+      if (t && sus >= (soft(w, t) ? 0.6 : 0.45)) { setMode(w, g, "watch"); say(w, g, "?", 1.5); }
       return;
     case "watch":
       g.moveX = g.moveY = 0;
       if (!t) return setMode(w, g, "routine");
       g.facing = Math.atan2(t.y - g.y, t.x - g.x);
-      if (sus >= 0.9) { setMode(w, g, "approach"); say(w, g, n.crime >= 1 ? line(w, g, "spot") : "Excuse me, sir."); }
+      if (sus >= (soft(w, t) ? 1.3 : 0.9)) { setMode(w, g, "approach"); say(w, g, n.crime >= 1 ? line(w, g, "spot") : "Excuse me, sir."); }
       else if (sus < 0.25) setMode(w, g, "routine");
       return;
     case "approach":
@@ -336,8 +352,8 @@ export function stepSecurity(w: World, g: Actor): void {
       if (!n.goal || (tick % 30 === 0)) goTo(g, tx, ty, run);
       if (n.goal) n.goal.run = run;
       if (d > 2.2 || !visible) follow(w, g);
-      else { const k = 1 / (d || 1); g.speed = run ? 5.6 : 2.2; g.moveX = (tx - g.x) * k; g.moveY = (ty - g.y) * k; }
-      if (visible && Math.hypot(t.x - g.x, t.y - g.y) < 1.15 && !t.hiddenIn) return apprehend(w, g, t);
+      else { const k = 1 / (d || 1); g.speed = run ? (soft(w, t) ? 5.0 : 5.6) : 2.2; g.moveX = (tx - g.x) * k; g.moveY = (ty - g.y) * k; }
+      if (visible && Math.hypot(t.x - g.x, t.y - g.y) < (soft(w, t) ? 0.95 : 1.15) && !t.hiddenIn) return apprehend(w, g, t);
       if (!visible && Math.hypot(n.lastSeen!.x - g.x, n.lastSeen!.y - g.y) < 1.5) { setMode(w, g, "search"); say(w, g, "Where's he gone?"); }
       return;
     }

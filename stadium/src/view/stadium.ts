@@ -95,7 +95,9 @@ function zoomSteps(): number[] {
   // to read, and upright the screen still gives about 12 m across by 21 deep. The zoom button steps out.
   void portrait;
   const z = Math.max(1, Math.round(((GZ ? (GZ * 32) / 60 : 32) * DPR) / 32));
-  return [...new Set([z, z + 1, Math.max(1, z - 1)])];
+  // On a phone the default is one step closer than it was (about 9 m across, Grozz about 77 points): the
+  // creator, playing it, wanted to be nearer him. The zoom button still steps out to the wider views.
+  return small ? [...new Set([z + 1, z, Math.max(1, z - 1)])] : [...new Set([z, z + 1, Math.max(1, z - 1)])];
 }
 const ZOOMS = [0, 1, 2];
 const SKIN = [0xf1c7a5, 0xd9a47e, 0xb07a52, 0x8a5a3b, 0x5e3b26, 0xe8b896];
@@ -1312,7 +1314,7 @@ class StadiumScene extends Phaser.Scene {
   cycleZoom() {
     this.zoomLevel = (this.zoomLevel + 1) % zoomSteps().length;
     $("zoomBtn").textContent = this.zoomLabel();
-    try { localStorage.setItem("kd-zoom2", String(this.zoomLevel)); } catch { /* ignore */ }
+    try { localStorage.setItem("kd-zoom3", String(this.zoomLevel)); } catch { /* ignore */ }
   }
   zoomLabel(): string { const st = zoomSteps(), z = st[Math.min(this.zoomLevel, st.length - 1)] / st[0]; return z === 1 ? "1×" : z > 1 ? `${+z.toFixed(1)}×` : "½×"; }
   setZoom() { this.cameras.main.setZoom(this.targetZoom()); }
@@ -5078,6 +5080,46 @@ class StadiumScene extends Phaser.Scene {
     this.audio.play("tap", 0.5);
   }
   endUse() { this.useMode = null; $("useBanner").hidden = true; }
+  /** What's in his hand, and everything he can do with it right now, one tap each: on whoever and whatever
+   *  is near (he walks over and does it), on himself, swapped for what's in a pocket, or dropped. No aiming
+   *  mode to remember, no Bag to dig through. */
+  itemActs: { kind: "near" | "opt" | "aim" | "swap"; i?: number; id?: string }[] = [];
+  openItem(id: string) {
+    const s = this.s, pc = this.pc, it = s.items[id];
+    if (!it || !pc) return;
+    const rows: string[] = []; this.itemActs = [];
+    const row = (label: string, hint: string, act: StadiumScene["itemActs"][number], cls = "") => { rows.push(`<button data-itemact="${this.itemActs.length}" class="${cls}">${esc(label)}${hint ? `<small>${esc(hint)}</small>` : ""}</button>`); this.itemActs.push(act); };
+    // On people and things within a short walk: whatever this does to them.
+    const people = Object.values(s.actors).filter((a) => a.id !== pc.id && !a.hiddenIn && (a.npc || a.fb) && Math.hypot(a.x - pc.x, a.y - pc.y) < 9)
+      .sort((a, b) => Math.hypot(a.x - pc.x, a.y - pc.y) - Math.hypot(b.x - pc.x, b.y - pc.y)).slice(0, 8);
+    this.itemNear = [];
+    for (const a of people) {
+      const o = this.optionsFor(a).find((x) => x.kind === "opt" && x.opt?.action?.item === it.id);
+      if (!o?.opt || this.itemNear.length >= 4) continue;
+      this.itemNear.push({ x: a.x, y: a.y, who: a.id });
+      row(o.opt.label, whatItDoes(this.w, pc, o.opt), { kind: "near", i: this.itemNear.length - 1 }, "primary");
+    }
+    for (const t of itemTargets(this.w, pc, it).filter((t2) => Math.hypot(t2.x - pc.x, t2.y - pc.y) < 30).slice(0, 3)) {
+      this.itemNear.push({ x: t.x, y: t.y });
+      row(`Use it on: ${t.label.charAt(0).toLowerCase()}${t.label.slice(1)}`, `${Math.round(Math.hypot(t.x - pc.x, t.y - pc.y))} m away. He'll walk over.`, { kind: "near", i: this.itemNear.length - 1 }, "primary");
+    }
+    if (can(it, "throw")) row("Throw it", "Then tap where.", { kind: "aim" });
+    const opts = itemOptions(this.w, pc, it);
+    (this as any)[`bag_${it.id}`] = opts;
+    opts.forEach((o, i) => row(o.label, whatItDoes(this.w, pc, o), { kind: "opt", i, id: it.id }));
+    for (const pid of pc.pockets) { const p2 = s.items[pid]; if (p2 && defOf(p2).size !== "large") row(`Swap for the ${itemName(p2).toLowerCase()}`, "", { kind: "swap", id: pid }); }
+    this.sheet("item", `<h2>${esc(itemName(it))}</h2>${ITEM_TIPS[it.def] ? `<p>${esc(ITEM_TIPS[it.def])}</p>` : ""}<div class="list">${rows.join("")}</div><div class="row"><button data-openbag="1">Everything you're carrying</button></div>`);
+  }
+  itemNear: { x: number; y: number; who?: string }[] = [];
+  doItemAct(n: number) {
+    const a = this.itemActs[n], pc = this.pc, h = pc.hand;
+    this.closeSheet();
+    if (!a) return;
+    if (a.kind === "aim" && h) this.startUse(h);
+    else if (a.kind === "near" && h) { const t = this.itemNear[a.i ?? 0]; if (t) { this.useMode = { item: h, until: performance.now() + 15000 }; this.useAt(t.x, t.y, t.who ? this.s.actors[t.who] ?? null : null); } }
+    else if (a.kind === "opt" && a.id) { const o = ((this as any)[`bag_${a.id}`] as Option[] | undefined)?.[a.i ?? 0]; if (o) this.run(o); }
+    else if (a.kind === "swap" && a.id) dispatch(this.w, { verb: "hold", actor: pc.id, item: a.id });
+  }
   /** Where they tapped, with the thing in hand: a person gets what that thing does to them (given,
    *  planted, shown, spiked); a place, he walks there and uses it; a missile flies there. */
   useAt(gx: number, gy: number, who: Actor | null) {
@@ -6022,9 +6064,8 @@ class StadiumScene extends Phaser.Scene {
         if (longed) return; void t0;
         const h = this.pc.hand ? this.s.items[this.pc.hand] : undefined;
         if (!h) { this.openBag(); return; }
-        const aim = (["throw", "spike", "give", "plant", "smash"] as const).some((v) => can(h, v));
-        if (!aim) { this.openBag(); return; }
-        this.useMode ? this.endUse() : this.startUse(h.id);
+        if (this.useMode) { this.endUse(); return; }
+        this.sheetKind === "item" ? this.closeSheet() : this.openItem(h.id);
       });
     }
     $("useBanner").addEventListener("click", (e) => { if ((e.target as HTMLElement).closest("[data-nouse]")) this.endUse(); });
@@ -6058,7 +6099,7 @@ class StadiumScene extends Phaser.Scene {
     for (const ev of ["pointerup", "pointercancel", "pointerleave"]) $("scopeSteady").addEventListener(ev, steadyOff);
     const touch = window.matchMedia?.("(pointer: coarse)").matches;
     if (touch) document.body.classList.add("touch");
-    try { const saved = localStorage.getItem("kd-zoom2"); const z = saved ? +saved : 0; if (ZOOMS.includes(z)) this.zoomLevel = z; } catch { /* ignore */ }
+    try { const saved = localStorage.getItem("kd-zoom3"); const z = saved ? +saved : 0; if (ZOOMS.includes(z)) this.zoomLevel = z; } catch { /* ignore */ }
     $("zoomBtn").textContent = this.zoomLabel();
     $("zoomBtn").addEventListener("click", () => this.cycleZoom());
     $("fpBtn").addEventListener("click", () => this.toggleFirstPerson());
@@ -6102,6 +6143,8 @@ class StadiumScene extends Phaser.Scene {
         return;
       }
       if (d.bribe) { const r = dispatch(this.w, { verb: "bribe", actor: this.pc.id, target: { k: "actor", id: d.who! }, amount: +d.bribe }); if (!r.ok) this.hint(r.reason ?? ""); this.closeSheet(); return; }
+      if (d.itemact) { this.doItemAct(+d.itemact); return; }
+      if (d.openbag) { this.openBag(); return; }
       if (d.bag) {
         const o = ((this as any)[`bag_${d.bag}`] as Option[])[+d.i!];
         if (o?.sheet?.kind === "phone") { this.openPhone("burner"); return; }

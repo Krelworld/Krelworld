@@ -1503,6 +1503,18 @@ class StadiumScene extends Phaser.Scene {
     this.audio.play("chime", 0.6, { rate: 1.1 });
     clearTimeout(this.itemCardTimer); this.itemCardTimer = window.setTimeout(() => { el.hidden = true; }, 6500);
   }
+  /** A footballer's card (the old Football Manager match screen): who he is, how good, how he is today. */
+  playerCard(a: Actor) {
+    const fb = a.fb!, team = this.s.match!.teams[fb.team], gk = fb.role === "GK";
+    const bar = (label: string, v: number) => `<span class="pb"><em>${label}</em><i style="width:${Math.round(Math.max(0.05, Math.min(1, v)) * 100)}%"></i></span>`;
+    const stats = gk ? [["Keeping", fb.keeping], ["Composure", fb.composure], ["Pace", fb.pace]] : [["Pace", fb.pace], ["Shooting", fb.shooting], ["Passing", fb.passing], ["Tackling", fb.tackling]];
+    const today = fb.status !== "playing" ? `Off: ${(fb.goneReason ?? fb.status).replace(/_/g, " ")}` : fb.bribed ? "Not himself today. Shifty." : (a.effects.frozen ?? 0) > this.s.tick ? "Sick as a dog." : fb.fatigue > 0.85 ? "Knackered." : fb.yellows ? "On a yellow." : "Looks up for it.";
+    const el = $("itemCard");
+    el.innerHTML = `<i class="bulb" style="background:#${(team.colour as number).toString(16).padStart(6, "0")};color:#fff">${fb.number}</i><div><b>${esc(a.name)}${fb.star ? " ★" : ""} · ${esc(team.name)}${gk ? " · keeper" : ""}</b><div class="pbs">${stats.map(([l, v]) => bar(l as string, v as number)).join("")}</div><small class="today">${esc(today)}${fb.goals ? ` · ${fb.goals} goal${fb.goals > 1 ? "s" : ""} today` : ""}</small></div>`;
+    el.hidden = false; el.classList.remove("in"); void el.offsetWidth; el.classList.add("in");
+    this.itemCardAt = performance.now();
+    clearTimeout(this.itemCardTimer); this.itemCardTimer = window.setTimeout(() => { el.hidden = true; }, 5200);
+  }
   seenItems: Set<string> = (() => { try { return new Set<string>(JSON.parse(localStorage.getItem("kd-items") ?? "[]")); } catch { return new Set<string>(); } })();
   itemCardTimer = 0;
   itemCardAt = 0;
@@ -2451,6 +2463,23 @@ class StadiumScene extends Phaser.Scene {
           t.setText(mk.label).setPosition(Math.round(x), Math.round(y - P.S * 0.7)).setScale(u3 * 1.4).setVisible(true).setColor(`#${mk.col.toString(16).padStart(6, "0")}`);
           instI++;
         }
+      }
+    }
+    // Sat watching (or Instinct): who matters on the pitch, labelled, so you can read the game. Their
+    // star, both keepers, anyone off their game. Tap a player for his card.
+    if (pc && (pc.seated || this.instinct) && s.match) {
+      const u3 = DPR / cam.zoom;
+      for (const id in s.actors) {
+        const a = s.actors[id], fb = a.fb;
+        if (!fb || fb.status !== "playing") continue;
+        const off = fb.bribed || (a.effects.frozen ?? 0) > tick || fb.fatigue > 0.85;
+        const label = fb.star && fb.team === 1 ? `★ ${a.name.split(" ").pop()}` : fb.role === "GK" ? `GK${off ? " ?" : ""}` : off ? "off his game" : "";
+        if (!label) continue;
+        const x = P.sx(a.x, a.y), y = P.sy(a.x, a.y) - P.S * 2.1;
+        let t = this.instLabels[instI];
+        if (!t) { t = this.add.text(0, 0, "", { fontFamily: '"Silkscreen", monospace', fontSize: "11px", color: "#ffffff", stroke: "#000000", strokeThickness: 4 }).setOrigin(0.5, 1).setDepth(9.5e6); this.instLabels.push(t); }
+        t.setText(label).setPosition(Math.round(x), Math.round(y)).setScale(u3 * 1.3).setVisible(true).setColor(fb.star && fb.team === 1 ? "#ff6b6b" : off ? "#f2c94c" : "#ffffff");
+        instI++;
       }
     }
     for (let i = instI; i < this.instLabels.length; i++) this.instLabels[i].setVisible(false);
@@ -3634,6 +3663,8 @@ class StadiumScene extends Phaser.Scene {
   openPerson(id: string, sub = false, all = false) {
     const s = this.s, pc = this.pc, a = s.actors[id];
     if (!a || !pc || !this.started) return;
+    // Watching from the stands: a footballer's card, not a menu.
+    if (a.fb && pc.seated) { this.playerCard(a); return; }
     const down = incapacitated(this.w, a), out: RingItem[] = [];
     const n = a.npc, mine = [pc.hand, ...pc.pockets].filter((x): x is string => !!x).map((x) => s.items[x]).filter(Boolean);
     const ico = (def: string) => (ICONS.has(def) ? assetURL(`icons/${def}.png`) : "");

@@ -1163,3 +1163,8 @@ From the creator's original brief: "finding a vicious dog outside the stadium an
 **One notebook.** The menu's first section is "Your notes": the rules you've learned and the ideas you've had.
 
 **Side jobs are found by playing.** The list shows what you've done and the three nearest you haven't, then "…and N more daft things nobody's told you about."
+
+**Reading the players** (brief, point 5: "recognise dangerous players").
+- **On the pitch:** while you're sat watching (or holding Instinct), their star is labelled in red ("★ Jr") and both keepers "GK". Anyone off their game (bribed, sick, knackered) gets a yellow "off his game" (a keeper, "GK ?").
+- **Player cards:** tap a footballer while you're seated and you get his card, as on an old Football Manager match screen: number, name, team, bars for pace, shooting, passing and tackling (keeping and composure for a keeper), and how he is today ("Looks up for it", "Not himself today. Shifty.", "Sick as a dog.", "Knackered.", "On a yellow.", or why he's off).
+- **The numbers are real:** they're the same ones the match engine plays with. A bribed keeper's saves really are worse, and a missing star really does lower their attack.

@@ -4849,13 +4849,13 @@ class StadiumScene extends Phaser.Scene {
     const seller = this.s.actors[who], shop = SHOPS[seller.npc!.shop!];
     const rows = Object.entries(shop.stock).map(([def, price]) => {
       const poor = this.pc.money < price;
-      return `<button class="ware${poor ? " poor" : ""}" data-buy="${def}" data-who="${who}" data-price="${price}">${icon(def)}<span class="nm">${esc(ITEM_DEFS[def].name)}</span><span class="pr">£${price}</span></button>`;
+      return `<button class="ware${poor ? " poor" : ""}" data-buy="${def}" data-who="${who}" data-price="${price}">${icon(def)}<span class="nm">${esc(ITEM_DEFS[def].name)}</span><span class="pr">£${price}</span>${ITEM_TIPS[def] ? `<small class="tip">${esc(ITEM_TIPS[def])}</small>` : ""}</button>`;
     }).join("");
     // The pawnbroker buys as well as sells: everything you're carrying, with what he'll give for it.
     let sell = "";
     if (seller.npc!.shop === "pawn") {
       const pc = this.pc, mine = [pc.hand, ...pc.pockets, ...Object.values(pc.worn)].filter((x): x is string => !!x).map((id) => this.s.items[id]).filter(Boolean);
-      sell = `<h2>Sell</h2><div class="wares">${mine.map((it) => {
+      sell = `<h2>Sell</h2><p class="purse">It goes on his shelf. Whoever it belonged to may come in for it.</p><div class="wares">${mine.map((it) => {
         const offer = pawnOffer(it.def);
         return `<button class="ware sell${offer ? "" : " poor"}" data-pawn="${it.id}" data-who="${who}">${icon(it.def)}<span class="nm">${esc(itemName(it))}</span><span class="pr">${offer ? `£${offer}` : "No"}</span></button>`;
       }).join("") || "<p class='dim'>You've nothing he wants. Wallets, passes, phones, shirts: lift some off people.</p>"}</div>`;

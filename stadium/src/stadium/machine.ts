@@ -249,7 +249,8 @@ function work(w: World, p: Problem): void {
     return;
   }
   if (p.kind === "lost") {
-    if (!it || it.loc.k === "gone") return giveUp(w, p, a, undefined);
+    // (Gone for good: nothing to fetch, and nothing to keep coming back for.)
+    if (!it || it.loc.k === "gone") { if (it) { it.home = undefined; it.owner = undefined; } return giveUp(w, p, a, undefined); }
     // Turned up on the floor somewhere he can see: he goes and gets it.
     if (it.loc.k === "ground" && dist(a, it.loc) < 12) { p.kind = "displaced"; n.fetch = it.id; n.plan = [{ k: "go", x: it.loc.x, y: it.loc.y }]; say(w, a, `Who put my ${thing(it)} over there?!`, 2.5); n.why = "fetch"; return; }
     const holder = it.loc.k === "hand" ? s.actors[it.loc.a] : undefined;
@@ -290,6 +291,8 @@ function stepCustody(w: World): void {
     const owner = s.actors[it.owner];
     if (!owner?.npc || owner.dead || owner.fb) continue;
     const l = it.loc, ground = l.k === "ground";
+    // A thing that no longer exists isn't missing, it's gone: he doesn't go looking for it (and never in a loop).
+    if (l.k === "gone") { it.home = undefined; continue; }
     if (ground && dist(l, it.home) <= 1.4) continue;
     if (l.k === "hand" && l.a === owner.id) continue;
     if (st.kegCarry?.[id] || st.rolling?.some((q) => q.id === id) || m.problems.some((p) => p.item === id)) continue;

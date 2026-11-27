@@ -149,7 +149,9 @@ export class Audio {
       return 0;
     }
     const now = this.ctx.currentTime;
-    const gap = opts.minGap ?? 0.12;
+    // A voice never talks over itself: the same spoken line can't start again within a couple of seconds, nor
+    // the same tannoy announcement within ten, whatever asks for it (a guard against anything that loops).
+    const spoken = /^(v|pc|stw|op|gh)_/.test(name), gap = opts.minGap ?? (name.startsWith("tannoy_") ? 10 : spoken ? 2 : 0.12);
     if (now - (this.lastPlayed.get(name) ?? -9) < gap) return 0;
     this.lastPlayed.set(name, now);
     const src = this.ctx.createBufferSource();

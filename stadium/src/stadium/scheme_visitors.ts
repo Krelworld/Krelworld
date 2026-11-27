@@ -201,6 +201,8 @@ const DEF: SchemeDef = {
       }
       if (sc.vars.ls && !loadingAtPub && v.state === "driving" && tick >= tGift() && dist(k.loc as { x: number; y: number }, HOME) < 9) {
         sc.vars.sent = tick; sc.vars.foul = st.beer?.load ? 1 : 0;
+        // It's on the lorry and off his hands: nobody's to go looking for it.
+        k.owner = undefined; k.home = undefined;
         moveItem(s, k.id, { k: "gone" });
         if (!sc.vars.press && rep && dist(rep, v) < 13) { sc.vars.press = 1; say(w, rep, "What's that with a bow on? Kev: follow that keg.", 4); rep.npc!.plan = [{ k: "go", ...VENUE.delivery.gateStop, run: true }, { k: "wait", s: 900 }]; learn(w, DEF, sc, "press", true); }
         if (sc.vars.foul || sc.vars.tankard || sc.vars.press) {

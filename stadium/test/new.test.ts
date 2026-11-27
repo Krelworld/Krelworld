@@ -827,3 +827,36 @@ test("an authored scheme: a keg for the visitors. Foul it, send the tankard, bri
     assert.ok(dry.sc.clues.tankard, "and he learns what was missing");
   } finally { setPace({ kickoffAt: before, calm: false }); }
 });
+
+test("nothing loops: once the visitors' keg has gone on the lorry nobody keeps looking for it; and a dead referee's kit comes off him", async () => {
+  const { setPace, KICKOFF_AT } = await import("../src/stadium/layout");
+  const { schemeState } = await import("../src/stadium/schemes");
+  const { kill } = await import("../src/stadium/knife");
+  const { appearance } = await import("../src/core/identity");
+  const before = KICKOFF_AT;
+  setPace({ kickoffAt: 200, calm: true });
+  try {
+    const g = createGame("noloop"), s = g.w.state, st = s.stadium!, pc = s.actors[st.pc], ev = events(g), sc = schemeState(g.w, "visitors")!;
+    for (let i = 0; i < 60 * 400 && !sc.vars.sent; i++) stepGame(g);
+    assert.ok(sc.vars.sent, "the keg went");
+    ev.length = 0;
+    run(g, 45);
+    const gave = ev.filter((e) => e.type === "gave_up").length, left = ev.filter((e) => e.type === "post_left").length;
+    assert.ok(gave <= 1 && left <= 6, `nobody stuck looking for it (${gave} give-ups, ${left} posts left in 45s)`);
+    // No one line said more than a few times in three quarters of a minute.
+    const lines: Record<string, number> = {};
+    for (const e of ev) if (e.type === "say") lines[`${e.by}:${e.text}`] = (lines[`${e.by}:${e.text}`] ?? 0) + 1;
+    const worst = Object.entries(lines).sort((a, b) => b[1] - a[1])[0];
+    assert.ok(!worst || worst[1] <= 4, `nobody repeating himself: ${worst?.[1]}x ${worst?.[0]}`);
+    // The referee's kit is his clothes: kill him and it can be taken, and worn.
+    const ref = s.actors[s.match!.officials.referee];
+    assert.equal(s.items[ref.worn.outer!]?.def, "ref_kit");
+    kill(g.w, ref, pc); run(g, 1);
+    pc.x = ref.x + 0.8; pc.y = ref.y; pc.downUntil = 0; pc.heldBy = undefined;
+    const kitId = ref.worn.outer!;
+    assert.equal(dispatch(g.w, { verb: "loot", actor: pc.id, target: { k: "actor", id: ref.id }, arg: kitId }).ok, true);
+    assert.ok(!ref.worn.outer && ["hand", "pocket"].includes(s.items[kitId].loc.k), "it's off him and on Grozz");
+    assert.equal(dispatch(g.w, { verb: "wear", actor: pc.id, item: kitId }).ok, true);
+    assert.equal(appearance(s, pc).role, "referee");
+  } finally { setPace({ kickoffAt: before, calm: false }); }
+});

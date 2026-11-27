@@ -108,7 +108,7 @@ export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: 
     });
   }
   const offIds = [m.officials.referee, ...m.officials.assistants, m.officials.fourth];
-  offIds.forEach((id, i) => { const a = s.actors[id]; a.x = SPOTS.refRoom.x + (i - 1.5) * 1.6; a.y = SPOTS.refRoom.y; a.npc = newNpc("official", "referee"); });
+  offIds.forEach((id, i) => { const a = s.actors[id]; a.x = SPOTS.refRoom.x + (i - 1.5) * 1.6; a.y = SPOTS.refRoom.y; a.npc = newNpc("official", "referee"); if (PACE.calm) spawnItem(s, "ref_kit", { k: "worn", a: id, slot: "outer" }); });
 
   // The player, with whatever he chose to bring.
   const pc = spawnActor(s, "protagonist", "Grozz", arrivalSpot().x, arrivalSpot().y, { id: "pc", radius: 0.55, speed: 2.2, money: campaign.money });

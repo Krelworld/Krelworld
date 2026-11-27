@@ -18,7 +18,7 @@ import { chainLink, knockOn } from "./kegs";
 
 /** How long Grozz can go without anything paying off before the world offers something. */
 export const LULL_SECONDS = 45;
-const PAYOFFS = new Set(["chain", "post_left", "bowled", "keg_rolled", "ball_to_pc", "dog_lured", "stole", "knockout", "item_hit", "pawned", "line", "tipoff", "planted", "smashed", "fb_goal", "caught"]);
+const PAYOFFS = new Set(["rigged", "chain", "post_left", "bowled", "keg_rolled", "ball_to_pc", "dog_lured", "stole", "knockout", "item_hit", "pawned", "line", "tipoff", "planted", "smashed", "fb_goal", "caught"]);
 
 export interface PintBeat { fan: string; pint: string; back: number }
 

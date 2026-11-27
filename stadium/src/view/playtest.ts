@@ -96,7 +96,7 @@ export class PlayTest {
       if (last && line.startsWith(last)) this.s.chains[this.s.chains.length - 1] = line; else this.s.chains.push(line);
       this.lastContext = line;
     }
-    if (["post_left", "bowled", "dog_lured", "ball_to_pc", "keg_rolled", "stole", "spotted"].includes(e.type)) this.first("firstReaction");
+    if (["rigged", "post_left", "bowled", "dog_lured", "ball_to_pc", "keg_rolled", "stole", "spotted"].includes(e.type)) this.first("firstReaction");
     if (["chain", "post_left", "bowled", "keg_rolled", "ball_to_pc", "dog_lured", "stole", "knockout", "item_hit", "pawned", "line", "tipoff", "planted", "smashed", "fb_goal"].includes(e.type) && (e.type !== "chain" || e.by === pcId)) this.payoff();
     if (e.type === "say" && e.by !== pcId && near) this.lastContext = `"${e.text}"`;
     if (e.type === "fb_kickoff" && e.period === 1 && this.s.kickoff === undefined) this.s.kickoff = this.now();

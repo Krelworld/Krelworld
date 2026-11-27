@@ -30,6 +30,7 @@ import { stepChat } from "./chatter";
 import { clampToRoof, installRoofs } from "./roofs";
 import { installMissiles, spawnBricks, stepStench } from "./missiles";
 import { installChainHooks, installKegs, spawnKegs, stepKegs, stepPawnSeek } from "./kegs";
+import { installRigs, stepRigs } from "./rigs";
 import { installBallOut, installBallWatch, stepBallOut } from "./ballout";
 import { spawnBootBag, stepBootBag } from "./bootbag";
 import { installCoke, stepCoke } from "./coke";
@@ -64,7 +65,7 @@ export const HALF_SECONDS = 450;
 export const HALFTIME_SECONDS = 150;
 
 export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: Campaign = newCampaign()): Game {
-  if (!rulesInstalled) { installRules(); installBetting(); installPolice(); installBus(); installDog(); installKickoff(); installKnife(); installGloryHole(); installCombat(); installHorse(); installRoutes(); installEntries(); installDetector(); installCoverup(); installBike(); installLech(); installCars(); installWitness(); installPhone(); installNaked(); installRoofs(); installKegs(); installBallOut(); installCoke(); rulesInstalled = true; }
+  if (!rulesInstalled) { installRules(); installBetting(); installPolice(); installBus(); installDog(); installKickoff(); installKnife(); installGloryHole(); installCombat(); installHorse(); installRoutes(); installEntries(); installDetector(); installCoverup(); installBike(); installLech(); installCars(); installWitness(); installPhone(); installNaked(); installRoofs(); installKegs(); installRigs(); installBallOut(); installCoke(); rulesInstalled = true; }
   setVenue(venueId);
   const oppKey = VENUE.opp;
   const opp = TEAMS[oppKey];
@@ -135,6 +136,8 @@ export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: 
   // PC Hargreaves is on horseback.
   staff("police", "police", "PC Hargreaves", VENUE.policeSpots[0], S).npc!.mounted = true;
   staff("police", "police", "PC Okafor", VENUE.policeSpots[3], S);
+  // In the game, a copper leaning on the van with a sausage roll (it's his van: the uniform in the back is his problem).
+  if (PACE.calm && VENUE.id !== "final") staff("police", "police", "PC Dawson", { x: SPOTS.policeVan.x + (VENUE.id === "sf" ? -1.8 : 1.8), y: SPOTS.policeVan.y + 2.2 }, S, { stay: true, lines: ["Move along.", "Lovely sausage roll, this.", "Don't even think about it, sunshine."] });
   if (campaign.notoriety >= 2) staff("police", "police", "PC Sharma", { x: SPOTS.turnstiles[1].x + 3, y: 47 }, S);
   staff("barman", "catering", "Landlord", SPOTS.pubBarman, S, { shop: "pub" });
   staff("barman", "catering", "Barmaid", SPOTS.barSman, N, { shop: "bar" });
@@ -171,7 +174,7 @@ export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: 
   // Things to hit people with: empties on the pub tables and round the bins, chairs in the pub,
   // pint glasses on the concourse bar, and the corner flags.
   const mx = (x: number) => (VENUE.id === "sf" ? -x : x);
-  for (const [x, y] of [[-57.2, 73.9], [-52.6, 79], [-58.9, 78.3], [-58.5, 0.5], [-58, -30], [-23.6, 79.2], [5.4, 73.4], [-28, 72.4]] as const) spawnItem(s, "bottle", { k: "ground", x: mx(x), y });
+  for (const [x, y] of [[-57.2, 73.9], [-52.6, 79], [-58.9, 78.3], [-58.5, 0.5], [-58, -30], [5.4, 73.4]] as const) spawnItem(s, "bottle", { k: "ground", x: mx(x), y });
   for (const [x, y] of [[-59.4, 73.6], [-56.6, 78.2], [-55, 78.8]] as const) spawnItem(s, "chair", { k: "ground", x: mx(x), y });
   // A cue left on the pool table.
   if (!VENUE.features.fanZone) spawnItem(s, "pool_cue", { k: "ground", x: mx(-49.6), y: 74 });
@@ -394,6 +397,7 @@ export function stepGame(g: Game): void {
   stepCombat(w);
   stepCreeps(w);
   stepKegs(w);
+  stepRigs(w);
   stepPawnSeek(w);
   stepBallOut(w);
   stepBootBag(w);

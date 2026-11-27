@@ -244,6 +244,8 @@ export function banter(w: World, a: Actor): void {
   const line = fresh(w, pool, a);
   // The first minute is for looking round, not being told things: no tips overheard yet.
   if (PACE.calm && s.tick < 60 * 60 && isHint(line)) return;
+  // In the game, idle chatter is mostly a murmur: only the odd line, and tips, get said at all.
+  if (PACE.calm && !isHint(line) && !chance(r, 0.3)) return;
   say(w, a, line, 4.5);
   hearLead(w, line);
   // Somebody in the same group answers back, sometimes.

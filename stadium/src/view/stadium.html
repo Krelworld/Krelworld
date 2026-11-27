@@ -135,6 +135,18 @@
   #ticker .txt { padding: 7px 12px; font: 600 16px/1.25 var(--display); letter-spacing: 0.01em; text-wrap: pretty; }
   @keyframes strap { from { transform: translateX(-12px); opacity: 0; } }
 
+  /* The report's phone layout: stick lower left; one action lower right with a small Instinct above
+     it; what's in your hand as a slot beside it (tap to use it on something; empty, it's the Bag);
+     score and clock top left, Phone and menu top right. */
+  #instRow { grid-column: 1 / 3; display: flex; justify-content: flex-end; }
+  #instRow #instBtn { width: 44px; height: 44px; min-height: 44px; opacity: .9; }
+  #actRow { grid-column: 1 / 3; display: flex; gap: 8px; align-items: flex-end; justify-content: flex-end; }
+  #actRow .slot { width: 58px; height: 58px; min-height: 58px; padding: 0 !important; display: grid; place-items: center; background: #f3ecd6 !important; border: 3px solid #000; box-shadow: 3px 3px 0 rgba(0,0,0,.5); }
+  #actRow .slot img { width: 40px; height: 40px; image-rendering: pixelated; }
+  #actRow .slot span { display: none; }
+  #actRow #bagBtn::before { content: ""; width: 30px; height: 26px; background: #6b4a2a; border: 3px solid #2a1a0c; border-radius: 4px 4px 7px 7px; box-shadow: inset 0 6px 0 #8a6038; }
+  #actRow .more { min-width: 40px; min-height: 40px !important; height: 40px; padding: 0 !important; font: 800 20px/1 var(--display) !important; }
+  #phoneBtn { font-size: 20px !important; }
   #controls {
     right: max(10px, env(safe-area-inset-right, 0px)); bottom: calc(12px + env(safe-area-inset-bottom, 0px));
     display: grid; grid-template-columns: auto auto; gap: 8px; justify-items: end; align-items: end;
@@ -214,14 +226,14 @@
   #chainStrap { position: absolute; left: 50%; top: calc(max(8px, env(safe-area-inset-top, 0px)) + 58px); transform: translateX(-50%); z-index: 6; pointer-events: none; display: flex; align-items: stretch; max-width: calc(100% - 32px); border: 3px solid #000; box-shadow: 4px 4px 0 rgba(0,0,0,.55); }
   #chainStrap[hidden] { display: none; }
   #chainStrap b { display: flex; align-items: center; padding: 6px 10px; background: #d7263d; color: #fff; font: 800 13px/1 var(--display); letter-spacing: .08em; white-space: nowrap; }
-  #chainStrap span { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; padding: 6px 10px; background: #10151c; color: #fff; font: 800 12px/1.2 var(--display); letter-spacing: .04em; min-width: 0; }
+  #chainStrap span { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; padding: 5px 9px; background: rgba(16,21,28,.88); color: #fff; font: 800 12px/1.2 var(--display); letter-spacing: .04em; min-width: 0; }
   #chainStrap i { font-style: normal; } #chainStrap i:last-child { color: #f2c94c; }
   #chainStrap em { font-style: normal; color: #d7263d; }
   #chainStrap.in { animation: strapIn 5.2s ease both; }
   @media (max-aspect-ratio: 4/5) {
     #chainStrap { flex-direction: column; width: calc(100% - 32px); top: calc(max(8px, env(safe-area-inset-top, 0px)) + 118px); }
     #chainStrap b { padding: 4px 8px; font-size: 11px; }
-    #chainStrap span { font-size: 12px; }
+    #chainStrap span { font-size: 10px; }
   }
   @keyframes strapIn { 0% { opacity: 0; transform: translate(-50%, -10px) scaleX(.6); } 5% { opacity: 1; transform: translate(-50%, 0) scaleX(1.04); } 9%, 90% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; } }
   @media (max-height: 520px) {
@@ -567,7 +579,7 @@
       <button id="viewBtn" aria-label="Driving view" hidden>Chase</button>
       <button id="fpBtn" aria-label="First person" hidden>1P</button>
       <button id="zoomBtn" aria-label="Zoom" hidden>1×</button>
-      <button id="instBtn" aria-label="Instinct (hold)" title="Instinct: hold to see what's useful"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M1.5 12S5.5 5 12 5s10.5 7 10.5 7-4 7-10.5 7S1.5 12 1.5 12z" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="12" cy="12" r="3.6" fill="currentColor"/></svg></button>
+      <button id="phoneBtn" class="util" aria-label="Phone">☎</button>
       <button id="menuBtn" aria-label="Menu">☰</button>
     </div>
   </div>
@@ -594,13 +606,11 @@
   </div>
 
   <div id="controls" class="float">
-    <button id="act" disabled hidden></button>
-    <div id="fightRow"><button id="useBtn" hidden aria-label="Use what you're holding">Use</button><button id="hit" hidden>Punch</button><button id="throw" hidden>Throw</button></div>
+    <div id="instRow"><button id="instBtn" aria-label="Instinct (hold)" title="Instinct: hold to see what's useful"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M1.5 12S5.5 5 12 5s10.5 7 10.5 7-4 7-10.5 7S1.5 12 1.5 12z" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="12" cy="12" r="3.6" fill="currentColor"/></svg></button></div>
+    <div id="fightRow"><button id="hit" hidden>Punch</button><button id="throw" hidden>Throw</button></div>
+    <div id="actRow"><button id="bagBtn" class="slot" aria-label="Bag"></button><button id="useBtn" class="slot" hidden aria-label="What's in your hand"></button><button id="moreBtn" class="util more" aria-label="More">...</button><button id="act" disabled hidden></button></div>
     <div id="lower">
       <button id="betBtn" hidden>Bet</button>
-      <button id="moreBtn" class="util">More</button>
-      <button id="phoneBtn" class="util">Phone</button>
-      <button id="bagBtn" class="util">Bag</button>
     </div>
   </div>
 

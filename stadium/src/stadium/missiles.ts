@@ -54,7 +54,8 @@ function smash(w: World, i: number, by: Actor | undefined): void {
 /** Where brick piles are: a few bricks lying by each. */
 export function spawnBricks(w: World): void {
   const s = w.state, m = VENUE.id === "sf" ? -1 : 1;
-  const piles = [{ x: 50, y: 48.2 }, { x: -66, y: 30 }, { x: 52, y: 79 }, { x: -24.5, y: 76 }];
+  // None in the yard where you arrive: the first thing you see should be the handful of things that matter there.
+  const piles = [{ x: 50, y: 48.2 }, { x: -66, y: 30 }, { x: 52, y: 79 }];
   for (const p of piles) for (let k = 0; k < 3; k++) spawnItem(s, "brick", { k: "ground", x: m * p.x + (k - 1) * 0.45, y: p.y + (k % 2) * 0.3 });
   // A stink canister in the skip, and the surplus shop sells them.
   spawnItem(s, "fart_can", { k: "ground", x: m * -63.4, y: -17.2 });

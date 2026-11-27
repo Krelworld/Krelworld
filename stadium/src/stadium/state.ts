@@ -38,6 +38,8 @@ export interface Npc {
   retaliateOn?: Id;
   /** A mounted officer (drawn on the horse). */
   mounted?: boolean;
+  /** Stays at his post rather than walking a round (the copper on the van). */
+  stay?: boolean;
   /** Standing about with others: the middle of the group, and what they're doing (chat, drink, smoke, cheer, idle). */
   group?: { x: number; y: number };
   act?: "chat" | "drink" | "smoke" | "cheer" | "idle";
@@ -162,6 +164,8 @@ export interface StadiumState {
   custody?: { until: number; taken: string[] };
   /** A fan's pint left on the wall while he's away (lulls.ts). */
   pintBeat?: import("./lulls").PintBeat;
+  /** The forecourt contraptions: where each one's got to, and when it's ready again. */
+  rigs?: Record<string, import("./rigs").RigState>;
   /** Their star, off looking for his boots instead of boarding (bootbag.ts). */
   bootHunt?: import("./bootbag").BootHunt;
   /** The ball's come to Grozz (out of play, into the stand). */

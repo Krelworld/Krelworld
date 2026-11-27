@@ -252,6 +252,7 @@ function routine(w: World, a: Actor): void {
       return;
     }
     case "police": {
+      if (n.stay && n.post) { later({ k: "go", ...n.post }, { k: "wait", s: rndRange(r, 10, 20) }); return; }
       const spots = VENUE.policeSpots;
       later({ k: "go", ...spots[n.stage++ % spots.length] }, { k: "wait", s: rndRange(r, 6, 20) });
       return;

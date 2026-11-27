@@ -1497,3 +1497,39 @@ The creator: "you haven't taken the structural implications of the pdf seriously
 - **Witnesses:** their behaviour is kept, but they're no longer taught as a system. Instead of a paragraph about paying them off, Grozz mutters "He's off to grass…" and the witness carries the radio badge.
 - **Side jobs** are demoted to discoveries: no "Side jobs ▸" on the notes, and no nudge towards them. They're still in the menu's notes.
 - **Free driving** (carjacking, the coach, your car) and the **first-person view** are deferred behind a menu switch, "Extras (driving, first-person)", off by default. They're out of the core game, as the report recommends, but not deleted.
+
+## Round: Rube Goldberg on the forecourt, one-tap interaction, the HUD the report drew, less chatter
+
+**Asked for:** "much more Rube Goldberg stuff and easy interactability and fewer irrelevant speech bubbles from fans". Also the report's mobile layout, applied in full.
+
+**Contraptions (src/stadium/rigs.ts).** Five, built from things already standing on the forecourt between the pub and the turnstiles. Each one is a single tap. Each ends with someone leaving their post (the one rule the kegs teach), and they set each other off:
+- **Pigeons by the queue:** they go up over the queue, a fan ducks into the end barrier, and the barriers go over like dominoes. The middle turnstile's steward comes out to stand them up, and his turnstile is left on free-wheel for you.
+- **Burger van gas, turned right up:** a hiss, then WHOOMPH. Anyone close goes over, Grozz included ("ME EYEBROWS!"). The pigeons by the police van go up and one craps on the copper leaning on it, who goes off for a napkin, leaving the van unwatched. Then the smell of burnt onions brings Clive off the staff door, so the door's propped open.
+- **The newsboard:** chalk up "STEWARDS' PAY CUT". The nearest two stewards (a turnstile man if there's one going) come over to read it and moan.
+- **Supporting changes:**
+  - A copper (PC Dawson) now stays by the police van in the game build, so the uniform in the back is guarded until you move him.
+  - The contraptions reset: the pigeons land again and the barriers get stood up.
+  - They're drawn with the existing street art, plus a flock, toppling barriers, a fireball with flames, chalk on the board, and four new sound effects.
+
+**Easy to use.**
+- **Marking:** each ready contraption gets the warm rim and a pulsing gold ring on the ground when you're near.
+- **Tapping:** tap it (or a keg) anywhere on screen and Grozz walks over and does it. There's no menu and no second tap.
+- **Button:** stood next to one, it's the main button.
+- **Camera:** it leans towards each link as it lands, so the chain plays out in frame. The fireball holds the camera a beat longer.
+- **Chain strap:** it now shows the count and the last two links ("CHAIN ×9 ... HIS TURNSTILE LEFT ON FREE-WHEEL"), not a paragraph. The telestrator lines no longer pop up mid-play.
+
+**Less chatter.**
+- Fans' background banter never gets a full bubble now. The nearest two or three people chatting get a chat dot. In the game build, idle banter mostly isn't said at all (tips still are).
+- Idle fan lines no longer go into the caption log either. What still gets words:
+  - security;
+  - someone talking to you;
+  - tips near you;
+  - anyone with a reason (a beat, a knock-on);
+  - Grozz himself.
+
+**HUD (the report's mobile layout).**
+- **Top corners:** score and clock top-left; phone and menu top-right.
+- **Bottom right:** the context button, with Instinct smaller above it.
+- **The Bag** is collapsed to one slot: what's in your hand (tap to use it, hold for the Bag), or the bag when your hand's empty.
+- **People:** the main action plus at most two alternatives, then "...".
+- **The opening yard:** bricks and bottles were cleared out. What's left is the kegs, the lorry and the burner: three things that matter.

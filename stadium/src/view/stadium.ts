@@ -43,6 +43,7 @@ import { ITEM_TIPS, itemTargets, type ItemTarget } from "./itemhelp";
 import { curioHere, CURIOS } from "./curios";
 import { PlayTest } from "./playtest";
 import { can } from "../stadium/affordances";
+import { RIG_IDS, RIGS, rigReady, type RigId } from "../stadium/rigs";
 import { EXTRAS, setExtras } from "../stadium/context";
 import { matchJob, type Job } from "../stadium/director";
 import { inDrag as inDragSim } from "../stadium/drag";
@@ -267,11 +268,13 @@ class StadiumScene extends Phaser.Scene {
     w.bus.on((e) => this.sounds(e));
     w.bus.on((e) => {
       this.reactTo(e);
+      this.rigEvent(e);
       if (this.pt) { const sa = e.type === "say" ? this.s.actors[e.by] : null; this.pt.event(e, this.s.stadium!.pc, !sa || !this.pc || Math.hypot(sa.x - this.pc.x, sa.y - this.pc.y) < 8); }
       if (e.type === "say" && e.by !== this.s.stadium!.pc) {
         // Only what is said close by, and only once.
         const a = this.s.actors[e.by];
-        if (a && Math.hypot(a.x - this.pc.x, a.y - this.pc.y) < 5.5 && e.text.length > 12 && !this.log.some((l) => l.text === e.text)) this.say(e.text, a.name, false, false);
+        const idle = !!a?.npc && (a.npc.job === "fan" || a.npc.job === "local") && !isHint(e.text) && this.talkedTo?.id !== a.id && a.npc.mode === "routine";
+        if (a && !idle && Math.hypot(a.x - this.pc.x, a.y - this.pc.y) < 5.5 && e.text.length > 12 && !this.log.some((l) => l.text === e.text)) this.say(e.text, a.name, false, false);
       }
       if (e.type === "action_failed" && e.action.actor === this.s.stadium!.pc) this.hint(e.reason);
       if (e.type === "say" && this.detain?.open && this.s.actors[e.by]?.npc?.job === "chief") this.detain.line(e.text);
@@ -1565,7 +1568,9 @@ class StadiumScene extends Phaser.Scene {
   chainStrap(links: string[], label?: string) {
     if (links.length < 2) return;
     const el = $("chainStrap");
-    el.innerHTML = `<b>${label ?? (links.length >= 3 ? "CHAIN REACTION" : "KNOCK-ON")}</b><span>${links.map((l) => `<i>${esc(l)}</i>`).join("<em>→</em>")}</span>`;
+    // Short: how long it's got, and the last two links (the whole thing is in the replay and the paper).
+    const shown = links.length > 2 ? links.slice(-2) : links;
+    el.innerHTML = `<b>${label ?? (links.length >= 3 ? `CHAIN ×${links.length}` : "KNOCK-ON")}</b><span>${links.length > 2 ? "<em>...</em>" : ""}${shown.map((l) => `<i>${esc(l)}</i>`).join("<em>→</em>")}</span>`;
     el.hidden = false; el.classList.remove("in"); void el.offsetWidth; el.classList.add("in");
     this.audio.play("chime", 0.5, { rate: 0.7 + links.length * 0.08 });
     if (links.length >= 3) this.audio.play("crowd_ooh" as Clip, 0.55);
@@ -2344,6 +2349,7 @@ class StadiumScene extends Phaser.Scene {
       const heads: { x: number; y: number; h: number }[] = [];
       for (const a of people) if (heads.length < 14 && onScreen(a.x, a.y)) heads.push({ x: a.x, y: a.y, h: 1.6 });
       const here = pc ? areaAt(pc.x, pc.y) : null;
+      this.drawRigs();
       this.fx.update(dms, VENUE.id, people, van ? { x: van.x, y: van.y } : null, cam.worldView, puddles, heads, !!here?.outside);
     }
     // Drizzle: a British November match day. Not indoors.
@@ -2634,10 +2640,12 @@ class StadiumScene extends Phaser.Scene {
     const beatIds = this.beatRel && performance.now() < this.beatRel.until ? this.beatRel.ids : [];
     const matters = (a: Actor) => opening ? (a.npc!.job === "worker" || beatIds.includes(a.id)) : a.id === talkingTo || (a.npc!.mode !== "routine" && a.npc!.mode !== "flee") || (isHint(a.npc!.bubble!.text) && near0(a) < 8) || !!st.snitches?.some((x) => x.by === a.id) || ((a.npc!.whyUntil ?? 0) > s.tick && !!a.npc!.why) || beatIds.includes(a.id);
     const key = speaking.filter(matters), chatter = speaking.filter((a) => !matters(a));
-    const shownChat = opening ? [] : chatter.filter((a) => near0(a) < 4.5).slice(0, 1);
+    // Background chatter never gets a full bubble (it was most of the text on screen and none of it
+    // mattered): the nearest two or three get a chat dot, and that's all.
+    const shownChat: Actor[] = [];
     const others = [...key, ...shownChat].slice(0, pcTalk ? 1 : 2);
     const talkers = [...(pcTalk ? [pc!] : []), ...others].slice(0, this.bubbles.length);
-    const dots = chatter.filter((a) => !shownChat.includes(a));
+    const dots = chatter.filter((a) => near0(a) < 9).slice(0, 3);
     if (!this.bubbleG) this.bubbleG = this.add.graphics().setDepth(1e7 + 0.5);
     const bg = this.bubbleG.clear(), zz = this.cameras.main.zoom, px = DPR / zz;
     for (const a of dots) {
@@ -2701,6 +2709,12 @@ class StadiumScene extends Phaser.Scene {
         lx += (mx / ml) * k; ly += (my / ml) * k;
       }
       tx = P.sx(pc.x + lx, pc.y + ly); ty = P.sy(pc.x + lx, pc.y + ly) - P.S;
+      // A contraption going off: lean the camera towards where it's got to, so you see each link land.
+      const la = this.lookAt;
+      if (la && performance.now() < la.until && !this.cine) {
+        const d = Math.hypot(la.x - pc.x, la.y - pc.y);
+        if (d < 22) { const f = Math.min(0.92, 0.6 + d * 0.03), fx = pc.x + (la.x - pc.x) * f, fy = pc.y + (la.y - pc.y) * f; tx = P.sx(fx, fy); ty = P.sy(fx, fy) - P.S; }
+      }
       if (this.cine?.focus) { tx = P.sx(this.cine.focus.x, this.cine.focus.y); ty = P.sy(this.cine.focus.x, this.cine.focus.y) - P.S; }
       else if (this.cine?.lead) { tx = P.sx(pc.x + this.cine.lead.x, pc.y + this.cine.lead.y); ty = P.sy(pc.x + this.cine.lead.x, pc.y + this.cine.lead.y) - P.S; }
     }
@@ -2872,7 +2886,7 @@ class StadiumScene extends Phaser.Scene {
       else sh.fillStyle(0x000000, 0.28).fillEllipse(Math.round(P.sx(p.x + 0.15, 0)), Math.round(P.sy(0, p.y)) - 2, Math.round(wM * S * 1.1), Math.max(6, Math.round(wM * S * 0.35)));
       const fade = free && hM > 1.4 && pc.y < p.y && pc.y > p.y - hM * 1.1 && Math.abs(pc.x - p.x) < wM / 2 + 0.4;
       if (fade) this.pcHidden = true;
-      things.push({ d: p.y, draw: () => {}, spr: (dep) => place(image(p.id, key)).setDepth(dep).setAlpha(fade ? 0.4 : 1) });
+      things.push({ d: p.y, draw: () => {}, spr: (dep) => this.rigDecor(p, place(image(p.id, key)).setDepth(dep).setAlpha(fade ? 0.4 : 1), dep) });
     }
 
     // The ground from outside: a roofed ring of stands behind a clad facade, the turnstiles let into it.
@@ -3390,6 +3404,116 @@ class StadiumScene extends Phaser.Scene {
       if (p?.id && Math.hypot(p.x - pc.x, p.y - pc.y) < 14) R.add(p.id);
     }
   }
+  // ---- The forecourt contraptions, drawn: pigeons go up, barriers go over, the van goes WHOOMPH. ----
+  rigFlocks: { from: { x: number; y: number }; to: { x: number; y: number }; t0: number; birds: { dx: number; dy: number; ph: number; sp: number }[] }[] = [];
+  rigFallen = new Map<string, number>();
+  rigBooms: { x: number; y: number; t0: number; hiss?: boolean }[] = [];
+  rigG?: Phaser.GameObjects.Graphics;
+  rigChalk?: Phaser.GameObjects.Text;
+  /** Which placed picture each contraption is. */
+  rigPic(id: RigId, p: Placement): boolean {
+    const at = RIGS[id].at(), key = id.startsWith("pigeons") ? "pigeons" : id === "burger" ? "burgervan" : id === "board" ? "newsboard" : "barrier";
+    return p.key === key && Math.abs(p.x - at.x) < 1.6 && Math.abs(p.y - at.y) < 1.8;
+  }
+  rigDecor(p: Placement, im: Phaser.GameObjects.Image, dep: number): void {
+    if (p.key === "barrier") {
+      const t = this.rigFallen.get(p.id);
+      if (t !== undefined) {
+        // Over towards you, with a little bounce.
+        const k = Math.min(1, (performance.now() - t) / 260), b = k < 1 ? 1 - k * 0.7 : 0.3 + Math.sin(Math.min(1, (performance.now() - t - 260) / 200) * Math.PI) * 0.06;
+        im.setScale(1, b).setAngle(k < 1 ? k * 6 : 4);
+      } else im.setScale(1, 1).setAngle(0);
+    }
+    const pc = this.pc;
+    for (const id of RIG_IDS) {
+      if (!this.rigPic(id, p)) continue;
+      const ready = rigReady(this.w, id);
+      if (id.startsWith("pigeons")) im.setVisible(ready);
+      if (id === "board" && !ready) {
+        if (!this.rigChalk) this.rigChalk = this.add.text(0, 0, "STEWARDS'\nPAY CUT!", { fontFamily: "monospace", fontSize: "9px", color: "#f4f1ea", align: "center", lineSpacing: -1 }).setOrigin(0.5, 0.5).setResolution(2);
+        this.rigChalk.setPosition(im.x, im.y - im.displayHeight * 0.55).setDepth(dep + 0.1).setScale(1 / Math.max(0.5, this.cameras.main.zoom / DPR) * 0.9).setVisible(true);
+        this.rigChalkSeen = true;
+      }
+      if (ready && pc && !pc.hiddenIn && Math.hypot(p.x - pc.x, p.y - pc.y) < 13) {
+        this.rim(`rig-${id}`, im, dep);
+        // And a gold ring on the ground under it, pulsing: something to do, here.
+        const at = RIGS[id].at(), P = this.P, k = 0.5 + 0.5 * Math.sin(performance.now() / 300), sh = this.shadowG;
+        const w0 = Math.max(1.4, Math.min(3.2, (im.displayWidth / P.S) * 0.7));
+        sh.lineStyle(3, 0x000000, 0.35).strokeEllipse(P.sx(at.x, p.y), P.sy(at.x, p.y) + 2, w0 * P.S * 1.05, w0 * P.S * 0.42);
+        sh.lineStyle(2, 0xffd75a, 0.45 + 0.4 * k).strokeEllipse(P.sx(at.x, p.y), P.sy(at.x, p.y), w0 * P.S * (1 + 0.06 * k), w0 * P.S * 0.4 * (1 + 0.06 * k));
+      }
+    }
+  }
+  rigChalkSeen = false;
+  lookAt: { x: number; y: number; until: number } | null = null;
+  rigEvent(e: any): void {
+    if (e.type !== "rig" && e.type !== "flinch" && e.type !== "rigged") return;
+    const a = this.audio, pc = this.pc, now = performance.now();
+    if (e.type === "flinch") { this.react.has(e.who) || this.react.set(e.who, { sheet: "notice", at: now, dur: 650, face: { x: e.x, y: e.y } }); return; }
+    if (e.type === "rigged") { this.curios.add(e.rig); return; }
+    // The camera goes to each new thing as it happens; a big moment (the fireball) holds it a beat longer.
+    if (e.type === "rig" && (!this.lookAt || performance.now() > this.lookAt.until - 1400)) this.lookAt = { x: e.to && e.step === 1 ? (e.x + e.to.x) / 2 : e.x, y: e.to && e.step === 1 ? (e.y + e.to.y) / 2 : e.y, until: performance.now() + (e.boom ? 3400 : 2600) };
+    if (e.rig.startsWith("pigeons") && e.step === 1) {
+      a.play("pigeon_flap", 1);
+      const birds = Array.from({ length: 11 }, (_, i) => ({ dx: (Math.random() - 0.5) * 2.2, dy: (Math.random() - 0.5) * 1.2, ph: Math.random() * 6, sp: 0.8 + Math.random() * 0.5 + i * 0.01 }));
+      this.rigFlocks.push({ from: { x: e.x, y: e.y }, to: e.to, t0: now, birds });
+    }
+    if (e.rig === "barriers" && e.i !== undefined) {
+      a.play("barrier_clang", 0.75 + e.i * 0.08, { rate: 0.9 + e.i * 0.06 });
+      const p = this.placed.list.filter((q) => q.key === "barrier").sort((u, v) => Math.hypot(u.x - e.x, u.y - e.y) - Math.hypot(v.x - e.x, v.y - e.y))[0];
+      if (p) this.rigFallen.set(p.id, now);
+      this.cameras.main.shake(90, 0.002);
+    }
+    if (e.rig === "barriers" && e.reset) this.rigFallen.clear();
+    if (e.rig === "burger" && e.hiss) { a.play("fart", 0.35, { rate: 0.5 }); this.rigBooms.push({ x: e.x, y: e.y - 0.8, t0: now, hiss: true }); this.pcLine = { text: "Bit more… bit more…", until: now + 1800 }; }
+    if (e.rig === "burger" && e.boom) {
+      a.play("gas_whoomph", 1); this.cameras.main.shake(320, 0.008); this.trauma = Math.min(1, this.trauma + 0.4);
+      this.rigBooms.push({ x: e.x, y: e.y - 0.8, t0: now });
+      if (pc && Math.hypot(pc.x - e.x, pc.y - e.y) < 3) this.pcLine = { text: "ME EYEBROWS!", until: now + 2200 };
+    }
+    if (e.rig === "board" && e.chalk) { a.play("chalk_scrawl", 0.9); this.pcLine = { text: "Heh. That'll do it.", until: now + 2000 }; }
+  }
+  drawRigs(): void {
+    const P = this.P, now = performance.now();
+    if (!this.rigG) this.rigG = this.add.graphics().setDepth(9.7e6);
+    const g = this.rigG.clear(), zz = this.cameras.main.zoom, px = DPR / zz;
+    if (!this.rigChalkSeen && this.rigChalk) this.rigChalk.setVisible(false);
+    this.rigChalkSeen = false;
+    // Pigeons: up, over and away, flapping.
+    this.rigFlocks = this.rigFlocks.filter((f) => now - f.t0 < 3600);
+    for (const f of this.rigFlocks) {
+      for (const b of f.birds) {
+        const k = Math.min(1.6, ((now - f.t0) / 1300) * b.sp);
+        const x = f.from.x + (f.to.x - f.from.x) * k + b.dx * (0.4 + k), y = f.from.y + (f.to.y - f.from.y) * k + b.dy * (0.4 + k);
+        const z = Math.sin(Math.min(1, k) * Math.PI * 0.5) * 3.2 + (k > 1 ? (k - 1) * 6 : 0) + 0.3;
+        const sx = P.sx(x, y), sy = P.sy(x, y, z), flap = Math.sin(now / 45 + b.ph) > 0 ? -1 : 1, s = 7 * px;
+        g.fillStyle(0x000000, 0.2).fillEllipse(P.sx(x, y), P.sy(x, y), 10 * px, 4 * px);
+        g.lineStyle(4 * px, 0x15181c, 1).lineBetween(sx - s, sy + flap * s * 0.7, sx, sy).lineBetween(sx, sy, sx + s, sy + flap * s * 0.7);
+        g.lineStyle(2.4 * px, 0x7d8590, 1).lineBetween(sx - s, sy + flap * s * 0.7, sx, sy).lineBetween(sx, sy, sx + s, sy + flap * s * 0.7);
+        g.fillStyle(0x15181c, 1).fillCircle(sx, sy, 3.4 * px); g.fillStyle(0xa8b0ba, 1).fillCircle(sx, sy, 2.4 * px);
+      }
+    }
+    // The gas: a hiss of heat haze, then the fireball and black smoke.
+    this.rigBooms = this.rigBooms.filter((b) => now - b.t0 < (b.hiss ? 2000 : 5200));
+    for (const b of this.rigBooms) {
+      const t = (now - b.t0) / 1000, sx = P.sx(b.x, b.y), sy = P.sy(b.x, b.y, 1.8);
+      if (b.hiss) { for (let i = 0; i < 4; i++) { const k = ((t * 1.6 + i / 4) % 1); g.fillStyle(0xffffff, 0.25 * (1 - k)).fillCircle(sx + Math.sin(i * 2 + t * 5) * 4 * px, sy - k * 22 * px, (3 + k * 4) * px); } continue; }
+      if (t < 0.15) g.fillStyle(0xffffff, 0.35 * (1 - t / 0.15)).fillRect(this.cameras.main.worldView.x, this.cameras.main.worldView.y, this.cameras.main.worldView.width, this.cameras.main.worldView.height);
+      // Flames licking off the roof for a few seconds after.
+      if (t > 0.4 && t < 4) for (let i = 0; i < 5; i++) { const f = 0.5 + 0.5 * Math.sin(now / 70 + i * 2.1); g.fillStyle(i % 2 ? 0xff9a2a : 0xffd23a, 0.75 * Math.min(1, (4 - t) / 1.2)).fillTriangle(sx + (i - 2) * 9 * px - 5 * px, sy + 4 * px, sx + (i - 2) * 9 * px + 5 * px, sy + 4 * px, sx + (i - 2) * 9 * px, sy - (10 + f * 14) * px); }
+      if (t < 0.7) {
+        const k = t / 0.7, r = (34 + k * 96) * px;
+        g.fillStyle(0xfff2a0, 0.9 * (1 - k)).fillCircle(sx, sy - k * 10 * px, r * 0.6);
+        g.fillStyle(0xff7a1a, 0.75 * (1 - k)).fillCircle(sx, sy - k * 14 * px, r);
+        g.fillStyle(0xd8361a, 0.5 * (1 - k)).fillCircle(sx + 6 * px, sy - k * 22 * px, r * 0.7);
+      }
+      for (let i = 0; i < 9; i++) {
+        const k = Math.max(0, Math.min(1, (t - 0.2 - i * 0.12) / 3.6));
+        if (k <= 0) continue;
+        g.fillStyle(0x222222, 0.42 * (1 - k)).fillCircle(sx + Math.sin(i * 1.7) * 10 * px + k * 18 * px, sy - 16 * px - k * 70 * px, (6 + k * 16) * px);
+      }
+    }
+  }
   rim(id: string, src: Phaser.GameObjects.Image | Phaser.GameObjects.Sprite, dep: number): void {
     let r = this.rimPool.get(id);
     if (!r) { r = this.add.image(0, 0, src.texture.key, src.frame.name); this.rimPool.set(id, r); }
@@ -3650,10 +3774,18 @@ class StadiumScene extends Phaser.Scene {
       const short = (n: string) => n.replace(/ \(.*\)$/, "").split(" ").pop() ?? n;
       if (canThrow) thr.textContent = ta ? `Throw at ${short(personName(ta))}` : "Throw";
       // The quick slot: what's in your hand, tap to use it somewhere.
-      const ub = $("useBtn"), h = pc.hand ? this.s.items[pc.hand] : undefined;
-      const usable = !!h && !!ITEM_TIPS[h.def] && !defOf(h).slot && !fighting && !pc.heldBy && !pc.hiddenIn && !pc.seated;
-      ub.hidden = !usable;
-      if (usable && ub.dataset.item !== h!.id) { ub.dataset.item = h!.id; ub.innerHTML = `${icon(h!.def)}<span>Use</span>`; }
+      // The held-item slot (the Bag collapsed into what's in your hand): your hand's item, or the bag
+      // when your hand's empty. Tap: use it on something out there (or open the Bag if it isn't that
+      // sort of thing); hold: the Bag.
+      const ub = $("useBtn"), bb = $("bagBtn"), h = pc.hand ? this.s.items[pc.hand] : undefined;
+      const carrying = !!h || pc.pockets.length > 0;
+      const busy = !!pc.heldBy || !!pc.hiddenIn || !!pc.seated;
+      ub.hidden = !h || busy;
+      bb.hidden = !!h || busy || !carrying || !this.uiShown.bag;
+      if (h && ub.dataset.item !== h.id) { ub.dataset.item = h.id; ub.innerHTML = `${icon(h.def)}<span>${esc(itemName(h))}</span>`; }
+      // "…" only when there's something besides the big button.
+      const alts = this.opts.filter((o) => o !== p && o.priority > -50).length;
+      $("moreBtn").hidden = alts === 0 || busy || !!this.ring;
       // In a fight, the hit button sticks to the one you're fighting (and goes to Stamp once he's down).
       const hit = $("hit"), hitOpt = hitFirst;
       hit.hidden = !hitOpt || !!pc.heldBy || !!pc.hiddenIn;
@@ -4044,7 +4176,8 @@ class StadiumScene extends Phaser.Scene {
     // The best few, not everything (touch the world first, choose verbs second): the most relevant
     // thing is the big one (Buy at a shop, a ticket at the gate, otherwise Talk; Attack only when
     // there's a fight on), three more round it, and "…" for the rest.
-    if (!sub && !down && !all && out.length > 4) {
+    // The report: the main action and "two smaller alternatives, only if relevant"; "…" for the rest.
+    if (!sub && !down && !all && out.length > 3) {
       const fight = this.fightOn();
       const score = (x: RingItem) => x.kind === "opt" ? (n?.shop && (x.label === "Buy" || x.label === "Bet") ? 95 : 48 + (x.opt?.priority ?? 0) / 10)
         : x.kind === "attack" ? (fight ? 100 : 30) : x.kind === "talk" ? 60 : x.kind === "bribe" ? 46 : x.kind === "pickpocket" ? 26 : x.kind === "throw" ? (fight ? 40 : 18) : 20;
@@ -4052,7 +4185,7 @@ class StadiumScene extends Phaser.Scene {
       for (const x of ranked) x.main = false;
       ranked[0].main = true;
       out.length = 0;
-      out.push(...ranked.slice(0, 4), { label: "More", icon: "", glyph: "…", kind: "more" });
+      out.push(...ranked.slice(0, 3), { label: "More", icon: "", glyph: "…", kind: "more" });
     } else if (!sub && !down && !all && !this.fightOn()) {
       // Few enough to show them all; still, Talk leads unless it's a fight.
       const t = out.find((x) => x.kind === "talk"), att = out.find((x) => x.kind === "attack");
@@ -4238,7 +4371,28 @@ class StadiumScene extends Phaser.Scene {
   }
 
   /** Tapped the ground: walk there, round whatever's in the way. */
-  walkTo: { x: number; y: number; path: number[]; pathAt: number; until: number; blocked?: boolean } | null = null;
+  walkTo: { x: number; y: number; path: number[]; pathAt: number; until: number; blocked?: boolean; then?: { x: number; y: number; r: number; go: () => void } } | null = null;
+  /** Tap a contraption or a keg: walk up to it and do it (one tap, the Goose's grammar). */
+  tapThing(gx: number, gy: number): boolean {
+    const pc = this.pc, s = this.s;
+    if (!pc || pc.heldBy || pc.hiddenIn || pc.seated || this.inCab()) return false;
+    for (const id of RIG_IDS) {
+      const at = RIGS[id].at();
+      // The picture stands up off its foot, so a tap on the top of it lands further up the screen.
+      if (!rigReady(this.w, id) || Math.abs(gx - at.x) > 1.8 || gy < at.y - 3.2 || gy > at.y + 1.2) continue;
+      this.setWalk(at.x, at.y + 0.6);
+      this.walkTo!.then = { x: at.x, y: at.y, r: RIGS[id].r - 0.3, go: () => { dispatch(this.w, { verb: "rig", actor: pc.id, arg: id }); this.audio.play("tap", 0.5); } };
+      return true;
+    }
+    const keg = Object.values(s.items).find((i) => i.def === "keg" && i.loc.k === "ground" && Math.abs(gx - i.loc.x) < 0.8 && gy > i.loc.y - 1.4 && gy < i.loc.y + 0.6);
+    if (keg && keg.loc.k === "ground") {
+      const l = keg.loc;
+      this.setWalk(l.x, l.y + 0.9);
+      this.walkTo!.then = { x: l.x, y: l.y, r: 1.7, go: () => { pc.facing = Math.atan2(l.y - pc.y, l.x - pc.x); dispatch(this.w, { verb: "shove", actor: pc.id, item: keg.id }); } };
+      return true;
+    }
+    return false;
+  }
   setWalk(gx: number, gy: number) {
     if (!this.pc || this.inCab() || this.pc.heldBy) return;
     this.pursue = null; this.nextPursue = null;
@@ -4249,6 +4403,8 @@ class StadiumScene extends Phaser.Scene {
     const wt = this.walkTo!, pc = this.pc, now = performance.now();
     if (pc.seated) { dispatch(this.w, { verb: "stand", actor: pc.id }); this.setZoom(); }
     const d = Math.hypot(wt.x - pc.x, wt.y - pc.y);
+    // Walking up to do something: do it as soon as it's in reach.
+    if (wt.then && Math.hypot(wt.then.x - pc.x, wt.then.y - pc.y) < wt.then.r) { const go = wt.then.go; this.walkTo = null; pc.moveX = pc.moveY = 0; go(); return; }
     if (pc.heldBy || pc.hiddenIn || now > wt.until || d < 0.45 || (wt.blocked && now - wt.pathAt > 700)) { this.walkTo = null; pc.moveX = pc.moveY = 0; return; }
     if (now - wt.pathAt > 600 || !wt.path.length) {
       wt.path = findPath(pc.x, pc.y, wt.x, wt.y); wt.pathAt = now;
@@ -4786,7 +4942,7 @@ class StadiumScene extends Phaser.Scene {
       case "gift": if (e.def) this.toast(e.def, ITEM_DEFS[e.def]?.name ?? e.def, "Given"); else if (e.money) this.hint(`+£${e.money}.`); this.audio.play("pickup", 0.8); break;
       case "scammed": this.hint(e.amount ? `−£${e.amount}. He's not coming back.` : "He's not coming back."); break;
       case "contact": this.toastTick(`☎ Number saved: ${e.id === "dealer" ? "Spliff Ricky" : "Bare-Knuckle Brendan"}`); this.audio.play("chime", 0.5); break;
-      case "chain": this.chainStrap(e.links); if (e.links.length === 3 && e.pts?.length >= 3) { this.tele = { pts: e.pts, until: performance.now() + 4200 }; this.slowUntil = Math.max(this.slowUntil, performance.now() + 1600); } break;
+      case "chain": if (e.by === this.s.stadium!.pc && e.pts?.length && (!this.lookAt || performance.now() > this.lookAt.until - 1400)) { const lp = e.pts[e.pts.length - 1]; this.lookAt = { x: lp.x, y: lp.y, until: performance.now() + 2600 }; } this.chainStrap(e.links); if (e.links.length === 3 && e.pts?.length >= 3) this.slowUntil = Math.max(this.slowUntil, performance.now() + 1200); break;
       // Half-time: one beat that says what's changed and where the openings are (the second
       // preparation phase), then the world shows it: the urn pulses, the players troop off.
       case "fb_period_end": if (e.period === 1) {
@@ -5042,7 +5198,21 @@ class StadiumScene extends Phaser.Scene {
     };
     holdable($("act"), () => this.mainOpt);
     $("throw").addEventListener("click", () => this.throwNow());
-    $("useBtn").addEventListener("click", () => { if (this.pc.hand) (this.useMode ? this.endUse() : this.startUse(this.pc.hand)); });
+    {
+      // Tap the slot: use what's in your hand on something (or the Bag, for things you don't aim). Hold it: the Bag.
+      const ub = $("useBtn"); let t0 = 0, timer = 0, longed = false;
+      ub.addEventListener("pointerdown", () => { t0 = performance.now(); longed = false; timer = window.setTimeout(() => { longed = true; this.openBag(); }, 420); });
+      ub.addEventListener("pointerup", () => clearTimeout(timer));
+      ub.addEventListener("pointercancel", () => clearTimeout(timer));
+      ub.addEventListener("click", () => {
+        if (longed) return; void t0;
+        const h = this.pc.hand ? this.s.items[this.pc.hand] : undefined;
+        if (!h) { this.openBag(); return; }
+        const aim = (["throw", "spike", "give", "plant", "smash"] as const).some((v) => can(h, v));
+        if (!aim) { this.openBag(); return; }
+        this.useMode ? this.endUse() : this.startUse(h.id);
+      });
+    }
     $("useBanner").addEventListener("click", (e) => { if ((e.target as HTMLElement).closest("[data-nouse]")) this.endUse(); });
     $("betBtn").addEventListener("click", () => (this.sheetKind === "bet" ? this.closeSheet() : this.openBet()));
     holdable($("hit"), () => (this as any).hitOpt ?? null);
@@ -5235,7 +5405,7 @@ class StadiumScene extends Phaser.Scene {
         if (this.useMode) { const g = this.groundAt(e.clientX, e.clientY); this.useAt(g.x, g.y, best); return; }
         this.picked = best ? best.id : null;
         if (best) this.openPerson(best.id);
-        else { if (hadRing) this.closeRing(); const g = this.groundAt(e.clientX, e.clientY); this.setWalk(g.x, g.y); }
+        else { if (hadRing) this.closeRing(); const g = this.groundAt(e.clientX, e.clientY); if (!this.tapThing(g.x, g.y)) this.setWalk(g.x, g.y); }
       }
     });
     function move(this: void, e: PointerEvent): void { scene.joyMove(e, knob); }
@@ -5253,7 +5423,7 @@ class StadiumScene extends Phaser.Scene {
         const who = this.personAt(wx / P.S, (wy + 0.9 * P.KZ * P.S) / (P.K * P.S));
         if (this.useMode) { const g = this.groundAt(t.x, t.y); this.useAt(g.x, g.y, who); }
         else if (who) { this.picked = who.id; this.openPerson(who.id); }
-        else { if (t.hadRing) this.closeRing(); const g = this.groundAt(t.x, t.y); this.setWalk(g.x, g.y); }
+        else { if (t.hadRing) this.closeRing(); const g = this.groundAt(t.x, t.y); if (!this.tapThing(g.x, g.y)) this.setWalk(g.x, g.y); }
       }
     };
     canvas.addEventListener("pointermove", move);

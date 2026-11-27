@@ -23,6 +23,7 @@ import { possibleVerbs } from "../core/verbs";
 import type { World } from "../core/world";
 import { areaAt, SPOTS, VENUE } from "./layout";
 import { climbPointNear, fruitNear, turnstileNear, SHOPS } from "./rules";
+import { RIGS, rigNear } from "./rigs";
 
 export interface Option {
   label: string;
@@ -105,6 +106,9 @@ export function options(w: World, pc: Actor, picked?: string | null): Option[] {
   // The ball. In a kit, it's a shot; otherwise, a kick from someone who shouldn't.
   const m = s.match;
   if (m && !pc.seated) push(pc.fb ? (m.ball.owner === pc.id ? "Shoot" : "Kick it") : "Kick the ball", 85, { verb: "kick", ...base });
+
+  // The forecourt contraptions: one tap, and off it goes.
+  { const rg = !pc.seated && !pc.roof ? rigNear(w, pc) : undefined; if (rg) push(RIGS[rg].label, 78, { verb: "rig", ...base, arg: rg }); }
 
   // Things on the ground and fixtures.
   for (const id in s.items) {

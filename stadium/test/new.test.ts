@@ -507,3 +507,24 @@ test("caught in the game build: no march; detained means time passes, then you'r
     assert.ok(Math.hypot(pc.x - 34, pc.y + 46.6) < 3, `by the office door, at ${pc.x.toFixed(1)},${pc.y.toFixed(1)}`);
   } finally { setPace({ kickoffAt: before, calm: false }); }
 });
+
+test("forecourt contraptions: boot the pigeons and the barriers go over and a turnstile's left free; the gas brings the door man over", async () => {
+  const { RIGS } = await import("../src/stadium/rigs");
+  const { options } = await import("../src/stadium/context");
+  const run = (id: "pigeons_w" | "burger") => {
+    const g = createGame(`rig-${id}`), s = g.w.state, st = s.stadium!, pc = s.actors[st.pc];
+    for (let i = 0; i < 60 * 20; i++) stepGame(g);
+    const at = RIGS[id].at(); pc.x = at.x; pc.y = at.y + 0.5;
+    const top = options(g.w, pc).filter((o) => o.priority > 0).sort((a, b) => b.priority - a.priority)[0];
+    assert.equal(top?.label, RIGS[id].label, "it's the main thing to do when you're stood by it");
+    assert.equal(dispatch(g.w, { verb: "rig", actor: pc.id, arg: id }).ok, true);
+    assert.equal(dispatch(g.w, { verb: "rig", actor: pc.id, arg: id }).ok, false, "once, then it needs a while");
+    for (let i = 0; i < 60 * 8; i++) stepGame(g);
+    return { g, st, links: st.chain?.links ?? [] };
+  };
+  const a = run("pigeons_w");
+  assert.ok(a.links.includes("THE BARRIER GOES OVER") && a.links.includes("THE STEWARD COMES OUT TO PICK THEM UP"), a.links.join(" > "));
+  assert.ok(Object.values(a.st.gates).some((v) => v.for === a.st.pc && v.until > a.g.w.state.tick), "a turnstile's open for you while he's out");
+  const b = run("burger");
+  assert.ok(b.links.includes("WHOOMPH") && b.links.includes("STAFF DOOR LEFT PROPPED OPEN"), b.links.join(" > "));
+});

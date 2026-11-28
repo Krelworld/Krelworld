@@ -21,6 +21,7 @@
 //   { "do": "close" }                              close whatever sheet is open
 //   { "do": "tp", "x": 17, "y": -53, "admit": true } put Grozz somewhere (for looking at places, not for play tests)
 //   { "do": "fast", "s": 300 }                     skip game time (breaks exact replay)
+//   { "do": "eval", "js": "sc.pc.money = 200" }      set something up from inside the page (sc is the scene; breaks replay)
 //   { "do": "strike" }                             punch whoever is nearest (for noise and mayhem checks)
 const { chromium, devices } = require("playwright");
 const fs = require("fs"), path = require("path"), http = require("http");
@@ -133,6 +134,7 @@ function serve(dir) {
     } else if (st.do === "tap") { const c = await toClient(st.x, st.y); await p.mouse.click(c.cx, c.cy); await run(400); }
     else if (st.do === "tp") { await p.evaluate(([x, y, adm]) => { const sc = window.__scene; sc.pc.x = x; sc.pc.y = y; sc.pc.moveX = sc.pc.moveY = 0; if (adm) sc.s.stadium.admitted = true; }, [st.x, st.y, !!st.admit]); await run((st.settle ?? 7) * 1000); }
     else if (st.do === "strike") { await p.evaluate(() => { const sc = window.__scene, pc = sc.pc; const t = Object.values(sc.s.actors).filter((a) => a.npc && !a.dead && !a.hiddenIn && a.id !== pc.id).sort((a, b) => Math.hypot(a.x - pc.x, a.y - pc.y) - Math.hypot(b.x - pc.x, b.y - pc.y))[0]; if (t) { pc.x = t.x + 0.8; pc.y = t.y; sc.run({ label: "Punch", priority: 1, action: { verb: "strike", actor: pc.id, target: { k: "actor", id: t.id } } }); } }); await run(st.ms ?? 700); }
+    else if (st.do === "eval") { const r = await p.evaluate((js) => { try { return String(new Function("sc", js)(window.__scene)); } catch (e) { return "ERROR " + e.message; } }, st.js); fs.appendFileSync(path.join(OUT, "steps.log"), `eval: ${r}\n`); await run(st.ms ?? 500); }
     else if (st.do === "fast") { await p.evaluate((n) => window.__fast(n), st.s); await run(1500); }
     else if (st.do === "click") { if (await p.isVisible(st.sel)) await p.click(st.sel, { timeout: 3000 }).catch(() => fs.appendFileSync(path.join(OUT, "steps.log"), `click ${st.sel}: WENT AWAY\n`)); else fs.appendFileSync(path.join(OUT, "steps.log"), `click ${st.sel}: NOT VISIBLE\n`); await run(500); }
     else if (st.do === "close") { await p.evaluate(() => window.__scene.closeSheet()); await run(300); }

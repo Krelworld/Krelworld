@@ -4591,7 +4591,12 @@ class StadiumScene extends Phaser.Scene {
       const hitFirst = fightFirst ?? this.attackOpt() ?? undefined;
       // Blows never go on the main button: a fight is started on purpose (tap the person) or comes to you.
       const blow = (o: Option) => o.action?.verb === "strike" || (o.action?.verb === "finish" && !!fightFirst);
-      const p = !pc.heldBy && !pc.hiddenIn ? this.opts.find((o) => o.priority > 0 && !blow(o)) ?? null : primary(this.opts);
+      // Referee mode: his rulings are three big buttons of their own (never the main button), and the bag,
+      // the punch and the throw are put away while he's out there in the black.
+      const rulings = !pc.heldBy ? this.opts.filter((o) => o.action?.verb === "rule") : [];
+      this.refMode(rulings);
+      document.body.classList.toggle("fbmode", !!pc.fb && !rulings.length);
+      const p = !pc.heldBy && !pc.hiddenIn ? this.opts.find((o) => o.priority > 0 && !blow(o) && o.action?.verb !== "rule") ?? null : primary(this.opts);
       this.focusItem = p?.action?.item ?? (p?.action?.target?.k === "item" ? p.action.target.id : null);
       this.mainOpt = p;
       const act = $<HTMLButtonElement>("act");
@@ -4629,7 +4634,7 @@ class StadiumScene extends Phaser.Scene {
       const hit = $("hit"), hitOpt = hitFirst;
       hit.hidden = !hitOpt || !!pc.heldBy || !!pc.hiddenIn || !!st.custody;
       if (hitOpt) {
-        const lab = hitOpt.label.replace(/ \(.*\)$/, ""), m2 = lab.match(/^(Take down|Counter|Stamp on|Punch|Stab|Glass|Chair|Hit) (.+?)(!| with .*)?$/);
+        const lab = hitOpt.label.replace(/ \(.*\)$/, ""), m2 = lab.match(/^(Take down|Counter|Stamp on|Punch|Foul|Stab|Glass|Chair|Hit) (.+?)(!| with .*)?$/);
         hit.textContent = m2 ? `${m2[1]} ${short(m2[2])}` : lab.split(" ").slice(0, 3).join(" ");
         (this as any).hitOpt = hitOpt;
       }
@@ -4675,17 +4680,34 @@ class StadiumScene extends Phaser.Scene {
     const w = held && hasProp(held, "weapon");
     return { label: `${w ? (hasProp(held!, "sharp") ? "Stab" : "Hit") : "Punch"} ${personName(t)}`, priority: 1, action: { verb: "strike", ...base } };
   }
+  refOpts: Option[] = []; refKey = "";
+  refMode(rulings: Option[]): void {
+    const el = $("refBar"), on = rulings.length > 0 && !this.cine && !this.sceneOn;
+    document.body.classList.toggle("refmode", on);
+    if (!on) { if (!el.hidden) el.hidden = true; this.refKey = ""; return; }
+    const by = (arg: string) => rulings.find((o) => o.action!.arg === arg);
+    // Three at most: a goal to give or take back comes first when there is one; then the penalty and the red card.
+    const m = this.s.match!, goalLately = !!this.s.stadium!.flags.lastOppGoal && this.s.tick - this.s.stadium!.flags.lastOppGoal < 60 * 40;
+    const pick = [by("give"), goalLately ? by("disallow") : undefined, by("penalty"), by("sendoff"), (m.period === 2 || m.period === 4) && m.score[0] > m.score[1] ? by("fulltime") : undefined, by("stop")].filter((o): o is Option => !!o).slice(0, 3);
+    this.refOpts = pick;
+    const lab = (o: Option) => { const a = o.action!.arg; return a === "penalty" ? ["pen", "Penalty to England"] : a === "sendoff" ? ["red", o.label.replace(/^Send off /, "Send off: ")] : a === "disallow" ? ["no", "No goal"] : a === "give" ? ["yes", "Goal: England"] : a === "fulltime" ? ["no", "Full time"] : ["no", "Stop play"]; };
+    const key = pick.map((o) => o.label).join("|");
+    if (key !== this.refKey) { this.refKey = key; el.innerHTML = pick.map((o, i) => { const [c, t] = lab(o); return `<button class="${c}" data-ref="${i}">${esc(t)}</button>`; }).join(""); }
+    el.hidden = false;
+  }
   /** Nobody's fighting yet, but there's somebody within a few steps: the punch button offers him anyway
    *  (the creator: "attacking should be easier"). The one he's facing is preferred to the one who's merely
    *  nearest; pressing it walks him in and lands it, so there's no lining up to do. */
   attackOpt(): (Option & { far?: string }) | null {
     const pc = this.pc, s = this.s;
-    if (!pc || pc.heldBy || pc.hiddenIn || pc.seated || pc.fb || s.stadium!.custody || this.cine || this.sceneOn) return null;
+    if (!pc || pc.heldBy || pc.hiddenIn || pc.seated || s.stadium!.custody || this.cine || this.sceneOn) return null;
     let best: Actor | null = null, bs = 1e9;
     const fx = Math.cos(pc.facing), fy = Math.sin(pc.facing);
+    // Footballer mode (Option E): out there in a kit, the one bit of mischief on offer is the nearest man in shorts.
+    const playing = !!pc.fb;
     for (const id in s.actors) {
       const a = s.actors[id];
-      if (a.id === pc.id || a.dead || a.hiddenIn || !a.npc || a.npc.job === "dog" || a.fb || incapacitated(this.w, a)) continue;
+      if (a.id === pc.id || a.dead || a.hiddenIn || !a.npc || a.npc.job === "dog" || (playing ? a.fb?.status !== "playing" : !!a.fb) || incapacitated(this.w, a)) continue;
       const dx = a.x - pc.x, dy = a.y - pc.y, d = Math.hypot(dx, dy);
       if (d > 4.2 || this.liftOf(a) !== this.liftOf(pc)) continue;
       const sc = d - 1.4 * ((dx * fx + dy * fy) / (d || 1)) - (this.picked === a.id ? 3 : 0);
@@ -4694,7 +4716,7 @@ class StadiumScene extends Phaser.Scene {
     if (!best) return null;
     const held = pc.hand ? s.items[pc.hand] : undefined, w = held && hasProp(held, "weapon");
     const d = Math.hypot(best.x - pc.x, best.y - pc.y);
-    return { label: `${w ? (hasProp(held!, "sharp") ? "Stab" : "Hit") : "Punch"} ${personName(best)}`, priority: 1, action: { verb: "strike", actor: pc.id, target: { k: "actor", id: best.id } }, far: d > 1.2 ? best.id : undefined };
+    return { label: `${playing ? "Foul" : w ? (hasProp(held!, "sharp") ? "Stab" : "Hit") : "Punch"} ${personName(best)}`, priority: 1, action: { verb: "strike", actor: pc.id, target: { k: "actor", id: best.id } }, far: d > 1.2 ? best.id : undefined };
   }
   /** A tap while you're still recovering isn't lost: it goes as soon as you can. */
   buffered: { opt: Option; at: number } | null = null;
@@ -6211,6 +6233,7 @@ class StadiumScene extends Phaser.Scene {
     window.addEventListener("keydown", (e) => { if (e.key.toLowerCase() === "i" && this.started) instOn(); });
     window.addEventListener("keyup", (e) => { if (e.key.toLowerCase() === "i") instOff(); });
     // Folded: open it out. Open: Side jobs opens the jobs sheet, anywhere else folds it again.
+    $("refBar").addEventListener("click", (e) => { const b = (e.target as HTMLElement).closest("button") as HTMLElement | null; const o = b ? this.refOpts[Number(b.dataset.ref)] : null; if (o) { this.run(o); this.buzz(30); } });
     $("plan").addEventListener("click", () => (this.sheetKind === "plans" ? this.closeSheet() : this.openPlans()));
     $("fst").addEventListener("click", (e) => { const t = (e.target as HTMLElement).closest("button") as HTMLElement | null; if (t?.dataset.fst) this.hint(t.dataset.fst); });
     $("todo").addEventListener("click", (e) => {

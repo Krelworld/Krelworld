@@ -1,0 +1,9 @@
+{ "name": "refmode", "seed": "qa-ref", "about": "Referee mode: on the pitch in the referee's kit, three big buttons.", "everyMs": 600000,
+  "steps": [
+    { "do": "wait", "s": 3 },
+    { "do": "eval", "js": "sc.s.stadium.flags.koGo = 1; return 'go'" },
+    { "do": "fast", "s": 560 },
+    { "do": "eval", "js": "const s = sc.s, pc = sc.pc; const k = Object.values(s.items).find(i => i.def === 'ref_kit' && i.loc.k !== 'worn'); if (!k) return 'no kit'; if (pc.worn.outer) { const o = s.items[pc.worn.outer]; o.loc = { k: 'gone' }; } k.loc = { k: 'worn', a: pc.id, slot: 'outer' }; pc.worn.outer = k.id; return 'kit on ' + s.match.phase" },
+    { "do": "tp", "x": 6, "y": 4, "admit": true, "settle": 12 }, { "do": "shot", "name": "ref-on-pitch" },
+    { "do": "click", "sel": "#refBar button.pen" }, { "do": "wait", "s": 4 }, { "do": "shot", "name": "penalty-given" }
+  ] }

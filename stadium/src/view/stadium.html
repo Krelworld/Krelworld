@@ -291,6 +291,17 @@
   #fruit .msg { display: block; margin-top: 8px; min-height: 16px; font: 800 15px/1 var(--display); color: #fff; letter-spacing: .06em; }
   #fruit.won .msg { color: #f2c94c; animation: tkMsg .3s both; }
   @keyframes swoopOut { to { opacity: 0; } }
+  /* Referee mode (Option E): on the pitch in the black, the usual buttons give way to three big ones. */
+  #refBar { position: absolute; left: max(10px, env(safe-area-inset-left, 0px)); right: max(10px, env(safe-area-inset-right, 0px)); bottom: calc(max(12px, env(safe-area-inset-bottom, 0px)) + 212px); z-index: 7; display: flex; gap: 8px; pointer-events: auto; }
+  #refBar[hidden] { display: none; }
+  #refBar button { flex: 1; min-height: 64px; padding: 6px 4px; font: 800 14px/1.15 var(--display) !important; letter-spacing: .04em; text-transform: uppercase; border: 3px solid #000; box-shadow: 4px 4px 0 rgba(0,0,0,.5) !important; white-space: normal; }
+  #refBar button.pen { background: #f4efe0 !important; color: #111 !important; }
+  #refBar button.red { background: #d7263d !important; color: #fff !important; }
+  #refBar button.no { background: #111 !important; color: #f2c94c !important; }
+  #refBar button.yes { background: #1d6b3a !important; color: #fff !important; }
+  body.refmode #fightRow, body.refmode #bagBtn, body.refmode #useBtn { display: none !important; }
+  /* Footballer mode: move, kick, and one bit of mischief. The bag and Instinct are put away. */
+  body.fbmode #bagBtn, body.fbmode #useBtn, body.fbmode #instBtn { display: none !important; }
   /* The pinned plan (Option E): its name, the step he's on, how far. Tap for the cards. */
   #plan { display: block; width: 100%; max-width: 430px; min-height: 0; text-align: left; padding: 5px 10px 6px; background: rgba(10,14,20,.92); color: #f4efe0; border: 0; border-left: 5px solid #f2c94c; box-shadow: 0 2px 0 rgba(0,0,0,.4); text-transform: none; letter-spacing: 0; }
   #plan[hidden] { display: none; }
@@ -665,6 +676,7 @@
     <button id="sp4" aria-pressed="false">4×</button>
   </div>
 
+  <div id="refBar" class="float" hidden></div>
   <div id="controls" class="float">
     <div id="instRow"><span id="actHint" hidden></span><button id="instBtn" aria-label="Instinct (hold)" title="Instinct: hold to see what's useful"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M1.5 12S5.5 5 12 5s10.5 7 10.5 7-4 7-10.5 7S1.5 12 1.5 12z" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="12" cy="12" r="3.6" fill="currentColor"/></svg></button></div>
     <div id="fightRow"><button id="hit" hidden>Punch</button><button id="throw" hidden>Throw</button></div>

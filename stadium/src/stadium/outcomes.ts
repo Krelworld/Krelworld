@@ -10,6 +10,7 @@ import { PACE, VENUE } from "./layout";
 import { draymanWatching } from "./beer";
 import { isSecurity } from "./security";
 import { schemeHint } from "./schemes";
+import { specialHint } from "./scheme_special";
 
 const mmss = (ticks: number) => { const s = Math.max(0, Math.ceil(ticks / 60)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; };
 const lorryOf = (w: World, cargo: string | undefined) => Object.values(w.state.stadium!.vehicles).find((v) => v.cargo === cargo);
@@ -32,7 +33,7 @@ export function whatItDoes(w: World, pc: Actor, o: Option): string {
       return "Out of sight till you climb out.";
     }
     case "unhide": { const v = lorryOf(w, pc.hiddenIn); return v && (v.state === "loading" || v.state === "parked") ? "It hasn't gone anywhere yet." : v && (v.state === "driving" || v.state === "gate") ? "It's still moving. You'll be seen." : ""; }
-    case "scheme": return schemeHint(a.arg);
+    case "scheme": return specialHint(w, pc, a.arg) ?? schemeHint(a.arg);
     case "wear": { const d = it ? ITEM_DEFS[it.def] : undefined; return d?.role ? `People will take you for ${/^[aeiou]/.test(d.role) ? "an" : "a"} ${d.role}.` : it?.def === "face" ? "You'll be him. Nobody will say a word." : d?.faceCover ? "Harder to recognise." : "Changes how you look."; }
     case "shove": return "The drayman will leave everything and go after it.";
     case "hose": return "The ground's kegs fill from the drain. It shows up inside, later.";

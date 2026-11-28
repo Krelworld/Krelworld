@@ -1,0 +1,167 @@
+{
+ "name": "special",
+ "seed": "qa-special",
+ "about": "The first mission, played the way its steps say: look at the drayman, roll the keg, look at the pipes, take the free Rocket Tonic, put it in the VISITORS pipe, watch it arrive on the hotel's dock, wait for it to be served.",
+ "everyMs": 60000,
+ "maxShots": 40,
+ "steps": [
+  {
+   "do": "wait",
+   "s": 3
+  },
+  {
+   "do": "shot",
+   "name": "first-frame"
+  },
+  {
+   "do": "walk",
+   "x": -30.1,
+   "y": 68.5,
+   "r": 0.5,
+   "max": 40
+  },
+  {
+   "do": "wait",
+   "s": 1
+  },
+  {
+   "do": "shot",
+   "name": "at-the-keg"
+  },
+  {
+   "do": "option",
+   "match": "Roll the keg"
+  },
+  {
+   "do": "until",
+   "event": "post_left",
+   "max": 15
+  },
+  {
+   "do": "shot",
+   "name": "he-goes-after-it"
+  },
+  {
+   "do": "walk",
+   "x": -24.6,
+   "y": 66.1,
+   "r": 0.4,
+   "max": 40
+  },
+  {
+   "do": "wait",
+   "s": 1
+  },
+  {
+   "do": "shot",
+   "name": "at-the-pipes"
+  },
+  {
+   "do": "option",
+   "match": "Look at the pipes"
+  },
+  {
+   "do": "shot",
+   "name": "looked"
+  },
+  {
+   "do": "wait",
+   "s": 2
+  },
+  {
+   "do": "shot",
+   "name": "the-crate"
+  },
+  {
+   "do": "option",
+   "match": "Take a Rocket Tonic"
+  },
+  {
+   "do": "wait",
+   "s": 1
+  },
+  {
+   "do": "shot",
+   "name": "took-the-tonic"
+  },
+  {
+   "do": "walk",
+   "x": -24.05,
+   "y": 66.1,
+   "r": 0.3,
+   "max": 20
+  },
+  {
+   "do": "wait",
+   "s": 1
+  },
+  {
+   "do": "shot",
+   "name": "at-the-visitors-hatch"
+  },
+  {
+   "do": "option",
+   "match": "Put in VISITORS pipe"
+  },
+  {
+   "do": "shot",
+   "name": "cut-0"
+  },
+  {
+   "do": "shot",
+   "name": "cut-1"
+  },
+  {
+   "do": "shot",
+   "name": "cut-2"
+  },
+  {
+   "do": "shot",
+   "name": "cut-3"
+  },
+  {
+   "do": "shot",
+   "name": "cut-4"
+  },
+  {
+   "do": "shot",
+   "name": "cut-5"
+  },
+  {
+   "do": "shot",
+   "name": "cut-6"
+  },
+  {
+   "do": "wait",
+   "s": 6
+  },
+  {
+   "do": "shot",
+   "name": "loaded-board"
+  },
+  {
+   "do": "until",
+   "event": "special_served",
+   "max": 60,
+   "speed": 2
+  },
+  {
+   "do": "wait",
+   "s": 1
+  },
+  {
+   "do": "shot",
+   "name": "served"
+  },
+  {
+   "do": "tp",
+   "x": 76.4,
+   "y": -11.2,
+   "settle": 6
+  },
+  {
+   "do": "shot",
+   "name": "the-dock"
+  }
+ ]
+}

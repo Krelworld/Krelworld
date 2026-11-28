@@ -8,6 +8,7 @@ import { SPOTS, VENUE } from "../stadium/layout";
 import { windows } from "../stadium/missiles";
 import { roofs } from "../stadium/roofs";
 import { itemAt } from "./guide";
+import { specialTargets } from "../stadium/scheme_special";
 
 const WEAR = "Wear it (Bag). They won't know your face.";
 export const ITEM_TIPS: Record<string, string> = {
@@ -47,6 +48,10 @@ export const ITEM_TIPS: Record<string, string> = {
   mask: WEAR, balaclava: WEAR, sunglasses: WEAR, flat_cap: WEAR, wig: WEAR, moustache: WEAR, tracksuit: WEAR, chef_whites: WEAR, overalls: WEAR,
   shirt_eng: "Wear it. One of the lads.", shirt_opp: "Wear it. Blend in with their lot.", shirt_por: "Wear it. Blend in with their lot.",
   face: "Grim. Somebody's face, for the scanners.", hands: "Grim. Somebody's hands.",
+  rocket_tonic: "Fizzy and furious. It goes in a pipe.",
+  sleepy_syrup: "One spoonful and goodnight. It goes in a pipe.",
+  dodgy_electrolytes: "Best before 1991. It goes in a pipe.",
+  ronson_filth: "Ronson's. Still warm. The machine takes anything.",
 };
 
 export interface ItemTarget { x: number; y: number; label: string }
@@ -61,6 +66,7 @@ export function itemTargets(w: World, pc: Actor, it: Item): ItemTarget[] {
     for (const i of ofDef("pint")) if (i.loc.k === "ground" && !i.spiked) add({ x: i.loc.x, y: i.loc.y }, "A pint");
     if (def === "powder") for (const a of Object.values(s.actors)) if (a.npc?.job === "police" && !a.dead) add(a, "A copper to tip off");
   }
+  for (const t of specialTargets(w, pc, it)) add(t, t.label);
   if (def === "brick" || def === "bottle" || def === "pint_glass") for (const p of windows()) add(p, "A window");
   if (def === "wrench") add((SPOTS as any).cellar, "The cellar hatch");
   if (def === "ticket" && !st.admitted) for (const p of SPOTS.turnstiles) add(p, "Turnstiles");

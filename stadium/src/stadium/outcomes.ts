@@ -4,7 +4,7 @@
 // and one line per state you can be in (shown as a strip). Read-only: it reports the sim, it changes nothing.
 import type { World } from "../core/world";
 import type { Actor } from "../core/types";
-import { hasProp } from "../core/items";
+import { hasProp, ITEM_DEFS } from "../core/items";
 import type { Option } from "./context";
 import { PACE, VENUE } from "./layout";
 import { draymanWatching } from "./beer";
@@ -67,6 +67,7 @@ export function whatItDoes(w: World, pc: Actor, o: Option): string {
     }
     case "unhide": { const v = lorryOf(w, pc.hiddenIn); return v && (v.state === "loading" || v.state === "parked") ? "It hasn't gone anywhere yet." : v && (v.state === "driving" || v.state === "gate") ? "It's still moving. You'll be seen." : ""; }
     case "scheme": return schemeHint(a.arg);
+    case "wear": { const d = it ? ITEM_DEFS[it.def] : undefined; return d?.role ? `People will take you for ${/^[aeiou]/.test(d.role) ? "an" : "a"} ${d.role}.` : it?.def === "face" ? "You'll be him. Nobody will say a word." : d?.faceCover ? "Harder to recognise." : "Changes how you look."; }
     case "shove": return "The drayman will leave everything and go after it.";
     case "hose": return "The ground's kegs fill from the drain. It shows up inside, later.";
     case "rig": return a.arg === "tannoy" ? TANNOY_DOES[(st.rigs?.tannoy?.n ?? 0) % 3] : RIG_DOES[a.arg ?? ""] ?? "";

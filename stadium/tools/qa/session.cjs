@@ -19,6 +19,8 @@
 //   { "do": "shot", "name": "label" }              an extra frame
 //   { "do": "click", "sel": "[data-buy=tankard]" } click something in the HUD or a sheet
 //   { "do": "close" }                              close whatever sheet is open
+//   { "do": "tp", "x": 17, "y": -53, "admit": true } put Grozz somewhere (for looking at places, not for play tests)
+//   { "do": "fast", "s": 300 }                     skip game time (breaks exact replay)
 const { chromium, devices } = require("playwright");
 const fs = require("fs"), path = require("path"), http = require("http");
 const { execFileSync } = require("child_process");
@@ -128,6 +130,8 @@ function serve(dir) {
       }
       await p.evaluate(() => { const sc = window.__scene; sc.walkTo = null; sc.pc.moveX = sc.pc.moveY = 0; });
     } else if (st.do === "tap") { const c = await toClient(st.x, st.y); await p.mouse.click(c.cx, c.cy); await run(400); }
+    else if (st.do === "tp") { await p.evaluate(([x, y, adm]) => { const sc = window.__scene; sc.pc.x = x; sc.pc.y = y; sc.pc.moveX = sc.pc.moveY = 0; if (adm) sc.s.stadium.admitted = true; }, [st.x, st.y, !!st.admit]); await run((st.settle ?? 7) * 1000); }
+    else if (st.do === "fast") { await p.evaluate((n) => window.__fast(n), st.s); await run(1500); }
     else if (st.do === "click") { if (await p.isVisible(st.sel)) await p.click(st.sel); else fs.appendFileSync(path.join(OUT, "steps.log"), `click ${st.sel}: NOT VISIBLE\n`); await run(500); }
     else if (st.do === "close") { await p.evaluate(() => window.__scene.closeSheet()); await run(300); }
     else if (st.do === "act") {

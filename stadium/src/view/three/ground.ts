@@ -169,8 +169,13 @@ function wet(c: Ctx, x0: number, y0: number, w: number, h: number, lean: number,
   }
 }
 
+export interface FloorPatch { x: number; y: number; w: number; h: number; kind: Floor; base: number; wet: boolean; over?: boolean }
 export interface GroundSpec {
   areas: Area[];
+  /** Floors laid under the layout's areas (straight after the street), and over them: gaps between rooms, tiles under a shower. */
+  under: FloorPatch[];
+  /** Words painted on the ground: text, x, y, size. */
+  labels: [string, number, number, number?][];
   mirror: boolean; fanZone: boolean;
   /** Footprints that darken the ground round them: x0, y0, x1, y1, height. */
   ao: [number, number, number, number, number][];
@@ -182,6 +187,15 @@ export interface GroundSpec {
 }
 
 const clipTo = (c: Ctx, x: number, y: number, w: number, h: number) => { c.beginPath(); c.rect(x, y, w, h); c.clip(); };
+
+/** Extra paint over a rectangle of ground (metres): `fn` gets the part of it that falls in the tile being painted, in world pixels, already clipped. */
+export function patch(sp: GroundSpec, x: number, y: number, w: number, h: number, fn: (c: Ctx, x0: number, y0: number, x1: number, y1: number) => void): void {
+  sp.extras.push((c, X0, Y0, X1, Y1) => {
+    const x0 = Math.max(X0, P(x)), y0 = Math.max(Y0, P(y)), x1 = Math.min(X1, P(x + w)), y1 = Math.min(Y1, P(y + h));
+    if (x1 <= x0 || y1 <= y0) return;
+    c.save(); clipTo(c, x0, y0, x1 - x0, y1 - y0); fn(c, x0, y0, x1, y1); c.restore();
+  });
+}
 
 /** The road furniture: kerbs, double yellows, zebra crossings, the centre line, car-park bays. */
 function roads(c: Ctx, sp: GroundSpec) {
@@ -240,6 +254,11 @@ export function paintChunk(sp: GroundSpec, cx: number, cy: number): HTMLCanvasEl
   paintFloor(c, "tarmac", X0, Y0, CHUNK_PX, CHUNK_PX, 0, false);
   fill(c, X0, Y0, CHUNK_PX, CHUNK_PX, "rgba(10,11,14,0.35)");
   let road = false, pitch = false;
+  const lay = (f: FloorPatch) => {
+    const ax0 = Math.max(X0, P(f.x)), ay0 = Math.max(Y0, P(f.y)), ax1 = Math.min(X1, P(f.x + f.w)), ay1 = Math.min(Y1, P(f.y + f.h));
+    if (ax1 <= ax0 || ay1 <= ay0) return;
+    c.save(); clipTo(c, ax0, ay0, ax1 - ax0, ay1 - ay0); paintFloor(c, f.kind, ax0, ay0, ax1 - ax0, ay1 - ay0, f.base, false); c.restore();
+  };
   for (const a of sp.areas) {
     const ax0 = Math.max(X0, P(a.x)), ay0 = Math.max(Y0, P(a.y)), ax1 = Math.min(X1, P(a.x + a.w)), ay1 = Math.min(Y1, P(a.y + a.h));
     if (ax1 <= ax0 || ay1 <= ay0) continue;
@@ -255,7 +274,9 @@ export function paintChunk(sp: GroundSpec, cx: number, cy: number): HTMLCanvasEl
     c.restore();
     if (a.id === "road" || a.id === "eastroad" || a.id === "carpark" || a.id === "plaza") road = true;
     if (a.id === "pitch") pitch = true;
+    if (a.id === "street") for (const f of sp.under) if (!f.over) lay(f);
   }
+  for (const f of sp.under) if (f.over) lay(f);
   if (road) roads(c, sp);
   if (pitch) pitchLines(c);
   for (const f of sp.extras) f(c, X0, Y0, X1, Y1);

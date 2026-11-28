@@ -96,7 +96,9 @@ function zoomSteps(): number[] {
   // to read, and upright the screen still gives about 12 m across by 21 deep. The zoom button steps out.
   void portrait;
   const z = Math.max(1, Math.round(((GZ ? (GZ * 32) / 60 : 32) * DPR) / 32));
-  return [...new Set([z, z + 1, Math.max(1, z - 1)])];
+  // On a phone the default is one step closer than it was (about 9 m across, Grozz about 77 points): the
+  // creator, playing it, wanted to be nearer him. The zoom button still steps out to the wider views.
+  return small ? [...new Set([z + 1, z, Math.max(1, z - 1), z + 2])] : [...new Set([z, z + 1, Math.max(1, z - 1)])];
 }
 const ZOOMS = [0, 1, 2];
 const SKIN = [0xf1c7a5, 0xd9a47e, 0xb07a52, 0x8a5a3b, 0x5e3b26, 0xe8b896];
@@ -126,7 +128,7 @@ function shortLabel(o: Option): string {
   if (o.sheet?.kind === "loot") return "Search";
   const map: Record<string, string> = { talk: "Talk", show: "Show ticket", drive: "Drive the bus", getout: "Get out", hide: "Hide inside", unhide: "Climb out", sit: "Sit down", stand: "Stand up",
     untie: "Untie Ronson", release: "Let Ronson go", leash: "Grab Ronson", sic: "Set Ronson on him", servicedog: "\"Service dog\"", alarm: "Pull the fire alarm", vault: "Climb over",
-    struggle: "Struggle", take: "Pick up", takeout: "Take it", horn: "Beep", arrest: "Arrest", pickpocket: "Pickpocket", tamper: "Tamper with it" };
+    struggle: "Struggle", wear: "Put it on", take: "Pick up", takeout: "Take it", horn: "Beep", arrest: "Arrest", pickpocket: "Pickpocket", tamper: "Tamper with it" };
   if (v && map[v]) return map[v];
   return L.split(" ").slice(0, 4).join(" ");
 }
@@ -1313,9 +1315,19 @@ class StadiumScene extends Phaser.Scene {
   cycleZoom() {
     this.zoomLevel = (this.zoomLevel + 1) % zoomSteps().length;
     $("zoomBtn").textContent = this.zoomLabel();
-    try { localStorage.setItem("kd-zoom2", String(this.zoomLevel)); } catch { /* ignore */ }
+    try { localStorage.setItem("kd-zoom3", String(this.zoomLevel)); } catch { /* ignore */ }
   }
-  zoomLabel(): string { const st = zoomSteps(), z = st[Math.min(this.zoomLevel, st.length - 1)] / st[0]; return z === 1 ? "1×" : z > 1 ? `${+z.toFixed(1)}×` : "½×"; }
+  /** One step in or out, by size (pinch, the wheel). */
+  pinchAt = 0;
+  zoomBy(dir: 1 | -1) {
+    const st = zoomSteps(), sorted = [...st].sort((a, b) => a - b), cur = st[Math.min(this.zoomLevel, st.length - 1)];
+    const n = sorted[Math.max(0, Math.min(sorted.length - 1, sorted.indexOf(cur) + dir))];
+    if (n === cur) return;
+    this.zoomLevel = st.indexOf(n);
+    $("zoomBtn").textContent = this.zoomLabel();
+    try { localStorage.setItem("kd-zoom3", String(this.zoomLevel)); } catch { /* ignore */ }
+  }
+  zoomLabel(): string { const st = zoomSteps(), z = st[Math.min(this.zoomLevel, st.length - 1)] / st[0]; return `${+z.toFixed(2)}×`; }
   setZoom() { this.cameras.main.setZoom(this.targetZoom()); }
 
   // ---------- Frame ----------
@@ -1583,7 +1595,7 @@ class StadiumScene extends Phaser.Scene {
     if (a.roof) { const r = roofOf(a); return r ? this.roofLift(r, a.y) : roofHeight(a); }
     if (a.bike) return 0.3; // up on the saddle
     if (a.chute) { const c = a.chute, k = Math.min(1, (this.s.tick - c.t0) / (c.t1 - c.t0)); return 8 * (1 - k * k); }
-    return 0;
+    return this.stage?.world?.standLift(a.x, a.y) ?? 0; // up on the 3D world's terracing (0 anywhere else, and in 2D)
   }
   /** How high to draw someone (or something) standing on this roof at depth y. A painted building's
    *  roof is a band partway down its picture (the fronts are drawn much taller than the footprint's
@@ -3282,7 +3294,8 @@ class StadiumScene extends Phaser.Scene {
         if (Math.abs(im.x - mx) > hw || Math.abs(im.y - my) > hh) continue;
         // (The stand's sheet goes to the card whole: nearly all of it is on screen at once.)
         if (im.frame.source.image !== sheet) { sheet = im.frame.source.image; st.bridge.whole(sheet); }
-        if (oy) { im.y += oy; st.sprite(im, { hintY: c.wy, slide: true, lift: 0, noShadow: true }); im.y -= oy; } else st.sprite(im, { hintY: c.wy, slide: true, lift: 0, noShadow: true });
+        // (Up on the 3D world's terracing.)
+        const dy = oy - (st.world?.standLift(c.x, c.wy) ?? 0) * this.P.S; im.y += dy; st.sprite(im, { hintY: c.wy, slide: true, lift: 0, noShadow: true }); im.y -= dy;
       }
     }
     const dog = this.worldSprites.get("dog-sprite"), dg = stad.dog ? s.actors[stad.dog.id] : null;
@@ -3460,7 +3473,7 @@ class StadiumScene extends Phaser.Scene {
     const roomR = this.roomShown ? this.blds.find((b) => b.id === this.roomShown)?.rect : undefined;
     for (const p of this.placed.list) {
       if (!onScreen(p.x, p.y, 300)) continue;
-      if (p.key === "floodlight") continue;
+      if (p.key === "floodlight" || (three && this.stage!.world?.replaces(p.key, p.x, p.y))) continue; // (or the 3D world has built this one itself)
       // In a room, the street's props aren't drawn (the tall ones would poke into the room's picture).
       if (three && roomR && p.key.startsWith("ladder") && p.x > roomR.x0 - 1.2 && p.x < roomR.x1 + 1.2 && p.y > roomR.y0 - 1.2 && p.y < roomR.y1 + 1.2) continue; // its wall is cut away
       if (roomR && !three && !(p.x > roomR.x0 - 0.2 && p.x < roomR.x1 + 0.2 && p.y > roomR.y0 - 0.2 && p.y < roomR.y1 + 0.2)) continue;
@@ -4888,6 +4901,7 @@ class StadiumScene extends Phaser.Scene {
    *  takedown, any weapon in your pockets. Down people get pockets, drag, stamp, radio, knife work. */
   ring: { id: string; items: RingItem[]; sub: boolean } | null = null;
   openPerson(id: string, sub = false, all = false) {
+    if (performance.now() - this.pinchAt < 400) return;
     const s = this.s, pc = this.pc, a = s.actors[id];
     if (!a || !pc || !this.started) return;
     // Watching from the stands: a footballer's card, not a menu.
@@ -5079,6 +5093,51 @@ class StadiumScene extends Phaser.Scene {
     this.audio.play("tap", 0.5);
   }
   endUse() { this.useMode = null; $("useBanner").hidden = true; }
+  /** What's in his hand, and everything he can do with it right now, one tap each: on whoever and whatever
+   *  is near (he walks over and does it), on himself, swapped for what's in a pocket, or dropped. No aiming
+   *  mode to remember, no Bag to dig through. */
+  itemActs: { kind: "near" | "opt" | "aim" | "swap"; i?: number; id?: string }[] = [];
+  openItem(id: string) {
+    const s = this.s, pc = this.pc, it = s.items[id];
+    if (!it || !pc) return;
+    const rows: string[] = []; this.itemActs = [];
+    const row = (label: string, hint: string, act: StadiumScene["itemActs"][number], cls = "") => { rows.push(`<button data-itemact="${this.itemActs.length}" class="${cls}">${esc(label)}${hint ? `<small>${esc(hint)}</small>` : ""}</button>`); this.itemActs.push(act); };
+    // On people and things within a short walk: whatever this does to them.
+    const people = Object.values(s.actors).filter((a) => a.id !== pc.id && !a.hiddenIn && (a.npc || a.fb) && Math.hypot(a.x - pc.x, a.y - pc.y) < 9)
+      .sort((a, b) => Math.hypot(a.x - pc.x, a.y - pc.y) - Math.hypot(b.x - pc.x, b.y - pc.y)).slice(0, 8);
+    this.itemNear = [];
+    for (const a of people) {
+      const o = this.optionsFor(a).find((x) => x.kind === "opt" && x.opt?.action?.item === it.id);
+      if (!o?.opt || this.itemNear.length >= 4) continue;
+      this.itemNear.push({ x: a.x, y: a.y, who: a.id });
+      row(o.opt.label, whatItDoes(this.w, pc, o.opt), { kind: "near", i: this.itemNear.length - 1 }, "primary");
+    }
+    for (const t of itemTargets(this.w, pc, it).filter((t2) => Math.hypot(t2.x - pc.x, t2.y - pc.y) < 30).slice(0, 3)) {
+      this.itemNear.push({ x: t.x, y: t.y });
+      row(`Use it on: ${t.label.charAt(0).toLowerCase()}${t.label.slice(1)}`, `${Math.round(Math.hypot(t.x - pc.x, t.y - pc.y))} m away. He'll walk over.`, { kind: "near", i: this.itemNear.length - 1 }, "primary");
+    }
+    if (can(it, "throw")) row("Throw it", "Then tap where.", { kind: "aim" });
+    const opts = itemOptions(this.w, pc, it);
+    (this as any)[`bag_${it.id}`] = opts;
+    opts.forEach((o, i) => {
+      const wear = o.action?.verb === "wear";
+      row(wear ? `Put it on` : o.label, whatItDoes(this.w, pc, o), { kind: "opt", i, id: it.id }, wear ? "primary" : "");
+      // (Clothes go on before anything else you might do with them.)
+      if (wear) { rows.unshift(rows.pop()!); this.itemActs.unshift(this.itemActs.pop()!); rows.forEach((r, k) => { rows[k] = r.replace(/data-itemact="\d+"/, `data-itemact="${k}"`); }); }
+    });
+    for (const pid of pc.pockets) { const p2 = s.items[pid]; if (p2 && defOf(p2).size !== "large") row(`Swap for the ${itemName(p2).toLowerCase()}`, "", { kind: "swap", id: pid }); }
+    this.sheet("item", `<h2>${esc(itemName(it))}</h2>${ITEM_TIPS[it.def] ? `<p>${esc(ITEM_TIPS[it.def])}</p>` : ""}<div class="list">${rows.join("")}</div><div class="row"><button data-wd="look">What you're wearing</button><button data-openbag="1">Everything you're carrying</button></div>`);
+  }
+  itemNear: { x: number; y: number; who?: string }[] = [];
+  doItemAct(n: number) {
+    const a = this.itemActs[n], pc = this.pc, h = pc.hand;
+    this.closeSheet();
+    if (!a) return;
+    if (a.kind === "aim" && h) this.startUse(h);
+    else if (a.kind === "near" && h) { const t = this.itemNear[a.i ?? 0]; if (t) { this.useMode = { item: h, until: performance.now() + 15000 }; this.useAt(t.x, t.y, t.who ? this.s.actors[t.who] ?? null : null); } }
+    else if (a.kind === "opt" && a.id) { const o = ((this as any)[`bag_${a.id}`] as Option[] | undefined)?.[a.i ?? 0]; if (o) this.run(o); }
+    else if (a.kind === "swap" && a.id) dispatch(this.w, { verb: "hold", actor: pc.id, item: a.id });
+  }
   /** Where they tapped, with the thing in hand: a person gets what that thing does to them (given,
    *  planted, shown, spiked); a place, he walks there and uses it; a missile flies there. */
   useAt(gx: number, gy: number, who: Actor | null) {
@@ -5193,6 +5252,7 @@ class StadiumScene extends Phaser.Scene {
     return { who, act };
   }
   setWalk(gx: number, gy: number) {
+    if (performance.now() - this.pinchAt < 400) return;
     if (!this.pc || this.inCab() || this.pc.heldBy) return;
     this.pursue = null; this.nextPursue = null;
     this.walkTo = { x: gx, y: gy, path: [], pathAt: 0, until: performance.now() + 20000 };
@@ -6023,9 +6083,8 @@ class StadiumScene extends Phaser.Scene {
         if (longed) return; void t0;
         const h = this.pc.hand ? this.s.items[this.pc.hand] : undefined;
         if (!h) { this.openBag(); return; }
-        const aim = (["throw", "spike", "give", "plant", "smash"] as const).some((v) => can(h, v));
-        if (!aim) { this.openBag(); return; }
-        this.useMode ? this.endUse() : this.startUse(h.id);
+        if (this.useMode) { this.endUse(); return; }
+        this.sheetKind === "item" ? this.closeSheet() : this.openItem(h.id);
       });
     }
     $("useBanner").addEventListener("click", (e) => { if ((e.target as HTMLElement).closest("[data-nouse]")) this.endUse(); });
@@ -6059,9 +6118,24 @@ class StadiumScene extends Phaser.Scene {
     for (const ev of ["pointerup", "pointercancel", "pointerleave"]) $("scopeSteady").addEventListener(ev, steadyOff);
     const touch = window.matchMedia?.("(pointer: coarse)").matches;
     if (touch) document.body.classList.add("touch");
-    try { const saved = localStorage.getItem("kd-zoom2"); const z = saved ? +saved : 0; if (ZOOMS.includes(z)) this.zoomLevel = z; } catch { /* ignore */ }
+    try { const saved = localStorage.getItem("kd-zoom3"); const z = saved ? +saved : 0; if (ZOOMS.includes(z)) this.zoomLevel = z; } catch { /* ignore */ }
     $("zoomBtn").textContent = this.zoomLabel();
     $("zoomBtn").addEventListener("click", () => this.cycleZoom());
+    $("zoomBtn").hidden = false;
+    // Pinch to zoom (two fingers on the world, above the thumb controls), and the wheel on a desktop.
+    {
+      let pd = 0;
+      const span = (e: TouchEvent) => Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+      const onWorld = (e: TouchEvent) => e.touches.length === 2 && !this.sheetKind && [0, 1].every((i) => e.touches[i].clientY < window.innerHeight * 0.66 && !(e.touches[i].target as HTMLElement)?.closest?.("button, .sheet, #hud"));
+      window.addEventListener("touchstart", (e) => { pd = onWorld(e) ? span(e) : 0; if (pd) this.pinchAt = performance.now(); }, { passive: true });
+      window.addEventListener("touchmove", (e) => {
+        if (!pd || e.touches.length !== 2) return;
+        const d = span(e); this.pinchAt = performance.now();
+        if (d > pd * 1.22) { this.zoomBy(1); pd = d; } else if (d < pd * 0.82) { this.zoomBy(-1); pd = d; }
+      }, { passive: true });
+      window.addEventListener("touchend", () => { pd = 0; }, { passive: true });
+      window.addEventListener("wheel", (e) => { if (this.sheetKind || !this.started) return; const now = performance.now(); if (now - this.pinchAt < 180) return; this.pinchAt = now; this.zoomBy(e.deltaY < 0 ? 1 : -1); }, { passive: true });
+    }
     $("fpBtn").addEventListener("click", () => this.toggleFirstPerson());
     $("viewBtn").textContent = this.driveView === "chase" ? "Chase" : this.driveView === "cab" ? "Cab" : "Map";
     $("viewBtn").addEventListener("click", () => this.cycleDriveView());
@@ -6103,6 +6177,8 @@ class StadiumScene extends Phaser.Scene {
         return;
       }
       if (d.bribe) { const r = dispatch(this.w, { verb: "bribe", actor: this.pc.id, target: { k: "actor", id: d.who! }, amount: +d.bribe }); if (!r.ok) this.hint(r.reason ?? ""); this.closeSheet(); return; }
+      if (d.itemact) { this.doItemAct(+d.itemact); return; }
+      if (d.openbag) { this.openBag(); return; }
       if (d.bag) {
         const o = ((this as any)[`bag_${d.bag}`] as Option[])[+d.i!];
         if (o?.sheet?.kind === "phone") { this.openPhone("burner"); return; }

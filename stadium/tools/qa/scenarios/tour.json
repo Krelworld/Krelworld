@@ -1,0 +1,19 @@
+{
+  "name": "tour",
+  "seed": "qa-tour",
+  "about": "A look at the places, for checking a build by eye (teleports; not a play test).",
+  "everyMs": 600000,
+  "steps": [
+    { "do": "wait", "s": 8 }, { "do": "shot", "name": "yard" },
+    { "do": "tp", "x": -44, "y": 67 }, { "do": "shot", "name": "pub" },
+    { "do": "tp", "x": 36, "y": 65 }, { "do": "shot", "name": "cashkings" },
+    { "do": "tp", "x": 0, "y": 52 }, { "do": "shot", "name": "turnstiles" },
+    { "do": "tp", "x": 0, "y": 38, "admit": true }, { "do": "shot", "name": "concourse" },
+    { "do": "tp", "x": 17, "y": -51.5, "admit": true }, { "do": "shot", "name": "away-room" },
+    { "do": "tp", "x": -17, "y": -51.5, "admit": true }, { "do": "shot", "name": "home-room" },
+    { "do": "tp", "x": 31, "y": -55, "admit": true }, { "do": "shot", "name": "security" },
+    { "do": "fast", "s": 580 },
+    { "do": "tp", "x": 0, "y": 24, "admit": true, "settle": 10 }, { "do": "shot", "name": "pitch-play" },
+    { "do": "tp", "x": 80, "y": -24, "settle": 8 }, { "do": "shot", "name": "hotel" }
+  ]
+}

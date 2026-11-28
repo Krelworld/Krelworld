@@ -18,6 +18,8 @@ import { areaAt, setPace } from "../../src/stadium/layout";
 import { dispatch } from "../../src/core/verbs";
 import { options, personName, itemName } from "../../src/stadium/context";
 import { whatItDoes, statusOf } from "../../src/stadium/outcomes";
+import { cards, pinned } from "../../src/stadium/missions";
+import { badges } from "../../src/stadium/fstates";
 import { findPath } from "../../src/stadium/nav";
 import { defOf, ITEM_DEFS } from "../../src/core/items";
 import { SHOPS } from "../../src/stadium/rules";
@@ -25,7 +27,7 @@ import { SHOPS } from "../../src/stadium/rules";
 const arg = (f: string) => { const i = process.argv.indexOf(f); return i >= 0 ? process.argv[i + 1] : undefined; };
 const seed = arg("--seed") ?? "qa-naive";
 const cmds = fs.existsSync(arg("--cmds") ?? "") ? fs.readFileSync(arg("--cmds")!, "utf8").split("\n").map((l) => l.trim()).filter((l) => l && !l.startsWith("#")) : [];
-setPace({ kickoffAt: 540, calm: true });
+setPace({ kickoffAt: 540, calm: true, soft: true });
 const g = createGame(seed), w = g.w, s = w.state, st = s.stadium!, pc = () => s.actors[st.pc];
 const heard: string[] = [];
 w.bus.on((e: any) => {
@@ -55,6 +57,10 @@ function look(): string {
   out.push(`Game time ${Math.round(s.tick / 60)}s. You are in: ${area.name}. Money: £${p.money}.${p.hand ? ` In your hand: ${itemName(s.items[p.hand])}.` : ""}${p.pockets.length ? ` Pockets: ${p.pockets.map((i) => itemName(s.items[i])).join(", ")}.` : ""}`);
   const m = s.match!; out.push(`Score: England ${m.score[0]}-${m.score[1]} ${m.teams[1].name}; match: ${m.phase}.`);
   const sv = statusOf(w, p); if (sv) out.push(`Status: ${sv.title} — ${sv.text}`);
+  // The plan pinned at the top of the screen, and what's been done to the match.
+  const pl = pinned(w);
+  out.push(pl ? `Plan (top of screen): ${pl.title}, step ${pl.n + 1} of ${pl.of}: ${pl.text}${pl.where ? ` (${Math.round(Math.hypot(pl.where.x - p.x, pl.where.y - p.y))} m ${compass(pl.where.x - p.x, pl.where.y - p.y)})` : ""}` : `Plan (top of screen): none pinned. On offer: ${cards(w).map((c) => c.title).join(", ") || "nothing"}`);
+  const bs = badges(w); if (bs.length) out.push(`In the match: ${bs.map((b) => b.text).join(" ")}`);
   things = [];
   const near = Object.values(s.actors).filter((a) => a.id !== p.id && !a.hiddenIn && Math.abs(a.x - p.x) < 7 && Math.abs(a.y - p.y) < 11).sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y)).slice(0, 12);
   const items = Object.values(s.items).filter((i) => i.loc.k === "ground" && Math.abs((i.loc as any).x - p.x) < 7 && Math.abs((i.loc as any).y - p.y) < 11 && defOf(i).size !== "huge" || (i.loc.k === "ground" && ["keg", "lorry_cargo", "laundry", "kit_hamper"].includes(i.def) && Math.hypot((i.loc as any).x - p.x, (i.loc as any).y - p.y) < 11)).slice(0, 10);

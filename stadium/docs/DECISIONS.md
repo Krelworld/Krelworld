@@ -1862,3 +1862,42 @@ How: a Three.js canvas under a transparent Phaser canvas. Three draws ground, bu
 as the orthographic camera. World geometry is generated from `layout.ts`, with hero facades where it counts.
 It is being built on a separate working copy behind a `?3d=1` switch and becomes the default once it matches
 the 2D game for behaviour. Nothing in the sim changes.
+
+## Round: Option E, the structured convergent sandbox (28 Nov)
+
+The brief: *Knockout Day: Option E, the Structured Branching Sandbox* (28 pages). Its evidence is the
+creator's brother's playtest: confusion, too much open at once, no clear objective, chaos that feels imposed
+rather than caused. Its answer: the unit of freedom stops being "everything is available" and becomes "I
+know what I'm trying to do; I choose how much trouble I cause getting there and what I combine it with".
+**Clear intentions, messy methods.**
+
+Taken, and how:
+
+1. **Missions on top of schemes** (`missions.ts`). A mission is a name, an intention, what it buys in the
+   football, and three to six plain steps with a place each. One is pinned at the top of the screen (name,
+   step, distance; a star points at it); two or three others are cards. Steps only watch the world, so any
+   way of making one true counts and wandering off costs nothing. The first is pinned without asking (a new
+   player is never without a plan); after one's pulled off, the cards come up and the next is his choice.
+   Three cards outside, three more once he's been in the ground. The schemes' discovery layer (clues, the
+   notebook) stays underneath as the alternatives inside a step.
+2. **Getting in is logistics, not the prize.** It's one card among three; the others are about the match.
+3. **Football states** (`fstates.ts`): the only thing a plan writes about the match. A small vocabulary
+   (hyper, lethargic, confused, sick, late, wrong kit, motivated; referee biased, no referee, Grozz is
+   referee). The football reads states, never plans; curated combinations, not everything times everything.
+   They show as small tags under the score.
+4. **The kick-off waits** (`softClock` in game.ts). The build-up runs to four minutes before kick-off and
+   holds there (their coach stays at the hotel, the gates don't rush, anything timed against kick-off waits)
+   until he goes into the ground, says "start it" on the Plans sheet, or eight minutes have gone. Football
+   itself stays real-time. The tests' pace is untouched (`soft` is a third pace setting, off by default).
+5. **A thin street.** Supporters outside at once are capped (64 before the rush, 120 in it; it was about
+   210): 3 to 13 people on a phone screen instead of 16 to 20. The size of the day is in the stands.
+6. **The opening is directed** (the Visitors' Special: the hydration plant in the pub yard, a token, a cut to
+   the hotel dock inside three minutes).
+
+Not taken: "do not convert to 3D yet". The creator had already compared the two on his phone and chose 3D;
+that decision stands and the brief's own test (prove it on a phone first) was how it was made.
+
+Kept from every earlier round: the four shared rules frozen, the one doorway into football, every action
+says what it does, the text budget, the cause graph.
+
+Still owed, and only a person can supply it: the five-first-time-players gate on page 22.

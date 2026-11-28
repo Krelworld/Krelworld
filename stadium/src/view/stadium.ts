@@ -23,7 +23,7 @@ import { BOXER_FEE, burnerOn, knows } from "../stadium/phone";
 import { isSecurity } from "../stadium/security";
 import { aimThrow, bribeWhy, itemName, itemOptions, looksOutOfPlace, options, personName, primary, throwTarget, type Option } from "../stadium/context";
 import { createGame, loadCheckpoint, saveCheckpoint, stepGame, type Game } from "../stadium/game";
-import { AREAS, areaAt, BOUNDS, dogPost, KICKOFF_AT, rushAt, setBreaches, setPace, SOLID, SPOTS, VENUE } from "../stadium/layout";
+import { AREAS, areaAt, BOUNDS, dogPost, KICKOFF_AT, PACE, rushAt, setBreaches, setPace, SOLID, SPOTS, VENUE } from "../stadium/layout";
 import { afterMatch, describeDef, FIXTURES, loadoutProblem, newCampaign, notorietyText, type Campaign } from "../stadium/campaign";
 import { TEAMS } from "../football/setup";
 import { canBetHere, prices } from "../stadium/betting";
@@ -48,6 +48,8 @@ import { RUMOURS, type RumourKind } from "../stadium/belief";
 import { hasBeerLine, hoseAt, hoseWatched } from "../stadium/beer";
 import { openFor, statusOf, whatItDoes, type Status } from "../stadium/outcomes";
 import { notebook, schemeThings } from "../stadium/schemes";
+import { achieved, cards, pinned } from "../stadium/missions";
+import { badges } from "../stadium/fstates";
 import { EXTRAS, setExtras } from "../stadium/context";
 import { matchJob, type Job } from "../stadium/director";
 import { inDrag as inDragSim } from "../stadium/drag";
@@ -292,7 +294,7 @@ class StadiumScene extends Phaser.Scene {
   newGame(campaign: Campaign = newCampaign()) {
     // Everything you've unlocked is in the stash to choose from.
     for (const d of StadiumScene.unlocked()) if (ITEM_DEFS[d] && !campaign.stash.includes(d)) campaign.stash.push(d);
-    setPace({ kickoffAt: 540, calm: true });
+    setPace({ kickoffAt: 540, calm: true, soft: true });
     this.game2 = createGame(new URLSearchParams(location.search).get("seed") ?? `day${Date.now() % 100000}`, FIXTURES[campaign.fixture] ?? "qf", campaign);
     this.introFor(campaign);
     this.d3?.buildCrowd(this.s.match!.teams[1]);
@@ -317,6 +319,7 @@ class StadiumScene extends Phaser.Scene {
       this.rigEvent(e);
       this.machineEvent(e);
       this.schemeEvent(e);
+      this.missionEvent(e);
       if (this.pt) { const sa = e.type === "say" ? this.s.actors[e.by] : null; this.pt.event(e, this.s.stadium!.pc, !sa || !this.pc || Math.hypot(sa.x - this.pc.x, sa.y - this.pc.y) < 8); }
       if (e.type === "say" && e.by !== this.s.stadium!.pc) {
         // Only what is said close by, and only once.
@@ -404,9 +407,9 @@ class StadiumScene extends Phaser.Scene {
     const kit = c.loadout.filter((d) => d !== "shirt_eng").map(describeDef);
     $("introTitle").textContent = `England v ${this.s.match!.teams[1].name}`;
     $("introRound").textContent = `World Cup ${VENUE.round} · ${VENUE.ground}`;
-    $("introKo").textContent = `KO in ${Math.floor(KICKOFF_AT / 60)}:${String(KICKOFF_AT % 60).padStart(2, "0")}`;
+    $("introKo").textContent = PACE.soft ? "KO when you're in" : `KO in ${Math.floor(KICKOFF_AT / 60)}:${String(KICKOFF_AT % 60).padStart(2, "0")}`;
     $("introText").textContent = c.fixture === 0
-      ? `You are outside ${VENUE.ground} with £${c.money} and an England shirt. ${opp} are the opposition. Kick-off is in five and a half minutes. Help England win, any way you like.`
+      ? `You are outside ${VENUE.ground} with £${c.money} and an England shirt. ${opp} are the opposition. ${PACE.soft ? "Kick-off waits until you go in." : "Kick-off is in five and a half minutes."} Give England an advantage first: there's a plan at the top of the screen, and more where that came from.`
       : `${VENUE.ground}, against ${opp}. You have £${c.money}${kit.length ? ` and you've brought: ${kit.join(", ").toLowerCase()}` : ""}. ${notorietyText(c.notoriety)} This ground has metal detectors and face-recognition cameras at the turnstiles, and staff need a pass.${VENUE.features.penisDetector ? " And, following recent incidents, a penis detector." : ""}`;
     $("intro").hidden = false;
     this.started = false;
@@ -1005,9 +1008,76 @@ class StadiumScene extends Phaser.Scene {
   /** Holding Instinct: what you can use, who matters, where they're looking. */
   instinct = false;
   instLabels: Phaser.GameObjects.Text[] = [];
+  /** The pinned plan (Option E): one mission, the step he's on, how far it is; tap for the cards. And what
+   *  the plans have done to the match, as small tags under the score. */
+  planT: { x: number; y: number } | null = null;
+  planAt = 0; planHtml = ""; planBigUntil = 0; planFlashUntil = 0; planAsked = false; fstHtml = "";
+  updatePlan(now: number): void {
+    const el = $("plan"), st = this.s.stadium!, pc = this.pc;
+    if (!st.missions || !PACE.calm || !pc) { el.hidden = true; this.planT = null; return; }
+    const p = pinned(this.w);
+    this.planT = p?.where && !pc.hiddenIn && !st.custody ? p.where : null;
+    if (now - this.planAt < 250) return;
+    this.planAt = now;
+    let html: string;
+    if (p) {
+      const d = p.where ? Math.round(Math.hypot(p.where.x - pc.x, p.where.y - pc.y)) : 0;
+      html = `${now < this.planBigUntil ? "<em>Before kick-off: give England an advantage</em>" : ""}<b><u>${esc(p.title)}</u><u>${p.n + 1}/${p.of}</u></b><span>${esc(p.text)}${d > 3 ? `<i>${d} m</i>` : ""}</span>`;
+    } else {
+      const n = cards(this.w).length;
+      html = n ? `<b><u>Plans</u><u>${n} on offer</u></b><span>Pick your next plan<i>▸</i></span>` : `<b><u>Plans</u></b><span>Nothing left to arrange. Watch.</span>`;
+    }
+    if (html !== this.planHtml) { this.planHtml = html; el.innerHTML = html; }
+    el.classList.toggle("ask", !p);
+    el.classList.toggle("new", now < this.planFlashUntil);
+    el.hidden = this.sceneOn || !!st.custody || !!st.recover;
+    // The place name gives way to the plan (it comes back when he's somewhere he shouldn't be).
+    // The match states.
+    const bs = badges(this.w), fEl = $("fst");
+    const fh = bs.map((b) => `<button class="${b.team === undefined ? "ref" : `t${b.team}`}" data-fst="${esc(b.text)}">${b.team === undefined ? "" : esc(this.s.match!.teams[b.team].short) + " "}${esc(b.short)}</button>`).join("");
+    if (fh !== this.fstHtml) { this.fstHtml = fh; fEl.innerHTML = fh; }
+    fEl.hidden = !fh || this.sceneOn;
+  }
+  openPlans(): void {
+    const cs = cards(this.w), st = this.s.stadium!, m = this.s.match!;
+    const waits = PACE.soft && !st.flags.koGo && m.phase === "pre";
+    const card = (c: ReturnType<typeof cards>[number]) => `<div class="plancard${c.active ? " on" : ""}"><h3>${esc(c.title)}</h3><p>${esc(c.goal)}</p><p class="buys"><b>BUYS</b>${esc(c.buys)}</p><ol>${c.steps.map((x) => `<li class="${x.done ? "done" : x.now ? "now" : ""}">${esc(x.text)}</li>`).join("")}</ol>${c.with.map((t) => `<p class="with">+ ${esc(t)}</p>`).join("")}${c.active ? `<p class="onit">On it</p>` : `<button class="primary" data-plan="${c.id}">Do this one</button>`}</div>`;
+    const done = achieved(this.w), bs = badges(this.w);
+    this.sheet("plans", `<h2>Plans</h2><p class="small">One at a time. Each does something to the match. Two of them together do something else.</p>${cs.map(card).join("") || "<p>Nothing left to arrange. Go and watch it.</p>"}
+      ${bs.length ? `<h2>In the match</h2><div class="log">${bs.map((b) => `<p><b>${esc(b.short)}</b> ${esc(b.text)}</p>`).join("")}</div>` : ""}
+      ${done.length ? `<h2>Pulled off</h2><div class="log">${done.map((d) => `<p><b>✓ ${esc(d.title)}</b> ${esc(d.buys)}</p>`).join("")}</div>` : ""}
+      ${waits ? `<h2>Kick-off</h2><p>It waits for you. The countdown starts when you go into the ground, or now if you say so.</p><div class="list"><button data-headin="1">Start it now: kick-off in ${fmtTime(Math.max(0, (m.phaseUntil - this.s.tick) / 60))}</button></div>` : ""}`);
+    this.planAsked = true;
+  }
+  missionEvent(e: any): void {
+    const now = performance.now();
+    switch (e.type) {
+      case "mission_stage":
+        this.planFlashUntil = now + 1500; this.planAt = 0;
+        // The very first one is the banner: what the day is for, then the first thing to do.
+        if (e.picked && e.n === 0 && this.s.tick < 60 * 30) this.planBigUntil = now + 9000;
+        if (!e.picked) this.audio.play("chime", 0.5, { rate: 1.1 });
+        break;
+      case "mission_pick": this.planFlashUntil = now + 1500; this.planAt = 0; break;
+      case "mission_done":
+        this.planAt = 0; this.planFlashUntil = now + 1500;
+        this.stripLine(e.ok ? "✓ DONE" : "OFF", e.ok ? `${e.title}. ${e.buys}` : `${e.title}. ${e.why}`, 6500);
+        if (e.ok) this.audio.play("chime", 0.7, { rate: 0.8 });
+        // The first time, the cards come up by themselves (the first moment of choice); after that the bar asks.
+        if (e.ok && !this.planAsked) this.planDue = now + 5200;
+        break;
+      case "fstate": if (e.on) { this.stripLine(e.short, e.text, 5200); this.planAt = 0; } break;
+      case "fcombo": this.stripLine("TOGETHER", e.text, 6500); this.audio.play("chime", 0.7, { rate: 0.7 }); break;
+      case "ko_wait": this.stripLine("KICK-OFF", "It waits for you. It starts when you go in.", 6500); break;
+      case "ko_go": this.stripLine("KICK-OFF", e.why === "late" ? "They've waited long enough. Four minutes." : "Four minutes.", 4200); break;
+    }
+  }
+  planDue = 0;
   /** The HUD bits that guide without nagging: the tracked line and the notepad of nearby jobs. */
   updateGuides() {
     const pc = this.pc, now = performance.now();
+    this.updatePlan(now);
+    if (this.planDue && now > this.planDue && !this.sceneOn && !this.sheetKind && !pc.heldBy && !this.callOn && !this.pursuers.length) { this.planDue = 0; if (!this.planAsked && cards(this.w).length) this.openPlans(); }
     const tEl = $("track");
     this.trackT = this.tracked ? trackTarget(this.w, this.tracked) : null;
     if (this.tracked && this.trackT?.done) { this.toastTick(`✓ ${this.trackT.label}`); this.tracked = null; this.trackT = null; }
@@ -2826,7 +2896,7 @@ class StadiumScene extends Phaser.Scene {
         ui.fillStyle(col, pulse).fillTriangle(pts[0].x, pts[0].y, pts[1].x, pts[1].y, pts[2].x, pts[2].y);
       }
       // The tracked lead: a gold star over it on screen, or one at the edge pointing the way.
-      const tt = this.trackT;
+      const tt = this.trackT ?? (this.planT && Math.hypot(this.planT.x - pc.x, this.planT.y - pc.y) > 2.6 ? this.planT : null);
       if (tt) {
         const ax = P.sx(tt.x, tt.y), ay = P.sy(tt.x, tt.y) - P.S * 2.4, r = 9 * u2, bob = Math.sin(tick * 0.12) * 3 * u2;
         const on = ax > v.x + pad && ax < v.right - pad && ay > v.y + padT && ay < v.bottom - padB;
@@ -4431,7 +4501,7 @@ class StadiumScene extends Phaser.Scene {
   drawHud() {
     const s = this.s, m = s.match!, pc = this.pc, st = s.stadium!;
     const t = secs(this.w);
-    const label = m.phase === "pre" ? `KO ${fmtTime(Math.max(0, (m.phaseUntil - s.tick) / 60))}${st.flags.kickoffDelays ? " (late)" : ""}` : m.phase === "finished" ? "FT" : m.phase === "break" ? (m.period === 1 ? `HT ${fmtTime(Math.max(0, (m.phaseUntil - s.tick) / 60))}` : "…") : clockLabel(m);
+    const label = m.phase === "pre" && PACE.soft && st.flags.koHeld && !st.flags.koGo ? "KO WAITS" : m.phase === "pre" ? `KO ${fmtTime(Math.max(0, (m.phaseUntil - s.tick) / 60))}${st.flags.kickoffDelays ? " (late)" : ""}` : m.phase === "finished" ? "FT" : m.phase === "break" ? (m.period === 1 ? `HT ${fmtTime(Math.max(0, (m.phaseUntil - s.tick) / 60))}` : "…") : clockLabel(m);
     const pens = m.shootout ? ` (${m.shootout.scored[0]}–${m.shootout.scored[1]})` : "";
     const key = `${m.score[0]}–${m.score[1]}|${label}${pens}`;
     if (key !== this.lastScore) { this.lastScore = key; $("sc").textContent = `${m.score[0]}–${m.score[1]}`; $("clock").textContent = label + pens; }
@@ -4452,7 +4522,8 @@ class StadiumScene extends Phaser.Scene {
     if (lorryV) { if (wEl.textContent) wEl.textContent = ""; } else
     if (wEl.textContent !== where) wEl.textContent = where;
     // Like Hitman's and MGS's area names: up when it changes, then out of the way (a warning stays).
-    wEl.hidden = !where || !!lorryV;
+    // The pinned plan has the place name's spot; it comes back when he's somewhere he shouldn't be.
+    wEl.hidden = !where || !!lorryV || (!$("plan").hidden && !(bad && !pc.hiddenIn));
     wEl.classList.toggle("bad", bad && !pc.hiddenIn);
     this.updateGuides();
     // One indicator for all of security: the worst attention you are getting.
@@ -4712,7 +4783,7 @@ class StadiumScene extends Phaser.Scene {
 
   // ---------- Sheets ----------
   /** Rummaging in the bag, changing, on the phone: the world waits (the speed it was going at comes back after). */
-  static readonly PAUSING = new Set(["menu", "bag", "wardrobe", "phone", "jobs"]);
+  static readonly PAUSING = new Set(["menu", "bag", "wardrobe", "phone", "jobs", "plans"]);
   pausedFrom: number | null = null;
   sheet(kind: string, html: string) {
     this.closeRing();
@@ -5906,7 +5977,7 @@ class StadiumScene extends Phaser.Scene {
   }
   openMenu() {
     const cps = this.game2.checkpoints;
-    this.sheet("menu", `${notebook(this.w).map((n) => `<h2>${esc(n.title)}</h2><div class="log scheme">${n.lines.map((l) => `<p class="${l.ok ? "ok" : "q"}"><b>${l.ok ? "✓" : "?"}</b> ${esc(l.text)}</p>`).join("")}</div>`).join("")}<h2>Paused</h2><p>Go back to a checkpoint. Everything since then is undone, and the match will not play out the same way.</p>
+    this.sheet("menu", `${PACE.calm ? `<div class="list"><button data-plans="1" class="primary">Plans</button></div>` : ""}${notebook(this.w).map((n) => `<h2>${esc(n.title)}</h2><div class="log scheme">${n.lines.map((l) => `<p class="${l.ok ? "ok" : "q"}"><b>${l.ok ? "✓" : "?"}</b> ${esc(l.text)}</p>`).join("")}</div>`).join("")}<h2>Paused</h2><p>Go back to a checkpoint. Everything since then is undone, and the match will not play out the same way.</p>
       <div class="list">${cps.map((c) => `<button data-cp="${c.id}">${esc(c.label)}</button>`).join("")}${this.s.match!.phase === "break" && this.s.match!.period === 1 && !cps.some((c) => c.id === "halftime") ? `<button data-keepht="1" class="primary">Keep a save here (half-time)</button>` : ""}${this.pt ? `<button data-pt="1" class="primary">Playtest report</button>` : ""}<button data-new="1">Start a new match day</button><button data-mute="1">${this.audio.muted ? "Sound: off" : "Sound: on"}</button><button data-mini="1">Mini-games: ${this.miniOn ? "on" : "off"}</button><button data-buzz="1">Vibration: ${this.buzzOn ? "on" : "off"}</button><button data-lefty="1">Buttons: ${document.body.classList.contains("lefty") ? "left hand" : "right hand"}</button><button data-zoom="1">Zoom: ${esc(this.zoomLabel())}</button><button data-gfx="1">${esc(this.gfxLabel())}</button>${EXTRAS ? `<button data-fp="1">${this.fp.on ? "Back to the overhead view" : "First-person view"}</button>` : ""}<button data-extras="1">Extras (driving, first-person): ${EXTRAS ? "on" : "off"}</button></div>
       <h2>Your notes</h2><div class="log">${[...this.rules].map((r) => `<p><b>Rule</b> ${esc(r === "post" ? "People leave their post to fix a problem." : r === "food" ? "Ronson goes for food." : r)}</p>`).join("")}${CURIOS.filter((c) => this.curios.has(c.id)).map((c) => `<p><b>Idea</b> ${esc(c.text)}</p>`).join("") || (this.rules.size ? "" : "<p>Nothing yet. Have a look round.</p>")}</div>
       <h2>Fixes (${fixesDone(this.w)}/${FIXES.length})</h2><div class="log">${this.fixesHtml()}</div>
@@ -6098,6 +6169,8 @@ class StadiumScene extends Phaser.Scene {
     window.addEventListener("keydown", (e) => { if (e.key.toLowerCase() === "i" && this.started) instOn(); });
     window.addEventListener("keyup", (e) => { if (e.key.toLowerCase() === "i") instOff(); });
     // Folded: open it out. Open: Side jobs opens the jobs sheet, anywhere else folds it again.
+    $("plan").addEventListener("click", () => (this.sheetKind === "plans" ? this.closeSheet() : this.openPlans()));
+    $("fst").addEventListener("click", (e) => { const t = (e.target as HTMLElement).closest("button") as HTMLElement | null; if (t?.dataset.fst) this.hint(t.dataset.fst); });
     $("todo").addEventListener("click", (e) => {
       const now = performance.now();
       if (now >= this.todoOpenUntil) this.todoOpenUntil = now + 9000;
@@ -6226,6 +6299,9 @@ class StadiumScene extends Phaser.Scene {
       if (d.mini) { this.miniOn = !this.miniOn; try { localStorage.setItem("kd-mini", this.miniOn ? "1" : "0"); } catch { /* */ } this.openMenu(); return; }
       if (d.buzz) { this.buzzOn = !this.buzzOn; try { localStorage.setItem("kd-buzz", this.buzzOn ? "1" : "0"); } catch { /* */ } this.buzz(40); this.openMenu(); return; }
       if (d.lefty) { const on = document.body.classList.toggle("lefty"); try { localStorage.setItem("kd-lefty", on ? "1" : "0"); } catch { /* */ } this.openMenu(); return; }
+      if (d.plan) { const r = dispatch(this.w, { verb: "mission", actor: this.pc.id, arg: d.plan }); if (!r.ok) this.hint(r.reason ?? ""); this.closeSheet(); this.setSpeed(1); this.audio.play("tap", 0.6); return; }
+      if (d.headin) { dispatch(this.w, { verb: "headin", actor: this.pc.id }); this.closeSheet(); this.setSpeed(1); return; }
+      if (d.plans) { this.openPlans(); return; }
       if (d.track) {
         const [kind, id, way] = d.track.split(":");
         const same = this.tracked && this.tracked.kind === kind && this.tracked.id === id && (this.tracked.way ?? "") === (way ?? "");

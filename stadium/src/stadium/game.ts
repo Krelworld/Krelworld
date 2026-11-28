@@ -347,6 +347,8 @@ function collideVehicles(w: World, a: Actor): void {
 export const MAX_FANS = 240;
 const fanCount = (s: World["state"]) => { let n = 0; for (const id in s.actors) if (s.actors[id].npc?.job === "fan" && !s.actors[id].dead) n++; return n; };
 
+const fansOutside = (s: World["state"]) => { let n = 0; for (const id in s.actors) { const a = s.actors[id]; if (a.npc?.job === "fan" && !a.dead && !VENUE.inside(a.x, a.y)) n++; } return n; };
+
 /** One fixed step of everything. */
 export function stepGame(g: Game): void {
   const w = g.w, s = w.state, st = s.stadium!;
@@ -386,7 +388,11 @@ function stepInner(g: Game): void {
 
   // Supporters keep arriving until just after kick-off.
   const every = PACE.calm ? (t < rushAt() ? 45 : t < KICKOFF_AT ? 12 : 60) : t < 150 ? 10 : t < KICKOFF_AT ? 20 : 60;
-  if (s.tick % every === 0 && t < KICKOFF_AT + 60 && fanCount(s) < MAX_FANS) {
+  // In the game the street is kept thin (Option E: the people on screen should be the ones that matter;
+  // the size of the day is in the stands and in the noise). A cap on supporters outside at once: a third
+  // of what it was through the build-up, more for the gate rush, which is meant to be a crush.
+  const room = !PACE.calm || fansOutside(s) < (t < rushAt() ? 64 : 120);
+  if (s.tick % every === 0 && t < KICKOFF_AT + 60 && fanCount(s) < MAX_FANS && room) {
     const away = s.rng.world.a % 5 === 0;
     giveFanThings(w, spawnFan(w, away, false));
   }

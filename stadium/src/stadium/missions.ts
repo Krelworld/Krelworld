@@ -122,9 +122,9 @@ export function stepMissions(w: World): void {
       if (m.active === d.id) m.active = undefined;
     }
   }
-  // Nothing pinned: until he's chosen for himself the game picks the soonest (a first-time player is never
-  // without a plan); afterwards it's left to him, and the bar asks.
-  if (!m.active && !m.chose) {
+  // Nothing pinned at the very start: the game picks the first (a first-time player is never without a
+  // plan). Once one's been pulled off, the next is his to choose: the cards come up and the bar asks.
+  if (!m.active && !m.chose && !Object.keys(m.done).length) {
     const next = offered(w)[0];
     if (next) { m.active = next.id; announce(w, true); }
   }

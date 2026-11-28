@@ -291,6 +291,36 @@
   #fruit .msg { display: block; margin-top: 8px; min-height: 16px; font: 800 15px/1 var(--display); color: #fff; letter-spacing: .06em; }
   #fruit.won .msg { color: #f2c94c; animation: tkMsg .3s both; }
   @keyframes swoopOut { to { opacity: 0; } }
+  /* The pinned plan (Option E): its name, the step he's on, how far. Tap for the cards. */
+  #plan { display: block; width: 100%; max-width: 430px; min-height: 0; text-align: left; padding: 5px 10px 6px; background: rgba(10,14,20,.92); color: #f4efe0; border: 0; border-left: 5px solid #f2c94c; box-shadow: 0 2px 0 rgba(0,0,0,.4); text-transform: none; letter-spacing: 0; }
+  #plan[hidden] { display: none; }
+  #plan b, #plan span { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  #plan b { font: 800 10px/1.1 var(--display); letter-spacing: .1em; text-transform: uppercase; color: #f2c94c; }
+  #plan u { text-decoration: none; }
+  #plan span { margin-top: 3px; font: 700 15px/1.2 var(--body); text-transform: none; letter-spacing: 0; }
+  #plan i { font: 800 12px/1 var(--display); font-style: normal; color: #9fb0c0; white-space: nowrap; }
+  #plan em { display: block; margin-bottom: 5px; padding-bottom: 4px; border-bottom: 1px solid rgba(242,201,76,.4); font: 800 12px/1.2 var(--display); font-style: normal; letter-spacing: .06em; text-transform: uppercase; color: #fff; }
+  #plan.ask { border-left-color: #d7263d; } #plan.ask b { color: #ff8a8a; }
+  #plan.new { animation: planNew .7s ease 2; }
+  @keyframes planNew { 50% { background: #f2c94c; color: #111; } }
+  #plan.new b, #plan.new i { color: inherit; }
+  /* What the plans have done to the match: one small tag each, under the score. */
+  #fst { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; max-width: 100%; }
+  #fst[hidden] { display: none; }
+  #fst button { min-height: 0; padding: 3px 7px; border: 2px solid #000; background: #f4efe0; color: #111; font: 800 10px/1.1 var(--display); letter-spacing: .06em; box-shadow: 2px 2px 0 rgba(0,0,0,.4); }
+  #fst button.t0 { background: #fff; border-left: 5px solid #d7263d; } #fst button.t1 { background: #ffe9a8; border-left: 5px solid #1d6b3a; } #fst button.ref { background: #111; color: #f2c94c; }
+  #fst button.combo { background: #d7263d; color: #fff; }
+  /* The cards. */
+  .sheet .plancard { margin: 8px 10px; padding: 9px 11px 10px; background: #1b2330; border: 2px solid #000; border-left: 6px solid #5a6676; box-shadow: 3px 3px 0 rgba(0,0,0,.45); }
+  .sheet .plancard.on { border-left-color: #f2c94c; background: #222c1e; }
+  .sheet .plancard h3 { margin: 0 0 3px; font: 800 17px/1.1 var(--display); letter-spacing: .04em; color: #fff; text-transform: uppercase; }
+  .sheet .plancard p { margin: 2px 0; padding: 0; font-size: 14px; }
+  .sheet .plancard p.buys { color: #b8f28a; } .sheet .plancard p.buys b { font: 800 10px var(--display); letter-spacing: .1em; color: #111; background: #b8f28a; padding: 1px 4px; margin-right: 4px; }
+  .sheet .plancard p.with { color: #f2c94c; font-size: 13px; }
+  .sheet .plancard ol { margin: 6px 0 8px; padding-left: 22px; font: 600 14px/1.35 var(--body); color: #c9d2dc; }
+  .sheet .plancard li.done { color: #7d8794; text-decoration: line-through; } .sheet .plancard li.now { color: #fff; font-weight: 800; }
+  .sheet .plancard button { width: 100%; }
+  .sheet .plancard .onit { font: 800 12px var(--display); letter-spacing: .1em; color: #f2c94c; text-transform: uppercase; }
   #track { max-width: min(330px, calc(100vw - 150px)); padding: 5px 10px; background: rgba(10,14,20,.88); border-left: 4px solid #f2c94c; font: 600 12px/1.25 var(--body); color: #f4efe0; }
   #track b { font: 800 12px/1.2 var(--display); color: #f2c94c; letter-spacing: .03em; }
   #track i { font-style: normal; color: #9fb0c0; margin-left: 6px; font: 700 11px var(--display); }
@@ -596,6 +626,8 @@
   <div id="top" class="float">
     <div id="score" class="panel"><span id="sc0">ENG</span><b id="sc">0–0</b><span id="sc1">OPP</span><span class="clock" id="clock">0:00</span></div>
     <div id="status">
+      <button id="plan" class="panel" hidden></button>
+      <div id="fst" hidden></div>
       <div id="where" class="panel">Outside the ground</div>
       <div id="eye" class="panel" hidden>Being watched</div>
       <div id="track" class="panel" hidden></div>

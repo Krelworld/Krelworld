@@ -187,7 +187,10 @@ function stepShootout(w: World, m: MatchState): void {
 // ---------- Main step ----------
 function idle(w: World, m: MatchState, tx?: (a: Actor, t: TeamIdx, i: number) => void): void {
   const s = w.state;
-  for (const t of [0, 1] as TeamIdx[]) playing(s, m, t).forEach((a, i) => { if (tx) tx(a, t, i); a.fb!.sprint = false; steer(a, s.tick, 0.85, 0.8); });
+  for (const t of [0, 1] as TeamIdx[]) playing(s, m, t).forEach((a, i) => {
+    if (a.fb!.boltAt) { steer(a, s.tick, 1.05); return; } // off to the tunnel, whatever everyone else is doing
+    if (tx) tx(a, t, i); a.fb!.sprint = false; steer(a, s.tick, 0.85, 0.8);
+  });
 }
 
 export function stepMatch(w: World): void {
@@ -266,7 +269,8 @@ export function stepMatch(w: World): void {
       const over = m.clock - (len + m.addedAnnounced * min);
       if (over >= 0) {
         const safe = m.phase === "restart" ? m.restart!.type !== "penalty" : Math.abs(m.ball.x) < HL - 16;
-        if (safe || over > 7) endPeriod(w, m);
+        // With no referee there is nobody to blow for time. They play on until somebody takes charge.
+        if ((safe || over > 7) && !(m.mods && m.mods.lawless)) endPeriod(w, m);
       }
     }
   }

@@ -233,6 +233,7 @@ export function options(w: World, pc: Actor, picked?: string | null): Option[] {
     push("Award England a penalty", 60, { verb: "rule", ...base, arg: "penalty" });
     if (opp) push(`Send off ${opp.name}`, 58, { verb: "rule", ...base, arg: "sendoff", target: { k: "actor", id: opp.id } });
     push("Disallow their goal", 62, { verb: "rule", ...base, arg: "disallow" });
+    if (s.match?.unrecognised?.some((c) => c.team === 0)) push("Give England's goal", 64, { verb: "rule", ...base, arg: "give" }); // went in while nobody was refereeing (fstates.ts)
     push("Blow for full time", 20, { verb: "rule", ...base, arg: "fulltime" });
     push("Stop play", 15, { verb: "rule", ...base, arg: "stop" });
   }

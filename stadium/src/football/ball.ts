@@ -62,6 +62,7 @@ export function kick(w: World, m: MatchState, by: Actor, tx: number, ty: number,
     if (gk && t > 0 && t < 4) {
       const g = gk.fb!;
       let react = 0.1 + 0.22 * (1 - g.keeping) + rnd(s.rng.match) * 0.06;
+      if (m.mods) { const q = m.mods.team[g.team]; react += 0.1 * q.slow + 0.07 * q.lost + 0.05 * q.ragged - 0.04 * q.keen; }
       let aimY = clamp(yc, -PITCH.goalW / 2 - 0.4, PITCH.goalW / 2 + 0.4);
       if (kind === "penalty") {
         // He has to guess.
@@ -81,13 +82,14 @@ export function kick(w: World, m: MatchState, by: Actor, tx: number, ty: number,
 }
 
 /** A foot pass along the ground or through the air to a point, with human error. */
-export function passTo(w: World, m: MatchState, by: Actor, tx: number, ty: number, opts: { loft?: boolean; kind?: KickKind; maxSpeed?: number; pressure?: boolean } = {}): void {
+export function passTo(w: World, m: MatchState, by: Actor, tx: number, ty: number, opts: { loft?: boolean; kind?: KickKind; maxSpeed?: number; pressure?: boolean; wild?: number } = {}): void {
   const fb = by.fb!, rng = w.state.rng.match, b = m.ball;
   let dx = tx - b.x, dy = ty - b.y;
   const D = Math.hypot(dx, dy) || 1;
   let sigma = (0.026 + 0.1 * (1 - fb.passing)) * (opts.pressure ? 1.6 : 1) * (opts.loft ? 1.5 : 1);
   if (fb.bribed) sigma *= 3.5;
   if (fb.wiredUntil > w.state.tick) sigma *= 1.6;
+  if (opts.wild) sigma *= opts.wild;
   const ang = Math.atan2(dy, dx) + gauss(rng) * sigma;
   const Dn = D * (1 + gauss(rng) * sigma * 0.8);
   dx = Math.cos(ang) * Dn; dy = Math.sin(ang) * Dn;
@@ -188,9 +190,12 @@ function contact(w: World, m: MatchState): void {
   let best: Actor | null = null, bestD = 99, bestKind = "";
 
   for (const t of [0, 1] as TeamIdx[]) {
+    // A wound-up side gets to loose balls first; a leaden one watches them go past.
+    const q = m.mods ? m.mods.team[t] : null;
+    const grab = q ? 1 + 0.18 * q.hyper + 0.08 * q.keen - 0.18 * q.slow - 0.08 * q.lost : 1;
     for (const a of playing(s, m, t)) {
       const fb = a.fb!;
-      if (fb.kickLock > tick || isDown(a, tick)) continue;
+      if (fb.kickLock > tick || isDown(a, tick) || fb.boltAt) continue;
       const d = Math.hypot(a.x - b.x, a.y - b.y);
       if (d > 2) continue;
       let kind = "";
@@ -199,7 +204,7 @@ function contact(w: World, m: MatchState): void {
         if (d < (fb.diveUntil > tick ? TUNE.diveReach : TUNE.keeperReach)) kind = "keeper";
       } else if (shootout) continue;
       if (!kind) {
-        if (b.z <= TUNE.controlHeight && d < TUNE.controlReach) kind = "control";
+        if (b.z <= TUNE.controlHeight && d < TUNE.controlReach * grab) kind = "control";
         else if (b.z > TUNE.controlHeight && b.z <= TUNE.headHeight && d < 0.85 && b.vz < -1) {
           // Let it drop unless he is under pressure or in either penalty area.
           let crowded = inBox(a.x, a.y, 1) || inBox(a.x, a.y, -1);
@@ -207,7 +212,7 @@ function contact(w: World, m: MatchState): void {
           if (crowded) kind = "header";
         }
       }
-      if (kind && d < bestD) { best = a; bestD = d; bestKind = kind; }
+      if (kind && d / grab < bestD) { best = a; bestD = d / grab; bestKind = kind; }
     }
   }
 
@@ -290,6 +295,15 @@ function contact(w: World, m: MatchState): void {
     b.lastTouch = best.id; b.lastTouchTeam = fb.team; b.freeUntil = tick + 8; fb.kickLock = tick + 14;
     if (b.shot) w.bus.emit({ type: "fb_block", t: tick, by: best.id });
     b.shot = null;
+    return;
+  }
+  // Wrong boots: it hits him and keeps going.
+  if (m.mods && m.mods.team[fb.team].clumsy.length && m.mods.team[fb.team].clumsy.includes(best.id) && chance(rng, 0.5)) {
+    const sp = rndRange(rng, 3.5, 6.5), ang = best.facing + gauss(rng) * 0.8;
+    b.vx = Math.cos(ang) * sp; b.vy = Math.sin(ang) * sp; b.vz = 0;
+    b.lastTouch = best.id; b.lastTouchTeam = fb.team; b.freeUntil = tick + 8; fb.kickLock = tick + 26; b.shot = null;
+    if (m.passTo === best.id) m.passTo = null;
+    w.bus.emit({ type: "fb_heavy_touch", t: tick, by: best.id, team: fb.team });
     return;
   }
   setOwner(m, best, tick);

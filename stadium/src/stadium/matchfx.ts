@@ -4,7 +4,7 @@
 // that exists needs it.
 import type { World } from "../core/world";
 import type { Id } from "../core/types";
-import { distractReferee, haltPlay, removePlayer, resumePlay, wirePlayer } from "../football/api";
+import { boltPlayer, distractReferee, haltPlay, pullUp, removePlayer, resumePlay, wirePlayer } from "../football/api";
 import { beginRestart } from "../football/restarts";
 import type { TeamIdx } from "../football/types";
 import { dirOf, inBox, other } from "../football/util";
@@ -14,6 +14,15 @@ export const matchfx = {
   withdraw: (w: World, id: Id, reason: string): boolean => removePlayer(w, id, reason),
   /** playerCondition: it catches up with him so many seconds from now (he leaves the pitch at a run). */
   dose: (w: World, id: Id, inSecs: number, effect = "laxative"): void => { w.state.stadium!.dosed[id] = { effect, at: w.state.tick + Math.round(60 * inSecs) }; },
+  /** playerCondition: it's caught up with him now. He sets off for the tunnel at a run, where everyone can see
+   *  him go, and a few seconds later he's out of the match the way a dose always ended (rules.ts). */
+  runOff: (w: World, id: Id, secs = 5): boolean => {
+    if (!boltPlayer(w, id)) return false;
+    w.state.stadium!.dosed[id] = { effect: "laxative", at: w.state.tick + Math.round(60 * secs) };
+    return true;
+  },
+  /** playerCondition: he's pulled something. On the floor for so many seconds, and heavy-legged after. */
+  pull: (w: World, id: Id, secs: number): void => pullUp(w, id, secs),
   /** playerCondition: full of himself for a while. */
   lift: (w: World, id: Id, secs: number): void => { const a = w.state.actors[id]; if (a?.fb) { a.fb.fatigue = 0; wirePlayer(w, id, secs); } },
   /** matchInterrupted. */

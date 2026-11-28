@@ -46,6 +46,11 @@ export interface Footballer {
   wiredUntil: number;
   /** Moved by a person at the controls, not by the match: an impostor in the kit. */
   controlled?: boolean;
+  /** Tick he set off for the tunnel at a run (caught short). He takes no further part. */
+  boltAt?: number;
+  /** Squaring up to somebody (an opponent, the referee) at the next stoppage, until this tick. */
+  beefWith?: Id;
+  beefUntil?: number;
 }
 
 export interface Official {
@@ -150,6 +155,40 @@ export interface MatchConfig {
   venue?: boolean;
 }
 
+/**
+ * What has been done to a side from outside, as the football reads it. Plain numbers, 0 = nothing. The match
+ * never asks who did it or why; whoever is interfering writes these and the players just behave accordingly.
+ */
+export interface TeamMods {
+  /** Flying into everything: lunges from further out, two men on the ball, more fouls. 0..1. */
+  hyper: number;
+  /** Heavy legs: slower, later to react, looser marking, nobody covering. 0..1. */
+  slow: number;
+  /** Doesn't know where he's meant to be: wrong flank, drawn to the ball, nobody marking. 0..1. */
+  lost: number;
+  /** Hasn't found his place yet: drifts about his position, half marks. 0..1. */
+  ragged: number;
+  /** Sharper: quicker to react, a touch better at everything, a touch rasher. 0..1. */
+  keen: number;
+  /** Everybody near the ball goes for it, like a primary school. 0..1. */
+  swarm: number;
+  /** How keen they are to give the ball to their clumsy men. 0..1. */
+  feed: number;
+  /** Men who can't stay on their feet or keep hold of the ball (wrong boots). */
+  clumsy: Id[];
+  /** A man his own side have stopped passing to. */
+  shun: Id | null;
+}
+export interface MatchMods {
+  team: [TeamMods, TeamMods];
+  /** Nobody is refereeing: 0 no, otherwise how far it has gone (up to 1). Fouls aren't judged, goals wait. */
+  lawless: number;
+  /** Added to how seriously the referee takes a foul by each side (negative: waved away). */
+  card: [number, number];
+  /** How much of each side's fouling the referee chooses to see (1 = as normal). */
+  see: [number, number];
+}
+
 export interface MatchState {
   cfg: MatchConfig;
   teams: [TeamState, TeamState];
@@ -188,4 +227,8 @@ export interface MatchState {
   mentalityAt: number;
   /** Why play has been stopped from outside (an intruder, a dog), or null. */
   halted: string | null;
+  /** Outside interference in force, if any (see TeamMods). Absent: the match plays as it always did. */
+  mods?: MatchMods;
+  /** Goals that went in while nobody was refereeing: not on the scoreboard until somebody rules on them. */
+  unrecognised?: Candidate[];
 }

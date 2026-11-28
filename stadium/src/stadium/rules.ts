@@ -12,7 +12,7 @@ import { lineOfSight } from "./nav";
 import type { Action, Actor, Id, Item } from "../core/types";
 import { registerVerb, VERBS } from "../core/verbs";
 import type { World } from "../core/world";
-import { bribePlayer, biasReferee, distractReferee, haltPlay, intruderKick, removePlayer, resumePlay, wirePlayer } from "../football/api";
+import { bribePlayer, biasReferee, distractReferee, haltPlay, intruderKick, recognise, removePlayer, resumePlay, wirePlayer } from "../football/api";
 import { sendOff } from "../football/authority";
 import { draymanWatching } from "./beer";
 import { endPeriod } from "../football/match";
@@ -28,6 +28,7 @@ import { bribeSnitch, snitchOf } from "./witness";
 import { banter, fresh, talkTo } from "./chatter";
 import { startDetector } from "./detector";
 import { schemeState } from "./schemes";
+import { pending, setState } from "./fstates";
 
 export const SHOPS: Record<string, { name: string; stock: Record<string, number> }> = {
   ticket: { name: "Ticket office", stock: { ticket: 60 } },
@@ -375,7 +376,8 @@ export function installRules(): void {
       if (!areaAt(actor.x, actor.y).pitch) return "get on the pitch first";
       const kind = act.arg;
       if (kind === "sendoff") { const t = targetActor(w, act); if (!t?.fb || t.fb.status !== "playing" || !near(actor, t, 7)) return "nobody close enough to send off"; }
-      if (kind === "disallow" && !(w.state.stadium!.flags.lastOppGoal && w.state.tick - w.state.stadium!.flags.lastOppGoal < 60 * 40)) return "no goal to disallow";
+      if (kind === "disallow" && !pending(w)[1] && !(w.state.stadium!.flags.lastOppGoal && w.state.tick - w.state.stadium!.flags.lastOppGoal < 60 * 40)) return "no goal to disallow";
+      if (kind === "give" && !pending(w)[0]) return "no goal to give";
       if (kind === "fulltime" && !((m.period === 2 || m.period === 4) && m.score[0] > m.score[1])) return "England aren't winning";
       return null;
     },
@@ -512,7 +514,7 @@ function bribe(w: World, by: Actor, t: Actor, amount: number): void {
   if (t.off) {
     if (t.off.job !== "referee") return refuse("Not my department.", 1);
     if (amount < 150) return refuse("You must be joking.", 2);
-    if (fix ? fix === "take" : chance(r, amount >= 400 ? 0.55 : 0.35)) { accept("We never spoke."); biasReferee(w, 0, 0.75); return; }
+    if (fix ? fix === "take" : chance(r, amount >= 400 ? 0.55 : 0.35)) { accept("We never spoke."); biasReferee(w, 0, 0.75); setState(w, "biased", 0, 0, "a word in the referee's ear"); return; }
     return refuse("This will be reported to the governing body.", 3);
   }
   const n = t.npc;
@@ -886,7 +888,13 @@ function impostorRuling(w: World, by: Actor, kind: string, target?: Actor): void
       haltPlay(w, "impostor");
       st.flags.impostorHaltUntil = tick + 60 * 6;
       break;
+    case "give":
+      // Goals that went in while nobody was refereeing (fstates.ts): England's stand, because he says so.
+      recognise(w, by.id, () => true, 0);
+      break;
     case "disallow":
+      // Theirs from while nobody was refereeing never happened; failing that, the last one he can remember.
+      if (pending(w)[1]) { recognise(w, by.id, () => false, 1); break; }
       if (m.score[1] > 0) m.score[1]--;
       st.flags.lastOppGoal = 0;
       if (m.phase === "goal_pause") m.next = { type: "goal_kick", team: 1, x: -m.dir0 * 36, y: 0 };

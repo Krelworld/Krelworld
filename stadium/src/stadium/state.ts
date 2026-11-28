@@ -198,6 +198,8 @@ export interface StadiumState {
   pintBeat?: import("./lulls").PintBeat;
   /** The forecourt contraptions: where each one's got to, and when it's ready again. */
   rigs?: Record<string, import("./rigs").RigState>;
+  /** The other things that go off when touched (pranks.ts): who they've pulled out of their seats. */
+  pranks?: import("./pranks").PrankState;
   /** Their star, off looking for his boots instead of boarding (bootbag.ts). */
   bootHunt?: import("./bootbag").BootHunt;
   /** The ball's come to Grozz (out of play, into the stand). */

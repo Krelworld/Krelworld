@@ -11,6 +11,7 @@ import { draymanWatching } from "./beer";
 import { isSecurity } from "./security";
 import { schemeHint } from "./schemes";
 import { specialHint } from "./scheme_special";
+import { rigDoes } from "./rigs";
 
 const mmss = (ticks: number) => { const s = Math.max(0, Math.ceil(ticks / 60)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; };
 const lorryOf = (w: World, cargo: string | undefined) => Object.values(w.state.stadium!.vehicles).find((v) => v.cargo === cargo);
@@ -37,7 +38,7 @@ export function whatItDoes(w: World, pc: Actor, o: Option): string {
     case "wear": { const d = it ? ITEM_DEFS[it.def] : undefined; return d?.role ? `People will take you for ${/^[aeiou]/.test(d.role) ? "an" : "a"} ${d.role}.` : it?.def === "face" ? "You'll be him. Nobody will say a word." : d?.faceCover ? "Harder to recognise." : "Changes how you look."; }
     case "shove": return "The drayman will leave everything and go after it.";
     case "hose": return "The ground's kegs fill from the drain. It shows up inside, later.";
-    case "rig": return ({ pigeons_w: "They go up over the queue. People duck into things.", pigeons_e: "They go up over the copper by the van.", barriers: "They all go over. A steward has to come out to them.", burger: "A bang. Everybody comes to look, and to eat.", board: "Any steward who reads it will stop work to moan." } as Record<string, string>)[a.arg ?? ""] ?? "";
+    case "rig": return ({ pigeons_w: "They go up over the queue. People duck into things.", pigeons_e: "They go up over the copper by the van.", barriers: "They all go over. A steward has to come out to them.", burger: "A bang. Everybody comes to look, and to eat.", board: "Any steward who reads it will stop work to moan." } as Record<string, string>)[a.arg ?? ""] ?? rigDoes(w, a.arg ?? "");
     case "queue": return "Stand still. Somebody will join. Then somebody else.";
     case "loosign": return /down/i.test(L) ? "It opens again." : "Nobody gets in. They'll queue till they can't.";
     case "show": return it?.def === "ticket" ? "Scanned once, and you're in." : "Waved through, no ticket.";

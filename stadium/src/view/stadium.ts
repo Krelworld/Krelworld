@@ -44,6 +44,7 @@ import { curioHere, CURIOS } from "./curios";
 import { PlayTest } from "./playtest";
 import { can } from "../stadium/affordances";
 import { RIG_IDS, RIGS, rigReady, type RigId } from "../stadium/rigs";
+import { drawPranks, prankEvent } from "./prankView";
 import { RUMOURS, type RumourKind } from "../stadium/belief";
 import { hasBeerLine, hoseAt, hoseWatched } from "../stadium/beer";
 import { openFor, statusOf, whatItDoes, type Status } from "../stadium/outcomes";
@@ -317,7 +318,7 @@ class StadiumScene extends Phaser.Scene {
     w.bus.on((e) => this.sounds(e));
     w.bus.on((e) => {
       this.reactTo(e);
-      this.rigEvent(e);
+      this.rigEvent(e); prankEvent(this, e);
       this.machineEvent(e);
       this.schemeEvent(e);
       this.missionEvent(e);
@@ -2777,7 +2778,7 @@ class StadiumScene extends Phaser.Scene {
       const heads: { x: number; y: number; h: number }[] = [];
       for (const a of people) if (heads.length < 14 && onScreen(a.x, a.y)) heads.push({ x: a.x, y: a.y, h: 1.6 });
       const here = pc ? areaAt(pc.x, pc.y) : null;
-      this.drawRigs();
+      this.drawRigs(); drawPranks(this);
       this.drawBeer();
       drawHydro(this);
       this.drawFaces();

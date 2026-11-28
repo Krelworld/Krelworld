@@ -24,7 +24,7 @@ import { possibleVerbs } from "../core/verbs";
 import type { World } from "../core/world";
 import { areaAt, SPOTS, VENUE } from "./layout";
 import { climbPointNear, fruitNear, turnstileNear, SHOPS } from "./rules";
-import { RIGS, rigNear } from "./rigs";
+import { rigLabel, rigNear } from "./rigs";
 import { hasBeerLine, hoseAt } from "./beer";
 import { grudge, looNear } from "./social";
 
@@ -110,8 +110,8 @@ export function options(w: World, pc: Actor, picked?: string | null): Option[] {
   const m = s.match;
   if (m && !pc.seated) push(pc.fb ? (m.ball.owner === pc.id ? "Shoot" : "Kick it") : "Kick the ball", 85, { verb: "kick", ...base });
 
-  // The forecourt contraptions: one tap, and off it goes.
-  { const rg = !pc.seated && !pc.roof ? rigNear(w, pc) : undefined; if (rg) push(RIGS[rg].label, 78, { verb: "rig", ...base, arg: rg }); }
+  // The forecourt contraptions, and the rest of the things that go off when touched (pranks.ts): one tap, and off it goes.
+  { const rg = !pc.seated && !pc.roof ? rigNear(w, pc) : undefined; if (rg) push(rigLabel(w, rg), 78, { verb: "rig", ...base, arg: rg }); }
 
   // Clothes in his hand: putting them on is the obvious thing, so it's on the button.
   if (hand0 && !pc.seated && can(hand0, "wear") && hand0.loc.k !== "worn") push(`Put on the ${lc(itemName(hand0))}`, 64, { verb: "wear", ...base, item: hand0.id });

@@ -1873,7 +1873,7 @@ class StadiumScene extends Phaser.Scene {
       case "scheme_clue":
         this.schemeNew++;
         // (Not on top of whoever he's just learnt it from.)
-        if (e.mutter && !this.sceneOn && this.talkN === 0) this.pcLine = { text: e.mutter, until: performance.now() + 2600 };
+        if (e.mutter && !this.sceneOn && this.talkN === 0 && performance.now() > this.planBigUntil) this.pcLine = { text: e.mutter, until: performance.now() + 2600 };
         break;
       case "scheme_cond": if (e.on) { this.stripLine("✓", e.text); this.audio.blip("step"); } break;
       case "scheme_did": this.audio.play(e.what === "sent" ? "keg_roll" as Clip : "tap", 0.6); break;
@@ -1941,7 +1941,7 @@ class StadiumScene extends Phaser.Scene {
     }
     // Not while anybody's talking: a board can wait, a line can't. And not while the big button is saying
     // what it'll do, or a strip line is up: one piece of writing in the world at a time.
-    if (this.talkN > 0 || !$("actHint").hidden || !$("chainStrap").hidden) out.length = 0;
+    if (this.talkN > 0 || !$("actHint").hidden || !$("chainStrap").hidden || performance.now() < this.planBigUntil || (this.pcLine && this.pcLine.until > performance.now())) out.length = 0;
     // One at a time: the nearest to Grozz (two boards and a speech bubble in one yard is a wall of text).
     if (pc) out.sort((p1, p2) => Math.hypot(p1.x - pc.x, p1.y - pc.y) - Math.hypot(p2.x - pc.x, p2.y - pc.y)).splice(1);
     out.slice(0, 4).forEach((o, i) => {

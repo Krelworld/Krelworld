@@ -166,7 +166,9 @@ const DEF: SchemeDef = {
     // What people say to nobody, in Grozz's hearing.
     if (!sc.vars.sent) {
       if (k && dist(pc, k.loc as { x: number; y: number }) < 2.6) learn(w, DEF, sc, "gift");
-      aside(w, sc, "dray", d && !d.npc!.fetch ? d : undefined, "That one with the bow's for the Portuguese. Dressing room. Tradition.", "gift");
+      // (Not in the first half-minute while another plan's pinned: the opening has one thing to say, and it isn't this.)
+      const busy = tick < 60 * 30 && !!w.state.stadium!.missions?.active && w.state.stadium!.missions.active !== "visitors";
+      if (!busy) aside(w, sc, "dray", d && !d.npc!.fetch ? d : undefined, "That one with the bow's for the Portuguese. Dressing room. Tradition.", "gift");
       aside(w, sc, "land", ll, sc.vars.tankard ? "Sixty years we've sent them a keg. They never send it back." : "They can't toast it without the '66 tankard. Lionel's got that. Don't ask.", sc.vars.tankard ? "gift" : "tankard");
       if (!sc.vars.tankard && !sc.vars.bought) aside(w, sc, "lion", li, "That tankard? Pub's. He'll be back for it when he's flush. Twenty-five.", "tankard", 1);
       aside(w, sc, "rep", sc.vars.press ? undefined : rep, "Nothing. Not a thing to point a camera at. I'd kill for a trophy.", "press");

@@ -30,6 +30,15 @@ export function resetPathBudget(): void { pathBudget = 8; }
 
 export function say(w: World, a: Actor, text: string, seconds = 3.5): void {
   if (!a.npc || typeof text !== "string" || !text) return;
+  // In the game nobody says what's just been said (the creator: "people saying the same thing on repeat
+  // in certain alert situations"). A shout isn't heard again from anyone for twelve seconds, any other line
+  // for four; the second man keeps his mouth shut and his body says it. Whatever asks, however often.
+  if (PACE.calm && text.length > 2) {
+    const st = w.state.stadium!, at = (st.saidAt ??= {}), tick = w.state.tick, last = at[text];
+    if (last !== undefined && tick - last < (text.endsWith("!") ? 720 : 240)) return;
+    at[text] = tick;
+    if (tick % 64 === 0) for (const k in at) if (tick - at[k] > 900) delete at[k];
+  }
   a.npc.bubble = { text, until: w.state.tick + Math.round(seconds * 60) };
   w.bus.emit({ type: "say", t: w.state.tick, by: a.id, text });
 }

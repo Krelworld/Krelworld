@@ -25,7 +25,7 @@ export function playMini(kind: MiniKind, play: (clip: string, vol?: number) => v
     const end = (r: MiniResult) => {
       if (done) return; done = true; cancelAnimationFrame(raf);
       host.classList.add(r === "win" ? "won" : r === "fail" ? "lost" : "skip");
-      play(r === "win" ? "chime" : r === "fail" ? "nope" : "tap", 0.7);
+      play(r === "win" ? "pickup" : r === "fail" ? "nope" : "tap", 0.7);
       setTimeout(() => { host.remove(); res(r); }, r === "skip" ? 80 : 420);
     };
     const pos = () => {

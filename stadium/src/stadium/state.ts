@@ -33,6 +33,8 @@ export interface Npc {
   nextBark: number;
   /** The last thing this steward said from a pool of lines (so he doesn't repeat himself). */
   lastLine?: string;
+  /** When he last went from minding his own business to coming for somebody (security.ts: the game gives Grozz four seconds from then). */
+  alertAt?: number;
   /** About to hit back at someone. */
   retaliateAt?: number;
   retaliateOn?: Id;
@@ -180,6 +182,8 @@ export interface StadiumState {
   beer?: import("./beer").Beer;
   /** Authored schemes: what's been learnt, what's arranged, what's playing. */
   schemes?: Record<string, import("./schemes").SchemeState>;
+  /** When each line was last said by anybody (npc.ts say): nobody repeats what's just been said. */
+  saidAt?: Record<string, number>;
   /** Missions (Option E): the plan that's pinned, the step each is on, what's been pulled off. */
   missions?: import("./missions").MissionState;
   /** Football states the plans have written (fstates.ts): the match reads these, never the plans. */

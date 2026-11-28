@@ -8,7 +8,7 @@ import { DT, type Actor } from "../core/types";
 import { registerVerb } from "../core/verbs";
 import type { World } from "../core/world";
 import { haltPlay, intruderKick, removePlayer, resumePlay } from "../football/api";
-import { areaAt, SPOTS, VENUE, dogPost } from "./layout";
+import { areaAt, SPOTS, VENUE, dogPost, PACE } from "./layout";
 import { follow, goTo, newNpc, say } from "./npc";
 import { lineOfSight } from "./nav";
 import { canSee, crime, isSecurity } from "./security";
@@ -129,7 +129,10 @@ function nearestVictim(w: World, dog: Actor, from: { x: number; y: number }, r: 
 function noise(w: World, dog: Actor, kind: "growl" | "bark" | "gnash", every: number): void {
   const st = w.state.stadium!, tick = w.state.tick;
   if (tick < (st.flags.dogNoiseAt ?? 0)) return;
-  st.flags.dogNoiseAt = tick + every + (tick % 17);
+  // In the game he's tied up where Grozz starts, and was a third of every sound heard. On the post or the
+  // lead he's heard now and then (every ten to twenty seconds); loose, less than half as often as he was.
+  const quiet = PACE.calm && every > 1 ? (st.dog?.state === "tied" || st.dog?.state === "led" ? 6 : 2.5) : 1;
+  st.flags.dogNoiseAt = tick + Math.round(every * quiet) + (tick % 17);
   w.bus.emit({ type: "dog_noise", t: tick, kind, x: dog.x, y: dog.y });
 }
 

@@ -1,0 +1,7 @@
+{ "name": "attack", "seed": "qa-attack", "about": "The punch button: it's there when somebody's a few steps off, and one press walks in and lands it.", "everyMs": 600000,
+  "steps": [
+    { "do": "wait", "s": 6 },
+    { "do": "walk", "x": -23.5, "y": 69.5, "r": 1.0, "max": 20 }, { "do": "wait", "s": 2 }, { "do": "shot", "name": "button" },
+    { "do": "click", "sel": "#hit" }, { "do": "wait", "s": 3 }, { "do": "shot", "name": "hit1" },
+    { "do": "click", "sel": "#hit" }, { "do": "wait", "s": 2 }, { "do": "click", "sel": "#hit" }, { "do": "wait", "s": 4 }, { "do": "shot", "name": "after" }
+  ] }

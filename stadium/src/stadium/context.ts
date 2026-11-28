@@ -37,7 +37,8 @@ export interface Option {
   sheet?: { kind: "shop" | "bribe" | "bet" | "report" | "loot" | "phone" | "scope" | "rumour"; who: string };
 }
 
-const lc = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
+// (A country or somebody's name keeps its capital: "Put on the England playing kit".)
+const lc = (s: string) => (/^([A-Z][a-z]+'s\b|England|Portugal|Germany|Argentina|Brazil|France|Spain|Italy)/.test(s) ? s : s.charAt(0).toLowerCase() + s.slice(1));
 export const itemName = (it: Item) => it.label ?? defOf(it).name;
 export const personName = (a: Actor) => (a.fb ? `${a.name} (${a.fb.team === 0 ? "England" : "opposition"} ${a.fb.number})` : a.off ? (a.off.job === "referee" ? "the referee" : a.name.toLowerCase()) : a.name);
 

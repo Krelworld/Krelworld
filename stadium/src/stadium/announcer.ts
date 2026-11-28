@@ -18,6 +18,7 @@ export class Announcer {
     w.bus.on((e) => this.hear(e));
   }
 
+  private incidentAt = -1e9;
   private once(key: string, text: string, src: Announcement["src"] = "tannoy", big = false): void {
     if (this.said.has(key)) return;
     this.said.add(key);
@@ -44,7 +45,8 @@ export class Announcer {
     const tn = (code: string | null) => (code ? TEAMNAME[code] ?? code : "unknown");
     switch (e.type) {
       case "incident":
-        if (e.seen && e.severity >= 2 && e.blamed) this.out({ t: e.t, text: `Stewards are dealing with an incident involving a ${tn(e.blamed)} supporter.`, src: "tannoy", big: true });
+        // (Once every two minutes at most: in a proper riot it was being read out over and over.)
+        if (e.seen && e.severity >= 2 && e.blamed && e.t - this.incidentAt > 60 * 120) { this.incidentAt = e.t; this.out({ t: e.t, text: `Stewards are dealing with an incident involving a ${tn(e.blamed)} supporter.`, src: "tannoy", big: true }); }
         break;
       case "unmasked":
         if (e.outer === "a bus") { this.out({ t: e.t, text: "Security now believe the driver of the team bus may have been an Englishman wearing an England shirt.", src: "commentary", big: true }); break; }

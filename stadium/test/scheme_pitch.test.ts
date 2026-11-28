@@ -142,7 +142,8 @@ test("the twelfth man: their captain's withdrawn, Grozz is him in their shirt, a
   assert.ok(cuts("twelfth") > 0 && cuts("twelfth") <= 15000);
   assert.ok(until(g, 30, () => ev.some((e) => e.type === "caught" && e.who === pc.id)), "then somebody looks at his face");
   run(g, 20);
-  assert.equal(m.score[0], score + 1, "and the own goal stands");
+  // (England may well score again in the meantime; what matters is that his isn't taken back.)
+  assert.ok(m.score[0] >= score + 1 && !ev.some((e) => e.type === "fb_no_goal"), "and the own goal stands");
   assert.ok(!ev.some((e) => e.type === "twelfth_man"), "nobody ever counted twelve");
   assert.ok(ev.some((e) => e.type === "chain" && e.links.some((l: string) => /NET HIS SHIRT DEFENDS/.test(l))));
 }));

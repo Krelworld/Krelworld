@@ -409,7 +409,7 @@ class StadiumScene extends Phaser.Scene {
     $("introRound").textContent = `World Cup ${VENUE.round} · ${VENUE.ground}`;
     $("introKo").textContent = PACE.soft ? "KO when you're in" : `KO in ${Math.floor(KICKOFF_AT / 60)}:${String(KICKOFF_AT % 60).padStart(2, "0")}`;
     $("introText").textContent = c.fixture === 0
-      ? `You are outside ${VENUE.ground} with £${c.money} and an England shirt. ${opp} are the opposition. ${PACE.soft ? "Kick-off waits until you go in." : "Kick-off is in five and a half minutes."} Give England an advantage first: there's a plan at the top of the screen, and more where that came from.`
+      ? `You are outside ${VENUE.ground} with £${c.money} and an England shirt. ${opp} are the opposition. ${PACE.soft ? "Kick-off waits until you go in." : "Kick-off is in five and a half minutes."} Give England an advantage before you do.`
       : `${VENUE.ground}, against ${opp}. You have £${c.money}${kit.length ? ` and you've brought: ${kit.join(", ").toLowerCase()}` : ""}. ${notorietyText(c.notoriety)} This ground has metal detectors and face-recognition cameras at the turnstiles, and staff need a pass.${VENUE.features.penisDetector ? " And, following recent incidents, a penis detector." : ""}`;
     $("intro").hidden = false;
     this.started = false;
@@ -519,7 +519,7 @@ class StadiumScene extends Phaser.Scene {
       case "dive": if (s.stadium!.vehicles.bus?.drivenBy === pcId) this.d3.dodge(s); break;
       case "bus_wall": a.play("punch", 1, { rate: 0.6 }); this.d3.wall(s, false); break;
       case "breach": a.play("wall_crash", 0.5 + near(e.x, e.y, 80) * 0.5); this.d3.wall(s, true); break;
-      case "fire_alarm": a.play("fire_alarm", 0.4 + near(e.x, e.y, 50) * 0.6); break;
+      case "fire_alarm": a.play("fire_alarm", 0.3 + near(e.x, e.y, 50) * 0.4, { minGap: 12 }); break;
       case "gunshot": if (!(e.sniper && e.by === pcId)) a.play("gunshot", 0.5 + near(e.x, e.y, 60) * 0.5, { minGap: 0.15 }); this.flash = { x: e.x, y: e.y, until: s.tick + 5 }; if (e.sniper && e.by === pcId) this.tick("rifle"); break;
       case "killed": {
         if (e.fall) { this.bark("fall", 1, true); setTimeout(() => { a.play("splat", 1); a.play("bodyfall", 1); }, 1300); this.trauma = 1; }
@@ -534,15 +534,15 @@ class StadiumScene extends Phaser.Scene {
       }
       case "heat": {
         // Spotted: a sting. Shaken them off: a breath out.
-        if (e.mode === 4 && (e.was ?? 0) < 3) { a.play("alert_sting", 1, { minGap: 4 }); }
+        if (e.mode === 4 && (e.was ?? 0) < 3) { a.play("alert_sting", 0.7, { minGap: 15 }); }
         if (e.mode === 2 && e.was === 3) a.play("heat_clear", 0.8);
         break;
       }
-      case "bike_on": if (e.who === pcId) { a.play("tap", 1); a.play("chime", 0.4, { rate: 1.6 }); this.hint("On your bike. Get off with the button, or you'll come off if anyone grabs you."); } break;
+      case "bike_on": if (e.who === pcId) { a.play("tap", 1); this.hint("On your bike. Get off with the button, or you'll come off if anyone grabs you."); } break;
       case "bike_off": if (e.thrown) a.play("bodyfall", 0.8); a.play("weaponhit", 0.4, { rate: 0.8 }); break;
       case "evaded": this.hint("Lost them. Keep your head down for a bit: they've got your description."); break;
       case "evasion": this.hint("Out of sight. Stay hidden till the countdown runs out and they'll give up."); break;
-      case "car_kicked": a.play("car_kick", 0.4 + near(e.x, e.y, 30) * 0.6); if (e.alarm) a.play("car_alarm", 0.3 + near(e.x, e.y, 40) * 0.6, { minGap: 3 }); else a.play("horn", 0.4 + near(e.x, e.y, 30) * 0.5, { minGap: 1 }); break;
+      case "car_kicked": a.play("car_kick", 0.4 + near(e.x, e.y, 30) * 0.6); if (e.alarm) a.play("car_alarm", 0.25 + near(e.x, e.y, 40) * 0.4, { minGap: 12 }); else a.play("horn", 0.4 + near(e.x, e.y, 30) * 0.5, { minGap: 1 }); break;
       case "carjacked": a.play("car_door", 0.9); if (e.by === pcId) this.hint("Nicked it. Steer with the stick, push harder to go faster, pull back to brake. Get out when you're done."); break;
       case "car_in": case "car_out": a.play("car_door", 0.7); if (e.type === "car_out") this.audio.engineOn(false); break;
       case "car_crash": a.play("car_crash", e.hard ? 1 : 0.6, { minGap: 0.3 }); this.trauma = Math.min(1, this.trauma + (e.hard ? 0.6 : 0.3)); break;
@@ -570,7 +570,7 @@ class StadiumScene extends Phaser.Scene {
         const dur = Math.max(450, 1300 - this.reflexUses * 220);
         this.reflexUses++; this.reflexReadyAt = now + 9000; this.reflexUntil = now + dur;
         this.fight = { id: g.id, until: now + 4000 };
-        a.play("alert_sting", 1, { minGap: 3 });
+        a.play("alert_sting", 0.7, { minGap: 15 });
         this.popup(g.x, g.y, "!", "#ff3b3b");
         if (this.reflexUses <= 2) this.hint(`${personName(g)} saw that. Flatten him before he gets on the radio, or leg it.`);
         break;
@@ -579,7 +579,7 @@ class StadiumScene extends Phaser.Scene {
       case "lunged": if (e.who === pcId) a.play("whoosh", 0.5, { rate: 1.2, minGap: 0.1 }); break;
       case "lech": if (e.by === pcId) this.bark("lech", 1, true); break;
       case "slapped": { a.play("punch", 0.6, { rate: 1.6 }); const who = s.actors[e.who]; if (who) { this.flashAt.set(e.who, performance.now()); this.trauma = Math.min(1, this.trauma + 0.2); } break; }
-      case "radioed": a.play("radio_squelch", 0.3 + near(e.x, e.y, 40) * 0.5, { minGap: 2 }); break;
+      case "radioed": a.play("radio_squelch", 0.25 + near(e.x, e.y, 40) * 0.35, { minGap: 10 }); break;
       case "headsplat": {
         // The head goes: a burst of blood every which way, bits, and a pool where it was.
         const who = s.actors[e.who];
@@ -611,9 +611,9 @@ class StadiumScene extends Phaser.Scene {
         if (who) { this.spray(who.x, who.y, 1.3, Math.random() * 2 - 1, Math.random() * 2 - 1, 22, 1.4); this.pools.push({ x: who.x, y: who.y + 0.1, r: 0.1, max: 0.9, grow: 0.35 }); }
         break;
       }
-      case "body_found": a.play("scream", 0.3 + near(e.x, e.y, 40) * 0.7, { minGap: 2 }); break;
+      case "body_found": a.play("scream", 0.3 + near(e.x, e.y, 40) * 0.5, { minGap: 10 }); break;
       // Somebody saw something terrible: that's when you hear a scream (not when nobody's about).
-      case "incident": if (e.seen > 0 && e.severity >= 3) { const by = s.actors[e.by]; if (by) a.play("scream", 0.3 + near(by.x, by.y, 30) * 0.7, { minGap: 1.5 }); } break;
+      case "incident": if (e.seen > 0 && e.severity >= 3) { const by = s.actors[e.by]; if (by) a.play("scream", 0.3 + near(by.x, by.y, 30) * 0.5, { minGap: 10 }); } break;
       case "armed_challenge": { const o = s.actors[e.by]; if (o) a.play("armed_police", 0.4 + near(o.x, o.y, 35) * 0.6, { minGap: 3 }); break; }
       case "disarmed": a.play("stw_knife", 1); break;
       case "glory_hole": this.stall.event(e.what); break;
@@ -653,7 +653,7 @@ class StadiumScene extends Phaser.Scene {
       case "stench": a.play("fart", 0.4 + near(e.x, e.y, 40) * 0.6, { minGap: 0.3 }); if (e.by === pcId) this.tick("stench"); break;
       case "chute_open": if (e.by === pcId) { a.play("chute", 1); this.bark("chute", 1, true); this.startCine(3000, { zoomAdd: 0, slow: 900, caption: "Geronimo" }); } break;
       case "chute_land": { a.play("goal_roar", 0.8); a.play("bodyfall", 0.7); this.popup(e.x, e.y, "TOUCHDOWN", "#f2c94c"); this.trauma = Math.min(1, this.trauma + 0.4); break; }
-      case "lead": this.toast("lead", e.title, "New lead"); a.play("chime", 0.6); break;
+      case "lead": this.toast("lead", e.title, "New lead"); a.blip("note"); break;
       case "hamper_ride": if (e.by === pcId) { const f = $("fade"); f.classList.add("on"); setTimeout(() => f.classList.remove("on"), 700); this.startCine(2000, { zoomAdd: 1, caption: "Wheeled into the kit room" }); } break;
       case "crawled": case "roof_run": case "stretchered": {
         if ((e.by ?? e.who) !== pcId) break;
@@ -666,13 +666,13 @@ class StadiumScene extends Phaser.Scene {
         break;
       }
       case "hid_body": a.play(e.where?.startsWith("bin") ? "zip_bin" : "bag", 1); this.say(e.where?.startsWith("bin") ? "Into the bin he goes." : "Out of sight.", "", false); break;
-      case "car_horn": { const v = near(e.x, e.y, 40); if (v > 0) a.play("horn", (0.2 + v * 0.6) * (e.long ? 1 : 0.6), { minGap: 1.5, rate: e.long ? 0.9 : 1.15 }); break; }
+      case "car_horn": { const v = near(e.x, e.y, 40); if (v > 0.3) a.play("horn", (0.15 + v * 0.4) * (e.long ? 1 : 0.6), { minGap: 14, rate: e.long ? 0.9 : 1.15 }); break; }
       case "armed_called": case "armed_deployed": a.play("siren", 0.6, { minGap: 8 }); break;
       case "dog_sicced": a.play("pit_bark", 1, { minGap: 0.3 }); break;
       case "dog_noise": {
         this.dogNoiseAt = s.tick;
         const v = near(e.x, e.y, 30);
-        if (v > 0) a.play(e.kind === "gnash" ? "pit_gnash" : e.kind === "bark" ? "pit_bark" : "pit_growl", 0.25 + v * 0.75, { minGap: 0.5 });
+        if (v > 0) a.play(e.kind === "gnash" ? "pit_gnash" : e.kind === "bark" ? "pit_bark" : "pit_growl", 0.15 + v * 0.45, { minGap: 0.5 });
         break;
       }
       case "bus_crash": a.play("punch", 1, { rate: 0.5 }); a.play("horn", 0.7, { rate: 0.8 }); break;
@@ -696,7 +696,7 @@ class StadiumScene extends Phaser.Scene {
           const who = s.actors[e.by], woman = who && this.spriteFor(who).base === "woman";
           this.speak(`${VOICES[e.text]}${woman ? "_f" : ""}`, 0.25 + v * 0.75, { rate: 0.95 + (Math.abs(hash(e.by ?? "")) % 10) / 100 });
         }
-        if (e.text === "Get out the road!") a.play("horn", 0.3 + v * 0.7, { minGap: 2 });
+        if (e.text === "Get out the road!") a.play("horn", 0.2 + v * 0.4, { minGap: 14 });
         break;
       }
     }
@@ -1030,7 +1030,8 @@ class StadiumScene extends Phaser.Scene {
     if (html !== this.planHtml) { this.planHtml = html; el.innerHTML = html; }
     el.classList.toggle("ask", !p);
     el.classList.toggle("new", now < this.planFlashUntil);
-    el.hidden = this.sceneOn || !!st.custody || !!st.recover;
+    // (Nothing to show until there's a plan on the table or one's been pulled off.)
+    el.hidden = this.sceneOn || !!st.custody || !!st.recover || (!p && !cards(this.w).length && !Object.keys(st.missions.done).length);
     // The place name gives way to the plan (it comes back when he's somewhere he shouldn't be).
     // The match states.
     const bs = badges(this.w), fEl = $("fst");
@@ -1056,18 +1057,18 @@ class StadiumScene extends Phaser.Scene {
         this.planFlashUntil = now + 1500; this.planAt = 0;
         // The very first one is the banner: what the day is for, then the first thing to do.
         if (e.picked && e.n === 0 && this.s.tick < 60 * 30) this.planBigUntil = now + 9000;
-        if (!e.picked) this.audio.play("chime", 0.5, { rate: 1.1 });
+        if (!e.picked) this.audio.blip("step");
         break;
       case "mission_pick": this.planFlashUntil = now + 1500; this.planAt = 0; break;
       case "mission_done":
         this.planAt = 0; this.planFlashUntil = now + 1500;
         this.stripLine(e.ok ? "✓ DONE" : "OFF", e.ok ? `${e.title}. ${e.buys}` : `${e.title}. ${e.why}`, 6500);
-        if (e.ok) this.audio.play("chime", 0.7, { rate: 0.8 });
+        if (e.ok) this.audio.blip("done");
         // The first time, the cards come up by themselves (the first moment of choice); after that the bar asks.
         if (e.ok && !this.planAsked) this.planDue = now + 5200;
         break;
       case "fstate": if (e.on) { this.stripLine(e.short, e.text, 5200); this.planAt = 0; } break;
-      case "fcombo": this.stripLine("TOGETHER", e.text, 6500); this.audio.play("chime", 0.7, { rate: 0.7 }); break;
+      case "fcombo": this.stripLine("TOGETHER", e.text, 6500); this.audio.blip("done", 0.8); break;
       case "ko_wait": this.stripLine("KICK-OFF", "It waits for you. It starts when you go in.", 6500); break;
       case "ko_go": this.stripLine("KICK-OFF", e.why === "late" ? "They've waited long enough. Four minutes." : "Four minutes.", 4200); break;
     }
@@ -1105,7 +1106,6 @@ class StadiumScene extends Phaser.Scene {
         this.curios.add(c.id); this.itemCardAt = now;
         this.say(c.text, "Idea", false, false);
         this.pcLine = { text: c.short, until: now + 3400 };
-        this.audio.play("chime", 0.35, { rate: 1.25 });
       }
     }
     // Ricky rings, a couple of minutes in, if you haven't got his number.
@@ -1230,11 +1230,15 @@ class StadiumScene extends Phaser.Scene {
   }
   /** One voice at a time: nobody talks over anybody (the bubbles still show). */
   voiceUntil = 0;
+  /** A bystander's or steward's voiced line. One voice at a time, a breath after it, and the same recording
+   *  isn't heard again for twenty-five seconds (the bubble still shows; it just isn't shouted at you twice). */
+  spoke = new Map<string, number>();
   speak(clip: string, vol: number, opts: { rate?: number } = {}): void {
     const now = performance.now();
-    if (now < this.voiceUntil) return;
-    const d = this.audio.play(clip as Clip, vol, { minGap: 0.3, ...opts });
-    this.voiceUntil = now + (d > 0 ? d * 1000 + 150 : 1800);
+    if (now < this.voiceUntil || now - (this.spoke.get(clip) ?? -1e9) < 25000) return;
+    const d = this.audio.play(clip as Clip, vol * 0.85, { minGap: 0.3, ...opts });
+    this.spoke.set(clip, now);
+    this.voiceUntil = now + (d > 0 ? d * 1000 + 1600 : 2500);
   }
 
   lkGhost: Phaser.GameObjects.Image | null = null;
@@ -1640,14 +1644,17 @@ class StadiumScene extends Phaser.Scene {
   wasInDoor = false;
   keyHeldAt = 0;
   pcLine: { text: string; until: number } | null = null;
-  lastBark = 0;
+  lastBark = 0; barked: string[] = [];
   /** The player mouths off: a voiced line from one pool, with a bubble over his head. */
   bark(kind: string, chance = 1, force = false): void {
     const now = performance.now(), pool = PC_LINES[kind];
-    if (!pool?.length || (!force && (now - this.lastBark < 1400 || Math.random() > chance))) return;
+    // Not every punch gets a line: one in three, five seconds apart, and never one of his last three.
+    if (!pool?.length || (!force && (now - this.lastBark < 5000 || Math.random() > chance * 0.5))) return;
+    if (force && now - this.lastBark < 1200) return;
     let pickI = Math.floor(Math.random() * pool.length);
-    if (pool.length > 1 && this.pcLine && pool[pickI][0] === this.pcLine.text) pickI = (pickI + 1) % pool.length;
+    for (let k = 0; k < pool.length && this.barked.includes(pool[pickI][0]); k++) pickI = (pickI + 1) % pool.length;
     const [text, clip] = pool[pickI];
+    this.barked.push(text); if (this.barked.length > Math.min(3, pool.length - 1)) this.barked.shift();
     this.lastBark = now;
     this.pcLine = { text, until: now + 1700 };
     // In a dress (or a wig): the same lines, in his best strained lady's voice.
@@ -1865,9 +1872,8 @@ class StadiumScene extends Phaser.Scene {
         this.schemeNew++;
         // (Not on top of whoever he's just learnt it from.)
         if (e.mutter && !this.sceneOn && this.talkN === 0) this.pcLine = { text: e.mutter, until: performance.now() + 2600 };
-        this.audio.play("chime", 0.3, { rate: 1.35 });
         break;
-      case "scheme_cond": if (e.on) { this.stripLine("✓", e.text); this.audio.play("chime", 0.5, { rate: 0.9 }); } break;
+      case "scheme_cond": if (e.on) { this.stripLine("✓", e.text); this.audio.blip("step"); } break;
       case "scheme_did": this.audio.play(e.what === "sent" ? "keg_roll" as Clip : "tap", 0.6); break;
       case "scheme_play": {
         const cuts = (e.beats as { ms: number; cut: boolean; caption: string; x: number; y: number }[]).filter((b) => b.cut);
@@ -1931,8 +1937,9 @@ class StadiumScene extends Phaser.Scene {
       if (th.cup) { const cx = x + 9 * u, cy = y + 7 * u; sg.fillStyle(0x15171a, 1).fillRect(cx - 4 * u, cy - 5 * u, 9 * u, 11 * u); sg.fillStyle(0xc9ced6, 1).fillRect(cx - 3 * u, cy - 4 * u, 6 * u, 9 * u); sg.lineStyle(1.6 * u, 0xc9ced6, 1).strokeCircle(cx + 4.5 * u, cy, 2.6 * u); sg.fillStyle(0xffffff, 0.8).fillRect(cx - 2 * u, cy - 3 * u, 1.5 * u, 5 * u); }
       if (th.board && !pc.hiddenIn && !this.cine && Math.hypot(th.x - pc.x, th.y - pc.y) < 9) out.push({ x: th.x, y: th.y, z: th.z ?? 1.6, text: th.board, col: "#f2c94c" });
     }
-    // Not while anybody's talking: a board can wait, a line can't.
-    if (this.talkN > 0) out.length = 0;
+    // Not while anybody's talking: a board can wait, a line can't. And not while the big button is saying
+    // what it'll do, or a strip line is up: one piece of writing in the world at a time.
+    if (this.talkN > 0 || !$("actHint").hidden || !$("chainStrap").hidden) out.length = 0;
     // One at a time: the nearest to Grozz (two boards and a speech bubble in one yard is a wall of text).
     if (pc) out.sort((p1, p2) => Math.hypot(p1.x - pc.x, p1.y - pc.y) - Math.hypot(p2.x - pc.x, p2.y - pc.y)).splice(1);
     out.slice(0, 4).forEach((o, i) => {
@@ -1953,7 +1960,7 @@ class StadiumScene extends Phaser.Scene {
     el.innerHTML = `<b>${label ?? `×${links.length}`}</b><span>${shown.map((l) => `<i>${esc(l)}</i>`).join("<em>→</em>")}</span>`;
     el.classList.toggle("wide", !!label);
     el.hidden = false; el.classList.remove("in"); void el.offsetWidth; el.classList.add("in");
-    this.audio.play("chime", 0.5, { rate: 0.7 + links.length * 0.08 });
+    this.audio.blip("step", 0.8 + Math.min(6, links.length) * 0.06);
     if (links.length === 3 || links.length === 8) this.audio.play("crowd_ooh" as Clip, 0.5);
     clearTimeout(this.chainTimer); this.chainTimer = window.setTimeout(() => { el.hidden = true; }, label ? 5200 : 3000);
   }
@@ -1973,7 +1980,7 @@ class StadiumScene extends Phaser.Scene {
     const el = $("chainStrap");
     el.innerHTML = `<b>✓</b><span><i>${esc(rule)}</i></span>`;
     el.classList.remove("wide"); el.hidden = false; el.classList.remove("in"); void el.offsetWidth; el.classList.add("in");
-    this.audio.play("chime", 0.5, { rate: 1.1 });
+    this.audio.blip("step");
     clearTimeout(this.chainTimer); this.chainTimer = window.setTimeout(() => { el.hidden = true; }, 3400);
   }
   /** A footballer's card (the old Football Manager match screen): who he is, how good, how he is today. */
@@ -4016,7 +4023,7 @@ class StadiumScene extends Phaser.Scene {
     const el = $("chainStrap");
     el.innerHTML = `<b>THE JOB</b><span><i>${esc(job.text)}</i></span>`;
     el.hidden = false; el.classList.remove("in"); void el.offsetWidth; el.classList.add("in");
-    this.audio.play("chime", 0.45, { rate: job.urgent ? 1.2 : 0.85 });
+    this.audio.blip("note");
     clearTimeout(this.chainTimer); this.chainTimer = window.setTimeout(() => { el.hidden = true; }, 6000);
   }
   /** On the gear: the screen too bright and pulsing with a racing heart; grey on the comedown; and as it
@@ -4574,9 +4581,10 @@ class StadiumScene extends Phaser.Scene {
       this.opts = options(this.w, pc, this.picked);
       // The hit button has the blows: the main button never repeats one of them (that's what doubled up "Take down Shaz").
       const fighting = this.fightOn();
-      const hitFirst = this.fightOpt() ?? (fighting ? this.opts.find((o) => o.action?.verb === "strike") : undefined);
+      const fightFirst = this.fightOpt() ?? (fighting ? this.opts.find((o) => o.action?.verb === "strike") : undefined);
+      const hitFirst = fightFirst ?? this.attackOpt() ?? undefined;
       // Blows never go on the main button: a fight is started on purpose (tap the person) or comes to you.
-      const blow = (o: Option) => o.action?.verb === "strike" || (o.action?.verb === "finish" && !!hitFirst);
+      const blow = (o: Option) => o.action?.verb === "strike" || (o.action?.verb === "finish" && !!fightFirst);
       const p = !pc.heldBy && !pc.hiddenIn ? this.opts.find((o) => o.priority > 0 && !blow(o)) ?? null : primary(this.opts);
       this.focusItem = p?.action?.item ?? (p?.action?.target?.k === "item" ? p.action.target.id : null);
       this.mainOpt = p;
@@ -4613,7 +4621,7 @@ class StadiumScene extends Phaser.Scene {
       $("moreBtn").hidden = alts === 0 || busy || !!this.ring;
       // In a fight, the hit button sticks to the one you're fighting (and goes to Stamp once he's down).
       const hit = $("hit"), hitOpt = hitFirst;
-      hit.hidden = !hitOpt || !!pc.heldBy || !!pc.hiddenIn;
+      hit.hidden = !hitOpt || !!pc.heldBy || !!pc.hiddenIn || !!st.custody;
       if (hitOpt) {
         const lab = hitOpt.label.replace(/ \(.*\)$/, ""), m2 = lab.match(/^(Take down|Counter|Stamp on|Punch|Stab|Glass|Chair|Hit) (.+?)(!| with .*)?$/);
         hit.textContent = m2 ? `${m2[1]} ${short(m2[2])}` : lab.split(" ").slice(0, 3).join(" ");
@@ -4660,6 +4668,27 @@ class StadiumScene extends Phaser.Scene {
     const held = pc.hand ? this.s.items[pc.hand] : undefined;
     const w = held && hasProp(held, "weapon");
     return { label: `${w ? (hasProp(held!, "sharp") ? "Stab" : "Hit") : "Punch"} ${personName(t)}`, priority: 1, action: { verb: "strike", ...base } };
+  }
+  /** Nobody's fighting yet, but there's somebody within a few steps: the punch button offers him anyway
+   *  (the creator: "attacking should be easier"). The one he's facing is preferred to the one who's merely
+   *  nearest; pressing it walks him in and lands it, so there's no lining up to do. */
+  attackOpt(): (Option & { far?: string }) | null {
+    const pc = this.pc, s = this.s;
+    if (!pc || pc.heldBy || pc.hiddenIn || pc.seated || pc.fb || s.stadium!.custody || this.cine || this.sceneOn) return null;
+    let best: Actor | null = null, bs = 1e9;
+    const fx = Math.cos(pc.facing), fy = Math.sin(pc.facing);
+    for (const id in s.actors) {
+      const a = s.actors[id];
+      if (a.id === pc.id || a.dead || a.hiddenIn || !a.npc || a.npc.job === "dog" || a.fb || incapacitated(this.w, a)) continue;
+      const dx = a.x - pc.x, dy = a.y - pc.y, d = Math.hypot(dx, dy);
+      if (d > 4.2 || this.liftOf(a) !== this.liftOf(pc)) continue;
+      const sc = d - 1.4 * ((dx * fx + dy * fy) / (d || 1)) - (this.picked === a.id ? 3 : 0);
+      if (sc < bs) { bs = sc; best = a; }
+    }
+    if (!best) return null;
+    const held = pc.hand ? s.items[pc.hand] : undefined, w = held && hasProp(held, "weapon");
+    const d = Math.hypot(best.x - pc.x, best.y - pc.y);
+    return { label: `${w ? (hasProp(held!, "sharp") ? "Stab" : "Hit") : "Punch"} ${personName(best)}`, priority: 1, action: { verb: "strike", actor: pc.id, target: { k: "actor", id: best.id } }, far: d > 1.2 ? best.id : undefined };
   }
   /** A tap while you're still recovering isn't lost: it goes as soon as you can. */
   buffered: { opt: Option; at: number } | null = null;
@@ -5878,7 +5907,7 @@ class StadiumScene extends Phaser.Scene {
       case "bomb_threat": this.tick("bomb"); setTimeout(() => this.hint(e.pre ? "Kick-off's on hold while they sweep the ground." : "They've stopped the match. Stewards are checking under the seats."), 3200); break;
       case "gift": if (e.def) this.toast(e.def, ITEM_DEFS[e.def]?.name ?? e.def, "Given"); else if (e.money) this.hint(`+£${e.money}.`); this.audio.play("pickup", 0.8); break;
       case "scammed": this.hint(e.amount ? `−£${e.amount}. He's not coming back.` : "He's not coming back."); break;
-      case "contact": this.toastTick(`☎ Number saved: ${e.id === "dealer" ? "Spliff Ricky" : "Bare-Knuckle Brendan"}`); this.audio.play("chime", 0.5); break;
+      case "contact": this.toastTick(`☎ Number saved: ${e.id === "dealer" ? "Spliff Ricky" : "Bare-Knuckle Brendan"}`); this.audio.blip("note"); break;
       case "chain": this.chainSeen(e); this.chainStrap(e.links); break;
       // Half-time: one beat that says what's changed and where the openings are (the second
       // preparation phase), then the world shows it: the urn pulses, the players troop off.
@@ -5891,17 +5920,17 @@ class StadiumScene extends Phaser.Scene {
       case "fb_no_goal": if (!this.s.stadium!.chain || e.by !== this.s.stadium!.pc) this.chainStrap(["BALL IN THE NET", "NO GOAL"], "OFFICIAL DECISION"); this.audio.play("crowd_jeer" as Clip, 0.7); break;
       case "dog_lured": setTimeout(() => this.ruleCard("food", "Ronson goes for food.", "Drop a pie by someone and he'll go through them to get it. Stewards leave their post to catch him; on the pitch, play stops."), 1500); break;
       case "post_left": if (!e.ambient && this.s.stadium!.chain?.by === this.s.stadium!.pc) setTimeout(() => this.ruleCard("post", "People leave their post to fix a problem.", "Stewards, staff, Steve, Lenny, Wally: give them a problem and they go. Instinct now shows who's stood at a post."), 1800); break;
-      case "secret": this.toastTick(`★ Found: ${e.title}`); this.audio.play("chime", 0.7, { rate: 0.9 }); this.tick("secret"); break;
+      case "secret": this.toastTick(`★ Found: ${e.title}`); this.audio.blip("done"); this.tick("secret"); break;
       case "stripped": if (e.by === pcId) this.hint("Starkers. Every steward who sees you will have you for indecent exposure. The pitch is right there."); break;
       case "streak": this.tick("streak"); this.hint("A streaker! They've stopped the match."); this.audio.play("goal_roar", 0.7, { minGap: 3 }); this.crowdUpUntil = performance.now() + 5000; this.crowdUpSide = "all"; break;
       case "streak_over": if (e.caught) this.hint("Caught. With everything out."); break;
       case "guard_aside": this.hint(`The police have taken ${nm(e.who)} aside for a word. His post's empty.`); break;
       case "radio_decoy": this.audio.play("radio_squelch", 0.8); this.hint(e.rumbled ? "\"Who is this? Identify yourself.\" They're on to you." : e.sent ? `"All units to ${e.to}." ${e.sent} steward${e.sent > 1 ? "s" : ""} on their way.` : "\"Received.\" Nobody near enough to go."); break;
       case "boxer_done": this.hint("Brendan's done him. Fifty quid well spent."); this.tick("boxer"); break;
-      case "fix_found": this.audio.play("chime", 0.35, { rate: 0.8 }); break;
-      case "fix_found_old": this.toastTick(`★ A fix: ${e.title}`); this.audio.play("chime", 0.6, { rate: 0.8 }); if (!this.fixHinted) { this.fixHinted = true; this.quietHint("Something to fix. It's in your notes (☰). Any way you manage it counts.", 45); } break;
+      case "fix_found": break;
+      case "fix_found_old": this.toastTick(`★ A fix: ${e.title}`); this.audio.blip("note"); if (!this.fixHinted) { this.fixHinted = true; this.quietHint("Something to fix. It's in your notes (☰). Any way you manage it counts.", 45); } break;
       case "fix_way": this.toastTick("✎ Noted"); break;
-      case "fix_done": this.toastTick(e.ownWay ? `✓ FIXED, YOUR WAY: ${e.title}` : `✓ FIXED: ${e.title}`); this.audio.play("chime", 0.9, { rate: 1.2 }); this.audio.play("crowd_ooh", 0.4, { minGap: 2 }); break;
+      case "fix_done": this.toastTick(e.ownWay ? `✓ FIXED, YOUR WAY: ${e.title}` : `✓ FIXED: ${e.title}`); this.audio.blip("done"); this.audio.play("crowd_ooh", 0.4, { minGap: 2 }); break;
       case "tipoff": if (e.phone && e.by === pcId) setTimeout(() => this.hint("Control's sending an officer."), 3500); break;
     }
   }
@@ -5942,7 +5971,7 @@ class StadiumScene extends Phaser.Scene {
     const m = StadiumScene.MAYHEM.find((x) => x.id === id);
     if (!m) return;
     this.mayhemDone.add(id);
-    this.audio.play("chime", 0.6, { rate: 1.3 });
+    this.audio.blip("note");
     // Some feats unlock kit to bring next time (Hitman's mastery: doing it once earns a head start).
     const un = StadiumScene.UNLOCKS[id];
     if (un) {
@@ -5977,7 +6006,7 @@ class StadiumScene extends Phaser.Scene {
   }
   openMenu() {
     const cps = this.game2.checkpoints;
-    this.sheet("menu", `${PACE.calm ? `<div class="list"><button data-plans="1" class="primary">Plans</button></div>` : ""}${notebook(this.w).map((n) => `<h2>${esc(n.title)}</h2><div class="log scheme">${n.lines.map((l) => `<p class="${l.ok ? "ok" : "q"}"><b>${l.ok ? "✓" : "?"}</b> ${esc(l.text)}</p>`).join("")}</div>`).join("")}<h2>Paused</h2><p>Go back to a checkpoint. Everything since then is undone, and the match will not play out the same way.</p>
+    this.sheet("menu", `${PACE.calm && cards(this.w).length ? `<div class="list"><button data-plans="1" class="primary">Plans</button></div>` : ""}${notebook(this.w).map((n) => `<h2>${esc(n.title)}</h2><div class="log scheme">${n.lines.map((l) => `<p class="${l.ok ? "ok" : "q"}"><b>${l.ok ? "✓" : "?"}</b> ${esc(l.text)}</p>`).join("")}</div>`).join("")}<h2>Paused</h2><p>Go back to a checkpoint. Everything since then is undone, and the match will not play out the same way.</p>
       <div class="list">${cps.map((c) => `<button data-cp="${c.id}">${esc(c.label)}</button>`).join("")}${this.s.match!.phase === "break" && this.s.match!.period === 1 && !cps.some((c) => c.id === "halftime") ? `<button data-keepht="1" class="primary">Keep a save here (half-time)</button>` : ""}${this.pt ? `<button data-pt="1" class="primary">Playtest report</button>` : ""}<button data-new="1">Start a new match day</button><button data-mute="1">${this.audio.muted ? "Sound: off" : "Sound: on"}</button><button data-mini="1">Mini-games: ${this.miniOn ? "on" : "off"}</button><button data-buzz="1">Vibration: ${this.buzzOn ? "on" : "off"}</button><button data-lefty="1">Buttons: ${document.body.classList.contains("lefty") ? "left hand" : "right hand"}</button><button data-zoom="1">Zoom: ${esc(this.zoomLabel())}</button><button data-gfx="1">${esc(this.gfxLabel())}</button>${EXTRAS ? `<button data-fp="1">${this.fp.on ? "Back to the overhead view" : "First-person view"}</button>` : ""}<button data-extras="1">Extras (driving, first-person): ${EXTRAS ? "on" : "off"}</button></div>
       <h2>Your notes</h2><div class="log">${[...this.rules].map((r) => `<p><b>Rule</b> ${esc(r === "post" ? "People leave their post to fix a problem." : r === "food" ? "Ronson goes for food." : r)}</p>`).join("")}${CURIOS.filter((c) => this.curios.has(c.id)).map((c) => `<p><b>Idea</b> ${esc(c.text)}</p>`).join("") || (this.rules.size ? "" : "<p>Nothing yet. Have a look round.</p>")}</div>
       <h2>Fixes (${fixesDone(this.w)}/${FIXES.length})</h2><div class="log">${this.fixesHtml()}</div>
@@ -6130,7 +6159,7 @@ class StadiumScene extends Phaser.Scene {
       window.scrollTo(0, 0);
     });
     // Hold the button to wind up a haymaker (on a punch); a tap is an ordinary swing.
-    const holdable = (el: HTMLElement, get: () => Option | null) => {
+    const holdable = (el: HTMLElement, get: () => Option | null, first?: (o: Option, held: boolean) => boolean) => {
       let t0 = 0, timer = 0;
       el.addEventListener("pointerdown", () => { t0 = performance.now(); clearTimeout(timer); timer = window.setTimeout(() => { const o = get(); if (o?.action?.verb === "strike") el.classList.add("charged"); }, 380); });
       el.addEventListener("click", () => {
@@ -6138,6 +6167,7 @@ class StadiumScene extends Phaser.Scene {
         const o = get(), held = t0 ? performance.now() - t0 : 0; t0 = 0;
         // Held on anything but a punch: everything else you could do here (the More list).
         if (el.id === "act" && held > 600 && o?.action?.verb !== "strike") { this.buzz(20); this.openMore(); return; }
+        if (o && first?.(o, held > 380)) return;
         this.run(o && held > 380 && o.action?.verb === "strike" && o.action.arg !== "takedown" ? { ...o, action: { ...o.action, arg: "haymaker" } } : o);
       });
     };
@@ -6159,7 +6189,13 @@ class StadiumScene extends Phaser.Scene {
     }
     $("useBanner").addEventListener("click", (e) => { if ((e.target as HTMLElement).closest("[data-nouse]")) this.endUse(); });
     $("betBtn").addEventListener("click", () => (this.sheetKind === "bet" ? this.closeSheet() : this.openBet()));
-    holdable($("hit"), () => (this as any).hitOpt ?? null);
+    // The punch button: at arm's length it lands now; a few steps off, he walks in and lands it.
+    holdable($("hit"), () => (this as any).hitOpt ?? null, (o, hay) => {
+      const far = (o as { far?: string }).far;
+      if (!far || !this.s.actors[far]) return false;
+      this.setPursue({ id: far, kind: hay ? "haymaker" : "punch", until: performance.now() + 6000, path: [], pathAt: 0 });
+      return true;
+    });
     $("moreBtn").addEventListener("click", () => (this.sheetKind === "more" ? this.closeSheet() : this.openMore()));
     // Instinct: hold it (or I on a keyboard) to see what you can use and where they're looking.
     const instOn = (e?: Event) => { e?.preventDefault(); this.instinct = true; $("instBtn").classList.add("on"); };

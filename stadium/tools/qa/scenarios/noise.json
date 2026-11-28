@@ -1,0 +1,13 @@
+{ "name": "noise", "seed": "qa-noise", "about": "What the game sounds like: three minutes about the yard and street, then mayhem in the concourse during the match.", "everyMs": 600000,
+  "steps": [
+    { "do": "wait", "s": 20 },
+    { "do": "hold", "keys": "D", "s": 6 }, { "do": "act" }, { "do": "hold", "keys": "S", "s": 3 }, { "do": "act" }, { "do": "wait", "s": 20 },
+    { "do": "hold", "keys": "W", "s": 6 }, { "do": "act" }, { "do": "hold", "keys": "A", "s": 8 }, { "do": "act" }, { "do": "wait", "s": 30 },
+    { "do": "hold", "keys": "D", "s": 10 }, { "do": "wait", "s": 30 },
+    { "do": "fast", "s": 560 },
+    { "do": "tp", "x": 0, "y": 38, "admit": true, "settle": 20 },
+    { "do": "strike" }, { "do": "strike" }, { "do": "strike" }, { "do": "wait", "s": 5 },
+    { "do": "strike" }, { "do": "strike" }, { "do": "strike" }, { "do": "strike" }, { "do": "wait", "s": 10 },
+    { "do": "strike" }, { "do": "strike" }, { "do": "strike" }, { "do": "wait", "s": 30 },
+    { "do": "tp", "x": 0, "y": 24, "admit": true, "settle": 40 }
+  ] }

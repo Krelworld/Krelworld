@@ -21,6 +21,7 @@
 //   { "do": "close" }                              close whatever sheet is open
 //   { "do": "tp", "x": 17, "y": -53, "admit": true } put Grozz somewhere (for looking at places, not for play tests)
 //   { "do": "fast", "s": 300 }                     skip game time (breaks exact replay)
+//   { "do": "strike" }                             punch whoever is nearest (for noise and mayhem checks)
 const { chromium, devices } = require("playwright");
 const fs = require("fs"), path = require("path"), http = require("http");
 const { execFileSync } = require("child_process");
@@ -59,7 +60,7 @@ function serve(dir) {
   const p = await ctx.newPage();
   const errors = [];
   p.on("pageerror", (e) => errors.push(String(e.message).slice(0, 300)));
-  await p.addInitScript(() => { try { localStorage.clear(); } catch {} });
+  await p.addInitScript(() => { try { localStorage.clear(); } catch {} window.__audioLog = []; });
   const url = `${base}?noopening&mute&noswoop&seed=${encodeURIComponent(scen.seed ?? "qa")}${flag("--3d") ? "&3d=1" : "&3d=0"}`;
   await p.goto(url, { waitUntil: "load" });
   await p.waitForFunction(() => window.__scene, null, { timeout: 240000 });
@@ -131,8 +132,9 @@ function serve(dir) {
       await p.evaluate(() => { const sc = window.__scene; sc.walkTo = null; sc.pc.moveX = sc.pc.moveY = 0; });
     } else if (st.do === "tap") { const c = await toClient(st.x, st.y); await p.mouse.click(c.cx, c.cy); await run(400); }
     else if (st.do === "tp") { await p.evaluate(([x, y, adm]) => { const sc = window.__scene; sc.pc.x = x; sc.pc.y = y; sc.pc.moveX = sc.pc.moveY = 0; if (adm) sc.s.stadium.admitted = true; }, [st.x, st.y, !!st.admit]); await run((st.settle ?? 7) * 1000); }
+    else if (st.do === "strike") { await p.evaluate(() => { const sc = window.__scene, pc = sc.pc; const t = Object.values(sc.s.actors).filter((a) => a.npc && !a.dead && !a.hiddenIn && a.id !== pc.id).sort((a, b) => Math.hypot(a.x - pc.x, a.y - pc.y) - Math.hypot(b.x - pc.x, b.y - pc.y))[0]; if (t) { pc.x = t.x + 0.8; pc.y = t.y; sc.run({ label: "Punch", priority: 1, action: { verb: "strike", actor: pc.id, target: { k: "actor", id: t.id } } }); } }); await run(st.ms ?? 700); }
     else if (st.do === "fast") { await p.evaluate((n) => window.__fast(n), st.s); await run(1500); }
-    else if (st.do === "click") { if (await p.isVisible(st.sel)) await p.click(st.sel); else fs.appendFileSync(path.join(OUT, "steps.log"), `click ${st.sel}: NOT VISIBLE\n`); await run(500); }
+    else if (st.do === "click") { if (await p.isVisible(st.sel)) await p.click(st.sel, { timeout: 3000 }).catch(() => fs.appendFileSync(path.join(OUT, "steps.log"), `click ${st.sel}: WENT AWAY\n`)); else fs.appendFileSync(path.join(OUT, "steps.log"), `click ${st.sel}: NOT VISIBLE\n`); await run(500); }
     else if (st.do === "close") { await p.evaluate(() => window.__scene.closeSheet()); await run(300); }
     else if (st.do === "act") {
       // Press the main button if it's there and nothing is covering it (a first-timer would be stopped by a sheet too).
@@ -159,6 +161,7 @@ function serve(dir) {
   const dump = await p.evaluate(() => { const st = window.__scene.s.stadium; return { qa: window.__qa, causes: (st.causes ?? []).map((c) => ({ ...c, onscreen: window.__qa.onscreen?.[c.id] ?? null })), chainBest: st.chainBest ?? null, rec: window.__recording ? window.__recording() : null, fp: window.__fingerprint ? window.__fingerprint() : null, tick: window.__scene.s.tick, schemes: st.schemes ?? {}, info: window.__three?.renderer?.info?.render ?? null }; });
   fs.writeFileSync(path.join(OUT, "events.jsonl"), dump.qa.events.map((e) => JSON.stringify(e)).join("\n"));
   fs.writeFileSync(path.join(OUT, "samples.json"), JSON.stringify(dump.qa.samples));
+  fs.writeFileSync(path.join(OUT, "audio.json"), JSON.stringify(await p.evaluate(() => window.__audioLog ?? [])));
   fs.writeFileSync(path.join(OUT, "npcs.json"), JSON.stringify(dump.qa.npcs));
   fs.writeFileSync(path.join(OUT, "causes.json"), JSON.stringify({ causes: dump.causes, best: dump.chainBest }, null, 1));
   fs.writeFileSync(path.join(OUT, "schemes.json"), JSON.stringify(dump.schemes, null, 1));

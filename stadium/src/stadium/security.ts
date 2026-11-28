@@ -158,10 +158,11 @@ export function crime(w: World, by: Actor, what: string, severity: number, victi
         if (by.id === st.pc && maybeSnitch(w, wtn, by, what, severity, victim)) { shouted = true; n.nextBark = s.tick + 300; continue; }
       }
       shouted = true;
-      say(w, wtn, severity >= 2 ? "Oi! Somebody stop him!" : "Oi! Did you see that?");
+      // (More ways of saying it in the game; the tests' day keeps its two lines and its dice.)
+      say(w, wtn, !PACE.calm ? (severity >= 2 ? "Oi! Somebody stop him!" : "Oi! Did you see that?") : pick(s.rng.world, severity >= 2 ? ["Oi! Somebody stop him!", "He's gone mad!", "Get security! Now!", "Somebody do something!", "Jesus Christ!"] : ["Oi! Did you see that?", "Cheeky sod.", "You can't do that!", "Here! Pack it in!"]));
       for (const g of heard) alert(w, g, by, severity, 1.1);
     }
-    n.nextBark = s.tick + 300;
+    n.nextBark = s.tick + (PACE.calm ? 900 : 300);
   }
   return seen.length;
 }
@@ -231,7 +232,7 @@ export function alert(w: World, g: Actor, by: Actor, severity: number, sus: numb
   n.crime = Math.max(n.target === by.id ? n.crime : 0, severity);
   n.target = by.id;
   n.lastSeen = { x: by.x, y: by.y, t: w.state.tick };
-  if (n.mode === "routine" || n.mode === "watch" || n.mode === "search") setMode(w, g, "approach");
+  if (n.mode === "routine" || n.mode === "watch" || n.mode === "search") { n.alertAt = w.state.tick; setMode(w, g, "approach"); }
 }
 
 function setMode(w: World, g: Actor, mode: Npc["mode"]): void {
@@ -328,7 +329,7 @@ export function stepSecurity(w: World, g: Actor): void {
       g.moveX = g.moveY = 0;
       if (!t) return setMode(w, g, "routine");
       g.facing = Math.atan2(t.y - g.y, t.x - g.x);
-      if (sus >= (soft(w, t) ? 1.3 : 0.9)) { setMode(w, g, "approach"); say(w, g, n.crime >= 1 ? line(w, g, "spot") : "Excuse me, sir."); }
+      if (sus >= (soft(w, t) ? 1.3 : 0.9)) { n.alertAt = tick; setMode(w, g, "approach"); say(w, g, n.crime >= 1 ? line(w, g, "spot") : "Excuse me, sir."); }
       else if (sus < 0.25) setMode(w, g, "routine");
       return;
     case "approach":
@@ -372,6 +373,10 @@ export function stepSecurity(w: World, g: Actor): void {
 
 function apprehend(w: World, g: Actor, t: Actor): void {
   const n = g.npc!, st = w.state.stadium!;
+  // In the game nobody lays a hand on Grozz in the first four seconds after clocking him, however close
+  // he's stood (a copper at his elbow had him in the cabin 1.9 seconds after one punch). Four seconds is
+  // a second punch, or a head start.
+  if (soft(w, t) && n.alertAt !== undefined && w.state.tick - n.alertAt < 240) return;
   // On the gear he's as likely to throw them off as be held.
   if (t.id === st.pc && shrugOff(w, g, t)) { n.crime = Math.max(n.crime, 1); setMode(w, g, "chase"); return; }
   n.intent = decideIntent(w, g, t);
@@ -572,7 +577,8 @@ export function struggle(w: World, t: Actor): boolean {
   for (const id in s.actors) { const o = s.actors[id]; if (o !== g && isSecurity(o) && Math.hypot(o.x - t.x, o.y - t.y) < 4) { p *= 0.4; break; } }
   if (!chance(s.rng.world, p)) {
     n0.grip = (n0.grip ?? 0) + 1;
-    say(w, g, line(w, g, "struggle"), 1.2);
+    // (Not at every wriggle: he's hammering the button.)
+    if (!PACE.calm || n0.grip % 4 === 1) say(w, g, line(w, g, "struggle"), 1.2);
     w.bus.emit({ type: "struggle_failed", t: s.tick, who: t.id });
     return false;
   }

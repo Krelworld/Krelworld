@@ -140,27 +140,35 @@ export class Audio {
 
   /** Play a clip. `muffle` (0..1) dulls it, as heard from outside the ground. */
   play(name: Clip, volume = 1, opts: { muffle?: number; rate?: number; minGap?: number } = {}): number {
-    const b = this.buffers.get(name);
+    // A voice never talks over itself: the same spoken line can't start again within a couple of seconds, nor
+    // the same tannoy announcement within ten, whatever asks for it (a guard against anything that loops).
+    // (The refusal buzz is the one sound a confused player hears most: quiet, and not twice in a second.)
+    const now = this.ctx ? this.ctx.currentTime : performance.now() / 1000;
+    const spoken = /^(v|pc|stw|op|gh)_/.test(name), gap = name === "nope" ? 1 : opts.minGap ?? (name.startsWith("tannoy_") ? 10 : spoken ? 2 : 0.12);
+    if (name === "nope") volume *= 0.5;
+    if (now - (this.lastPlayed.get(name) ?? -9) < gap) return 0;
+    this.lastPlayed.set(name, now);
+    // (QA: what would be heard and how loud, whether or not the sound is on. tools/qa/sounds.py reads it.)
+    const lg = (globalThis as any).__audioLog as [string, number, number][] | undefined; if (lg) lg.push([name, (globalThis as any).__scene?.s?.tick ?? 0, Math.round(volume * 100) / 100]);
     if (!this.ctx || this.muted) return 0;
+    const b = this.buffers.get(name);
     if (!b) {
       // Not decoded yet: decode it and play it then, unless that took too long to still make sense.
       const ctx = this.ctx, asked = ctx.currentTime;
-      void this.load(name).then(() => { if (this.buffers.has(name) && ctx.currentTime - asked < 1.5) this.play(name, volume, opts); });
+      void this.load(name).then(() => { const b2 = this.buffers.get(name); if (b2 && ctx.currentTime - asked < 1.5 && !this.muted) this.start(b2, name, volume, opts); });
       return 0;
     }
-    const now = this.ctx.currentTime;
-    // A voice never talks over itself: the same spoken line can't start again within a couple of seconds, nor
-    // the same tannoy announcement within ten, whatever asks for it (a guard against anything that loops).
-    const spoken = /^(v|pc|stw|op|gh)_/.test(name), gap = opts.minGap ?? (name.startsWith("tannoy_") ? 10 : spoken ? 2 : 0.12);
-    if (now - (this.lastPlayed.get(name) ?? -9) < gap) return 0;
-    this.lastPlayed.set(name, now);
-    const src = this.ctx.createBufferSource();
+    return this.start(b, name, volume, opts);
+  }
+  private start(b: AudioBuffer, name: Clip, volume: number, opts: { muffle?: number; rate?: number }): number {
+    const ctx = this.ctx!;
+    const src = ctx.createBufferSource();
     src.buffer = b;
     src.playbackRate.value = opts.rate ?? 1;
-    const g = this.ctx.createGain();
+    const g = ctx.createGain();
     g.gain.value = volume * voiceBoost(name);
     if (opts.muffle) {
-      const f = this.ctx.createBiquadFilter();
+      const f = ctx.createBiquadFilter();
       f.type = "lowpass"; f.frequency.value = 300 + (1 - opts.muffle) * 8000;
       src.connect(f).connect(g);
     } else src.connect(g);
@@ -222,16 +230,35 @@ export class Audio {
     this.tune = { name, src, gain };
   }
 
-  /** The tannoy: a chime, then the voice. Announcements never talk over each other. */
+  /** The tannoy: just the voice (the jingle before it was the most hated sound in the game), and never
+   *  two announcements inside twenty seconds. Announcements never talk over each other. */
   tannoy(name: Clip, volume = 0.9, muffle = 0): void {
     if (!this.ctx) return;
     const now = this.ctx.currentTime;
     if (now < this.tannoyBusyUntil) return;
     const voice = this.buffers.get(name);
     if (!voice) { void this.load(name).then(() => { if (this.buffers.has(name) && this.ctx!.currentTime - now < 2) this.tannoy(name, volume, muffle); }); return; }
-    const chime = this.play("chime", volume * 0.6, { muffle });
-    this.tannoyBusyUntil = now + chime * 0.7 + voice.duration + 0.5;
-    window.setTimeout(() => this.play(name, volume, { muffle }), Math.max(0, chime * 700));
+    this.tannoyBusyUntil = now + voice.duration + 20;
+    this.play(name, volume * 0.8, { muffle });
+  }
+
+  /** The game's own small sounds (a step done, a plan pulled off, something noted): a soft synthesised
+   *  note or two, quiet and short, and never more than one in half a second. Nothing recorded, nothing
+   *  that can be mistaken for the tannoy. */
+  lastBlip = 0;
+  blip(kind: "step" | "done" | "note" = "step", pitch = 1): void {
+    const lg = (globalThis as any).__audioLog as [string, number, number][] | undefined; if (lg) lg.push([`blip_${kind}`, (globalThis as any).__scene?.s?.tick ?? 0, 0.1]);
+    if (!this.ctx || this.muted) return;
+    const now = this.ctx.currentTime;
+    if (now - this.lastBlip < 0.5) return;
+    this.lastBlip = now;
+    const notes = kind === "done" ? [[587, 0], [880, 0.11]] : kind === "note" ? [[494, 0]] : [[659, 0]];
+    for (const [hz, at] of notes) {
+      const o = this.ctx.createOscillator(), g = this.ctx.createGain(), t = now + at;
+      o.type = "sine"; o.frequency.value = hz * pitch;
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(kind === "done" ? 0.09 : 0.06, t + 0.012); g.gain.exponentialRampToValueAtTime(0.0008, t + 0.22);
+      o.connect(g).connect(this.master); o.start(t); o.stop(t + 0.25);
+    }
   }
 
   toggleMute(): boolean {

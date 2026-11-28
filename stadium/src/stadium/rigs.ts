@@ -8,7 +8,7 @@ import type { Actor } from "../core/types";
 import { registerVerb } from "../core/verbs";
 import { pick } from "../core/rng";
 import { SPOTS, VENUE } from "./layout";
-import { isSecurity } from "./security";
+import { crime, isSecurity } from "./security";
 import { say } from "./npc";
 import { linkCause, rootCause } from "./cause";
 import { free, leavePost, problem, stim } from "./machine";
@@ -33,6 +33,8 @@ export interface RigDef {
   /** Registered ones only: the headline, whether it's there at all (this build, this ground, right now), a label that changes, its step and its putting-right. */
   first?: string; on?: (w: World) => boolean; says?: (w: World) => string;
   step?: (w: World, c: RigCtx) => void; undo?: (w: World, r: RigState) => void;
+  /** The line over the button (what it will set off), and what it's called if staff see him at it (a minor offence). */
+  does?: string | ((w: World) => string); offence?: string;
 }
 
 const mx = (x: number) => (VENUE.id === "sf" ? -x : x);
@@ -55,6 +57,7 @@ const rigs = (w: World) => (w.state.stadium!.rigs ??= {}) as Record<string, RigS
 /** There (in this build, at this ground), not mid-way through, and not too soon after the last time. */
 export const rigReady = (w: World, id: RigId): boolean => !!RIGS[id] && (rigs(w)[id]?.ready ?? 0) <= w.state.tick && !rigs(w)[id]?.step && (RIGS[id].on ? RIGS[id].on!(w) : true);
 export const rigLabel = (w: World, id: RigId): string => RIGS[id].says?.(w) ?? RIGS[id].label;
+export const rigDoes = (w: World, id: RigId): string => { const d = RIGS[id]?.does; return typeof d === "function" ? d(w) : d ?? ""; };
 /** The one within reach of someone, if any is ready (the nearest, if there are two). */
 export function rigNear(w: World, a: Actor): RigId | undefined {
   if (!w.state.stadium) return undefined;
@@ -92,6 +95,8 @@ export function installRigs(): void {
       const id = act.arg as RigId;
       fire(w, id, actor.id, rootCause(w, FIRST[id] ?? RIGS[id].first ?? RIGS[id].label.toUpperCase(), RIGS[id].at()));
       w.bus.emit({ type: "rigged", t: w.state.tick, by: actor.id, rig: id, ...RIGS[id].at() });
+      // Cheek, not a capital crime: staff who see it clock him, and a second time come over for a word (security.ts).
+      if (RIGS[id].offence) crime(w, actor, RIGS[id].offence!, 1, undefined, false);
     },
   });
 }

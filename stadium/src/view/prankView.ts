@@ -9,7 +9,7 @@ import type { Actor, WorldState } from "../core/types";
 import type { World } from "../core/world";
 import { areaAt, SPOTS, VENUE } from "../stadium/layout";
 import { RIGS, rigReady } from "../stadium/rigs";
-import { buntingLine, PRANK_IDS } from "../stadium/pranks";
+import { buntingLine, PRANK_IDS, secondBall } from "../stadium/pranks";
 import type { Audio } from "./audio";
 import type { Projection } from "./projection";
 import type { Paint3D } from "./three/gfx";
@@ -85,34 +85,37 @@ function sparks(pen: Pen, dx: number, up: number, t: number, n = 7): void {
 
 export function prankEvent(h: PrankHost, e: any): void {
   if (e.type !== "rig" || !PRANK_IDS.includes(e.rig)) return;
-  const v = view(h), a = h.audio, now = performance.now(), id: string = e.rig;
-  const line = (text: string, ms = 2000) => { h.pcLine = { text, until: now + ms }; };
+  const v = view(h), now = performance.now(), id: string = e.rig;
+  // One short noise each, once, and quiet: nothing here rings on, repeats or is set going on a timer.
+  const snd = (clip: Parameters<Audio["play"]>[0], vol: number, rate = 1) => h.audio.play(clip, Math.min(0.6, vol), { rate, minGap: 10 });
   const fx = (kind: string, extra: Partial<Fx> = {}) => { v.fx.push({ kind, x: e.x, y: e.y, t0: now, ...extra }); if (v.fx.length > 24) v.fx.shift(); };
-  if (e.reset) { v.at.set(id, -now); if (id === "lights") a.play("crowd_ooh", 0.5); if (id === "horse") v.plop = null; return; }
+  if (e.reset) { v.at.set(id, -now); if (id === "horse") v.plop = null; return; }
   if (e.step === 1) v.at.set(id, now);
   switch (kindOf(id)) {
-    case "bin": a.play("barrier_clang", 0.9, { rate: 0.7 }); a.play("glass_smash", 0.35, { rate: 0.8 }); h.cameras.main.shake(110, 0.003); line("Have that."); break;
-    case "sign": a.play("turnstile_clunk", 0.9, { rate: 0.7 }); fx("turn"); line("Entrance is that way, lads. Heh."); break;
-    case "van": if (e.hiss) { a.play("fart", 0.45, { rate: 0.45 }); fx("hiss"); line("Psssss."); } else a.play("bodyfall", 0.7, { rate: 0.8 }); break;
-    case "phone": for (let i = 0; i < 3; i++) setTimeout(() => a.play("desk_bell", 0.7, { rate: 1.5, minGap: 0.05 }), i * 420); fx("ring"); line("...Is that the Three Lions?", 2200); break;
-    case "soldout": a.play("tap", 0.8); a.play("groan", 0.5); line("Sold out. Shame."); break;
-    case "fuse": a.play("scan_bad", 0.9, { rate: 0.6 }); a.play("glass_smash", 0.25, { rate: 1.4 }); fx("sparks"); h.cameras.main.shake(90, 0.003); line("Lights out."); break;
-    case "bunting": a.play("whoosh", 0.9, { rate: 0.7 }); line("Mind how you go."); break;
-    case "cable": a.play("scan_bad", 0.9, { rate: 0.5 }); a.play("radio_squelch", 0.7); fx("sparks"); line("And we're off air."); break;
+    case "bin": snd("barrier_clang", 0.5, 0.7); h.cameras.main.shake(110, 0.003); break;
+    case "sign": snd("turnstile_clunk", 0.5, 0.7); fx("turn"); break;
+    case "van": if (e.hiss) { snd("fart", 0.35, 0.45); fx("hiss"); } else snd("bodyfall", 0.4, 0.8); break;
+    case "phone": if (e.ring) { snd("desk_bell", 0.45, 1.5); fx("ring"); } break;
+    case "soldout": snd("tap", 0.5); break;
+    case "fuse": snd("scan_bad", 0.45, 0.6); fx("sparks"); break;
+    case "bunting": snd("whoosh", 0.5, 0.7); break;
+    case "cable": snd("scan_bad", 0.45, 0.5); fx("sparks"); break;
     case "horse":
-      if (e.feed) { a.play("munch", 0.9); fx("kebab"); line("There you go, boy. Extra chilli."); }
-      else if (e.plop) { a.play("fart", 0.9, { rate: 0.7 }); a.play("splat", 0.8); a.play("whinny", 0.6); v.plop = e.to; h.cameras.main.shake(120, 0.003); }
+      if (e.feed) { snd("munch", 0.5); fx("kebab"); }
+      else if (e.plop) { snd("splat", 0.5); v.plop = e.to; }
       break;
-    case "skip": if (e.light) { a.play("flare", 0.6); line("Careless."); } else { a.play("gas_whoomph", 0.55, { rate: 1.2 }); h.cameras.main.shake(160, 0.004); } break;
-    case "gas": a.play("fart", 0.5, { rate: 0.5 }); a.play("groan", 0.6); fx("hiss"); line("Dry as a bone."); break;
-    case "tannoy": a.play("chime", 0.9); if (e.msg === 2) setTimeout(() => a.play("crowd_jeer", 0.6), 1500); else setTimeout(() => a.play("crowd_ooh", 0.5), 1500); fx("ring"); line(`"${e.text}."`, 2600); break;
-    case "lights": a.play("scan_bad", 1, { rate: 0.5 }); setTimeout(() => a.play("boo", 0.6), 500); fx("sparks"); h.trauma = Math.min(1, h.trauma + 0.2); line("Who turned the lights out?"); break;
-    case "sprinklers": a.play("sewer_gush", 0.6, { rate: 1.5 }); setTimeout(() => a.play("crowd_jeer", 0.5), 700); line("Bit dry, that pitch."); break;
-    case "score": a.play("scan_beep", 0.9); setTimeout(() => a.play("groan", 0.8), 500); line("Seven. Go on."); break;
-    case "ball": if (e.thrown) { a.play("kick", 0.9); fx("ball", { to: e.to }); line("Have another!"); } else a.play("whistle", 0.7, { minGap: 1 }); break;
-    case "hoarding": a.play("barrier_clang", 1, { rate: 0.55 }); a.play("bodyfall", 0.7); h.cameras.main.shake(140, 0.004); line("Timber."); break;
-    case "medics": if (e.shout) { a.play("crowd_ooh", 0.6); fx("ring"); line("MEDIC! MAN DOWN!", 2200); } break;
-    case "sinks": a.play("drain", 0.8); a.play("sewer_gush", 0.35, { rate: 1.3 }); line("Wash your hands, lads."); break;
+    case "skip": if (e.light) snd("flare", 0.4); else { snd("gas_whoomph", 0.45, 1.2); h.cameras.main.shake(140, 0.003); } break;
+    case "gas": snd("fart", 0.35, 0.5); fx("hiss"); break;
+    // What he says into it is the whole of it: it goes up as his line, and the crowd's answer is one murmur.
+    case "tannoy": snd("crowd_ooh", 0.35); fx("ring"); h.pcLine = { text: `"${e.text}."`, until: now + 2600 }; break;
+    case "lights": snd("scan_bad", 0.5, 0.5); fx("sparks"); break;
+    case "sprinklers": snd("sewer_gush", 0.4, 1.5); break;
+    case "score": snd("scan_beep", 0.4); break;
+    case "ball": if (e.thrown) { snd("kick", 0.5); fx("ball", { to: e.to }); } break;
+    case "hoarding": snd("barrier_clang", 0.55, 0.55); h.cameras.main.shake(120, 0.003); break;
+    case "medics": if (e.shout) { fx("ring"); h.pcLine = { text: "MEDIC! MAN DOWN!", until: now + 2000 }; } break;
+    case "dugout": if (e.draw) snd("tap", 0.4, 0.7); break;
+    case "sinks": snd("drain", 0.5); break;
   }
 }
 
@@ -133,7 +136,7 @@ export function drawPranks(h: PrankHost): void {
   if (out) { const k = Math.min(1, (now - Math.abs(v.at.get(st.rigs?.lights?.step ? "lights" : "fuse") ?? 0)) / 250); dark.fillStyle(0x05070c, 0.55 * k).fillRect(view2.x - 50, view2.y - 50, view2.width + 100, view2.height + 100); }
 
   // One ring at a time (the noise complaint stands): the nearest ready one of a kind he's not tried, till he's tried two kinds.
-  let ringed = "", rd = 13;
+  let ringed = "", rd = 9;
   if (!known && pc && !pc.hiddenIn) for (const id of PRANK_IDS) {
     if (h.rules.has(`rig_${kindOf(id)}`) || !RIGS[id]) continue;
     const at = RIGS[id].at(), d = Math.hypot(at.x - pc.x, at.y - pc.y);
@@ -144,7 +147,7 @@ export function drawPranks(h: PrankHost): void {
     if (!def || (def.on && !def.on(h.w) && !st.rigs?.[id]?.step)) continue;
     const at = def.at(), r = st.rigs?.[id], on = !!r?.step, ready = !on && rigReady(h.w, id);
     if (!onScreen(at.x, at.y)) continue;
-    const since = (now - Math.abs(v.at.get(id) ?? -1e9)) / 1000, near = !!pc && !pc.hiddenIn && Math.hypot(at.x - pc.x, at.y - pc.y) < 13;
+    const since = (now - Math.abs(v.at.get(id) ?? -1e9)) / 1000, near = !!pc && !pc.hiddenIn && Math.hypot(at.x - pc.x, at.y - pc.y) < 9;
     // Where to hang the glint that says "this does something" (art pixels from the foot).
     let gx = 0, gup = 30;
     pen.at(at.x, at.y);
@@ -166,22 +169,40 @@ export function drawPranks(h: PrankHost): void {
         break;
       }
       case "sign": {
-        // (The sign's its own picture.) Turned: an arrow board on it pointing at the wall, swinging a bit.
+        // (The totem's its own picture: 130 by 104 art pixels, its top row the way in.) Turned: a yellow board over
+        // that row with the arrow pointing at the wall, rocking a bit where it's been left loose.
         if (on) {
-          const to = id === "sign_w" ? -1 : 1, sw = Math.sin(now / 260) * 2, dir = to * m;
-          pen.at(at.x, at.y, 0.12).slab(sw, 46, 46, 14, 0xf2c94c);
-          pen.tri(dir * 22 + sw, 53, dir * 8 + sw, 59, dir * 8 + sw, 47, INK).box(-dir * 4 + sw, 51, 24, 4, INK);
+          const dir = (id === "sign_w" ? -1 : 1) * m, sw = Math.sin(now / 240) * 1.5;
+          pen.at(at.x, at.y, 0.14).slab(sw, 78, 128, 20, 0xf2c94c);
+          // (The head of the arrow is stepped out of blocks, like the rest of the lettering.)
+          for (let i = 0; i < 5; i++) pen.box(dir * (58 - i * 3.5) + sw, 88 - (1.5 + i * 2), 3.6, 3 + i * 4, INK);
+          pen.box(dir * 34 + sw, 85, 18, 6, INK);
+          text(h, v, id, "ENTRANCE", at.x - dir * 0.45, at.y, 88 / 32, 0.36, "#15171a");
         }
-        gup = 40;
+        gup = 88;
         break;
       }
       case "van": {
-        // The wheel: hissing, then flat, with the jack he hasn't got.
-        if (on) { pen.flat(); pen.pool(at.x, at.y - 0.1, 1.0, 0.34, 0x0a0a0a, 0.8); pen.at(at.x, at.y, 0.1).slab(0, 0, 22, 5, 0x1d1f24).box(0, 4, 12, 2, 0x8a8f96); }
-        gup = 10;
+        // The near back wheel (which is where `at` is): hissing, then down on its rim in a pool of itself, the hubcap
+        // off and the brace beside it, and a warning triangle stood behind.
+        if (on) {
+          const k = Math.min(1, since / 2.2);
+          pen.flat(); pen.pool(at.x, at.y - 0.05, 1.5 * k, 0.5 * k, 0x0a0a0a, 0.85);
+          if (k >= 1) {
+            pen.at(at.x, at.y, 0.12).slab(0, 0, 30, 7, 0x1d1f24).dot(0, 10, 7.5, INK).dot(0, 10, 5.6, 0x8a8f96).dot(0, 10, 1.8, INK);
+            pen.at(at.x - m * 1.1, at.y + 0.2, 0.1).dot(0, 3, 6, INK).dot(0, 3, 4.6, 0xb8bec6).dot(0, 3, 1.6, INK).line(8, 1, 22, 5, 2.4, INK).line(8, 1, 22, 5, 1.2, 0xd7263d);
+            pen.at(at.x - m * 1.9, at.y - 0.1, 0.1).tri(-11, 0, 11, 0, 0, 20, INK).tri(-8, 2, 8, 2, 0, 17, 0xd7263d).tri(-4.5, 4, 4.5, 4, 0, 12, 0xf4f1ea);
+          }
+        }
+        gup = 10; gx = 0;
         break;
       }
-      case "phone": gup = 50; break;
+      case "phone": {
+        // (The box is its own picture.) While it's ringing the other end: the receiver off its hook, swinging on its cord.
+        if (on) { const sw = Math.sin(now / 210) * 5; pen.at(at.x, at.y, 0.16).line(-2, 46, -4 + sw, 22, 1.6, INK).slab(-4 + sw, 10, 6, 14, 0x1d1f24).box(-4 + sw, 20, 8, 4, 0x1d1f24).box(-4 + sw, 10, 8, 4, 0x1d1f24); }
+        gup = 50;
+        break;
+      }
       case "soldout": {
         // A board on a post by the window: TICKETS, or (flipped) SOLD OUT.
         pen.box(0, 0, 12, 3, 0x000000, 0.25).slab(0, 0, 3, 40, 0x5d6470).slab(0, 34, 60, 18, on ? 0xc8102e : 0xf4f1ea);
@@ -199,13 +220,19 @@ export function drawPranks(h: PrankHost): void {
         gup = 39;
         break;
       }
-      case "bunting": break; // drawn below, end to end
+      case "bunting": gup = 100; gx = -m * 28; break; // drawn below, end to end
       case "cable": {
-        // A junction box on the tarmac with the truck's fat cable in it; pulled, the end lies loose and spits.
-        pen.flat(0.05); g.lineStyle(4 * pen.u, INK, 1).lineBetween(P.sx(at.x + m * 0.9, at.y - 0.5), P.sy(at.x + m * 0.9, at.y - 0.5), P.sx(at.x + (on ? m * 0.5 : 0), at.y + (on ? 0.5 : 0)), P.sy(at.x + (on ? m * 0.5 : 0), at.y + (on ? 0.5 : 0)));
-        pen.at(at.x, at.y).box(0, 0, 18, 3, 0x000000, 0.25).slab(0, 0, 14, 12, 0xf2c94c).box(0, 8, 14, 2, INK).dot(0, 5, 3, on ? 0x1d1f24 : 0xd7263d);
-        if (on && since < 6) { fxp.at(at.x + m * 0.5, at.y + 0.5, 0.1); sparks(fxp, 0, 4, since, 5); }
-        gup = 8;
+        // The truck's power: a yellow generator on the tarmac and a fat black cable from it into the truck.
+        // Pulled, the plug lies out on the ground spitting, and the generator's lamp is out.
+        const tx = at.x + m * 2.1, ty = at.y - 0.9, ex = on ? at.x + m * 0.9 : at.x + m * 0.3, ey = on ? at.y + 0.7 : at.y - 0.1;
+        pen.flat(0.05);
+        const pts = [[tx, ty], [at.x + m * 1.5, at.y + 0.1], [ex, ey]];
+        for (const wdt of [7, 4]) { g.lineStyle(wdt * pen.u, wdt === 7 ? INK : 0x2a2f38, 1); for (let i = 0; i < 2; i++) g.lineBetween(P.sx(pts[i][0], pts[i][1]), P.sy(pts[i][0], pts[i][1]), P.sx(pts[i + 1][0], pts[i + 1][1]), P.sy(pts[i + 1][0], pts[i + 1][1])); }
+        if (on) { pen.at(ex, ey, 0.05).slab(0, 0, 9, 6, 0xd7263d); }
+        pen.at(at.x, at.y).box(0, 0, 34, 4, 0x000000, 0.25).slab(0, 2, 30, 22, 0xf2c94c).box(0, 16, 30, 3, INK).box(-8, 6, 8, 7, INK).box(6, 6, 12, 2, INK).box(6, 10, 12, 2, INK).slab(0, 24, 12, 4, 0x5d6470);
+        pen.dot(10, 20, 3.4, INK).dot(10, 20, 2.4, on ? 0x3a1010 : pulse > 0.5 ? 0x3fcf5c : 0x2a8f40);
+        if (on && since < 8) { fxp.at(ex, ey, 0.1); sparks(fxp, 0, 5, since, 6); }
+        gup = 14;
         break;
       }
       case "horse": gup = 26; break;
@@ -218,8 +245,9 @@ export function drawPranks(h: PrankHost): void {
       case "gas": {
         // A lager gas bottle chained to the end of the bar, with a red wheel on top.
         pen.box(0, 0, 16, 3, 0x000000, 0.25).slab(0, 0, 12, 34, 0x6f7a86).box(-3, 0, 3, 34, 0x9aa5b1).slab(0, 34, 6, 5, 0x3a3d42).box(0, 16, 12, 5, 0xf4f1ea);
-        pen.dot(0, 42, 6, INK).dot(0, 42, 4.5, on ? 0x3fcf5c : 0xd7263d).dot(0, 42, 1.5, INK);
-        if (on && since < 2) { fxp.at(at.x, at.y, 0.1); for (let i = 0; i < 4; i++) { const k = (since * 1.6 + i / 4) % 1; fxp.dot(Math.sin(i * 2 + since * 5) * 4, 46 + k * 22, 3 + k * 4, 0xffffff, 0.3 * (1 - k)); } }
+        pen.dot(0, 42, 6, INK).dot(0, 42, 4.5, 0xd7263d).dot(0, 42, 1.5, INK);
+        { const a = on ? 0.9 : 0; pen.line(Math.cos(a) * 7, 42 + Math.sin(a) * 7, -Math.cos(a) * 7, 42 - Math.sin(a) * 7, 1.6, INK); }
+        if (on) { fxp.at(at.x, at.y, 0.1); for (let i = 0; i < 5; i++) { const k = (now / 900 + i / 5) % 1; fxp.dot(Math.sin(i * 2 + now / 200) * (3 + k * 6), 46 + k * 30, 3 + k * 6, 0xffffff, 0.45 * (1 - k)); } }
         gup = 42;
         break;
       }
@@ -232,11 +260,12 @@ export function drawPranks(h: PrankHost): void {
         break;
       }
       case "sprinklers": {
-        // A standpipe with a red wheel at the foot of the stand.
-        pen.box(0, 0, 14, 3, 0x000000, 0.25).slab(0, 0, 7, 22, 0x8a9098).box(-2, 0, 2, 22, 0xb8bec6).slab(0, 12, 14, 4, 0x6a7078);
-        const a = on ? now / 90 : 0;
-        pen.dot(0, 26, 8, INK).dot(0, 26, 6.5, 0xd7263d).dot(0, 26, 2, INK).line(Math.cos(a) * 6, 26 + Math.sin(a) * 6, -Math.cos(a) * 6, 26 - Math.sin(a) * 6, 1.6, INK).line(-Math.sin(a) * 6, 26 + Math.cos(a) * 6, Math.sin(a) * 6, 26 - Math.cos(a) * 6, 1.6, INK);
-        gup = 26;
+        // A standpipe on the verge with a red wheel on top (spinning, and the pipe weeping, once it's open).
+        pen.box(0, 0, 18, 3, 0x000000, 0.25).slab(0, 0, 9, 30, 0x8a9098).box(-3, 0, 2, 30, 0xb8bec6).slab(0, 14, 18, 5, 0x6a7078).slab(10, 15, 6, 3, 0xc8a24a);
+        const a = on ? now / 90 : 0.4;
+        pen.dot(0, 36, 10, INK).dot(0, 36, 8.4, 0xd7263d).dot(0, 36, 2.4, INK).line(Math.cos(a) * 8, 36 + Math.sin(a) * 8, -Math.cos(a) * 8, 36 - Math.sin(a) * 8, 1.8, INK).line(-Math.sin(a) * 8, 36 + Math.cos(a) * 8, Math.sin(a) * 8, 36 - Math.cos(a) * 8, 1.8, INK);
+        if (on) for (let i = 0; i < 3; i++) { const k = (now / 400 + i / 3) % 1; pen.dot(13 + k * 10, 16 - k * k * 16, 2.2, 0xcfe9f7, 0.9 * (1 - k)); }
+        gup = 36;
         break;
       }
       case "score": {
@@ -257,7 +286,7 @@ export function drawPranks(h: PrankHost): void {
       }
       case "hoarding": {
         // Four panels of advertising along the touchline; over they go, flat, towards the pitch.
-        const k = on ? Math.min(1, since / 0.28) : 0, hx = at.x + m * 0.5;
+        const k = on ? Math.min(1, since / 0.28) : 0, hx = at.x;
         for (let i = 0; i < 4; i++) {
           const y = at.y - 2.25 + i * 1.5;
           if (k < 1) { pen.at(hx, y).slab(0, 0, 44, 26 * (1 - k * 0.8), i % 2 ? 0xc8102e : 0xf4f1ea).box(0, 9 * (1 - k * 0.8), 30, 6 * (1 - k * 0.8), i % 2 ? 0xf4f1ea : 0x1b2a6b); }
@@ -272,6 +301,24 @@ export function drawPranks(h: PrankHost): void {
         pen.box(0, 0, 3, 22, 0x5d6470).slab(0, 22, 22, 22, 0x1f8a4c).box(0, 30, 14, 5, 0xffffff).box(0, 25.5, 5, 14, 0xffffff);
         pen.slab(16, 0, 5, 40, 0xe86a2a).box(16, 0, 1.5, 44, 0x9aa5b1);
         gup = 33;
+        break;
+      }
+      case "dugout": {
+        // Their tactics board on an easel: noughts and crosses and arrows, or (after) the one thing Grozz can draw.
+        pen.box(0, 0, 40, 3, 0x000000, 0.25).line(-14, 0, -9, 46, 2.4, INK).line(14, 0, 9, 46, 2.4, INK).line(0, 4, 0, 30, 2, INK);
+        pen.slab(0, 14, 46, 34, 0xf4f1ea).box(0, 14, 46, 3, 0x9aa5b1);
+        const drawn = on && (since > 1.3 || (r?.step ?? 0) < 0);
+        if (!drawn) {
+          for (const [dx, up] of [[-14, 40], [-4, 42], [8, 40], [16, 34], [-10, 30]] as const) pen.ring(dx, up, 2.6, 0x1b2a6b, 1, 1.4);
+          for (const [dx, up] of [[-16, 24], [-2, 26], [10, 22]] as const) pen.line(dx - 2.4, up - 2.4, dx + 2.4, up + 2.4, 1.4, 0xc8102e).line(dx - 2.4, up + 2.4, dx + 2.4, up - 2.4, 1.4, 0xc8102e);
+          pen.line(-4, 38, 8, 28, 1.2, INK).line(8, 28, 4, 29, 1.2, INK).line(8, 28, 7, 32, 1.2, INK);
+          if (on) pen.line(-12, 20, -12 + since * 14, 20 + since * 14, 2.4, INK);
+        } else {
+          pen.ring(-6, 22, 5.5, INK, 1, 2.6).ring(6, 22, 5.5, INK, 1, 2.6);
+          pen.line(-4.5, 27, -4.5, 42, 2.6, INK).line(4.5, 27, 4.5, 42, 2.6, INK).line(-4.5, 42, 0, 46, 2.6, INK).line(4.5, 42, 0, 46, 2.6, INK).line(-4.5, 39, 4.5, 39, 1.6, INK);
+          pen.line(9, 44, 14, 47, 1.4, INK).line(10, 41, 16, 42, 1.4, INK);
+        }
+        gup = 52;
         break;
       }
       case "sinks": {
@@ -298,38 +345,44 @@ export function drawPranks(h: PrankHost): void {
     }
   }
 
-  // The bunting: flags on a line between two trees, or the same line lying across the pavement.
+  // The bunting: big flags on a line across the approach, or the same line lying over the paving.
   if (RIGS.bunting?.on?.(h.w) || st.rigs?.bunting?.step) {
     const b = buntingLine(), on = !!st.rigs?.bunting?.step, since = (now - Math.abs(v.at.get("bunting") ?? -1e9)) / 1000, drop = on ? Math.min(1, since / 0.35) : 0;
-    if (onScreen(b.x0, b.y) || onScreen(b.x1, b.y)) {
-      const n = 13, cols = [0xc8102e, 0xf4f1ea, 0x1b2a6b];
-      if (drop >= 1) pen.flat(0.05); else p3?.at(undefined, b.y + 0.05, 0.05);
-      let px0 = 0, py0 = 0;
-      for (let i = 0; i <= n; i++) {
-        const t = i / n, x = b.x0 + (b.x1 - b.x0) * t, sag = Math.sin(t * Math.PI) * 0.35, z = drop >= 1 ? 0 : (2.7 - sag) * (1 - drop);
-        const y = b.y + (drop >= 1 ? 0.3 + Math.sin(i * 1.9) * 0.18 : 0), sx = P.sx(x, y), sy = P.sy(x, y, z), u = P.S / 32;
-        if (i) g.lineStyle(1.5 * u, INK, 1).lineBetween(px0, py0, sx, sy);
-        if (i && i < n) g.fillStyle(cols[i % 3], 1).fillTriangle(sx - 6 * u, sy, sx + 6 * u, sy, sx + (drop >= 1 ? 3 * u : 0), sy + 11 * u * (drop >= 1 ? P.K : 1));
-        px0 = sx; py0 = sy;
+    const n = 16, cols = [0xc8102e, 0xf4f1ea, 0x1b2a6b], u = P.S / 32, down = drop >= 1;
+    if (down) pen.flat(0.05); else p3?.at(undefined, b.y + 0.05, 0.05);
+    let px0 = 0, py0 = 0, was = false;
+    for (let i = 0; i <= n; i++) {
+      const t = i / n, x = b.x0 + (b.x1 - b.x0) * t, sag = Math.sin(t * Math.PI) * 0.8, z = down ? 0 : (3.7 - sag) * (1 - drop);
+      const y = b.y + (down ? 0.3 + Math.sin(i * 1.9) * 0.22 : 0), sx = P.sx(x, y), sy = P.sy(x, y, z), vis = onScreen(x, y);
+      if (i && (vis || was)) {
+        g.lineStyle(2 * u, INK, 1).lineBetween(px0, py0, sx, sy);
+        if (i < n) {
+          const tip = down ? 9 * u * P.K * (i % 2 ? 1 : -1) : 17 * u;
+          g.fillStyle(INK, 1).fillTriangle(sx - 9 * u, sy, sx + 9 * u, sy, sx + (down ? 4 * u : 0), sy + tip * 1.12);
+          g.fillStyle(cols[i % 3], 1).fillTriangle(sx - 7 * u, sy, sx + 7 * u, sy, sx + (down ? 3 * u : 0), sy + tip);
+        }
       }
+      px0 = sx; py0 = sy; was = vis;
     }
   }
-  // The sprinklers: six heads on the pitch throwing arcs round.
-  if (st.rigs?.sprinklers?.step) {
-    for (const [hx, hy] of [[-24, -12], [0, -12], [24, -12], [-24, 12], [0, 12], [24, 12]] as const) {
+  // The sprinklers: the heads at the valve's end of the pitch, throwing arcs round.
+  if (st.rigs?.sprinklers?.step && RIGS.sprinklers) {
+    const side = Math.sign(RIGS.sprinklers.at().x) || -1;
+    for (const hx0 of [31, 20, 9]) for (const hy of [-20.5, -7, 7, 20.5]) {
+      const hx = side * hx0;
       if (!onScreen(hx, hy)) continue;
       fxp.at(hx, hy, 0.05).dot(0, 2, 3, 0x8a9098);
       for (let j = 0; j < 2; j++) {
-        const a = now / 700 + j * Math.PI + hx * 0.1, cx = Math.cos(a), cy = Math.sin(a);
-        for (let i = 1; i <= 9; i++) { const t = i / 9, d = t * 7.5, z = Math.sin(t * Math.PI) * 1.9 + 0.1, x = hx + cx * d, y = hy + cy * d * 0.9; tg.fillStyle(0xcfe9f7, 0.75 - t * 0.35).fillCircle(P.sx(x, y), P.sy(x, y, z), (2 + t * 2.4) * (P.S / 32)); }
+        const a = now / 700 + j * Math.PI + hx * 0.1 + hy * 0.07, cx = Math.cos(a), cy = Math.sin(a);
+        for (let i = 1; i <= 9; i++) { const t = i / 9, d = t * 6.5, z = Math.sin(t * Math.PI) * 1.9 + 0.1, x = hx + cx * d, y = hy + cy * d * 0.9; tg.fillStyle(0xdff2fb, 0.85 - t * 0.35).fillCircle(P.sx(x, y), P.sy(x, y, z), (2.4 + t * 2.6) * (P.S / 32)); }
       }
-      fxp.flat(0.04); fxp.pool(hx, hy, 9, 9, 0x6fa8c8, 0.12);
+      fxp.flat(0.04); fxp.pool(hx, hy, 9, 9, 0x6fa8c8, 0.14);
     }
   }
   // The second ball, sat on the pitch till somebody fetches it.
   if (st.rigs?.ball?.step && RIGS.ball) {
-    const a0 = RIGS.ball.at(), to = { x: a0.x - m * 3, y: 13 };
-    if (!v.fx.some((f) => f.kind === "ball") && onScreen(to.x, to.y)) { fxp.flat(); fxp.pool(to.x, to.y + 0.05, 0.5, 0.22, 0x000000, 0.3); fxp.at(to.x, to.y, 0.05).dot(0, 5, 5.6, INK).dot(0, 5, 4.6, 0xf4f4f4).dot(-1, 6, 1.6, INK); }
+    const to = secondBall();
+    if (!v.fx.some((f) => f.kind === "ball") && onScreen(to.x, to.y)) { fxp.flat(); fxp.pool(to.x, to.y + 0.05, 0.6, 0.26, 0x000000, 0.3); fxp.at(to.x, to.y, 0.05).dot(0, 6, 7, INK).dot(0, 6, 5.8, 0xf4f4f4).dot(-1, 7, 2, INK).dot(3, 4, 1.4, INK); }
   }
   // What the horse left.
   if (v.plop && st.rigs?.horse?.step) { fxp.flat(); fxp.pool(v.plop.x, v.plop.y, 1.3, 0.7, 0x3a2a12, 0.6); fxp.at(v.plop.x, v.plop.y, 0.03).dot(-5, 3, 6, 0x5a4020).dot(4, 3, 5.5, 0x4a3418).dot(-1, 9, 5, 0x5a4020).dot(1, 14, 3.2, 0x6a4a26); }
@@ -339,7 +392,7 @@ export function drawPranks(h: PrankHost): void {
   for (const f of v.fx) {
     const t = (now - f.t0) / 1000;
     if (f.kind === "sparks" && t < 1.4) { fxp.at(f.x, f.y, 0.14); sparks(fxp, 0, 38, t, 9); }
-    else if (f.kind === "ring" && t < 1.8) { fxp.at(f.x, f.y, 0.14); for (let i = 0; i < 3; i++) { const k = (t * 1.5 + i / 3) % 1; fxp.ring(0, 56, 6 + k * 20, 0xffffff, 0.7 * (1 - k), 1.6); } }
+    else if (f.kind === "ring" && t < 3) { fxp.at(f.x, f.y, 0.14); for (let i = 0; i < 3; i++) { const k = (t * 1.5 + i / 3) % 1; fxp.ring(0, 56, 6 + k * 20, 0xffffff, 0.7 * (1 - k), 1.6); } }
     else if (f.kind === "hiss" && t < 2.2) { fxp.at(f.x, f.y, 0.12); for (let i = 0; i < 5; i++) { const k = (t * 1.8 + i / 5) % 1; fxp.dot(-8 - k * 22, 6 + k * 10 + Math.sin(i * 2 + t * 6) * 3, 2.5 + k * 5, 0xffffff, 0.4 * (1 - k)); } }
     else if (f.kind === "turn" && t < 0.9) { fxp.at(f.x, f.y, 0.14); for (let i = 0; i < 2; i++) { const a = t * 9 + i * Math.PI; fxp.line(Math.cos(a) * 30, 58 + Math.sin(a) * 5, Math.cos(a + 0.6) * 30, 58 + Math.sin(a + 0.6) * 5, 2, 0xffffff, 0.8 * (1 - t / 0.9)); } }
     else if (f.kind === "kebab" && t < 0.7) { const k = t / 0.7, x = pc.x + (f.x - pc.x) * k, y = pc.y + (f.y - pc.y) * k; fxp.at(x, y, 0.2).slab(0, 34 + Math.sin(k * Math.PI) * 18, 12, 6, 0xc58a3e); }

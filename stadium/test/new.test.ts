@@ -520,7 +520,9 @@ test("caught in the game build: no march; detained means time passes, then you'r
     const stw2 = find(g2, (a) => a.npc?.job === "pitchsteward" && !a.dead);
     pc2.x = stw2.x + Math.cos(stw2.facing) * 2; pc2.y = stw2.y + Math.sin(stw2.facing) * 2;
     run(g2, 1); crime(g2.w, pc2, "brawling", 2, undefined);
-    run(g2, 40, () => { if (st2.custody?.away && s2.tick - st2.custody.away > 60 * 6) { pc2.x = 34; pc2.y = -46; } });
+    // (Guards give Grozz four seconds before they lay hands on him now, so it all starts that much later; and
+    // the chief has to be well down the corridor, or he sees him go and that's a matter of its own.)
+    run(g2, 52, () => { if (st2.custody?.away && s2.tick - st2.custody.away > 60 * 12) { pc2.x = 34; pc2.y = -46; } });
     assert.ok(!st2.custody && ev2.some((e) => e.type === "custody_end" && e.escaped), "out of the door while he's gone");
     void s;
   } finally { setPace({ kickoffAt: before, calm: false }); }

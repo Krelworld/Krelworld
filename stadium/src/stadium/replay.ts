@@ -6,10 +6,10 @@
 import type { Action } from "../core/types";
 import { dispatch, dispatchHooks } from "../core/verbs";
 import type { Campaign } from "./campaign";
-import { KICKOFF_AT, PACE, setPace } from "./layout";
+import { PACE, setPace } from "./layout";
 
 export interface Recording {
-  v: 1; seed: string; venue: string; campaign: Campaign; calm: boolean; kickoffAt: number;
+  v: 1; seed: string; venue: string; campaign: Campaign; calm: boolean; soft?: boolean; kickoffAt: number;
   /** [tick, moveX, moveY], whenever the stick changed. */
   moves: [number, number, number][];
   /** [tick, facing, action]: everything the player asked for from outside the simulation step. */
@@ -30,7 +30,7 @@ export const stepping = { on: false };
 const q = (n: number) => n;
 
 export function startRecording(g: { w: any; venue: string; campaign: Campaign }, seed: string): void {
-  const rec: Rec = { r: { v: 1, seed, venue: g.venue, campaign: structuredClone(g.campaign), calm: PACE.calm, kickoffAt: KICKOFF_AT, moves: [], acts: [] }, lx: 0, ly: 0 };
+  const rec: Rec = { r: { v: 1, seed, venue: g.venue, campaign: structuredClone(g.campaign), calm: PACE.calm, soft: PACE.soft, kickoffAt: PACE.base, moves: [], acts: [] }, lx: 0, ly: 0 };
   current = { w: g.w, rec };
   lastRec = rec.r;
   if (typeof window !== "undefined") (window as any).__fingerprint = () => fingerprint(g.w);
@@ -74,7 +74,7 @@ export function fingerprint(w: any): string {
 /** Play a recording back headless, to its last input or to `until`. The caller supplies createGame/stepGame
  *  (to keep this file free of the game module's imports). */
 export function replay<G extends { w: any }>(r: Recording, make: (seed: string, venue: any, c: Campaign) => G, step: (g: G) => void, until?: number, each?: (g: G) => void): G {
-  setPace({ kickoffAt: r.kickoffAt, calm: r.calm });
+  setPace({ kickoffAt: r.kickoffAt, calm: r.calm, soft: r.soft });
   const g = make(r.seed, r.venue, structuredClone(r.campaign)), s = g.w.state;
   const end = until ?? Math.max(r.moves.at(-1)?.[0] ?? 0, r.acts.at(-1)?.[0] ?? 0) + 1;
   let mi = 0, ai = 0;

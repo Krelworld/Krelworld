@@ -180,6 +180,10 @@ export interface StadiumState {
   beer?: import("./beer").Beer;
   /** Authored schemes: what's been learnt, what's arranged, what's playing. */
   schemes?: Record<string, import("./schemes").SchemeState>;
+  /** Missions (Option E): the plan that's pinned, the step each is on, what's been pulled off. */
+  missions?: import("./missions").MissionState;
+  /** Football states the plans have written (fstates.ts): the match reads these, never the plans. */
+  fstates?: import("./fstates").FState[];
   loos?: import("./social").Loo[];
   stims?: import("./machine").Stim[]; problems?: import("./machine").Problem[]; machineSeq?: number;
   /** Held by security (the game's detention): time passes, then he's let out. */

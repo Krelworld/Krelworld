@@ -6,7 +6,7 @@ import { pick, rndRange, seedRng } from "../core/rng";
 import type { Actor, WorldState } from "../core/types";
 import { createWorld, spawnActor, stepWorld, type World } from "../core/world";
 import { createMatch, TEAMS } from "../football/setup";
-import { arrivalSpot, BOUNDS, KICKOFF_AT, PACE, rushAt, setBreaches, setVenue, SOLID, SPOTS, VENUE, type Venue } from "./layout";
+import { arrivalSpot, BOUNDS, KICKOFF_AT, KO_HOLD, KO_HOLD_MAX, PACE, rushAt, setBreaches, setKickoff, setVenue, SOLID, SPOTS, VENUE, type Venue } from "./layout";
 import { newCampaign, type Campaign } from "./campaign";
 import { mayPass, newNpc, resetPathBudget, say, secs, spawnFan, spawnStaff, stepNpc } from "./npc";
 import { installBetting, installSettlement } from "./betting";
@@ -35,6 +35,8 @@ import { installMachine, installMachineVerbs, stepMachine } from "./machine";
 import { installBelief, stepBelief } from "./belief";
 import { installBeer, installBeerWatch, stepBeer } from "./beer";
 import { initSchemes, installSchemes, stepSchemes } from "./schemes";
+import { initMissions, installMissions, stepMissions } from "./missions";
+import { stepStates } from "./fstates";
 import { installVisitors } from "./scheme_visitors";
 import { recordTick, startRecording, stepping } from "./replay";
 import { stepDeadpan } from "./knife";
@@ -78,8 +80,9 @@ export const HALF_SECONDS = 450;
 export const HALFTIME_SECONDS = 150;
 
 export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: Campaign = newCampaign()): Game {
-  if (!rulesInstalled) { installSchemes(); installVisitors(); installReferee(); installTwelfth(); installDrugs(); installBribe(); installRules(); installBetting(); installPolice(); installBus(); installDog(); installKickoff(); installKnife(); installGloryHole(); installCombat(); installHorse(); installRoutes(); installEntries(); installDetector(); installCoverup(); installBike(); installLech(); installCars(); installWitness(); installPhone(); installNaked(); installRoofs(); installKegs(); installRigs(); installMachineVerbs(); installBelief(); installBeer(); installSocial(); installCustody(); installBallOut(); installCoke(); rulesInstalled = true; }
+  if (!rulesInstalled) { installSchemes(); installMissions(); installVisitors(); installReferee(); installTwelfth(); installDrugs(); installBribe(); installRules(); installBetting(); installPolice(); installBus(); installDog(); installKickoff(); installKnife(); installGloryHole(); installCombat(); installHorse(); installRoutes(); installEntries(); installDetector(); installCoverup(); installBike(); installLech(); installCars(); installWitness(); installPhone(); installNaked(); installRoofs(); installKegs(); installRigs(); installMachineVerbs(); installBelief(); installBeer(); installSocial(); installCustody(); installBallOut(); installCoke(); rulesInstalled = true; }
   setVenue(venueId);
+  setKickoff(PACE.base);
   const oppKey = VENUE.opp;
   const opp = TEAMS[oppKey];
   const oppShirt = `shirt_${oppKey.toLowerCase()}`;
@@ -250,6 +253,7 @@ export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: 
   installBeerWatch(w);
   DEADPAN.on = PACE.calm;
   initSchemes(w);
+  initMissions(w);
   installSocialWatch(w);
   installMissiles(w);
   installFixes(w);
@@ -352,10 +356,32 @@ export function stepGame(g: Game): void {
   try { stepInner(g); } finally { stepping.on = false; }
 }
 
+/** The kick-off waits (Option E's soft clock). The build-up runs as scheduled to four minutes before
+ *  kick-off, then everything timed against kick-off stands still (their coach stays at the hotel, the gates
+ *  don't rush) until Grozz goes into the ground, says he's ready (the "headin" verb), or eight minutes have
+ *  gone. Nobody is punished for taking six minutes over their first plan. */
+function softClock(w: World): void {
+  const s = w.state, st = s.stadium!, f = st.flags, m = s.match;
+  setKickoff(PACE.base + (f.koSlide ?? 0) / 60);
+  if (!PACE.soft || f.koGo || !m || m.phase !== "pre") return;
+  const pc = s.actors[st.pc];
+  if (pc && VENUE.inside(pc.x, pc.y) && !pc.heldBy && !st.custody) { f.koGo = s.tick; w.bus.emit({ type: "ko_go", t: s.tick, why: "in" }); return; }
+  if (secs(w) < KICKOFF_AT - KO_HOLD) return;
+  if ((f.koSlide ?? 0) >= KO_HOLD_MAX * 60) { f.koGo = s.tick; w.bus.emit({ type: "ko_go", t: s.tick, why: "late" }); return; }
+  if (!f.koHeld) { f.koHeld = s.tick; w.bus.emit({ type: "ko_wait", t: s.tick }); }
+  f.koSlide = (f.koSlide ?? 0) + 1;
+  setKickoff(PACE.base + f.koSlide / 60);
+  m.phaseUntil++;
+  const bus = st.vehicles.bus;
+  if (bus && bus.state === "parked" && bus.until < 60 * 3600 * 4) bus.until++;
+  for (const id in st.dosed) st.dosed[id].at++;
+}
+
 function stepInner(g: Game): void {
   const w = g.w, s = w.state, st = s.stadium!;
   setBreaches(st.breaches);
   resetPathBudget();
+  softClock(w);
   const t = secs(w);
 
   // Supporters keep arriving until just after kick-off.
@@ -428,6 +454,8 @@ function stepInner(g: Game): void {
   stepBelief(w);
   stepBeer(w);
   stepSchemes(w);
+  stepMissions(w);
+  stepStates(w);
   stepDeadpan(w);
   stepSocial(w);
   stepPawnSeek(w);

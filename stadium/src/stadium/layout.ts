@@ -267,8 +267,14 @@ export let KICKOFF_AT = 330; // seconds after arrival
 /** How the day is paced. The tests run the short, busy day they were written against; the game itself
  *  gives you nine minutes before kick-off and a street that starts quiet and fills up (the gate rush in
  *  the last three minutes), so there's room to look around and things you do stand out. */
-export const PACE = { calm: false };
-export function setPace(o: { kickoffAt: number; calm: boolean }): void { KICKOFF_AT = o.kickoffAt; PACE.calm = o.calm; }
+export const PACE = { calm: false, soft: false, base: 330 };
+/** soft: the kick-off waits (Option E). The build-up runs to four minutes before it and holds there until
+ *  Grozz goes into the ground, says he's ready, or has kept everyone waiting long enough. */
+export function setPace(o: { kickoffAt: number; calm: boolean; soft?: boolean }): void { KICKOFF_AT = o.kickoffAt; PACE.base = o.kickoffAt; PACE.calm = o.calm; PACE.soft = !!o.soft; }
+/** The kick-off moves (only the soft clock does this; game.ts keeps it in step with the saved state). */
+export function setKickoff(secs: number): void { KICKOFF_AT = secs; }
+/** How long before kick-off the soft clock holds, and the longest it will hold for. */
+export const KO_HOLD = 240, KO_HOLD_MAX = 480;
 /** Where the coach drops Grozz. In the game, the top of the pub yard (the drayman, his lorry and his
  *  kegs in view, the first thing to mess with); the tests keep the old spot on the approach. */
 /** Where Ronson's tied up. In the game he's in the pub yard with the kegs, the lorry and the hose, so the

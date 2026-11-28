@@ -300,4 +300,7 @@ function hear(w: World, sc: SchemeState, e: any): void {
   }
 }
 
+/** A mission card may tell Grozz outright what he'd otherwise have to overhear (mission_defs.ts): quietly, and once. */
+export function teachReferee(w: World, ...ids: string[]): void { const sc = schemeState(w, ID); if (sc) for (const id of ids) learn(w, DEF, sc, id, true); }
+
 export function installReferee(): void { defineScheme(DEF); }

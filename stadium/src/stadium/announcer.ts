@@ -80,6 +80,38 @@ export class Announcer {
         if (e.reason === "toilet") this.out({ t: e.t, text: `${s.actors[e.id]?.name ?? "A player"} has left the field. He appears to be running towards the tunnel.`, src: "commentary", big: true });
         else if (e.reason === "injured") this.out({ t: e.t, text: `${s.actors[e.id]?.name ?? "A player"} has been taken off on a stretcher.`, src: "commentary", big: true });
         break;
+      // ---- Football states (fstates.ts): one line when each first shows in play, one per combination. ----
+      case "fstate_seen":
+        this.once(`fs_${e.id}${e.team ?? ""}`, e.text, "commentary", e.id === "none");
+        if (e.id === "none") this.once("fs_norules", "Ladies and gentlemen, there is at present no match referee. Supporters are asked not to offer.", "tannoy", true);
+        break;
+      case "fcombo":
+        this.once(`fc_${e.id}${e.team ?? ""}`, e.call, "commentary", true);
+        break;
+      case "noref": {
+        if (e.on) break;
+        const opp = s.match!.teams[1].name;
+        const tally = (n: [number, number], verb: string) => [n[0] ? `England's ${n[0] === 1 ? "goal" : `${n[0]} goals`}` : "", n[1] ? `${opp}'s ${n[1] === 1 ? "goal" : `${n[1]} goals`}` : ""].filter(Boolean).join(" and ") + ` ${verb}.`;
+        const ruled = `${e.given[0] + e.given[1] ? ` ${tally(e.given, e.given[0] + e.given[1] === 1 ? "stands" : "stand")}` : ""}${e.wiped[0] + e.wiped[1] ? ` ${tally(e.wiped, e.wiped[0] + e.wiped[1] === 1 ? "never happened" : "never happened")}` : ""}`;
+        const how: Record<string, string> = {
+          grozz: `A referee has walked on. He has the shirt and nobody has the energy to ask.${e.pending[0] + e.pending[1] ? " The goals from the last minute are his to give." : ""}`,
+          replacement: `The fourth official has taken the whistle. He looks like a man who has waited years.${ruled}`,
+          returned: `The referee is back. He has asked what he missed, and nobody wants to be the one to tell him.${ruled}`,
+          administrators: `Men in blazers are on the pitch. Play is stopped, and everything since the referee left is struck from the record.${ruled}`,
+        };
+        this.out({ t: e.t, text: how[e.how] ?? "Somebody is refereeing again.", src: "commentary", big: true });
+        if (e.how === "administrators") this.out({ t: e.t, text: "Ladies and gentlemen, the match has been stopped while a referee is found. It will restart shortly. Thank you for your patience, and for your suggestions.", src: "tannoy", big: true });
+        break;
+      }
+      case "noref_overtime":
+        this.out({ t: e.t, text: "The time is up. There is nobody to blow for it, so they are carrying on.", src: "commentary", big: true });
+        break;
+      case "ref_warned":
+        this.out({ t: e.t, text: "The big screen has just shown that one again, slowly. The referee has gone a colour.", src: "commentary", big: false });
+        break;
+      case "sabotage_suspected":
+        this.out({ t: e.t, text: e.tolerated ? "That is two in his own net. His team-mates have looked at the officials, who are looking elsewhere." : "That is two in his own net. His own side have started to look at him.", src: "commentary", big: true });
+        break;
       case "ref_back":
         this.out({ t: e.t, text: "The referee has returned. He looks pale.", src: "commentary", big: false });
         break;

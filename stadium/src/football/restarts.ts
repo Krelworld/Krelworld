@@ -58,7 +58,7 @@ function processSubs(w: World, m: MatchState): void {
 }
 
 function pickTaker(w: World, m: MatchState, type: RestartType, team: TeamIdx, x: number, y: number): Actor | null {
-  const s = w.state, all = playing(s, m, team).filter((a) => !a.fb!.controlled), out = all.filter((a) => a.fb!.role !== "GK");
+  const s = w.state, all = playing(s, m, team).filter((a) => !a.fb!.controlled && !a.fb!.boltAt), out = all.filter((a) => a.fb!.role !== "GK");
   if (!all.length) return null;
   const best = (f: (a: Actor) => number, pool = out) => pool.slice().sort((p, q) => f(q) - f(p))[0] ?? all[0];
   const nearest = () => best((a) => -Math.hypot(a.x - x, a.y - y));
@@ -127,7 +127,7 @@ function setTargets(w: World, m: MatchState, r: Restart): void {
     const order = mates.filter((a) => a.fb!.role !== "GK" && a.id !== r.taker && !a.fb!.controlled).sort((p, q) => rolePri[p.fb!.role] - rolePri[q.fb!.role] || p.fb!.slot - q.fb!.slot);
     for (const a of mates) {
       const fb = a.fb!;
-      if (fb.controlled) continue;
+      if (fb.controlled || fb.boltAt) continue;
       let x: number, y: number;
       if (a.id === r.taker) {
         const back = r.type === "throw_in" ? 0 : 0.5;
@@ -177,6 +177,11 @@ function setTargets(w: World, m: MatchState, r: Restart): void {
           if (d < 0.01) { x = r.x - dir * need; }
           else { x = r.x + (dx / d) * need; y = r.y + (dy / d) * need; }
         }
+      }
+      // Somebody has a point to make: he's over there making it, a yard from the man's face.
+      if (fb.beefUntil && fb.beefUntil > s.tick && a.id !== r.taker) {
+        const o = s.actors[fb.beefWith!];
+        if (o) { const dx = a.x - o.x, dy = a.y - o.y, d = Math.hypot(dx, dy) || 1; x = o.x + (dx / d) * 0.9; y = o.y + (dy / d) * 0.9; }
       }
       fb.tx = clamp(x, -HL - 1, HL + 1); fb.ty = clamp(y, -HW - 1, HW + 1);
       fb.sprint = Math.hypot(fb.tx - a.x, fb.ty - a.y) > 9;

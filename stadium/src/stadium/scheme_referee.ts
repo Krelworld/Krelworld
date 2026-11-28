@@ -280,6 +280,8 @@ function hear(w: World, sc: SchemeState, e: any): void {
     sc.vars.nicked = tick; matchfx.standDown(w);
     news(w, "TANNOY: IS THERE A QUALIFIED REFEREE IN THE GROUND?", "tannoy_teamnews");
   }
+  // Somebody else has been given the whistle (fstates.ts): there's a real referee again, and it isn't the one who was led away.
+  if (e.type === "ref_replaced") sc.vars.nicked = 0;
   if (e.type === "impostor_ruling") {
     sc.vars.ruled = (sc.vars.ruled ?? 0) + 1;
     linkCause(w, sc.cause, RULED[e.kind] ?? "HE GIVES A DECISION", pc);

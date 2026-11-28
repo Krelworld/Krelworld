@@ -1,6 +1,6 @@
 // Turns match events into deadpan lines. Says less than it could: restraint is the joke.
 import type { Bus, GameEvent } from "../core/bus";
-import { chance, seedRng, type RngState } from "../core/rng";
+import { chance, rnd, seedRng, type RngState } from "../core/rng";
 import type { World } from "../core/world";
 import type { TeamIdx } from "./types";
 
@@ -34,6 +34,7 @@ export class Commentator {
     this.say({ t: e.t, text, big });
   }
   private maybe(p: number): boolean { return chance(this.rng, p); }
+  private pick(lines: string[]): string { return lines[Math.floor(rnd(this.rng) * lines.length)]; }
 
   private hear(e: GameEvent): void {
     const m = this.w.state.match;
@@ -43,13 +44,56 @@ export class Commentator {
         this.out(e, e.period === 1 ? "We're under way." : e.period === 2 ? "The second half is under way." : e.period === 3 ? "Extra time, then." : "Fifteen more minutes.", true);
         break;
       case "fb_goal":
-        if (e.legit && e.by === "pc") this.out(e, `${e.og ? "An own goal" : "A goal"} for ${this.team(e.team)}. The scorer is not on the team sheet. ${this.scoreline()}`, true);
+        if (e.late) this.out(e, `${e.og ? "The own goal" : `${this.name(e.by)}'s goal`} from earlier has been given, by somebody who was not there to see it. ${this.scoreline()}`, true);
+        else if (e.legit && e.by === "pc") this.out(e, `${e.og ? "An own goal" : "A goal"} for ${this.team(e.team)}. The scorer is not on the team sheet. ${this.scoreline()}`, true);
         else if (!e.legit) this.out(e, `The goal has been given. It does not appear to have been scored by a player. ${this.scoreline()}`, true);
         else if (e.og) this.out(e, `${this.name(e.by)} has put that into his own net. ${this.scoreline()}`, true);
         else this.out(e, `${this.name(e.by)} scores. ${this.scoreline()}`, true);
         break;
       case "fb_no_goal":
-        this.out(e, "The referee has disallowed it. The scorer does not appear to be a player.", true);
+        if (e.reason === "unrecognised") this.out(e, `${this.team(e.team)} did put the ball in the net earlier. Officially, they did not. ${this.scoreline()}`, true);
+        else this.out(e, "The referee has disallowed it. The scorer does not appear to be a player.", true);
+        break;
+      // ---- Nobody refereeing: the commentators get steadily less sure what they are watching. ----
+      case "fb_goal_pending":
+        this.out(e, `${e.og ? "That is in his own net" : `${this.name(e.by)} has put that in the net`}. Whether it is a goal is a matter for a referee, and we have not got one.`, true);
+        break;
+      case "fb_foul_unjudged":
+        if ((e.severity ?? 0) > 0.8 && this.maybe(0.5)) this.out(e, this.pick(["That is a foul. Nobody has given it. Nobody is going to.", "Late. Very late. There is nobody to tell.", "He has appealed to the referee out of habit."]));
+        break;
+      case "fb_clattered": {
+        const p = e.power ?? 0;
+        const lines = p < 0.5
+          ? ["That was a little unnecessary.", `${this.name(e.on)} has been helped to the floor.`, "A coming together. Mostly one way."]
+          : p < 0.8
+            ? [`${this.name(e.on)} has been taken out at the waist. Play on, apparently.`, "That was not a tackle. I am not sure what that was.", `${this.name(e.by)} was nowhere near the ball. He did not seem to want to be.`]
+            : [`${this.name(e.on)} has been thrown. Thrown.`, "I have stopped counting the men on the floor.", "This is still, technically, association football.", `${this.name(e.by)} has just run through a man he had no reason to be near.`];
+        this.out(e, this.pick(lines), p >= 0.8 && this.maybe(0.3));
+        break;
+      }
+      // ---- Sides that have been got at. ----
+      case "fb_lunge":
+        if (this.maybe(0.3)) this.out(e, this.pick([`${this.name(e.by)} left the ground some time before he arrived.`, `${this.name(e.by)} goes in from a postcode away.`, `That is a lunge from ${this.name(e.by)}. Both feet, for symmetry.`]));
+        break;
+      case "fb_confrontation":
+        if (e.card === "second_yellow") this.out(e, `${this.name(e.by)} has talked himself into a second yellow. He is still talking.`, true);
+        else if (e.card === "yellow") this.out(e, `${this.name(e.by)} has run thirty yards to have his say, and been booked for it.`, true);
+        else this.out(e, this.w.state.actors[e.on]?.off ? `${this.name(e.by)} is explaining the laws of the game to the referee, from quite close.` : `${this.name(e.by)} and ${this.name(e.on)} are forehead to forehead. Handbags.`);
+        break;
+      case "fb_slip":
+        if (this.maybe(0.5)) this.out(e, this.pick([`${this.name(e.by)} has gone over on nothing at all.`, `${this.name(e.by)} is down again. Nobody touched him. It is the boots.`, `${this.name(e.by)} cannot stay on his feet in those.`]));
+        break;
+      case "fb_heavy_touch":
+        if (this.maybe(0.3)) this.out(e, this.pick([`A touch like a trampoline from ${this.name(e.by)}.`, `It has bounced off ${this.name(e.by)} and kept going.`, `${this.name(e.by)}'s first touch was a tackle.`]));
+        break;
+      case "fb_fluke":
+        this.out(e, `${this.name(e.by)} has hit that from nowhere. I do not think it was a shot. I do not think he knows either.`, true);
+        break;
+      case "fb_bolted":
+        this.out(e, `${this.name(e.id)} has stopped dead. He has gone a colour, and now he is running.`, true);
+        break;
+      case "fb_pulled_up":
+        this.out(e, `${this.name(e.id)} has pulled up holding the back of his leg. That is what warm-ups are for.`, true);
         break;
       case "fb_save":
         if (this.maybe(0.45)) this.out(e, e.held ? `Held by ${this.name(e.by)}.` : `Saved by ${this.name(e.by)}.`);

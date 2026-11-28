@@ -20,6 +20,7 @@ import { say as say0 } from "./npc";
 import { alert } from "./security";
 import { linkCause } from "./cause";
 import { matchfx } from "./matchfx";
+import { leeway } from "./fstates";
 import { defineScheme, learn, play, schemeState, type Beat, type SchemeDef, type SchemeState, type Thing } from "./schemes";
 
 type P = { x: number; y: number };
@@ -152,7 +153,8 @@ const DEF: SchemeDef = {
     // With a gap he's that man, until one of his own or the referee has had a proper look at his face.
     if ((v === "eleven" || v === "theirs") && !sc.vars.seen) {
       const r = s.actors[m.officials.referee], close = (r && !r.dead && dist(r, pc) < 4) || squad(w, mine(sc)).some((a) => a.fb!.status === "playing" && dist(a, pc) < 2);
-      if (close) sc.vars.face = (sc.vars.face ?? 0) + 1 - appearance(s, pc).faceCover;
+      // In their shirt with the officiating bent or absent (fstates.ts), nobody's looking half as hard.
+      if (close) sc.vars.face = (sc.vars.face ?? 0) + (1 - appearance(s, pc).faceCover) * (leeway(w) ? 0.3 : 1);
       if ((sc.vars.face ?? 0) >= 24 || (sc.vars.seenAt && tick >= sc.vars.seenAt)) {
         sc.vars.seen = 1;
         say(w, man(w, mine(sc)), mine(sc) ? "That is not him. Who is under there?" : "Ref's looking. We never saw him. Right?");
@@ -211,7 +213,7 @@ function hear(w: World, sc: SchemeState, e: any): void {
     mutter(w, e.team === 0 ? "Heh heh heh." : "Bollocks.");
     news(w, e.og ? `${tag}, SCORES AT THE WRONG END` : `${tag} AND SCORES. IT STANDS`);
     linkCause(w, sc.cause, e.og ? "HE PUTS IT IN THE NET HIS SHIRT DEFENDS. IT STANDS" : "HE SCORES. IT STANDS", pc);
-    if (!sc.vars.seenAt) sc.vars.seenAt = tick + 60 * 7;
+    if (!sc.vars.seenAt) sc.vars.seenAt = tick + 60 * (leeway(w) ? 30 : 7);
   }
 }
 

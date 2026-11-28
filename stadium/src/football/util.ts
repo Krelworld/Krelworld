@@ -62,3 +62,12 @@ export function setOwner(m: MatchState, a: Actor | null, tick: number): void {
 }
 
 export const nameOf = (s: WorldState, id: Id | null): string => (id && s.actors[id] ? s.actors[id].name : "someone");
+
+/** A steady 0..1 number for a pair of integers: the same every time it's asked, so a man's wrong idea lasts
+ *  exactly as long as the window it was drawn for, without the match having to remember it. */
+export function hash01(a: number, b: number): number {
+  let h = Math.imul(a + 0x9e3779b9, 0x85ebca6b) ^ Math.imul(b + 0x7f4a7c15, 0xc2b2ae35);
+  h = Math.imul(h ^ (h >>> 15), 0x2c1b3c6d);
+  h ^= h >>> 13;
+  return (h >>> 0) / 4294967296;
+}

@@ -6,8 +6,8 @@ import type { World } from "../core/world";
 import { maybePhantomFoul } from "./authority";
 import { kick, passTo, shootAt } from "./ball";
 import { FORMATIONS, HL, HW, PITCH, TUNE } from "./config";
-import type { MatchState, TeamIdx } from "./types";
-import { dirOf, inBox, intercept, isDown, other, playing, topSpeed } from "./util";
+import type { MatchState, TeamIdx, TeamMods } from "./types";
+import { dirOf, hash01, inBox, intercept, isDown, keeperOf, other, playing, topSpeed } from "./util";
 
 const tmp = { x: 0, y: 0 };
 
@@ -80,10 +80,13 @@ interface PassOption { mate: Actor; x: number; y: number; u: number; loft: boole
 /** Score every team-mate as a pass target and return the best. */
 export function bestPass(w: World, m: MatchState, a: Actor, mates: Actor[], opps: Actor[], offLine: number, opts: { maxD?: number; noOffside?: boolean } = {}): PassOption | null {
   const fb = a.fb!, dir = dirOf(m, fb.team), rng = w.state.rng.match, b = m.ball;
+  const tm = m.mods ? m.mods.team[fb.team] : null;
   let best: PassOption | null = null;
   for (const mate of mates) {
     if (mate.id === a.id || isDown(mate, w.state.tick)) continue;
     const mfb = mate.fb!;
+    // Running off the pitch, or a man they've given up on: he doesn't get it.
+    if (mfb.boltAt || (tm && tm.shun === mate.id)) continue;
     const variants = mfb.role === "FWD" && mate.x * dir > -5 && offLine < HL - 13 ? 2 : 1;
     for (let v = 0; v < variants; v++) {
       // v = 1: a ball into space behind the defence for him to run on to.
@@ -110,14 +113,22 @@ export function bestPass(w: World, m: MatchState, a: Actor, mates: Actor[], opps
       if (v === 1) u += 0.1;
       if (mfb.role === "GK") u -= 0.35;
       if (mfb.star) u += 0.06;
+      if (tm && tm.feed > 0 && tm.clumsy.includes(mate.id)) u += 0.35 * tm.feed;
       if (!best || u > best.u) best = { mate, x: tx, y: ty, u, loft, D };
     }
   }
   return best;
 }
 
+/** How much worse (or better) this man's aim is for what's been done to his side. 1 = as he always was. */
+function aimOf(tm: TeamMods | null, a: Actor): number {
+  if (!tm) return 1;
+  return (1 + 0.9 * tm.lost + 0.3 * tm.ragged + 0.25 * tm.hyper - 0.1 * tm.keen) * (tm.clumsy.includes(a.id) ? 2.2 : 1);
+}
+
 function doPass(w: World, m: MatchState, a: Actor, p: PassOption, pressure: boolean): void {
-  passTo(w, m, a, p.x, p.y, { loft: p.loft, pressure });
+  const tm = m.mods ? m.mods.team[a.fb!.team] : null;
+  passTo(w, m, a, p.x, p.y, { loft: p.loft, pressure, wild: tm ? aimOf(tm, a) : undefined });
   m.passTo = p.mate.id;
 }
 
@@ -128,7 +139,8 @@ function doShoot(w: World, m: MatchState, a: Actor, opps: Actor[], pressure: boo
   const aimY = (chance(rng, 0.78) ? side : -side) * rndRange(rng, PITCH.goalW / 2 - 1.3, PITCH.goalW / 2 - 0.55);
   const d = Math.hypot(dir * HL - a.x, a.y);
   const speed = rndRange(rng, 19, 23) + fb.shooting * 3;
-  shootAt(w, m, a, dir, aimY, rndRange(rng, 0.15, 1.5), speed, "shot", (pressure ? 1.35 : 1) * (1 + d / 60));
+  const spread = (pressure ? 1.35 : 1) * (1 + d / 60), tm = m.mods ? m.mods.team[fb.team] : null;
+  shootAt(w, m, a, dir, aimY, rndRange(rng, 0.15, 1.5), speed, "shot", tm ? spread * (0.6 + 0.4 * aimOf(tm, a)) : spread);
 }
 
 /** The man on the ball chooses: shoot, pass, run with it, or get rid. */
@@ -140,9 +152,33 @@ function carrierThink(w: World, m: MatchState, a: Actor, mates: Actor[], opps: A
   const pressure = dn < 2.7;
   const xg = shotValue(a.x, a.y, dir, opps);
   const ment = team.mentality;
+  const tm = m.mods ? m.mods.team[fb.team] : null;
+  let bar = 0.105 - ment * 0.02;
+  if (tm) {
+    // Up for it: he'll have a go from further out than is wise.
+    bar -= 0.03 * tm.keen + 0.02 * tm.hyper;
+    if (fb.role !== "GK" && held >= 4) {
+      // Wrong boots: the ball gets away from him.
+      if (tm.clumsy.length && tm.clumsy.includes(a.id) && chance(rng, 0.1)) {
+        kick(w, m, a, a.x + Math.cos(a.facing) * 5 + gauss(rng) * 2, a.y + Math.sin(a.facing) * 5 + gauss(rng) * 2, rndRange(rng, 4.5, 7), 0, "clear");
+        fb.kickLock = tick + 34; m.passTo = null;
+        w.bus.emit({ type: "fb_heavy_touch", t: tick, by: a.id, team: fb.team });
+        return;
+      }
+      // No idea what he's doing, and once in a while that's unplayable: a hit from nowhere the keeper never saw coming.
+      if (tm.lost > 0 && a.x * dir > 2 && a.x * dir < HL - 9 && chance(rng, 0.006 * tm.lost)) {
+        const aimY = (chance(rng, 0.5) ? 1 : -1) * rndRange(rng, 1.2, PITCH.goalW / 2 - 0.5);
+        shootAt(w, m, a, dir, aimY, rndRange(rng, 0.4, 1.7), rndRange(rng, 23, 26), "shot", 0.7);
+        const gk = keeperOf(s, m, other(fb.team));
+        if (gk && gk.fb!.diveAt) gk.fb!.diveAt += 16;
+        w.bus.emit({ type: "fb_fluke", t: tick, by: a.id, team: fb.team });
+        return;
+      }
+    }
+  }
 
   if (held >= 6) {
-    const want = xg > 0.105 - ment * 0.02 || (xg > 0.035 && chance(rng, 0.035 + 0.03 * Math.max(0, ment) + (fb.star ? 0.02 : 0)));
+    const want = xg > bar || (xg > 0.035 && chance(rng, 0.035 + 0.03 * Math.max(0, ment) + (fb.star ? 0.02 : 0)));
     if (want) {
       // Square it if someone is much better placed.
       let better: PassOption | null = null;
@@ -158,7 +194,12 @@ function carrierThink(w: World, m: MatchState, a: Actor, mates: Actor[], opps: A
   // Take a touch or two before looking up, unless someone is closing in.
   const settle = 26 + ((a.fb!.number * 13 + fb.gotBallAt) % 40);
   const look = held >= (pressure ? 16 : settle);
-  const pass = look || held >= 22 ? bestPass(w, m, a, mates, opps, offLine) : null;
+  let pass = look || held >= 22 ? bestPass(w, m, a, mates, opps, offLine) : null;
+  // Confused: he's sure somebody was meant to be there. He passes to whoever is.
+  if (tm && tm.lost > 0 && pass && mates.length > 2 && chance(rng, 0.3 * tm.lost)) {
+    const o = mates[Math.floor(rnd(rng) * mates.length)];
+    if (o !== a && o.fb!.role !== "GK" && !o.fb!.boltAt) pass = { mate: o, x: o.x, y: o.y, u: 9, loft: false, D: Math.hypot(o.x - a.x, o.y - a.y) };
+  }
 
   // Out wide in the final third with bodies in the box: swing a cross in.
   if (look && fb.role !== "GK" && a.x * dir > HL - 17 && Math.abs(a.y) > 8.5) {
@@ -198,8 +239,19 @@ function carrierThink(w: World, m: MatchState, a: Actor, mates: Actor[], opps: A
   fb.sprint = ahead > 4 || dn > 3.5;
 }
 
-function tackle(w: World, m: MatchState, a: Actor, carrier: Actor): void {
+/** One man sends another flying: nobody is going to rule on it, so it's settled on the spot. Cartoon physics:
+ *  he goes a long way and he gets up again. */
+function clatter(w: World, m: MatchState, a: Actor, victim: Actor, power: number, offBall: boolean): void {
+  const tick = w.state.tick, vf = victim.fb!;
+  const dx = victim.x - a.x, dy = victim.y - a.y, d = Math.hypot(dx, dy) || 1, sp = 16 + 34 * power;
+  vf.stunUntil = Math.max(vf.stunUntil, tick + 60 + Math.floor(150 * power));
+  victim.vx = (dx / d) * sp; victim.vy = (dy / d) * sp;
+  w.bus.emit({ type: "fb_clattered", t: tick, by: a.id, on: victim.id, team: a.fb!.team, power, offBall });
+}
+
+function tackle(w: World, m: MatchState, a: Actor, carrier: Actor, tm: TeamMods | null = null, lunge = false): void {
   const s = w.state, tick = s.tick, fb = a.fb!, cf = carrier.fb!, rng = s.rng.match, b = m.ball;
+  if (tm) return tackleMod(w, m, a, carrier, tm, lunge);
   fb.tackleLock = tick + TUNE.tackleCooldown;
   const wired = fb.wiredUntil > tick;
   // Coming from behind is harder to win and likelier to foul.
@@ -229,6 +281,53 @@ function tackle(w: World, m: MatchState, a: Actor, carrier: Actor): void {
     m.pending.push({ kind: "foul", t: tick, x: carrier.x, y: carrier.y, team: fb.team, actor: a.id, victim: carrier.id, severity });
   } else {
     fb.stunUntil = tick + 30; // sold
+  }
+}
+
+/** The same challenge by a man whose side has been got at (or with nobody refereeing). Kept apart from the
+ *  ordinary one so that a match nobody has interfered with rolls exactly the dice it always did. */
+function tackleMod(w: World, m: MatchState, a: Actor, carrier: Actor, tm: TeamMods, lunge: boolean): void {
+  const s = w.state, tick = s.tick, fb = a.fb!, cf = carrier.fb!, rng = s.rng.match, b = m.ball;
+  const law = m.mods!.lawless ? Math.min(1, m.mods!.lawless * (1 + 0.5 * tm.hyper)) : 0;
+  const clumsy = tm.clumsy.length > 0 && tm.clumsy.includes(a.id);
+  fb.tackleLock = tick + Math.round(TUNE.tackleCooldown * (1 - 0.2 * tm.hyper + 0.6 * tm.slow - 0.1 * tm.keen));
+  const wired = fb.wiredUntil > tick;
+  const cdir = Math.atan2(carrier.vy, carrier.vx), toMe = Math.atan2(a.y - carrier.y, a.x - carrier.x);
+  const behind = Math.hypot(carrier.vx, carrier.vy) > 1.5 && Math.abs(Math.atan2(Math.sin(toMe - cdir), Math.cos(toMe - cdir))) > 2.1;
+  const pWin = clamp(0.3 + 0.5 * (fb.tackling - cf.control) + (behind ? -0.12 : 0.06) + (cf.star ? -0.06 : 0)
+    + 0.03 * tm.hyper + 0.06 * tm.keen - 0.1 * tm.slow - 0.08 * tm.lost - (clumsy ? 0.15 : 0) - (lunge ? 0.12 : 0), 0.06, 0.8);
+  let pFoul = clamp(0.1 + 0.26 * fb.aggression + (behind ? 0.16 : 0) - 0.14 * fb.tackling + 0.08 * tm.hyper + 0.05 * tm.keen + (lunge ? 0.04 : 0) + (clumsy ? 0.1 : 0), 0.03, 0.85);
+  // Defenders are careful in their own area. Less so the more wound up they are.
+  if (inBox(carrier.x, carrier.y, -dirOf(m, fb.team))) pFoul *= Math.min(1, 0.4 + 0.45 * tm.hyper + 0.1 * tm.keen);
+  if (wired) pFoul = Math.min(0.8, pFoul + 0.35);
+  // Nobody to blow up for it: they stop pretending to go for the ball.
+  if (law) pFoul = Math.max(pFoul, 0.4 + 0.5 * law);
+  if (lunge) {
+    // He leaves the ground a couple of yards out and arrives studs first.
+    const dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy) || 1;
+    a.vx = (dx / d) * 9; a.vy = (dy / d) * 9;
+    w.bus.emit({ type: "fb_lunge", t: tick, by: a.id, on: carrier.id, team: fb.team });
+  }
+  const r = rnd(rng);
+  if (r < pWin) {
+    cf.stunUntil = tick + 24;
+    if (chance(rng, 0.55 + 0.1 * tm.hyper)) {
+      b.owner = a.id; b.lastTouch = a.id; b.lastTouchTeam = fb.team; m.possession = fb.team; fb.gotBallAt = tick;
+    } else {
+      b.owner = null; const ang = Math.atan2(a.vy, a.vx) + gauss(rng) * 0.8, sp = rndRange(rng, 3, 7);
+      b.vx = Math.cos(ang) * sp; b.vy = Math.sin(ang) * sp; b.lastTouch = a.id; b.lastTouchTeam = fb.team; b.freeUntil = tick + 6;
+    }
+    m.offside = null; m.passTo = null;
+    maybePhantomFoul(w, m, a, carrier);
+  } else if (r < pWin + (1 - pWin) * pFoul) {
+    const severity = clamp(rnd(rng) * rnd(rng) * 1.3 + fb.aggression * 0.25 + (behind ? 0.2 : 0) + (wired ? 0.45 : 0) + 0.05 * tm.hyper + 0.03 * tm.keen + (lunge ? 0.03 : 0) + 0.6 * law, 0, 1.9);
+    cf.stunUntil = tick + 50 + Math.floor(severity * 60);
+    fb.stunUntil = tick + (law ? 8 : 20);
+    b.owner = null; b.vx = carrier.vx * 0.4; b.vy = carrier.vy * 0.4; b.freeUntil = tick + 6;
+    if (law) clatter(w, m, a, carrier, law, false);
+    m.pending.push({ kind: "foul", t: tick, x: carrier.x, y: carrier.y, team: fb.team, actor: a.id, victim: carrier.id, severity });
+  } else {
+    fb.stunUntil = tick + (lunge ? 70 : 30); // sold, and if he dived in he's still sliding
   }
 }
 
@@ -288,11 +387,19 @@ export function stepPlayers(w: World, m: MatchState): void {
   const lists = [playing(s, m, 0), playing(s, m, 1)];
   const owner = b.owner ? s.actors[b.owner] : null;
   const ownerTeam: number = owner?.fb ? owner.fb.team : -1;
+  const mods = m.mods;
 
   for (const t of [0, 1] as TeamIdx[]) {
     const mates = lists[t], opps = lists[other(t)], dir = dirOf(m, t);
     const offLine = offsideLine(m, opps, dir);
     const attacking = ownerTeam === t || (ownerTeam === -1 && m.possession === t);
+    // What's been done to this side (nothing, in a match nobody has interfered with: every number below is
+    // then exactly what it always was, and no extra dice are rolled).
+    const tm: TeamMods | null = mods ? mods.team[t] : null;
+    const law = mods ? mods.lawless : 0;
+    const pace = tm ? 1 + 0.06 * tm.hyper + 0.03 * tm.keen - 0.16 * tm.slow - 0.08 * tm.ragged : 1;
+    const think = tm ? Math.max(4, Math.round(TUNE.thinkEvery * (1 + 1.5 * tm.slow + 0.6 * tm.lost + 0.5 * tm.ragged - 0.35 * tm.keen - 0.2 * tm.hyper))) : TUNE.thinkEvery;
+    const reach = tm ? TUNE.tackleReach * (1 + 0.85 * tm.hyper + 0.5 * law) : TUNE.tackleReach;
 
     // Who goes to the ball?
     let chaser: Actor | null = null, cover: Actor | null = null, bt = 99, ct = 99;
@@ -300,6 +407,7 @@ export function stepPlayers(w: World, m: MatchState): void {
       for (const a of mates) {
         if (isDown(a, tick)) continue;
         const fb = a.fb!;
+        if (fb.boltAt) continue;
         let time: number;
         if (owner) time = Math.hypot(owner.x - a.x, owner.y - a.y) / topSpeed(a, tick);
         else time = intercept(b, a, topSpeed(a, tick), tmp) - (m.passTo === a.id ? 0.6 : 0);
@@ -316,18 +424,42 @@ export function stepPlayers(w: World, m: MatchState): void {
         }
       }
       if (attacking || cover?.fb!.role === "GK") cover = null;
+      if (tm) {
+        // Heavy legs: nobody bothers covering. Confused: now and then a loose ball is everybody's and nobody's
+        // ("yours!" "no, yours!"), for a second at a time.
+        if (tm.slow >= 0.5) cover = null;
+        if (tm.lost > 0 && !owner && chaser && chaser.fb!.role !== "GK" && hash01(t + 3, Math.floor(tick / 70)) < 0.45 * tm.lost) chaser = null;
+      }
     }
 
     for (const a of mates) {
       const fb = a.fb!;
       if (fb.controlled) continue;
+      if (fb.boltAt) {
+        // Caught short: off towards the tunnel as fast as he can manage, and nothing else matters.
+        if (b.owner === a.id) { b.owner = null; b.held = false; }
+        fb.tx = clamp(a.x * 0.4, -6, 6); fb.ty = -HW - 3; fb.sprint = true; fb.intent = "position";
+        if (isDown(a, tick)) fb.stunUntil = 0;
+        steer(a, tick, 1.05);
+        continue;
+      }
       if (fb.role === "GK") { keeperLogic(w, m, a, mates, opps, chaser === a, offLine); continue; }
       if (isDown(a, tick)) { steer(a, tick); continue; }
+      const clumsy = tm !== null && tm.clumsy.length > 0 && tm.clumsy.includes(a.id);
+      const sp = clumsy ? pace * 0.9 : pace;
+      // Wrong boots: every so often, at full tilt, his feet go from under him.
+      if (clumsy && Math.hypot(a.vx, a.vy) > 4.2 && chance(s.rng.match, 0.0008)) {
+        fb.stunUntil = tick + 60;
+        if (b.owner === a.id) { b.owner = null; b.vx = a.vx * 0.7; b.vy = a.vy * 0.7; b.freeUntil = tick + 6; }
+        w.bus.emit({ type: "fb_slip", t: tick, by: a.id, team: t });
+        steer(a, tick);
+        continue;
+      }
 
       if (b.owner === a.id) {
         fb.intent = "carry";
-        if (tick >= fb.thinkAt) { fb.thinkAt = tick + TUNE.thinkEvery; carrierThink(w, m, a, mates, opps, offLine); }
-        if (b.owner === a.id) steer(a, tick, TUNE.carrySlow, 0.6); else steer(a, tick);
+        if (tick >= fb.thinkAt) { fb.thinkAt = tick + think; carrierThink(w, m, a, mates, opps, offLine); }
+        if (b.owner === a.id) steer(a, tick, TUNE.carrySlow * sp, 0.6); else steer(a, tick, sp);
         continue;
       }
       if (chaser === a) {
@@ -340,26 +472,42 @@ export function stepPlayers(w: World, m: MatchState): void {
           const lead = clamp(Math.hypot(owner.x - a.x, owner.y - a.y) * 0.25, 0, 1.6);
           fb.tx = b.x + owner.vx * 0.2 + ((gx - owner.x) / gd) * lead;
           fb.ty = b.y + owner.vy * 0.2 + ((0 - owner.y) / gd) * lead;
-          if (!b.held && tick >= fb.tackleLock && Math.hypot(b.x - a.x, b.y - a.y) < TUNE.tackleReach) tackle(w, m, a, owner);
+          if (!b.held && tick >= fb.tackleLock) {
+            const bd = Math.hypot(b.x - a.x, b.y - a.y);
+            if (bd < reach) tackle(w, m, a, owner, tm, bd >= TUNE.tackleReach);
+          }
         } else {
           fb.intent = attacking ? "receive" : "chase";
           intercept(b, a, topSpeed(a, tick), tmp); fb.tx = tmp.x; fb.ty = tmp.y;
         }
-        steer(a, tick, 1, 0.35);
+        steer(a, tick, sp, 0.35);
         continue;
       }
       if (cover === a && owner) {
+        if (tm && tm.hyper >= 0.5) {
+          // Relentless: the second man doesn't hold off and cover, he goes in as well.
+          fb.tx = b.x + owner.vx * 0.2; fb.ty = b.y + owner.vy * 0.2; fb.sprint = true; fb.intent = "press";
+          if (!b.held && tick >= fb.tackleLock) {
+            const bd = Math.hypot(b.x - a.x, b.y - a.y);
+            if (bd < reach) tackle(w, m, a, owner, tm, bd >= TUNE.tackleReach);
+          }
+          steer(a, tick, sp, 0.35);
+          continue;
+        }
         const gx = -dir * HL, gd = Math.hypot(gx - b.x, b.y) || 1;
         fb.tx = b.x + ((gx - b.x) / gd) * 4.5; fb.ty = b.y + ((0 - b.y) / gd) * 4.5; fb.sprint = true; fb.intent = "press";
-        steer(a, tick);
+        steer(a, tick, sp);
         continue;
       }
 
       fb.intent = "position";
       if (tick >= fb.thinkAt) {
-        fb.thinkAt = tick + TUNE.thinkEvery;
+        fb.thinkAt = tick + think;
         const p = slotTarget(m, a, attacking, offLine);
-        if (!attacking && fb.role !== "FWD") {
+        // His wrong idea of the moment, if his side has been got at: a steady number per man per few seconds.
+        const whim = tm && (tm.lost > 0 || tm.ragged > 0 || tm.swarm > 0) ? hash01(fb.number * 31 + t, Math.floor((tick + fb.number * 37) / 260)) : 1;
+        const marks = !tm || (whim >= 0.9 * tm.lost && whim >= 0.75 * tm.ragged);
+        if (!attacking && fb.role !== "FWD" && marks) {
           // Pick up the nearest runner in my area, goal-side.
           let mark: Actor | null = null, md = 8;
           for (const o of opps) {
@@ -369,13 +517,29 @@ export function stepPlayers(w: World, m: MatchState): void {
           }
           if (mark) {
             const gx = -dir * HL, gd = Math.hypot(gx - mark.x, mark.y) || 1;
-            const k = fb.role === "DEF" ? 0.6 : 0.4;
+            let k = fb.role === "DEF" ? 0.6 : 0.4;
+            if (tm) k *= 1 - 0.7 * tm.slow;
             p.x += (mark.x + ((gx - mark.x) / gd) * 1.4 - p.x) * k;
             p.y += (mark.y + ((0 - mark.y) / gd) * 1.4 - p.y) * k;
           }
         }
-        // Keep a little space between team-mates.
-        for (const o of mates) {
+        if (tm) {
+          // Late runs: a tired side's forwards and midfield arrive after the move has gone.
+          if (tm.slow > 0 && attacking && fb.role !== "DEF") p.x -= dir * 6 * tm.slow;
+          if (tm.ragged > 0) {
+            // No warm-up, no team talk: he's roughly where he should be, give or take ten yards.
+            const w2 = hash01(fb.number * 17 + t, Math.floor((tick + fb.number * 53) / 330));
+            p.x += (whim - 0.5) * 28 * tm.ragged; p.y += (w2 - 0.5) * 22 * tm.ragged;
+          }
+          if (tm.lost > 0) {
+            // Wrong runs: the wrong flank, or drawn to the ball like everybody else.
+            if (whim < 0.38 * tm.lost) p.y = -p.y;
+            else if (whim < 0.9 * tm.lost) { p.x += (b.x - p.x) * 0.72; p.y += (b.y - p.y) * 0.72; }
+          }
+          if (tm.swarm > 0 && Math.hypot(b.x - a.x, b.y - a.y) < 24 && whim < tm.swarm) { p.x = b.x + (whim - 0.5) * 5; p.y = b.y + (hash01(fb.number, 7) - 0.5) * 5; }
+        }
+        // Keep a little space between team-mates. (A confused side doesn't: that's the bunching.)
+        if (!tm || tm.lost < 0.5) for (const o of mates) {
           if (o === a) continue;
           const dx = p.x - o.x, dy = p.y - o.y, d = Math.hypot(dx, dy);
           if (d < 2.2 && d > 0.01) { p.x += (dx / d) * (2.2 - d) * 0.5; p.y += (dy / d) * (2.2 - d) * 0.5; }
@@ -385,11 +549,21 @@ export function stepPlayers(w: World, m: MatchState): void {
           const d = Math.hypot(p.x - owner.x, p.y - owner.y);
           if (d < 9) { p.x += -dir * (9 - d); }
         }
+        if (tm) { p.x = clamp(p.x, -HL + 1.5, HL - 1.5); p.y = clamp(p.y, -HW + 1, HW - 1); }
         fb.tx = p.x; fb.ty = p.y;
         const d = Math.hypot(p.x - a.x, p.y - a.y);
-        fb.sprint = d > 7 || (attacking && fb.role === "FWD" && d > 2.5);
+        fb.sprint = tm ? d > 7 + 9 * tm.slow - 3 * tm.hyper || (attacking && fb.role === "FWD" && d > 2.5 + 6 * tm.slow) : d > 7 || (attacking && fb.role === "FWD" && d > 2.5);
+        // No referee: whoever's standing nearest gets it, ball or no ball. More of it the longer it goes on.
+        if (law > 0.3 && chance(s.rng.match, (0.035 + 0.11 * law) * (1 + tm!.hyper))) {
+          for (const o of opps) {
+            if (o.fb!.role === "GK" || isDown(o, tick) || Math.hypot(o.x - a.x, o.y - a.y) > 1.9) continue;
+            if (b.owner === o.id) { b.owner = null; b.vx = o.vx * 0.4; b.vy = o.vy * 0.4; b.freeUntil = tick + 6; }
+            clatter(w, m, a, o, law, true);
+            break;
+          }
+        }
       }
-      steer(a, tick);
+      steer(a, tick, sp);
     }
   }
 }

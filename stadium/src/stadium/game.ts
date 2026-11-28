@@ -31,6 +31,7 @@ import { clampToRoof, installRoofs } from "./roofs";
 import { installMissiles, spawnBricks, stepStench } from "./missiles";
 import { installChainHooks, installKegs, spawnKegs, stepKegs, stepPawnBack, stepPawnSeek } from "./kegs";
 import { installRigs, stepRigs } from "./rigs";
+import { installPranks, stepPranks } from "./pranks";
 import { installMachine, installMachineVerbs, stepMachine } from "./machine";
 import { installBelief, stepBelief } from "./belief";
 import { installBeer, installBeerWatch, stepBeer } from "./beer";
@@ -78,7 +79,7 @@ export const HALF_SECONDS = 450;
 export const HALFTIME_SECONDS = 150;
 
 export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: Campaign = newCampaign()): Game {
-  if (!rulesInstalled) { installSchemes(); installVisitors(); installReferee(); installTwelfth(); installDrugs(); installBribe(); installRules(); installBetting(); installPolice(); installBus(); installDog(); installKickoff(); installKnife(); installGloryHole(); installCombat(); installHorse(); installRoutes(); installEntries(); installDetector(); installCoverup(); installBike(); installLech(); installCars(); installWitness(); installPhone(); installNaked(); installRoofs(); installKegs(); installRigs(); installMachineVerbs(); installBelief(); installBeer(); installSocial(); installCustody(); installBallOut(); installCoke(); rulesInstalled = true; }
+  if (!rulesInstalled) { installSchemes(); installVisitors(); installReferee(); installTwelfth(); installDrugs(); installBribe(); installRules(); installBetting(); installPolice(); installBus(); installDog(); installKickoff(); installKnife(); installGloryHole(); installCombat(); installHorse(); installRoutes(); installEntries(); installDetector(); installCoverup(); installBike(); installLech(); installCars(); installWitness(); installPhone(); installNaked(); installRoofs(); installKegs(); installRigs(); installPranks(); installMachineVerbs(); installBelief(); installBeer(); installSocial(); installCustody(); installBallOut(); installCoke(); rulesInstalled = true; }
   setVenue(venueId);
   const oppKey = VENUE.opp;
   const opp = TEAMS[oppKey];
@@ -424,6 +425,7 @@ function stepInner(g: Game): void {
   stepCreeps(w);
   stepKegs(w);
   stepRigs(w);
+  stepPranks(w);
   stepMachine(w);
   stepBelief(w);
   stepBeer(w);

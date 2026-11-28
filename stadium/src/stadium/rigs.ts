@@ -14,32 +14,61 @@ import { linkCause, rootCause } from "./cause";
 import { free, leavePost, problem, stim } from "./machine";
 import { startRumour } from "./belief";
 
-export type RigId = "pigeons_w" | "barriers" | "pigeons_e" | "burger" | "board";
-export interface RigState { ready: number; step: number; next: number; by?: string; cause?: number }
+/** The five here, plus whatever pranks.ts registers. */
+export type RigId = string;
+export interface RigState { ready: number; step: number; next: number; by?: string; cause?: number;
+  /** For the registered ones: how many times it's been done, when it must be over by, a thing it left lying about, a number of its own. */
+  n?: number; until?: number; item?: string; v?: number }
+/** What a registered one's step is handed: where it's got to, and the usual ways on from there. */
+export interface RigCtx {
+  id: RigId; r: RigState; at: { x: number; y: number }; step: number; tick: number;
+  next: (secs: number) => void; done: () => void;
+  /** Wait (at least `min` seconds, at most `max`) for whoever's been given it to put it right; then `undo` runs and it's ready again. */
+  hold: (max: number, min?: number) => void;
+  emit: (extra?: Record<string, unknown>) => void;
+  link: (label: string, where?: { x: number; y: number } | Actor) => number;
+}
+export interface RigDef {
+  label: string; r: number; at: () => { x: number; y: number }; cool: number;
+  /** Registered ones only: the headline, whether it's there at all (this build, this ground, right now), a label that changes, its step and its putting-right. */
+  first?: string; on?: (w: World) => boolean; says?: (w: World) => string;
+  step?: (w: World, c: RigCtx) => void; undo?: (w: World, r: RigState) => void;
+}
 
 const mx = (x: number) => (VENUE.id === "sf" ? -x : x);
 const BARRIERS = [-9, -3, 3, 9];
+const CORE = ["pigeons_w", "barriers", "pigeons_e", "burger", "board"];
 
-export const RIGS: Record<RigId, { label: string; r: number; at: () => { x: number; y: number }; cool: number }> = {
+export const RIGS: Record<RigId, RigDef> = {
   pigeons_w: { label: "Boot the pigeons", r: 2.6, at: () => ({ x: mx(-15), y: 55.5 }), cool: 80 },
   barriers: { label: "Shove the crowd barrier over", r: 2.2, at: () => ({ x: mx(-9), y: 50.9 }), cool: 70 },
   pigeons_e: { label: "Boot the pigeons", r: 2.6, at: () => ({ x: mx(34), y: 58.2 }), cool: 80 },
   burger: { label: "Turn the burger van's gas right up", r: 2.6, at: () => ({ x: mx(46), y: 54.2 }), cool: 120 },
   board: { label: "Chalk \"STEWARDS' PAY CUT\" on the board", r: 2.2, at: () => ({ x: mx(-9.5), y: 59.2 }), cool: 150 },
 };
-export const RIG_IDS = Object.keys(RIGS) as RigId[];
+export const RIG_IDS: RigId[] = Object.keys(RIGS);
 const FIRST: Record<RigId, string> = { pigeons_w: "GROZZ BOOTS THE PIGEONS", pigeons_e: "GROZZ BOOTS THE PIGEONS", barriers: "GROZZ SHOVES A BARRIER", burger: "GROZZ TURNS THE GAS RIGHT UP", board: "GROZZ CHALKS UP A PAY CUT" };
+/** Add one (pranks.ts): the same verb, the same readiness, the same one tap. */
+export function registerRig(id: RigId, def: RigDef): void { if (!RIGS[id]) RIG_IDS.push(id); RIGS[id] = def; }
 
 const rigs = (w: World) => (w.state.stadium!.rigs ??= {}) as Record<string, RigState>;
-export const rigReady = (w: World, id: RigId): boolean => (rigs(w)[id]?.ready ?? 0) <= w.state.tick && !(rigs(w)[id]?.step > 0);
-/** The one within reach of someone, if any is ready. */
+/** There (in this build, at this ground), not mid-way through, and not too soon after the last time. */
+export const rigReady = (w: World, id: RigId): boolean => !!RIGS[id] && (rigs(w)[id]?.ready ?? 0) <= w.state.tick && !rigs(w)[id]?.step && (RIGS[id].on ? RIGS[id].on!(w) : true);
+export const rigLabel = (w: World, id: RigId): string => RIGS[id].says?.(w) ?? RIGS[id].label;
+/** The one within reach of someone, if any is ready (the nearest, if there are two). */
 export function rigNear(w: World, a: Actor): RigId | undefined {
-  if (VENUE.id === "final" || !w.state.stadium) return undefined;
-  return RIG_IDS.find((id) => rigReady(w, id) && Math.hypot(RIGS[id].at().x - a.x, RIGS[id].at().y - a.y) < RIGS[id].r);
+  if (!w.state.stadium) return undefined;
+  let best: RigId | undefined, bd = Infinity;
+  for (const id of RIG_IDS) {
+    if (VENUE.id === "final" && CORE.includes(id)) continue;
+    const at = RIGS[id].at(), d = Math.hypot(at.x - a.x, at.y - a.y);
+    if (d < RIGS[id].r && d < bd && rigReady(w, id)) { best = id; bd = d; }
+  }
+  return best;
 }
 
 const dist = (a: { x: number; y: number }, b: { x: number; y: number }) => Math.hypot(a.x - b.x, a.y - b.y);
-const people = (w: World, at: { x: number; y: number }, r: number, f: (a: Actor) => boolean = () => true) =>
+export const people = (w: World, at: { x: number; y: number }, r: number, f: (a: Actor) => boolean = () => true) =>
   Object.values(w.state.actors).filter((a) => free(w, a) && !a.fb && !a.off && a.npc!.job !== "dog" && dist(a, at) < r && f(a)).sort((p, q) => dist(p, at) - dist(q, at));
 const surname = (a: Actor) => (a.name.split(" ").pop() ?? "").toUpperCase();
 
@@ -61,13 +90,13 @@ export function installRigs(): void {
     },
     perform: (w, act, actor) => {
       const id = act.arg as RigId;
-      fire(w, id, actor.id, rootCause(w, FIRST[id], RIGS[id].at()));
+      fire(w, id, actor.id, rootCause(w, FIRST[id] ?? RIGS[id].first ?? RIGS[id].label.toUpperCase(), RIGS[id].at()));
       w.bus.emit({ type: "rigged", t: w.state.tick, by: actor.id, rig: id, ...RIGS[id].at() });
     },
   });
 }
 
-function flinch(w: World, at: { x: number; y: number }, r: number, n: number): Actor[] {
+export function flinch(w: World, at: { x: number; y: number }, r: number, n: number): Actor[] {
   const out = people(w, at, r).slice(0, n);
   for (const a of out) w.bus.emit({ type: "flinch", t: w.state.tick, who: a.id, x: at.x, y: at.y });
   return out;
@@ -84,6 +113,12 @@ export function stepRigs(w: World): void {
     const done = () => { r.step = 0; };
     const emit = (extra: Record<string, unknown> = {}) => w.bus.emit({ type: "rig", t: tick, rig: id, step, ...at, ...extra });
     const link = (label: string, where: { x: number; y: number } | Actor = at): number => (r.cause = linkCause(w, r.cause, label, where, "physics") || r.cause || 0);
+    const def = RIGS[id];
+    if (def.step) {
+      const hold = (max: number, min = 0) => { r.step = -1; r.next = tick + Math.round(60 * min); r.until = tick + Math.round(60 * max); r.ready = Math.max(r.ready, r.until + 60 * 4); };
+      def.step(w, { id, r, at, step, tick, next, done, hold, emit, link });
+      continue;
+    }
     switch (id) {
       case "pigeons_w":
       case "pigeons_e": {
@@ -152,6 +187,15 @@ export function stepRigs(w: World): void {
         done(); break;
       }
     }
+  }
+  // A registered one that's waiting to be put right: once whoever's problem it was has seen to it (or it's been long enough).
+  for (const id of RIG_IDS) {
+    const r = st.rigs[id], def = RIGS[id];
+    if (!r || r.step !== -1 || !def.step) continue;
+    if (tick < (r.until ?? 0) && (tick < r.next || st.problems?.some((p) => p.key === id))) continue;
+    def.undo?.(w, r);
+    r.step = 0;
+    w.bus.emit({ type: "rig", t: tick, rig: id, step: 0, reset: true, ...def.at() });
   }
   // The barriers are back up once somebody's seen to them (or, eventually, anyway).
   const b = st.rigs.barriers;

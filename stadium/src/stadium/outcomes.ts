@@ -14,6 +14,40 @@ import { schemeHint } from "./schemes";
 const mmss = (ticks: number) => { const s = Math.max(0, Math.ceil(ticks / 60)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; };
 const lorryOf = (w: World, cargo: string | undefined) => Object.values(w.state.stadium!.vehicles).find((v) => v.cargo === cargo);
 
+/** The one-tap contraptions (rigs.ts, pranks.ts): what each sets off, where, and for how long. */
+const RIG_DOES: Record<string, string> = {
+  pigeons_w: "They go up over the queue. People duck into things.", pigeons_e: "They go up over the copper by the van.",
+  barriers: "They all go over. A steward has to come out to them.", burger: "A bang. Everybody comes to look, and to eat.",
+  board: "Any steward who reads it will stop work to moan.",
+  bin_w: "Rubbish everywhere. The landlord comes out to sweep it. A minute.",
+  bin_e: "Rubbish everywhere. Lionel leaves his shop to sweep it. A minute.",
+  sign_w: "Fans queue at a blank wall till a gate steward turns it back.",
+  sign_e: "Fans queue at a blank wall till a gate steward turns it back.",
+  van: "The copper gets down to change the wheel. Half a minute, head down.",
+  phone: "The landlord leaves the bar to answer. Twenty seconds of free pumps.",
+  soldout: "The queue goes to the tout. A steward comes out to the row.",
+  fuse: "Lights out. The pub empties onto the street. He goes to the box.",
+  bunting: "People go flying over it. A gate steward comes out to pick it up.",
+  cable: "The telly goes down. Reporter and camera run to the truck. A minute.",
+  horse: "Give it four seconds. Then nobody stands near that copper.",
+  skip: "Smoke nobody can see through. Old Reg runs over from his shed.",
+  gas: "No lager. A row at the bar, and she leaves it to find the tap.",
+  lights: "Dark for twenty seconds. Play stops. A steward hunts the switch.",
+  sprinklers: "Play stops. The nearest touchline steward runs to shut it off.",
+  score: "The crowd believes it. A steward leaves his post to put it right.",
+  ball: "Play stops while a steward goes on to fetch it. Twenty seconds.",
+  hoarding: "Flat on the touchline. A steward leaves his spot to lift it.",
+  medics: "Two run on from the tunnel. Play stops. Nobody's down.",
+  sinks: "A flood to mop, one toilet working, and a queue. A minute.",
+};
+const TANNOY_DOES = [
+  "Fans leave their seats for the bar. There are no free pints.",
+  "A copper and the telly run to the car park. Half a minute.",
+  "A steward leaves the touchline to ask for him. Out loud.",
+];
+/** (For the tests: every contraption's line.) */
+export const rigDoes = (id: string, n = 0): string => (id === "tannoy" ? TANNOY_DOES[n % 3] : RIG_DOES[id] ?? "");
+
 /** One line on what pressing it will do. Empty when the label already says it all. */
 export function whatItDoes(w: World, pc: Actor, o: Option): string {
   const s = w.state, st = s.stadium!, tick = s.tick, a = o.action, L = o.label;
@@ -35,7 +69,7 @@ export function whatItDoes(w: World, pc: Actor, o: Option): string {
     case "scheme": return schemeHint(a.arg);
     case "shove": return "The drayman will leave everything and go after it.";
     case "hose": return "The ground's kegs fill from the drain. It shows up inside, later.";
-    case "rig": return ({ pigeons_w: "They go up over the queue. People duck into things.", pigeons_e: "They go up over the copper by the van.", barriers: "They all go over. A steward has to come out to them.", burger: "A bang. Everybody comes to look, and to eat.", board: "Any steward who reads it will stop work to moan." } as Record<string, string>)[a.arg ?? ""] ?? "";
+    case "rig": return a.arg === "tannoy" ? TANNOY_DOES[(st.rigs?.tannoy?.n ?? 0) % 3] : RIG_DOES[a.arg ?? ""] ?? "";
     case "queue": return "Stand still. Somebody will join. Then somebody else.";
     case "loosign": return /down/i.test(L) ? "It opens again." : "Nobody gets in. They'll queue till they can't.";
     case "show": return it?.def === "ticket" ? "Scanned once, and you're in." : "Waved through, no ticket.";

@@ -50,7 +50,7 @@ import { hasBeerLine, hoseAt, hoseWatched } from "../stadium/beer";
 import { openFor, statusOf, whatItDoes, type Status } from "../stadium/outcomes";
 import { notebook, schemeThings } from "../stadium/schemes";
 import { achieved, cards, pinned } from "../stadium/missions";
-import { badges } from "../stadium/fstates";
+import { badges, pending } from "../stadium/fstates";
 import { EXTRAS, setExtras } from "../stadium/context";
 import { matchJob, type Job } from "../stadium/director";
 import { inDrag as inDragSim } from "../stadium/drag";
@@ -4514,8 +4514,10 @@ class StadiumScene extends Phaser.Scene {
     const t = secs(this.w);
     const label = m.phase === "pre" && PACE.soft && st.flags.koHeld && !st.flags.koGo ? "KO WAITS" : m.phase === "pre" ? `KO ${fmtTime(Math.max(0, (m.phaseUntil - s.tick) / 60))}${st.flags.kickoffDelays ? " (late)" : ""}` : m.phase === "finished" ? "FT" : m.phase === "break" ? (m.period === 1 ? `HT ${fmtTime(Math.max(0, (m.phaseUntil - s.tick) / 60))}` : "…") : clockLabel(m);
     const pens = m.shootout ? ` (${m.shootout.scored[0]}–${m.shootout.scored[1]})` : "";
-    const key = `${m.score[0]}–${m.score[1]}|${label}${pens}`;
-    if (key !== this.lastScore) { this.lastScore = key; $("sc").textContent = `${m.score[0]}–${m.score[1]}`; $("clock").textContent = label + pens; }
+    // A goal nobody with a whistle has given yet (no referee on the pitch) shows as a question mark.
+    const pend = pending(this.w), q = (i: 0 | 1) => (pend[i] ? "?" : "");
+    const key = `${m.score[0]}${q(0)}–${m.score[1]}${q(1)}|${label}${pens}`;
+    if (key !== this.lastScore) { this.lastScore = key; $("sc").textContent = `${m.score[0]}${q(0)}–${m.score[1]}${q(1)}`; $("clock").textContent = label + pens; }
     if (!pc) return;
     $("money").textContent = `£${pc.money}`;
     const area = areaAt(pc.x, pc.y);

@@ -174,6 +174,17 @@ const QF_WALLS: Wall[] = [
 
 /** Street furniture you bump into: queue barriers, bins, bollards, lamp posts, the vans. */
 const prop = (cx: number, cy: number, w: number, h: number, h3 = 1): Wall => ({ x: cx - w / 2, y: cy - h, w, h, h3, colour: 0x555555, top: 0x777777, prop: true });
+/** The hydration plant (scheme_special.ts): a cartoon manifold in the top corner of the pub yard, beside
+ *  where the coach drops Grozz, so it's in the first frame. Quarter-final coordinates (the semi-final
+ *  mirrors them like everything else). `home` and `away` are the hatches on its south face; the legs are
+ *  where the two pipes go into the ground (north towards the stadium, east towards the hotel); `dock` is
+ *  where the visitors' line comes up at the hotel, `homeEnd` where England's does in their dressing room. */
+export const PLANT = {
+  x0: -25.7, y0: 64.2, x1: -23.5, y1: 65.3,
+  home: { x: -25.15, y: 65.3 }, away: { x: -24.05, y: 65.3 }, crate: { x: -24.6, y: 65.6 },
+  homeLeg: { x: -25.15, y: 62.3 }, awayLeg: { x: -22.3, y: 64.75 },
+  dock: { x: 75.05, y: -13.2 }, homeEnd: { x: -24.5, y: -58.5 },
+};
 const QF_PROPS: Wall[] = [
   ...[-9, -3, 3, 9].map((x) => prop(x, 50.6, 2.4, 0.3)),
   ...[-52, -39, -26, -13, 13, 26, 39, 52].map((x) => prop(x, 60.7, 0.4, 0.4)),
@@ -181,6 +192,10 @@ const QF_PROPS: Wall[] = [
   prop(-2, 73.5, 0.9, 0.7), prop(23.6, 73.5, 0.9, 0.7), prop(-33, 81.7, 0.9, 0.7), prop(45.6, 73.5, 0.9, 0.7),
   prop(46, 53, 6.2, 2.2, 2.6), prop(32, 55.6, 5.6, 2.2, 2.4),
   prop(-34, 50, 2.2, 0.9), prop(-30, 83.4, 1.2, 1.1, 2.5),
+  // The hydration plant: its body, the foot of each pipe, and the visitors' crate on the hotel's dock.
+  prop((PLANT.x0 + PLANT.x1) / 2, PLANT.y1, PLANT.x1 - PLANT.x0, PLANT.y1 - PLANT.y0, 2),
+  prop(PLANT.homeLeg.x, PLANT.homeLeg.y + 0.3, 0.6, 0.6, 2), prop(PLANT.awayLeg.x, PLANT.awayLeg.y + 0.3, 0.6, 0.6, 2),
+  prop(PLANT.dock.x + 0.05, PLANT.dock.y + 0.1, 1.5, 0.9, 1.2),
 ];
 
 /** Furniture and street dressing: a picture (by name) standing with its base on y, and, if `solid`,

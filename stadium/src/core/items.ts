@@ -79,6 +79,11 @@ export const ITEM_DEFS: Record<string, ItemDef> = Object.fromEntries(
     { id: "face", name: "Somebody's face", props: ["wearable", "grisly"], size: "small", slot: "face", colour: 0xe0a890, faceCover: 0 },
     { id: "hands", name: "Somebody's hands", props: ["grisly"], size: "small", colour: 0xe0a890 },
     { id: "locker", name: "Confiscation locker", props: ["container"], size: "huge", colour: 0x555b66 },
+    // Tokens for the hydration plant (scheme_special.ts). Game pieces, not chemistry: each is one football state.
+    { id: "rocket_tonic", name: "Rocket Tonic", props: [], size: "small", price: 4, colour: 0xe8452a },
+    { id: "sleepy_syrup", name: "Sleepy Syrup", props: [], size: "small", price: 5, colour: 0x7a4ac8 },
+    { id: "dodgy_electrolytes", name: "Dodgy Electrolytes", props: [], size: "small", price: 3, colour: 0x2ac8c0 },
+    { id: "ronson_filth", name: "Ronson Filth", props: [], size: "small", colour: 0x6a4a1e },
   ] as ItemDef[]).map((d) => [d.id, d]),
 );
 

@@ -72,6 +72,7 @@ import { playOpening } from "./opening";
 import { assetURL, loadPacks } from "./packs";
 import { ROOM_WALLS } from "./world";
 import { Stage3D } from "./three/stage";
+import { drawHydro, hydroEvent } from "./hydroView";
 import type { Paint3D } from "./three/gfx";
 import { PITCH as PITCH3, YAW as YAW3, forced3D, proven3D, remember3D, want3D } from "./three/cam";
 import { CAP, ensureFloor, setQuietFloors, ensureMaterials, facade, floodlight, matOf, adBoard, banner, pixelText as pixelTextOn, PPM, roof, TILE_FILES, type BuildingSpec } from "./build";
@@ -111,7 +112,7 @@ const esc = (t: string) => t.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&l
 interface TickerLine { text: string; src: string; big: boolean }
 
 /** A PixelLab picture of an item, if there is one. */
-const ICONS = new Set(["keg", "flask", "match_ball", "boot_bag", "brick", "fart_can", "rifle", "burner", "warrant_card", "pint", "pie", "knife", "whistle", "ticket", "wallet", "laxative", "powder", "shirt_eng", "shirt_por", "shirt_bra", "shirt_arg", "police_uniform", "kit_eng", "kit_opp",
+const ICONS = new Set(["rocket_tonic", "sleepy_syrup", "dodgy_electrolytes", "ronson_filth", "keg", "flask", "match_ball", "boot_bag", "brick", "fart_can", "rifle", "burner", "warrant_card", "pint", "pie", "knife", "whistle", "ticket", "wallet", "laxative", "powder", "shirt_eng", "shirt_por", "shirt_bra", "shirt_arg", "police_uniform", "kit_eng", "kit_opp",
   "staff_pass", "radio", "hivis", "ref_kit", "police_hat", "mask", "flat_cap", "sunglasses", "moustache", "tracksuit", "chef_whites", "overalls", "balaclava", "hammer", "flare", "betslip", "face", "hands", "censored_bar", "wrench", "kit_card", "parachute", "mascot_suit", "press_pass", "bottle", "pint_glass", "chair", "corner_flag", "wig", "long_wig", "dress", "pool_cue", "bicycle"]);
 interface RingItem { label: string; icon: string; kind: string; item?: string; arg?: string; main?: boolean; glyph?: string; opt?: Option }
 const icon = (def: string) => (ICONS.has(def) ? `<img class="ico" src="${assetURL(`icons/${def}.png`)}" alt="" onerror="this.remove()">` : `<span class="ico none"></span>`);
@@ -320,6 +321,7 @@ class StadiumScene extends Phaser.Scene {
       this.machineEvent(e);
       this.schemeEvent(e);
       this.missionEvent(e);
+      hydroEvent(this, e);
       if (this.pt) { const sa = e.type === "say" ? this.s.actors[e.by] : null; this.pt.event(e, this.s.stadium!.pc, !sa || !this.pc || Math.hypot(sa.x - this.pc.x, sa.y - this.pc.y) < 8); }
       if (e.type === "say" && e.by !== this.s.stadium!.pc) {
         // Only what is said close by, and only once.
@@ -2777,6 +2779,7 @@ class StadiumScene extends Phaser.Scene {
       const here = pc ? areaAt(pc.x, pc.y) : null;
       this.drawRigs();
       this.drawBeer();
+      drawHydro(this);
       this.drawFaces();
       this.drawBoards();
       this.drawEdgePips();

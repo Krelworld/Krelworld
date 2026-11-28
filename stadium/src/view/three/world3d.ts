@@ -12,6 +12,7 @@ import { Builder, setYS, type V3 } from "./mesh";
 import { Atlas, BRICK_DARK, BRICK_RED, BRICK_STOCK, H, PXM, brick, grain, pixText, rect, rng, weather, type BrickPal, type Region } from "./paint";
 import { buildInteriors, wallPlan } from "./interiors";
 import { buildStands, Stands } from "./stands";
+import { buildHydro } from "./hydro";
 import { awning, buildDressing, cabinDressing, flatRoofClutter, groundPaint, hotelDressing, pubDressing, shopFrontDressing, shopSide } from "./dressing";
 
 export interface WorldHost {
@@ -84,6 +85,7 @@ export class World3D {
     safe("stands", () => { this.stands = buildStands(this); });
     safe("interiors", () => buildInteriors(this));
     safe("dressing", () => buildDressing(this));
+    safe("hydro", () => buildHydro(this));
     groundPaint(this);
     this.cropAtlas();
     this.atlasTex.needsUpdate = true;

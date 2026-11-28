@@ -45,6 +45,7 @@ import { installReferee } from "./scheme_referee";
 import { installTwelfth } from "./scheme_twelfth";
 import { installDrugs } from "./scheme_drugs";
 import { installBribe } from "./scheme_bribe";
+import { installSpecial } from "./scheme_special";
 import { installSocial, installSocialWatch, stepSocial } from "./social";
 import { installBallOut, installBallWatch, stepBallOut } from "./ballout";
 import { spawnBootBag, stepBootBag } from "./bootbag";
@@ -80,7 +81,7 @@ export const HALF_SECONDS = 450;
 export const HALFTIME_SECONDS = 150;
 
 export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: Campaign = newCampaign()): Game {
-  if (!rulesInstalled) { installSchemes(); installMissions(); installVisitors(); installReferee(); installTwelfth(); installDrugs(); installBribe(); installRules(); installBetting(); installPolice(); installBus(); installDog(); installKickoff(); installKnife(); installGloryHole(); installCombat(); installHorse(); installRoutes(); installEntries(); installDetector(); installCoverup(); installBike(); installLech(); installCars(); installWitness(); installPhone(); installNaked(); installRoofs(); installKegs(); installRigs(); installMachineVerbs(); installBelief(); installBeer(); installSocial(); installCustody(); installBallOut(); installCoke(); rulesInstalled = true; }
+  if (!rulesInstalled) { installSchemes(); installMissions(); installVisitors(); installReferee(); installTwelfth(); installDrugs(); installBribe(); installSpecial(); installRules(); installBetting(); installPolice(); installBus(); installDog(); installKickoff(); installKnife(); installGloryHole(); installCombat(); installHorse(); installRoutes(); installEntries(); installDetector(); installCoverup(); installBike(); installLech(); installCars(); installWitness(); installPhone(); installNaked(); installRoofs(); installKegs(); installRigs(); installMachineVerbs(); installBelief(); installBeer(); installSocial(); installCustody(); installBallOut(); installCoke(); rulesInstalled = true; }
   setVenue(venueId);
   setKickoff(PACE.base);
   const oppKey = VENUE.opp;

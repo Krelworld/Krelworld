@@ -12,6 +12,7 @@
 //   do <number>              take one of the numbered actions on offer
 //   wait <seconds>           let time pass
 //   buy <name>               buy something from the shop you're stood at (its shelf is listed under the action)
+//   plan <id>                pin one of the plan cards; follow: walk to where the pinned step points
 import fs from "node:fs";
 import { createGame, stepGame } from "../../src/stadium/game";
 import { areaAt, setPace } from "../../src/stadium/layout";
@@ -102,6 +103,9 @@ for (const c of cmds) {
   else if (v === "goto") { const t = things[Number(a1) - 1]; if (t) walkTo(t.x, t.y); else log.push("(nothing with that number)"); }
   else if (v === "do") { const o = ((globalThis as any).__opts ?? [])[Number(a1) - 1]; if (!o) log.push("(no such action)"); else if (o.sheet) log.push(`(That opens a menu: ${o.sheet.kind}. Not available in text play; try another action.)`); else { const r = dispatch(w, o.action); log.push(r.ok ? `You: ${o.label}.` : `Couldn't: ${r.reason}`); step(60); } }
   else if (v === "wait") step(Math.min(120, Number(a1) || 5) * 60);
+  // The plan at the top of the screen: pick one of the cards ("plan getin"), or walk to where the pinned step points ("follow").
+  else if (v === "plan") { const r = dispatch(w, { verb: "mission", actor: p.id, arg: a1 }); log.push(r.ok ? `Pinned: ${a1}.` : `Couldn't: ${r.reason}`); step(30); }
+  else if (v === "follow") { const pl = pinned(w); if (pl?.where) { walkTo(pl.where.x, pl.where.y, 90); step(30); } else log.push("(the pinned step doesn't point anywhere)"); }
   else if (v === "buy") {
     const who = s.actors[(globalThis as any).__shop ?? ""], name = c.slice(4).trim().toLowerCase(), stock = who?.npc?.shop ? SHOPS[who.npc.shop]?.stock ?? {} : {};
     const def = Object.keys(stock).find((d) => (ITEM_DEFS[d]?.name ?? d).toLowerCase().includes(name));

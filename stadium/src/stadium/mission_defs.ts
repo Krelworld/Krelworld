@@ -14,6 +14,7 @@ import type { World } from "../core/world";
 import type { Actor, Item } from "../core/types";
 import { hasProp } from "../core/items";
 import { areaAt, PACE, SPOTS, VENUE } from "./layout";
+import { theirKeeper } from "./fixes";
 import { hoseAt, hoseWatched } from "./beer";
 import { SHOPS } from "./rules";
 import { defineMission } from "./missions";
@@ -247,5 +248,90 @@ export function installMissionDefs(): void {
     },
   });
 
+
+  // -------------------------------------------------------------------------------------------------------
+  // A RANDOM DRUGS TEST. The gear, a man on the team sheet to carry it, and a copper with a name.
+  const powder = (w: World) => holds(w, "powder");
+  const ricky = (w: World) => shopkeeper(w, "dealer");
+  const bootBag = (w: World) => Object.values(w.state.items).find((i) => i.def === "boot_bag");
+  const copper = (w: World) => nearest(pcOf(w), Object.values(w.state.actors).filter((a) => a.npc?.job === "police" && !a.dead && a.downUntil <= w.state.tick));
+  defineMission({
+    id: "drugs", scheme: "drugs", title: "A Random Drugs Test",
+    goal: "Put Ricky's powder on one of theirs and tell a copper where to look.",
+    buys: "Their number ten's led off the pitch in his boots. Put it on the wrong man and it's ours.",
+    zone: "out", rank: 3, on: () => PACE.calm,
+    stages: [
+      { text: "Get Ricky's number off the wall in the pub gents",
+        // (Just inside the door: the middle of the room is a row of sinks.)
+        where: () => ({ x: -55.5, y: 67 }),
+        done: (w, sc) => !!stOf(w).flags.contact_dealer || !!powder(w) || !!sc?.met.on || !!sc?.vars.placed },
+      { text: "Ring Spliff Ricky on your phone (the ☎ at the top)",
+        done: (w, sc) => !!ricky(w) || !!powder(w) || !!sc?.met.on || !!sc?.vars.placed },
+      { text: "Buy the powder off Ricky (£30)",
+        where: (w) => at(ricky(w)),
+        done: (w, sc) => !!powder(w) || !!sc?.met.on || !!sc?.vars.placed },
+      { text: "Zip the gear into the boot bag by their coach",
+        where: (w) => { const b = bootBag(w); return b?.loc.k === "ground" ? at(b.loc) : b?.loc.k === "hand" ? at(w.state.actors[b.loc.a]) : null; },
+        done: (_w, sc) => !!sc?.met.on || !!sc?.vars.placed },
+      { text: "Tip off a copper about whose bag it is",
+        where: (w) => at(copper(w)),
+        done: (_w, sc) => !!sc?.met.told || !!sc?.variant },
+      { text: "Watch him get his pockets turned out",
+        done: (_w, sc) => !!sc?.variant },
+    ],
+    over: (_w, sc) => !!sc?.done,
+    dead: (w) => fullTime(w),
+    with: {
+      special: "A wired side with its best man in a police van.",
+      referee: "A copper won't walk on till the ball's dead. A referee can stop it.",
+      twelfth: "A man led off leaves a shirt going spare.",
+    },
+  });
+
+  // -------------------------------------------------------------------------------------------------------
+  // A WORD IN HIS EAR. Three men at every match are for sale. The cheapest is inside, and twenty quid.
+  const bribeVars = (w: World) => schemeState(w, "bribe")?.vars ?? {};
+  const keeper = (w: World) => theirKeeper(w);
+  defineMission({
+    id: "fourth", scheme: "bribe", title: "The Man with the Board",
+    goal: "The fourth official's on forty quid a match. Twenty buys him.",
+    buys: "He stops counting heads at restarts, and backs whichever referee paid him.",
+    zone: "in", rank: 3, on: () => PACE.calm,
+    stages: [
+      { text: "Find the fourth official: he's in the gents before kick-off",
+        where: (w) => at(fourth(w)),
+        done: (w) => !!bribeVars(w).fourthPaid || (up(w, fourth(w)) && dist(pcOf(w), fourth(w)) < 3) },
+      { text: "Slip the fourth official a note (£20), nobody listening",
+        where: (w) => at(fourth(w)),
+        done: (w) => !!bribeVars(w).fourthPaid },
+    ],
+    dead: (w) => fullTime(w) ?? (!up(w, fourth(w)) && !bribeVars(w).fourthPaid ? "He's in no state to take it." : null),
+    with: {
+      twelfth: "Twelve men look like eleven to a man who's been paid not to count.",
+      referee: "Two referees arguing. He'll say it's the fat one.",
+    },
+  });
+  defineMission({
+    id: "bribe", scheme: "bribe", title: "A Quiet Word",
+    goal: "Their keeper's pawned his watch and owes half the bookies in town. A hundred.",
+    buys: "The first shot on his goal, he's looking at his watch. Ask an honest man and you're wanted.",
+    zone: "out", rank: 7, on: () => PACE.calm,
+    stages: [
+      { text: "Get a hundred quid together: pawn it, win it, lift it",
+        where: (w) => at(shopkeeper(w, "pawn")),
+        done: (w) => pcOf(w).money >= 100 || !!bribeVars(w).keeperPaid },
+      { text: "Find their keeper: far corner of the hotel lobby",
+        where: (w) => at(keeper(w)),
+        done: (w) => !!bribeVars(w).keeperPaid || (!!keeper(w) && dist(pcOf(w), keeper(w)!) < 3) },
+      { text: "Offer him money when he's on his own",
+        where: (w) => at(keeper(w)),
+        done: (w) => !!bribeVars(w).keeperPaid },
+    ],
+    dead: (w) => fullTime(w) ?? (inPlay(w) && !bribeVars(w).keeperPaid ? "He's on the pitch now. Too late for a word." : null),
+    with: {
+      special: "A wired side in front of a keeper who's looking at his watch.",
+      drugs: "Their ten in a van and their keeper in your pocket.",
+    },
+  });
 }
 

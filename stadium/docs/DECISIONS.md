@@ -1901,3 +1901,54 @@ Kept from every earlier round: the four shared rules frozen, the one doorway int
 says what it does, the text budget, the cause graph.
 
 Still owed, and only a person can supply it: the five-first-time-players gate on page 22.
+
+## Round: Option E merged, and quieter (28 Nov, early hours)
+
+The creator, playing the 3D build: "Make sure there's not too much visual noise. Tone down the obnoxious
+sound effects too, there are so many and they just play on repeat... the main annoying sound is that tannoy
+jingle and also people saying the same thing on repeat in certain alert situations. And I think attacking
+should be easier." And: this is all for the first match; the other two come later.
+
+Measured first (`tools/qa/sounds.py` on a scripted session, `tools/qa/scenarios/noise.json`): 216 sounds
+asked for in twelve and a half minutes, of which 78 were the dog (tied up where Grozz starts), 25 car
+horns and 22 the tannoy jingle, which was also the "ding" for every notebook tick. After: 78 sounds on the
+same script. (The first figure counted requests the repeat guard would have dropped; the second counts
+what would be heard, so the true drop is smaller than it looks, though the dog, the horns and the jingle
+account for most of it.)
+
+1. **No jingle.** The tannoy is the voice alone, twenty seconds apart at least; "an incident" is read out
+   once in two minutes, not at every punch. The game's own confirmations are a soft synthesised note.
+2. **Nobody says what's just been said** (`say` in npc.ts, game build only): a shout isn't heard again
+   from anyone for twelve seconds, any other line for four. Witnesses have five ways of saying it and say
+   it a third as often; a steward doesn't say "Stop wriggling!" at every wriggle; a voiced line isn't
+   voiced again for twenty-five seconds; Grozz narrates one punch in three.
+3. **Alarm-type sounds are spaced out and turned down** (sting, radio, scream, horns, the refusal buzz),
+   and the dog is heard every ten to twenty seconds on his post instead of every two to four.
+4. **A punch button whenever somebody's within a few steps.** It picks whoever he's facing, walks him in
+   and lands it. Hold for a haymaker, as before.
+5. **Four seconds.** Nobody lays a hand on Grozz in the first four seconds after clocking him (a copper at
+   his elbow had him in the cabin 1.9 seconds after one punch). He outruns them (7.3 against 5.0).
+6. **One piece of writing in the world at a time.** No board while a hint line, a strip line, a mutter or
+   the opening banner is up; the keg's opening line waits half a minute while another plan is pinned.
+
+Merged from four helpers' branches, each cut off mid-task and checked here before merging (each type-checks
+and passes its own tests; 79 tests pass on the merged game):
+- **The Visitors' Special** (`scheme_special.ts`): the hydration plant in the pub yard, HOME and VISITORS
+  pipes, tokens (Rocket Tonic, Sleepy Syrup, Dodgy Electrolytes, Powder, Ronson Filth), a lever to undo a
+  mistake, the cut to the hotel dock, the state written when the drinks are served. Six steps, under three
+  minutes. A second card, Home Advantage, on England's pipe.
+- **Plan cards** (`mission_defs.ts`): Get in, A Keg for the Visitors, Whistleblower, Twelfth Man; then, by
+  hand, A Random Drugs Test, The Man with the Board (the fourth official, twenty quid) and A Quiet Word
+  (their keeper, a hundred).
+- **Football states made real** (`fstates.ts`, `src/football/*`): the match reads the states; twelve named
+  combinations; no referee on the pitch is a state of its own with pending goals (a "?" on the scoreboard).
+  NOT yet proved by a test of its own that each state changes the football in the direction it says; the
+  existing football tests pass with no states in force.
+- **Interferences** (`pranks.ts`): about twenty one-tap things round the ground (bins, signs, the van's
+  tyre, the phone box, SOLD OUT, the pub's fuse, bunting, the TV truck, a kebab for the police horse, the
+  skip, the lager, the tannoy, the floodlight fuse, sprinklers, the scoreboard, a second ball, a hoarding,
+  the medics, their tactics board, the gents).
+
+Still owed: a test that each football state does what it says; the inside cards (referee, twelfth man)
+walked end to end by a scripted player; referee and footballer modes with the big three-choice buttons;
+and five people who have never seen the game.
